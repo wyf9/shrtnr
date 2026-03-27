@@ -1,0 +1,238 @@
+// Copyright 2025 Oddbit (https://oddbit.id)
+// SPDX-License-Identifier: Apache-2.0
+
+import { Env, Link, Slug, LinkWithSlugs, ClickStats, DashboardStats } from "./types";
+
+export async function findSlugByValue(db: D1Database, slug: string): Promise<(Slug & { url: string; expires_at: number | null }) | null> {
+  const result = await db
+    .prepare(
+      "SELECT s.*, l.url, l.expires_at FROM slugs s JOIN links l ON s.link_id = l.id WHERE s.slug = ?"
+    )
+    .bind(slug)
+    .first<Slug & { url: string; expires_at: number | null }>();
+  return result;
+}
+
+export async function incrementClickCount(db: D1Database, slugId: number): Promise<void> {
+  await db
+    .prepare("UPDATE slugs SET click_count = click_count + 1 WHERE id = ?")
+    .bind(slugId)
+    .run();
+}
+
+export async function getAllLinks(db: D1Database): Promise<LinkWithSlugs[]> {
+  const links = await db
+    .prepare("SELECT * FROM links ORDER BY created_at DESC")
+    .all<Link>();
+  const slugs = await db
+    .prepare("SELECT * FROM slugs ORDER BY is_vanity ASC, created_at ASC")
+    .all<Slug>();
+
+  return (links.results ?? []).map((link) => {
+    const linkSlugs = (slugs.results ?? []).filter((s) => s.link_id === link.id);
+    return {
+      ...link,
+      slugs: linkSlugs,
+      total_clicks: linkSlugs.reduce((sum, s) => sum + s.click_count, 0),
+    };
+  });
+}
+
+export async function getLinkById(db: D1Database, id: number): Promise<LinkWithSlugs | null> {
+  const link = await db
+    .prepare("SELECT * FROM links WHERE id = ?")
+    .bind(id)
+    .first<Link>();
+  if (!link) return null;
+
+  const slugs = await db
+    .prepare("SELECT * FROM slugs WHERE link_id = ? ORDER BY is_vanity ASC, created_at ASC")
+    .bind(id)
+    .all<Slug>();
+
+  const linkSlugs = slugs.results ?? [];
+  return {
+    ...link,
+    slugs: linkSlugs,
+    total_clicks: linkSlugs.reduce((sum, s) => sum + s.click_count, 0),
+  };
+}
+
+export async function createLink(
+  db: D1Database,
+  url: string,
+  slug: string,
+  label?: string | null,
+  vanitySlug?: string | null,
+  expiresAt?: number | null
+): Promise<LinkWithSlugs> {
+  const now = Math.floor(Date.now() / 1000);
+
+  const linkResult = await db
+    .prepare("INSERT INTO links (url, label, created_at, expires_at) VALUES (?, ?, ?, ?)")
+    .bind(url, label ?? null, now, expiresAt ?? null)
+    .run();
+
+  const linkId = linkResult.meta.last_row_id as number;
+
+  await db
+    .prepare("INSERT INTO slugs (link_id, slug, is_vanity, click_count, created_at) VALUES (?, ?, 0, 0, ?)")
+    .bind(linkId, slug, now)
+    .run();
+
+  if (vanitySlug) {
+    await db
+      .prepare("INSERT INTO slugs (link_id, slug, is_vanity, click_count, created_at) VALUES (?, ?, 1, 0, ?)")
+      .bind(linkId, vanitySlug, now)
+      .run();
+  }
+
+  return (await getLinkById(db, linkId))!;
+}
+
+export async function updateLink(
+  db: D1Database,
+  id: number,
+  updates: { url?: string; label?: string | null; expires_at?: number | null }
+): Promise<LinkWithSlugs | null> {
+  const link = await db.prepare("SELECT * FROM links WHERE id = ?").bind(id).first<Link>();
+  if (!link) return null;
+
+  const url = updates.url ?? link.url;
+  const label = updates.label !== undefined ? updates.label : link.label;
+  const expiresAt = updates.expires_at !== undefined ? updates.expires_at : link.expires_at;
+
+  await db
+    .prepare("UPDATE links SET url = ?, label = ?, expires_at = ? WHERE id = ?")
+    .bind(url, label, expiresAt, id)
+    .run();
+
+  return getLinkById(db, id);
+}
+
+export async function deleteLink(db: D1Database, id: number): Promise<boolean> {
+  // Delete slugs first (D1 may not enforce FK cascades)
+  await db.prepare("DELETE FROM slugs WHERE link_id = ?").bind(id).run();
+  const result = await db.prepare("DELETE FROM links WHERE id = ?").bind(id).run();
+  return (result.meta.changes ?? 0) > 0;
+}
+
+export async function addVanitySlug(db: D1Database, linkId: number, slug: string): Promise<Slug> {
+  const now = Math.floor(Date.now() / 1000);
+  await db
+    .prepare("INSERT INTO slugs (link_id, slug, is_vanity, click_count, created_at) VALUES (?, ?, 1, 0, ?)")
+    .bind(linkId, slug, now)
+    .run();
+
+  return (await db
+    .prepare("SELECT * FROM slugs WHERE link_id = ? AND slug = ?")
+    .bind(linkId, slug)
+    .first<Slug>())!;
+}
+
+export async function removeVanitySlug(db: D1Database, linkId: number, slug: string): Promise<boolean> {
+  const result = await db
+    .prepare("DELETE FROM slugs WHERE link_id = ? AND slug = ? AND is_vanity = 1")
+    .bind(linkId, slug)
+    .run();
+  return (result.meta.changes ?? 0) > 0;
+}
+
+export async function slugExists(db: D1Database, slug: string): Promise<boolean> {
+  const row = await db
+    .prepare("SELECT 1 FROM slugs WHERE slug = ?")
+    .bind(slug)
+    .first();
+  return row !== null;
+}
+
+export async function getSetting(db: D1Database, key: string): Promise<string | null> {
+  const row = await db
+    .prepare("SELECT value FROM settings WHERE key = ?")
+    .bind(key)
+    .first<{ value: string }>();
+  return row?.value ?? null;
+}
+
+export async function setSetting(db: D1Database, key: string, value: string): Promise<void> {
+  await db
+    .prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?")
+    .bind(key, value, value)
+    .run();
+}
+
+// --- Click analytics ---
+
+export async function recordClick(
+  db: D1Database,
+  slugId: number,
+  referrer: string | null,
+  country: string | null,
+  deviceType: string | null,
+  browser: string | null
+): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  await Promise.all([
+    db
+      .prepare("INSERT INTO clicks (slug_id, clicked_at, referrer, country, device_type, browser) VALUES (?, ?, ?, ?, ?, ?)")
+      .bind(slugId, now, referrer, country, deviceType, browser)
+      .run(),
+    db
+      .prepare("UPDATE slugs SET click_count = click_count + 1 WHERE id = ?")
+      .bind(slugId)
+      .run(),
+  ]);
+}
+
+export async function getLinkClickStats(db: D1Database, linkId: number): Promise<ClickStats> {
+  const slugIds = await db
+    .prepare("SELECT id FROM slugs WHERE link_id = ?")
+    .bind(linkId)
+    .all<{ id: number }>();
+  const ids = (slugIds.results ?? []).map((r) => r.id);
+
+  if (ids.length === 0) {
+    return { total_clicks: 0, countries: [], referrers: [], devices: [], browsers: [], clicks_over_time: [] };
+  }
+
+  const placeholders = ids.map(() => "?").join(",");
+
+  const [totalRow, countries, referrers, devices, browsers, timeline] = await Promise.all([
+    db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE slug_id IN (${placeholders})`).bind(...ids).first<{ cnt: number }>(),
+    db.prepare(`SELECT country as name, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) AND country IS NOT NULL GROUP BY country ORDER BY count DESC LIMIT 10`).bind(...ids).all<{ name: string; count: number }>(),
+    db.prepare(`SELECT referrer as name, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) AND referrer IS NOT NULL GROUP BY referrer ORDER BY count DESC LIMIT 10`).bind(...ids).all<{ name: string; count: number }>(),
+    db.prepare(`SELECT device_type as name, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) AND device_type IS NOT NULL GROUP BY device_type ORDER BY count DESC`).bind(...ids).all<{ name: string; count: number }>(),
+    db.prepare(`SELECT browser as name, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) AND browser IS NOT NULL GROUP BY browser ORDER BY count DESC LIMIT 10`).bind(...ids).all<{ name: string; count: number }>(),
+    db.prepare(`SELECT date(clicked_at, 'unixepoch') as date, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) GROUP BY date ORDER BY date DESC LIMIT 30`).bind(...ids).all<{ date: string; count: number }>(),
+  ]);
+
+  return {
+    total_clicks: totalRow?.cnt ?? 0,
+    countries: countries.results ?? [],
+    referrers: referrers.results ?? [],
+    devices: devices.results ?? [],
+    browsers: browsers.results ?? [],
+    clicks_over_time: (timeline.results ?? []).reverse(),
+  };
+}
+
+export async function getDashboardStats(db: D1Database): Promise<DashboardStats> {
+  const [linkCount, clickCount, recentLinks, topCountries, topReferrers] = await Promise.all([
+    db.prepare("SELECT COUNT(*) as cnt FROM links").first<{ cnt: number }>(),
+    db.prepare("SELECT COUNT(*) as cnt FROM clicks").first<{ cnt: number }>(),
+    getAllLinks(db),
+    db.prepare("SELECT country as name, COUNT(*) as count FROM clicks WHERE country IS NOT NULL GROUP BY country ORDER BY count DESC LIMIT 5").all<{ name: string; count: number }>(),
+    db.prepare("SELECT referrer as name, COUNT(*) as count FROM clicks WHERE referrer IS NOT NULL GROUP BY referrer ORDER BY count DESC LIMIT 5").all<{ name: string; count: number }>(),
+  ]);
+
+  const sorted = [...recentLinks].sort((a, b) => b.total_clicks - a.total_clicks);
+
+  return {
+    total_links: linkCount?.cnt ?? 0,
+    total_clicks: clickCount?.cnt ?? 0,
+    recent_links: recentLinks.slice(0, 5),
+    top_links: sorted.slice(0, 5),
+    top_countries: topCountries.results ?? [],
+    top_referrers: topReferrers.results ?? [],
+  };
+}
