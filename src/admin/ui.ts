@@ -18,6 +18,8 @@ const ADMIN_HTML = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>shrtnr — Admin</title>
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -59,7 +61,13 @@ const ADMIN_HTML = `<!DOCTYPE html>
     .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; border-radius: var(--radius); color: var(--on-bg-muted); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); text-decoration: none; }
     .nav-item:hover { color: var(--on-bg); background: var(--surface); }
     .nav-item.active { color: var(--secondary); background: var(--secondary-container); }
-    .sidebar-user { padding: 0.75rem; border-radius: var(--radius); background: var(--surface); margin-top: auto; }
+    .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 0.75rem; }
+    .sidebar-user { padding: 0.75rem; border-radius: var(--radius); background: var(--surface); }
+    .sidebar-oddbit { text-align: center; padding: 0.75rem 0 0.25rem; }
+    .sidebar-oddbit a { display: inline-block; opacity: 0.5; transition: opacity 0.2s; }
+    .sidebar-oddbit a:hover { opacity: 0.8; }
+    .sidebar-oddbit svg { width: 80px; height: auto; }
+    .sidebar-oddbit .copyright { font-size: 0.65rem; color: var(--on-bg-muted); margin-top: 0.25rem; opacity: 0.5; }
     .sidebar-user-email { font-size: 0.75rem; color: var(--on-bg-muted); word-break: break-all; }
     .sidebar-user-logout { font-size: 0.75rem; color: var(--primary); text-decoration: none; margin-top: 0.25rem; display: inline-block; }
     .sidebar-user-logout:hover { text-decoration: underline; }
@@ -212,9 +220,17 @@ const ADMIN_HTML = `<!DOCTYPE html>
       <span class="icon">settings</span> Settings
     </a>
   </div>
-  <div class="sidebar-user">
-    <div class="sidebar-user-email" id="user-email"></div>
-    <a href="/_/cdn-cgi/access/logout" class="sidebar-user-logout">Sign out</a>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user-email" id="user-email"></div>
+      <a href="/_/cdn-cgi/access/logout" class="sidebar-user-logout">Sign out</a>
+    </div>
+    <div class="sidebar-oddbit">
+      <a href="https://oddbit.id" target="_blank" rel="noopener" title="Oddbit">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2578.3 660.9"><path fill="#a7e3a1" d="M49.5,369.5c-1,7.6-1.9,18-1.9,36.2,0,108.5,88.6,199.9,191.5,199.9s185.6-85.7,185.6-196.2-81-192.3-194.2-192.3S55.2,288.5,27.6,319l56.1-110.5c33.3-22.9,95.2-46.7,151.4-46.7,136.1,0,248.6,112.3,248.6,249.5s-110.5,249.5-244.7,249.5S25.6,595.2,0,465.7l49.5-96.2Z"/><path fill="#a7e3a1" d="M521.8,411.3c0-141,112.3-243.7,227.6-243.7s108.5,18.2,143.8,43.8l36.2,71.4c-44.8-34.2-106.6-61.8-164.7-61.8-111.5,0-183.8,93.3-183.8,190.5s79,194.2,188.5,194.2,182.9-80,182.9-194.2V0h59.1v411.3c0,149.4-124.8,249.5-241.9,249.5s-247.6-110.5-247.6-249.5Z"/><path fill="#a7e3a1" d="M1060.6,411.3c0-141,112.3-243.7,227.6-243.7s108.5,18.2,143.8,43.8l36.2,71.4c-44.8-34.2-106.6-61.8-164.7-61.8-111.5,0-183.8,93.3-183.8,190.5s79,194.2,188.5,194.2,182.9-80,182.9-194.2V0h59.1v411.3c0,149.4-124.8,249.5-241.9,249.5s-247.6-110.5-247.6-249.5Z"/><path fill="#a7e3a1" d="M1614.7,411.3V0h59.1v411.3c0,114.2,90.5,194.2,182.9,194.2s188.5-91.3,188.5-194.2-72.4-190.5-183.8-190.5-119.9,27.6-164.7,61.8l36.2-71.4c35.2-25.6,85.7-43.8,143.8-43.8,115.2,0,227.6,102.9,227.6,243.7s-110.5,249.5-247.6,249.5-241.9-99.9-241.9-249.5v.2Z"/><path fill="#a7e3a1" d="M2147.9,70.4c0-21.9,19-39.9,40.9-39.9s40.9,18.2,40.9,39.9-19,39.9-40.9,39.9-40.9-18.2-40.9-39.9ZM2159.2,647.5V175.2h59.1v472.3h-59.1Z"/><path fill="#a7e3a1" d="M2286.8,464.7V187.5l59.1-61.8v315.1c0,102.9,55.2,164.7,140,164.7s64.7-8.6,92.3-26.6v53.4c-27.6,20-60,28.6-97.2,28.6-106.6,0-194.2-84.7-194.2-196.2ZM2365,230.4l28.6-55.2h184.8v55.2h-213.4Z"/></svg>
+      </a>
+      <div class="copyright" id="copyright-year"></div>
+    </div>
   </div>
 </nav>
 
@@ -267,7 +283,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
           <input class="form-input" type="number" id="slug-length-input" min="3" value="3" style="width:80px">
           <button class="btn btn-secondary btn-sm" onclick="saveSettings()">Save</button>
         </div>
-        <div style="font-size:0.75rem;color:var(--on-bg-muted);margin-top:0.4rem">Minimum length is 3 characters.</div>
+        <div style="font-size:0.75rem;color:var(--on-bg-muted);margin-top:0.4rem" id="slug-combo-hint"></div>
       </div>
     </div>
   </div>
@@ -292,6 +308,7 @@ let dashboardData = null;
 let currentView = 'dashboard';
 
 document.getElementById('user-email').textContent = CURRENT_USER;
+document.getElementById('copyright-year').textContent = '\\u00A9 ' + new Date().getFullYear();
 
 // ---- Navigation ----
 function switchView(view) {
@@ -624,8 +641,19 @@ async function loadSettings() {
   if (res.ok) {
     const data = await res.json();
     document.getElementById('slug-length-input').value = data.slug_default_length;
+    updateComboHint();
   }
 }
+
+function updateComboHint() {
+  const len = parseInt(document.getElementById('slug-length-input').value) || 3;
+  const combos = Math.pow(56, Math.max(len, 3));
+  document.getElementById('slug-combo-hint').textContent = len >= 3
+    ? combos.toLocaleString() + ' possible combinations'
+    : 'Minimum length is 3 characters';
+}
+
+document.getElementById('slug-length-input').addEventListener('input', updateComboHint);
 
 async function saveSettings() {
   const val = parseInt(document.getElementById('slug-length-input').value);
