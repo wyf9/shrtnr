@@ -110,11 +110,12 @@ export async function updateLink(
   return getLinkById(db, id);
 }
 
-export async function deleteLink(db: D1Database, id: number): Promise<boolean> {
-  // Delete slugs first (D1 may not enforce FK cascades)
-  await db.prepare("DELETE FROM slugs WHERE link_id = ?").bind(id).run();
-  const result = await db.prepare("DELETE FROM links WHERE id = ?").bind(id).run();
-  return (result.meta.changes ?? 0) > 0;
+export async function disableLink(db: D1Database, id: number): Promise<LinkWithSlugs | null> {
+  const link = await db.prepare("SELECT * FROM links WHERE id = ?").bind(id).first<Link>();
+  if (!link) return null;
+  const now = Math.floor(Date.now() / 1000);
+  await db.prepare("UPDATE links SET expires_at = ? WHERE id = ?").bind(now, id).run();
+  return getLinkById(db, id);
 }
 
 export async function addVanitySlug(db: D1Database, linkId: number, slug: string): Promise<Slug> {

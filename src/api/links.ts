@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Env } from "../types";
-import { getAllLinks, getLinkById, createLink, updateLink, deleteLink, getSetting } from "../db";
+import { getAllLinks, getLinkById, createLink, updateLink, disableLink, getSetting } from "../db";
 import { generateUniqueSlug, validateVanitySlug, validateSlugLength } from "../slugs";
 import { slugExists } from "../db";
 
@@ -114,8 +114,8 @@ export async function handleUpdateLink(request: Request, env: Env, id: number): 
   return json(link);
 }
 
-export async function handleDeleteLink(env: Env, id: number): Promise<Response> {
-  const deleted = await deleteLink(env.DB, id);
-  if (!deleted) return json({ error: "Link not found" }, 404);
-  return json({ success: true });
+export async function handleDisableLink(env: Env, id: number): Promise<Response> {
+  const link = await disableLink(env.DB, id);
+  if (!link) return json({ error: "Link not found" }, 404);
+  return json(link);
 }

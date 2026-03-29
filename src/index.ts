@@ -5,7 +5,7 @@ import { Env } from "./types";
 import { handleRedirect } from "./redirect";
 import { getAuthenticatedEmail, unauthorizedResponse } from "./auth";
 import { handleHealth } from "./api/health";
-import { handleListLinks, handleGetLink, handleCreateLink, handleUpdateLink, handleDeleteLink } from "./api/links";
+import { handleListLinks, handleGetLink, handleCreateLink, handleUpdateLink, handleDisableLink } from "./api/links";
 import { handleAddVanitySlug, handleRemoveVanitySlug } from "./api/slugs";
 import { handleGetSettings, handleUpdateSettings } from "./api/settings";
 import { handleDashboardStats, handleLinkAnalytics } from "./api/analytics";
@@ -94,7 +94,13 @@ async function handleApiRoute(request: Request, env: Env, path: string): Promise
     const id = parseInt(linkMatch[1], 10);
     if (method === "GET") return handleGetLink(env, id);
     if (method === "PUT") return handleUpdateLink(request, env, id);
-    if (method === "DELETE") return handleDeleteLink(env, id);
+  }
+
+  // POST /_/api/links/:id/disable
+  const disableMatch = path.match(/^\/_\/api\/links\/(\d+)\/disable$/);
+  if (disableMatch && method === "POST") {
+    const id = parseInt(disableMatch[1], 10);
+    return handleDisableLink(env, id);
   }
 
   // GET /_/api/links/:id/analytics
