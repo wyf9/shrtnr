@@ -618,7 +618,7 @@ async function showDetail(id) {
   if (!isExpired) {
     html += '<button class="btn btn-danger btn-sm" onclick="disableLink(' + id + ')"><span class="icon">block</span> Disable</button>';
   } else {
-    html += '<span style="display:inline-block;background:var(--danger);color:#fff;font-size:0.7rem;font-weight:700;padding:0.3rem 0.7rem;border-radius:var(--radius);text-transform:uppercase;letter-spacing:0.05em">Disabled</span>';
+    html += '<button class="btn btn-secondary btn-sm" onclick="enableLink(' + id + ')"><span class="icon">check_circle</span> Enable</button>';
   }
   html += '</div></div>';
 
@@ -652,7 +652,9 @@ async function showDetail(id) {
   html += '</div>';
   // Expires at
   html += '<div style="flex:1;min-width:200px"><label class="form-label">Expires At</label>';
-  html += '<div style="display:flex;gap:0.5rem"><input class="form-input" id="detail-expires" type="datetime-local" value="' + expVal + '"><button class="btn btn-secondary btn-sm" onclick="saveDetailExpiry(' + id + ')">Save</button></div>';
+  html += '<div style="display:flex;gap:0.5rem"><input class="form-input" id="detail-expires" type="datetime-local" value="' + expVal + '">';
+  if (l.expires_at) html += '<button class="btn btn-ghost btn-sm" onclick="clearDetailExpiry(' + id + ')">Clear</button>';
+  html += '<button class="btn btn-secondary btn-sm" onclick="saveDetailExpiry(' + id + ')">Save</button></div>';
   html += '</div>';
   html += '</div></div>';
 
@@ -891,7 +893,7 @@ async function removeVanity(linkId, slug) {
   }
 }
 
-// ---- Disable ----
+// ---- Disable / Enable ----
 async function disableLink(id) {
   if (!confirm('Disable this link? It will stop redirecting immediately.')) return;
   const res = await api('/links/' + id + '/disable', { method: 'POST' });
@@ -900,6 +902,24 @@ async function disableLink(id) {
     await loadLinks();
     showDetail(id);
   } else toast('Failed to disable', 'error');
+}
+
+async function enableLink(id) {
+  const res = await api('/links/' + id, { method: 'PUT', body: JSON.stringify({ expires_at: null }) });
+  if (res.ok) {
+    toast('Link enabled');
+    await loadLinks();
+    showDetail(id);
+  } else toast('Failed to enable', 'error');
+}
+
+async function clearDetailExpiry(linkId) {
+  const res = await api('/links/' + linkId, { method: 'PUT', body: JSON.stringify({ expires_at: null }) });
+  if (res.ok) {
+    toast('Expiry cleared');
+    await loadLinks();
+    showDetail(linkId);
+  } else toast('Failed to clear expiry', 'error');
 }
 
 // ---- QR Code ----
