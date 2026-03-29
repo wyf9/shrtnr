@@ -186,6 +186,25 @@ const ADMIN_HTML = `<!DOCTYPE html>
     /* Toolbar */
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem; }
     .toolbar-count { color: var(--on-bg-muted); font-size: 0.875rem; }
+    .toolbar-sort { display: flex; gap: 0.25rem; }
+    .sort-btn { background: transparent; border: 2px solid var(--outline); border-radius: var(--radius); color: var(--on-bg-muted); font-family: var(--font-body); font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.6rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.3rem; }
+    .sort-btn:hover { border-color: var(--on-bg-muted); color: var(--on-bg); }
+    .sort-btn.active { border-color: var(--secondary); color: var(--secondary); }
+    .toggle-filter { display: flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none; }
+    .toggle-filter input { accent-color: var(--secondary); width: 14px; height: 14px; cursor: pointer; }
+    .toggle-filter-label { font-size: 0.75rem; color: var(--on-bg-muted); font-weight: 600; }
+    .link-disabled { opacity: 0.5; }
+    .link-date { font-size: 0.7rem; color: var(--on-bg-muted); margin-top: 0.2rem; }
+    .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 1.4rem; padding: 0.75rem 0; }
+    .pagination-pages { display: flex; gap: 0.25rem; }
+    .page-btn { background: transparent; border: 2px solid var(--outline); border-radius: var(--radius); color: var(--on-bg-muted); font-family: var(--font-body); font-size: 0.8rem; font-weight: 600; padding: 0.3rem 0.6rem; cursor: pointer; transition: all 0.2s; min-width: 2rem; text-align: center; }
+    .page-btn:hover { border-color: var(--on-bg-muted); color: var(--on-bg); }
+    .page-btn.active { border-color: var(--primary); color: var(--primary); }
+    .page-btn:disabled { opacity: 0.3; cursor: default; }
+    .per-page { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--on-bg-muted); }
+    .per-page-btn { background: transparent; border: none; color: var(--on-bg-muted); font-family: var(--font-body); font-size: 0.75rem; font-weight: 600; cursor: pointer; padding: 0.2rem 0.4rem; border-radius: var(--radius); }
+    .per-page-btn:hover { color: var(--on-bg); }
+    .per-page-btn.active { color: var(--secondary); }
 
     /* Empty state */
     .empty-state { text-align: center; padding: 4rem 2rem; color: var(--on-bg-muted); }
@@ -262,7 +281,17 @@ const ADMIN_HTML = `<!DOCTYPE html>
       <div class="page-subtitle">Manage all your short links</div>
     </div>
     <div class="toolbar">
-      <div class="toolbar-count" id="link-count"></div>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="toolbar-count" id="link-count"></div>
+        <div class="toolbar-sort">
+          <button class="sort-btn active" id="sort-recent" onclick="sortLinks('recent')"><span class="icon" style="font-size:16px">schedule</span> Recent</button>
+          <button class="sort-btn" id="sort-popular" onclick="sortLinks('popular')"><span class="icon" style="font-size:16px">trending_up</span> Popular</button>
+        </div>
+        <label class="toggle-filter" title="Include disabled links in the list">
+          <input type="checkbox" id="toggle-disabled" onchange="toggleShowDisabled(this.checked)">
+          <span class="toggle-filter-label">Show disabled</span>
+        </label>
+      </div>
       <button class="btn btn-primary" onclick="showCreateModal()">
         <span class="icon">add</span> New Link
       </button>
@@ -306,6 +335,10 @@ const CURRENT_USER = '__CURRENT_USER__';
 let links = [];
 let dashboardData = null;
 let currentView = 'dashboard';
+let linkSort = 'recent';
+let linkPage = 1;
+let linksPerPage = 25;
+let showDisabled = false;
 
 document.getElementById('user-email').textContent = CURRENT_USER;
 document.getElementById('copyright-year').textContent = '\\u00A9 ' + new Date().getFullYear();
@@ -470,20 +503,59 @@ async function loadLinks() {
   renderLinks();
 }
 
+function sortLinks(mode) {
+  linkSort = mode;
+  linkPage = 1;
+  document.getElementById('sort-recent').classList.toggle('active', mode === 'recent');
+  document.getElementById('sort-popular').classList.toggle('active', mode === 'popular');
+  renderLinks();
+}
+
+function toggleShowDisabled(checked) {
+  showDisabled = checked;
+  linkPage = 1;
+  renderLinks();
+}
+
+function setPage(p) { linkPage = p; renderLinks(); }
+
+function setPerPage(n) {
+  linksPerPage = n;
+  linkPage = 1;
+  renderLinks();
+}
+
+function formatDate(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 function renderLinks() {
   const el = document.getElementById('links-list');
-  document.getElementById('link-count').textContent = links.length + ' link' + (links.length !== 1 ? 's' : '');
+  const now = Math.floor(Date.now() / 1000);
+  const filtered = showDisabled ? links : links.filter(l => !l.expires_at || l.expires_at > now);
+  document.getElementById('link-count').textContent = filtered.length + ' link' + (filtered.length !== 1 ? 's' : '');
 
-  if (links.length === 0) {
-    el.innerHTML = '<div class="empty-state"><span class="icon">link_off</span><p>No links yet. Create one to get started.</p><button class="btn btn-primary" onclick="showCreateModal()"><span class="icon">add</span> New Link</button></div>';
+  if (filtered.length === 0) {
+    el.innerHTML = '<div class="empty-state"><span class="icon">link_off</span><p>' + (links.length > 0 ? 'All links are disabled. Toggle "Show disabled" to see them.' : 'No links yet. Create one to get started.') + '</p>' + (links.length === 0 ? '<button class="btn btn-primary" onclick="showCreateModal()"><span class="icon">add</span> New Link</button>' : '') + '</div>';
     return;
   }
 
+  const sorted = [...filtered].sort((a, b) =>
+    linkSort === 'popular' ? b.total_clicks - a.total_clicks : b.created_at - a.created_at
+  );
+
+  const totalPages = Math.ceil(sorted.length / linksPerPage);
+  if (linkPage > totalPages) linkPage = totalPages;
+  const start = (linkPage - 1) * linksPerPage;
+  const page = sorted.slice(start, start + linksPerPage);
+
   let html = '';
-  for (const link of links) {
+  for (const link of page) {
     const primary = link.slugs.find(s => !s.is_vanity);
     const vanity = link.slugs.filter(s => s.is_vanity);
-    html += '<div class="link-item" onclick="showDetail(' + link.id + ')">';
+    const disabled = link.expires_at && link.expires_at < now;
+    html += '<div class="link-item' + (disabled ? ' link-disabled' : '') + '" onclick="showDetail(' + link.id + ')">';
     html += '<div class="link-info">';
     html += '<div class="link-slugs">';
     if (primary) html += '<span class="slug-chip" onclick="event.stopPropagation();copyUrl(\\'' + primary.slug + '\\')" title="Click to copy">/' + esc(primary.slug) + ' <span class="icon">content_copy</span></span>';
@@ -493,11 +565,29 @@ function renderLinks() {
     html += '</div>';
     if (link.label) html += '<div class="link-label">' + esc(link.label) + '</div>';
     html += '<div class="link-url">' + esc(link.url) + '</div>';
+    html += '<div class="link-date">' + formatDate(link.created_at) + '</div>';
     html += '</div>';
     html += '<div class="link-meta">';
     html += '<div style="text-align:center"><div class="link-clicks">' + link.total_clicks + '</div><div class="link-clicks-label">clicks</div></div>';
     html += '</div></div>';
   }
+
+  if (totalPages > 1 || links.length > 25) {
+    html += '<div class="pagination">';
+    html += '<div class="pagination-pages">';
+    html += '<button class="page-btn" onclick="setPage(' + (linkPage - 1) + ')"' + (linkPage <= 1 ? ' disabled' : '') + '><span class="icon" style="font-size:16px">chevron_left</span></button>';
+    for (let p = 1; p <= totalPages; p++) {
+      html += '<button class="page-btn' + (p === linkPage ? ' active' : '') + '" onclick="setPage(' + p + ')">' + p + '</button>';
+    }
+    html += '<button class="page-btn" onclick="setPage(' + (linkPage + 1) + ')"' + (linkPage >= totalPages ? ' disabled' : '') + '><span class="icon" style="font-size:16px">chevron_right</span></button>';
+    html += '</div>';
+    html += '<div class="per-page">Show ';
+    [25, 50, 100].forEach(n => {
+      html += '<button class="per-page-btn' + (linksPerPage === n ? ' active' : '') + '" onclick="setPerPage(' + n + ')">' + n + '</button>';
+    });
+    html += '</div></div>';
+  }
+
   el.innerHTML = html;
 }
 
@@ -526,10 +616,19 @@ async function showDetail(id) {
   const shortUrl = location.origin + '/' + slug;
 
   let html = '';
-  html += '<div class="detail-header"><button class="detail-back" onclick="switchView(\\'links\\')"><span class="icon" style="font-size:24px">arrow_back</span></button><div class="page-title">Link Details</div><div style="margin-left:auto"><button class="btn btn-danger btn-sm" onclick="showDeleteConfirm(' + id + ')"><span class="icon">delete</span> Delete</button></div></div>';
+  const isExpired = l.expires_at && l.expires_at < Math.floor(Date.now() / 1000);
+  html += '<div class="detail-header"><button class="detail-back" onclick="switchView(\\'links\\')"><span class="icon" style="font-size:24px">arrow_back</span></button><div class="page-title">Link Details</div><div style="margin-left:auto">';
+  if (!isExpired) {
+    html += '<button class="btn btn-danger btn-sm" onclick="disableLink(' + id + ')"><span class="icon">block</span> Disable</button>';
+  } else {
+    html += '<span style="display:inline-block;background:var(--danger);color:#fff;font-size:0.7rem;font-weight:700;padding:0.3rem 0.7rem;border-radius:var(--radius);text-transform:uppercase;letter-spacing:0.05em">Disabled</span>';
+  }
+  html += '</div></div>';
 
   // Hero
-  html += '<div class="detail-hero"><div class="detail-short-url">' + esc(shortUrl) + '</div>';
+  html += '<div class="detail-hero">';
+  if (isExpired) html += '<div style="display:inline-block;background:var(--danger);color:#fff;font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:var(--radius);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em">Disabled</div>';
+  html += '<div class="detail-short-url"' + (isExpired ? ' style="opacity:0.4"' : '') + '>' + esc(shortUrl) + '</div>';
   html += '<div class="detail-dest">' + esc(l.url) + '</div>';
   if (l.label) html += '<div style="color:var(--secondary);font-size:0.85rem;margin-top:0.25rem">' + esc(l.label) + '</div>';
   html += '<div style="margin-top:0.75rem;display:flex;gap:0.5rem">';
@@ -795,25 +894,15 @@ async function removeVanity(linkId, slug) {
   }
 }
 
-// ---- Delete ----
-function showDeleteConfirm(id) {
-  const link = links.find(l => l.id === id);
-  if (!link) return;
-  openModal(
-    '<div class="modal-title">Delete Link</div>' +
-    '<p style="margin-bottom:1rem;color:var(--on-bg-muted)">Delete <strong style="color:var(--on-bg)">' + esc(link.url) + '</strong> and all its slugs? This cannot be undone.</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-danger" onclick="deleteLink(' + id + ')">Delete</button></div>'
-  );
-}
-
-async function deleteLink(id) {
-  const res = await api('/links/' + id, { method: 'DELETE' });
+// ---- Disable ----
+async function disableLink(id) {
+  if (!confirm('Disable this link? It will stop redirecting immediately.')) return;
+  const res = await api('/links/' + id + '/disable', { method: 'POST' });
   if (res.ok) {
-    closeModal();
-    toast('Link deleted');
-    loadLinks();
-    loadDashboard();
-  } else toast('Failed to delete', 'error');
+    toast('Link disabled');
+    await loadLinks();
+    showDetail(id);
+  } else toast('Failed to disable', 'error');
 }
 
 // ---- QR Code ----
