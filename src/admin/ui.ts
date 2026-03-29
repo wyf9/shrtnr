@@ -128,6 +128,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     .btn-danger { background: var(--danger); color: #fff; }
     .btn-danger:hover { filter: brightness(1.1); }
     .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+    .btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
     .btn-lg { padding: 0.75rem 1.5rem; font-size: 1rem; }
 
     /* Hero input */
