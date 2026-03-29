@@ -3,7 +3,8 @@
 
 import { slugExists } from "./db";
 
-const RANDOM_CHARSET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+// Unambiguous characters: removed I, O, l, o, 0, 1 to avoid confusion
+const RANDOM_CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
 const RANDOM_SLUG_REGEX = /^[a-zA-Z0-9]+$/;
 const VANITY_SLUG_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/;
 

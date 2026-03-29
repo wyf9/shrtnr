@@ -7,7 +7,7 @@
 ## Features
 
 - **Zero infrastructure** — runs entirely on Cloudflare's free tier (Workers + D1)
-- **Extremely short slugs** — 3-character random slugs by default (238,328 unique combinations)
+- **Extremely short slugs** — 3-character random slugs by default (175,616 unique combinations)
 - **Vanity slugs** — human-readable aliases like `/my-blog-post` alongside random slugs
 - **Click analytics** — per-click tracking with referrer, country, device, and browser
 - **Admin UI** — dashboard, link management, analytics charts, QR codes
