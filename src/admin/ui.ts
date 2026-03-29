@@ -194,6 +194,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     .toggle-filter input { accent-color: var(--secondary); width: 14px; height: 14px; cursor: pointer; }
     .toggle-filter-label { font-size: 0.75rem; color: var(--on-bg-muted); font-weight: 600; }
     .link-disabled { opacity: 0.5; }
+    .disabled-badge { display: inline-flex; align-items: center; gap: 0.2rem; background: var(--danger); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: var(--radius); text-transform: uppercase; letter-spacing: 0.05em; }
     .link-date { font-size: 0.7rem; color: var(--on-bg-muted); margin-top: 0.2rem; }
     .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 1.4rem; padding: 0.75rem 0; }
     .pagination-pages { display: flex; gap: 0.25rem; }
@@ -562,6 +563,7 @@ function renderLinks() {
     vanity.forEach(v => {
       html += '<span class="slug-chip vanity" onclick="event.stopPropagation();copyUrl(\\'' + v.slug + '\\')" title="Click to copy">/' + esc(v.slug) + ' <span class="icon">content_copy</span></span>';
     });
+    if (disabled) html += '<span class="disabled-badge"><span class="icon" style="font-size:14px">block</span> Disabled</span>';
     html += '</div>';
     if (link.label) html += '<div class="link-label">' + esc(link.label) + '</div>';
     html += '<div class="link-url">' + esc(link.url) + '</div>';
