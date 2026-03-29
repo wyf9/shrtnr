@@ -10,11 +10,17 @@ import { handleAddVanitySlug, handleRemoveVanitySlug } from "./api/slugs";
 import { handleGetSettings, handleUpdateSettings } from "./api/settings";
 import { handleDashboardStats, handleLinkAnalytics } from "./api/analytics";
 import { serveAdminUI } from "./admin/ui";
+import { serveAsset } from "./assets";
+import { notFoundResponse } from "./404";
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    // Static assets (favicon, icons)
+    const asset = serveAsset(path);
+    if (asset) return asset;
 
     // Health check — public
     if (path === "/_/health") {
@@ -47,7 +53,7 @@ export default {
     // Everything else is a slug redirect
     const slug = path.slice(1); // Remove leading /
     if (!slug || slug.startsWith("_")) {
-      return new Response("Not Found", { status: 404 });
+      return notFoundResponse();
     }
 
     return handleRedirect(slug, request, env.DB, ctx);
