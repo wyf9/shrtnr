@@ -11,6 +11,8 @@
 - **Vanity slugs** — human-readable aliases like `/my-blog-post` alongside random slugs
 - **Click analytics** — per-click tracking with referrer, country, device, and browser
 - **Admin UI** — dashboard, link management, analytics charts, QR codes
+- **TypeScript SDK** — npm package for programmatic link management
+- **MCP server** — AI assistant access via the Model Context Protocol
 - **Cloudflare Access auth** — SSO via Google, GitHub, OTP, SAML, or any IdP
 - **One-click deploy** — click the button above and you're live
 
@@ -65,19 +67,34 @@ Default slug length is hardcoded to 3.
 
 You can override it from the admin settings page at runtime.
 
-## SDK
+## Integrations
 
-For third-party integrations, use the published TypeScript SDK:
+shrtnr exposes its link-management API through two integration surfaces.
 
-- Package: https://www.npmjs.com/package/@oddbit/shrtnr
+### TypeScript SDK
+
+For programmatic access from TypeScript or JavaScript applications:
+
+- Package: `@oddbit/shrtnr` on [npm](https://www.npmjs.com/package/@oddbit/shrtnr)
 - Documentation: [sdk/README.md](sdk/README.md)
+
+### MCP Server
+
+For AI assistant access via the [Model Context Protocol](https://modelcontextprotocol.io):
+
+- Package: `@oddbit/shrtnr-mcp` on [npm](https://www.npmjs.com/package/@oddbit/shrtnr-mcp)
+- Documentation: [mcp/README.md](mcp/README.md)
+
+Both packages cover the same public link-management operations. Neither requires direct API access — configuration and usage details are in their respective READMEs above.
 
 ## API
 
 Authentication model:
 
-- Link-management endpoints accept Cloudflare Access auth or API key auth.
-- Administrative endpoints accept Cloudflare Access auth only.
+- Public link-management endpoints accept Cloudflare Access auth or API key auth.
+- Health endpoint is public and does not require auth.
+
+Administrative and internal endpoints are intentionally not documented here.
 
 | Method | Path | Description |
 |---|---|---|
@@ -88,14 +105,6 @@ Authentication model:
 | `POST` | `/_/api/links/:id/slugs` | Add a vanity slug |
 | `POST` | `/_/api/links/:id/disable` | Disable a link |
 | `GET` | `/_/api/links/:id/analytics` | Get link click analytics |
-| `GET` | `/_/api/keys` | List API keys (admin only) |
-| `POST` | `/_/api/keys` | Create API key (admin only) |
-| `DELETE` | `/_/api/keys/:id` | Revoke API key (admin only) |
-| `GET` | `/_/api/dashboard` | Dashboard stats |
-| `GET` | `/_/api/settings` | Get instance settings |
-| `PUT` | `/_/api/settings` | Update settings |
-| `GET` | `/_/api/preferences` | Get user preferences |
-| `PUT` | `/_/api/preferences` | Update user preferences |
 | `GET` | `/_/health` | Health check (public) |
 
 ## Development
@@ -113,6 +122,15 @@ cd sdk
 yarn install
 yarn test
 yarn build
+```
+
+### MCP server development
+
+```bash
+cd mcp
+npm install
+npm test
+npm run build
 ```
 
 ## Attribution
