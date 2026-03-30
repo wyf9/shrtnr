@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1
+
+- Deploy script resolves the D1 `database_id` at build time via `wrangler d1 list`, removing the need for a hardcoded ID in `wrangler.toml`
+- Works for both the Deploy to Cloudflare button (forks) and Import from Git (existing repos)
+
 ## 0.4.0
 
 - Replaced runtime migration system with Cloudflare's standard `wrangler d1 migrations apply` during deploy
