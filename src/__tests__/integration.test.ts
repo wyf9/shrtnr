@@ -57,6 +57,32 @@ describe("Link CRUD", () => {
     expect(vanity!.slug).toBe("my-vanity");
   });
 
+  it("should always return auto-generated slug at index 0 and vanity at index 1", async () => {
+    const link = await createLink(env.DB, "https://example.com", "abc", null, "my-vanity");
+    expect(link.slugs[0].is_vanity).toBe(0);
+    expect(link.slugs[0].slug).toBe("abc");
+    expect(link.slugs[1].is_vanity).toBe(1);
+    expect(link.slugs[1].slug).toBe("my-vanity");
+  });
+
+  it("should preserve slug ordering after adding a vanity slug later", async () => {
+    const link = await createLink(env.DB, "https://example.com", "abc");
+    await addVanitySlug(env.DB, link.id, "later-vanity");
+    const fetched = await getLinkById(env.DB, link.id);
+    expect(fetched!.slugs).toHaveLength(2);
+    expect(fetched!.slugs[0].is_vanity).toBe(0);
+    expect(fetched!.slugs[0].slug).toBe("abc");
+    expect(fetched!.slugs[1].is_vanity).toBe(1);
+    expect(fetched!.slugs[1].slug).toBe("later-vanity");
+  });
+
+  it("should preserve slug ordering in getAllLinks", async () => {
+    await createLink(env.DB, "https://example.com", "abc", null, "my-vanity");
+    const links = await getAllLinks(env.DB);
+    expect(links[0].slugs[0].is_vanity).toBe(0);
+    expect(links[0].slugs[1].is_vanity).toBe(1);
+  });
+
   it("should fetch all links sorted by created_at descending", async () => {
     await createLink(env.DB, "https://first.com", "aaa");
     await createLink(env.DB, "https://second.com", "bbb");

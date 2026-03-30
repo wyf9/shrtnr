@@ -168,6 +168,51 @@ describe("Links API", () => {
     expect(body.slugs.some((s: any) => s.slug === "my-slug" && s.is_vanity === 1)).toBe(true);
   });
 
+  it("POST /_/api/links slugs should be ordered: auto at index 0, vanity at index 1", async () => {
+    const res = await SELF.fetch(
+      authed("/_/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com", vanity_slug: "custom" }),
+      })
+    );
+    const body = await res.json() as any;
+    expect(body.slugs[0].is_vanity).toBe(0);
+    expect(body.slugs[1].is_vanity).toBe(1);
+    expect(body.slugs[1].slug).toBe("custom");
+  });
+
+  it("GET /_/api/links should preserve slug ordering per link", async () => {
+    await SELF.fetch(
+      authed("/_/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com", vanity_slug: "ordered" }),
+      })
+    );
+    const res = await SELF.fetch(authed("/_/api/links"));
+    const body = await res.json() as any;
+    const link = body.find((l: any) => l.slugs.length === 2);
+    expect(link.slugs[0].is_vanity).toBe(0);
+    expect(link.slugs[1].is_vanity).toBe(1);
+  });
+
+  it("GET /_/api/links/:id should preserve slug ordering", async () => {
+    const createRes = await SELF.fetch(
+      authed("/_/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com", vanity_slug: "detail-order" }),
+      })
+    );
+    const created = await createRes.json() as any;
+    const res = await SELF.fetch(authed(`/_/api/links/${created.id}`));
+    const body = await res.json() as any;
+    expect(body.slugs[0].is_vanity).toBe(0);
+    expect(body.slugs[1].is_vanity).toBe(1);
+    expect(body.slugs[1].slug).toBe("detail-order");
+  });
+
   it("POST /_/api/links with duplicate vanity slug should return 409", async () => {
     await SELF.fetch(
       authed("/_/api/links", {
