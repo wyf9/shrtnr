@@ -13,6 +13,7 @@ import {
   slugExists,
   updateLink,
 } from "../db";
+import { DEFAULT_SLUG_LENGTH } from "../constants";
 import { generateUniqueSlug, validateSlugLength, validateVanitySlug } from "../slugs";
 import { ClickStats, DashboardStats, Env, LinkWithSlugs, Slug } from "../types";
 
@@ -57,7 +58,7 @@ export async function createManagedLink(
     slugLength = body.slug_length;
   } else {
     const dbDefault = await getSetting(env.DB, "slug_default_length");
-    slugLength = parseInt(dbDefault ?? env.SLUG_DEFAULT_LENGTH, 10);
+    slugLength = parseInt(dbDefault ?? String(DEFAULT_SLUG_LENGTH), 10);
   }
 
   const lengthErr = validateSlugLength(slugLength);

@@ -10,6 +10,7 @@ import {
   setSetting,
   setUserPreference,
 } from "../db";
+import { DEFAULT_SLUG_LENGTH } from "../constants";
 import { validateSlugLength } from "../slugs";
 import { Env } from "../types";
 
@@ -61,7 +62,7 @@ export async function deleteApiKeyForUser(env: Env, email: string, id: number): 
 
 export async function getAppSettings(env: Env): Promise<AdminServiceResult<{ slug_default_length: number }>> {
   const slugLength = await getSetting(env.DB, "slug_default_length");
-  return ok({ slug_default_length: parseInt(slugLength ?? env.SLUG_DEFAULT_LENGTH, 10) });
+  return ok({ slug_default_length: parseInt(slugLength ?? String(DEFAULT_SLUG_LENGTH), 10) });
 }
 
 export async function updateAppSettings(

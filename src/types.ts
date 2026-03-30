@@ -3,7 +3,6 @@
 
 export interface Env {
   DB: D1Database;
-  SLUG_DEFAULT_LENGTH: string;
 }
 
 export interface Link {
