@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Clarified Workers Builds setup: deploy command, build-time variables, and where to find the D1 database ID
+
 ## 0.3.0
 
 ### Mobile UI
