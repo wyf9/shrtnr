@@ -264,6 +264,18 @@ const ADMIN_HTML = `<!DOCTYPE html>
     .per-page-btn:hover { color: var(--on-bg); }
     .per-page-btn.active { color: var(--secondary); }
 
+    /* Keys table */
+    .keys-table { width: 100%; border-collapse: collapse; }
+    .keys-table th { text-align: left; font-size: 0.7rem; color: var(--secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.6rem 1rem; border-bottom: 2px solid var(--outline); }
+    .keys-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--outline); font-size: 0.875rem; vertical-align: middle; }
+    .keys-table tr:last-child td { border-bottom: none; }
+    .keys-table tr:hover td { background: var(--surface-high); }
+    .scope-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: var(--radius); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+    .scope-badge.create { background: var(--primary-glow); color: var(--primary); border: 1px solid var(--primary); }
+    .scope-badge.read { background: rgba(181,242,175,0.1); color: var(--secondary); border: 1px solid var(--secondary); }
+    .key-revealed { font-family: var(--font-mono); font-size: 0.8rem; background: var(--surface-low); border: 2px solid var(--secondary); border-radius: var(--radius); padding: 0.75rem 1rem; word-break: break-all; line-height: 1.6; }
+    .key-warning { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8rem; color: var(--primary); margin-top: 0.75rem; }
+
     /* Empty state */
     .empty-state { text-align: center; padding: 4rem 2rem; color: var(--on-bg-muted); }
     .empty-state .icon { font-size: 48px; margin-bottom: 1rem; display: block; }
@@ -292,6 +304,9 @@ const ADMIN_HTML = `<!DOCTYPE html>
     </a>
     <a class="nav-item" data-view="links" href="/_/admin/links" onclick="event.preventDefault();switchView('links')">
       <span class="icon">link</span> Links
+    </a>
+    <a class="nav-item" data-view="keys" href="/_/admin/keys" onclick="event.preventDefault();switchView('keys')">
+      <span class="icon">key</span> API Keys
     </a>
     <a class="nav-item" data-view="settings" href="/_/admin/settings" onclick="event.preventDefault();switchView('settings')">
       <span class="icon">settings</span> Settings
@@ -390,6 +405,21 @@ const ADMIN_HTML = `<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- API Keys View -->
+  <div id="view-keys" style="display:none">
+    <div class="page-header">
+      <div class="page-title">API Keys</div>
+      <div class="page-subtitle">Manage programmatic access to the shortener API</div>
+    </div>
+    <div class="toolbar">
+      <div class="toolbar-count" id="keys-count"></div>
+      <button class="btn btn-primary" onclick="showCreateKeyModal()">
+        <span class="icon">add</span> New Key
+      </button>
+    </div>
+    <div id="keys-list"></div>
+  </div>
+
   <!-- Link Detail View -->
   <div id="view-detail" style="display:none"></div>
 </div>
@@ -422,7 +452,7 @@ document.getElementById('copyright-year').textContent = '\\u00A9 ' + new Date().
 function switchView(view, pushState) {
   if (typeof pushState === 'undefined') pushState = true;
   currentView = view;
-  ['dashboard','links','settings','detail'].forEach(v => {
+  ['dashboard','links','keys','settings','detail'].forEach(v => {
     document.getElementById('view-' + v).style.display = v === view ? '' : 'none';
   });
   document.querySelectorAll('.nav-item').forEach(el => {
@@ -433,6 +463,7 @@ function switchView(view, pushState) {
   }
   if (view === 'dashboard') loadDashboard();
   if (view === 'links') loadLinks();
+  if (view === 'keys') loadKeys();
   if (view === 'settings') checkForUpdates();
 }
 
@@ -692,7 +723,7 @@ async function showDetail(id, pushState) {
     if (!found) return;
   }
   currentView = 'detail';
-  ['dashboard','links','settings'].forEach(v => document.getElementById('view-' + v).style.display = 'none');
+  ['dashboard','links','keys','settings'].forEach(v => document.getElementById('view-' + v).style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   if (pushState) {
     const l2 = links.find(x => x.id === id);
@@ -908,6 +939,102 @@ async function saveSettings() {
   const res = await api('/settings', { method: 'PUT', body: JSON.stringify({ slug_default_length: val }) });
   if (res.ok) toast('Settings saved');
   else toast('Failed to save settings', 'error');
+}
+
+// ---- API Keys ----
+let apiKeys = [];
+
+async function loadKeys() {
+  const res = await api('/keys');
+  if (!res.ok) return;
+  apiKeys = await res.json();
+  renderKeys();
+}
+
+function renderKeys() {
+  const el = document.getElementById('keys-list');
+  document.getElementById('keys-count').textContent = apiKeys.length + ' key' + (apiKeys.length !== 1 ? 's' : '');
+
+  if (apiKeys.length === 0) {
+    el.innerHTML = '<div class="empty-state"><span class="icon">key_off</span><p>No API keys yet. Create one to enable programmatic access.</p><button class="btn btn-primary" onclick="showCreateKeyModal()"><span class="icon">add</span> New Key</button></div>';
+    return;
+  }
+
+  let html = '<div class="bento-card" style="padding:0;overflow:hidden"><table class="keys-table"><thead><tr><th>Title</th><th>Key</th><th>Scope</th><th>Created</th><th>Last Used</th><th></th></tr></thead><tbody>';
+  for (const k of apiKeys) {
+    const scopes = k.scope.split(',');
+    let scopeHtml = '';
+    scopes.forEach(s => { scopeHtml += '<span class="scope-badge ' + s + '">' + esc(s) + '</span> '; });
+    const lastUsed = k.last_used_at ? formatDate(k.last_used_at) : '<span style="color:var(--on-bg-muted)">Never</span>';
+    html += '<tr>';
+    html += '<td style="font-weight:600">' + esc(k.title) + '</td>';
+    html += '<td><span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--on-bg-muted)">' + esc(k.key_prefix) + '\\u2026</span></td>';
+    html += '<td>' + scopeHtml + '</td>';
+    html += '<td style="color:var(--on-bg-muted);font-size:0.8rem">' + formatDate(k.created_at) + '</td>';
+    html += '<td style="font-size:0.8rem">' + lastUsed + '</td>';
+    html += '<td><button class="btn btn-danger btn-sm" onclick="deleteKey(' + k.id + ',\\'' + esc(k.title).replace(/'/g, "\\\\'") + '\\')"><span class="icon" style="font-size:16px">delete</span></button></td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+function showCreateKeyModal() {
+  openModal(
+    '<div class="modal-title">Create API Key</div>' +
+    '<div class="form-group"><label class="form-label">Title *</label><input class="form-input" id="m-key-title" placeholder="e.g. CI Pipeline, Mobile App"></div>' +
+    '<div class="form-group"><label class="form-label">Scope *</label>' +
+    '<div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.25rem">' +
+    '<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem"><input type="radio" name="key-scope" value="create"> <strong>Create</strong> <span style="color:var(--on-bg-muted)">\\u2014 can shorten URLs</span></label>' +
+    '<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem"><input type="radio" name="key-scope" value="read"> <strong>Read</strong> <span style="color:var(--on-bg-muted)">\\u2014 can list links and analytics</span></label>' +
+    '<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem"><input type="radio" name="key-scope" value="create,read" checked> <strong>Create + Read</strong> <span style="color:var(--on-bg-muted)">\\u2014 full API access</span></label>' +
+    '</div></div>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="createKey()">Create Key</button></div>'
+  );
+}
+
+async function createKey() {
+  const title = document.getElementById('m-key-title').value.trim();
+  if (!title) { toast('Title is required', 'error'); return; }
+  const scope = document.querySelector('input[name="key-scope"]:checked')?.value;
+  if (!scope) { toast('Select a scope', 'error'); return; }
+
+  const res = await api('/keys', { method: 'POST', body: JSON.stringify({ title, scope }) });
+  if (!res.ok) {
+    const data = await res.json();
+    toast(data.error || 'Failed to create key', 'error');
+    return;
+  }
+  const data = await res.json();
+  showKeyRevealModal(data.raw_key);
+  await loadKeys();
+}
+
+function showKeyRevealModal(rawKey) {
+  openModal(
+    '<div class="modal-title">Key Created</div>' +
+    '<p style="font-size:0.875rem;color:var(--on-bg-muted);margin-bottom:1rem">Copy your API key now. It will not be shown again.</p>' +
+    '<div class="key-revealed" id="revealed-key">' + esc(rawKey) + '</div>' +
+    '<div class="key-warning"><span class="icon" style="font-size:18px">warning</span> Store this key securely. You cannot retrieve it later.</div>' +
+    '<div class="modal-actions"><button class="btn btn-secondary" onclick="copyRawKey()"><span class="icon">content_copy</span> Copy</button><button class="btn btn-ghost" onclick="closeModal()">Done</button></div>'
+  );
+}
+
+function copyRawKey() {
+  const key = document.getElementById('revealed-key').textContent;
+  navigator.clipboard.writeText(key);
+  toast('API key copied');
+}
+
+async function deleteKey(id, title) {
+  if (!confirm('Delete API key "' + title + '"? This cannot be undone.')) return;
+  const res = await api('/keys/' + id, { method: 'DELETE' });
+  if (res.ok) {
+    toast('Key deleted');
+    loadKeys();
+  } else {
+    toast('Failed to delete key', 'error');
+  }
 }
 
 // ---- Theme ----
@@ -1294,6 +1421,11 @@ function routeFromPath() {
   if (path === '/_/admin/links') {
     switchView('links', false);
     history.replaceState({ view: 'links' }, '', path);
+    return;
+  }
+  if (path === '/_/admin/keys') {
+    switchView('keys', false);
+    history.replaceState({ view: 'keys' }, '', path);
     return;
   }
   if (path === '/_/admin/settings') {

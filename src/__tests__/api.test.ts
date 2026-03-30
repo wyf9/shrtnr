@@ -76,6 +76,12 @@ describe("Routing", () => {
     expect(res.headers.get("Content-Type")).toContain("text/html");
   });
 
+  it("GET /_/admin/keys should return admin HTML", async () => {
+    const res = await SELF.fetch(authed("/_/admin/keys"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toContain("text/html");
+  });
+
   it("GET /_/admin/* without auth should return 401", async () => {
     const res = await SELF.fetch(unauthed("/_/admin/dashboard"));
     expect(res.status).toBe(401);
