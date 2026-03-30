@@ -36,6 +36,19 @@ describe("link-management service", () => {
     }
   });
 
+  it("falls back to hardcoded default length when setting is missing", async () => {
+    await env.DB.exec("DELETE FROM settings WHERE key = 'slug_default_length'");
+
+    const result = await createManagedLink({ DB: env.DB } as any, { url: "https://example.com" });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const autoSlug = result.data.slugs.find((s) => s.is_vanity === 0);
+      expect(autoSlug).toBeDefined();
+      expect(autoSlug?.slug).toHaveLength(3);
+    }
+  });
+
   it("enforces one vanity slug per link", async () => {
     const created = await createManagedLink(env as any, {
       url: "https://example.com",

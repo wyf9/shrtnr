@@ -45,6 +45,17 @@ describe("admin-management service", () => {
     }
   });
 
+  it("returns hardcoded default when setting is missing", async () => {
+    await env.DB.exec("DELETE FROM settings WHERE key = 'slug_default_length'");
+
+    const settings = await getAppSettings({ DB: env.DB } as any);
+
+    expect(settings.ok).toBe(true);
+    if (settings.ok) {
+      expect(settings.data.slug_default_length).toBe(3);
+    }
+  });
+
   it("rejects unsupported preference theme", async () => {
     const result = await updateUserPreferences(env as any, "user@example.com", { theme: "neon" });
 
