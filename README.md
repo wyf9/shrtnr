@@ -20,7 +20,7 @@
 
 ### One-click
 
-Click the **Deploy to Cloudflare** button above. It will fork the repo, create a D1 database, and deploy the Worker. Database migrations apply automatically on startup.
+Click the **Deploy to Cloudflare** button above. Cloudflare will fork the repo, provision a D1 database, apply schema migrations, and deploy the Worker. No manual database setup required.
 
 After deploying, set up authentication (see below).
 
@@ -31,9 +31,13 @@ git clone https://github.com/oddbit/shrtnr
 cd shrtnr
 yarn install
 yarn wrangler-login
-yarn db:migrate
-yarn deploy             # auto-provisions the D1 database on first deploy
+yarn db:create
+yarn deploy             # applies migrations and deploys the Worker
 ```
+
+### Continuous deployment
+
+The deploy button sets up [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) automatically. Cloudflare detects the `deploy` script in `package.json` and uses it as the deploy command. Each push to your production branch applies pending D1 migrations and redeploys the Worker.
 
 ## Authentication
 
@@ -106,6 +110,7 @@ Administrative and internal endpoints are intentionally not documented here.
 
 ```bash
 yarn install
+yarn db:migrate         # apply migrations to local D1
 yarn test
 yarn dev
 ```

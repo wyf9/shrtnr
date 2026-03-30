@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+- Replaced runtime migration system with Cloudflare's standard `wrangler d1 migrations apply` during deploy
+- The `deploy` script in `package.json` now runs migrations before deploying, which Cloudflare auto-detects for one-click deploy and Workers Builds
+- Migration command references the D1 binding name (`DB`) instead of the database name, so it works regardless of what each user names their database
+- Removed `src/migrate.ts`: no application-level migration code runs at request time
+
 ## 0.3.4
 
 - Automatic database migrations: the Worker applies pending schema changes on cold start, no CLI commands or dashboard configuration needed

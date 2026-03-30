@@ -1,15 +1,15 @@
 {
   "name": "shrtnr",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "A free, open-source, self-hosted URL shortener built on Cloudflare Workers + D1",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "deploy": "npm run db:migrate:remote && wrangler deploy",
     "wrangler-login": "wrangler login",
     "db:create": "wrangler d1 create shrtnr-db",
-    "db:migrate": "wrangler d1 migrations apply shrtnr-db",
-    "db:migrate:local": "wrangler d1 migrations apply shrtnr-db --local",
+    "db:migrate": "wrangler d1 migrations apply shrtnr-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "secret:put": "wrangler secret put",
     "test": "vitest run",
     "test:watch": "vitest"
