@@ -1,5 +1,14 @@
 # CLAUDE.md
 
+## Coding rules
+
+
+### Testing
+- Always **make a test first** for a feature or change that is being requested. Define it by writing tests first and requesting details on its behavior from the developer. If the behavior is trivial, you can just write the tests. After that, implement the code that can pass the test.
+- Always make tests for specific behaviors that are being requested.
+- Always make tests for change requests. 
+- You are never allowed to change tests to accommodate code changes. You must **always** stop and notify and consult with the developer if a new feature is breaking an existing tests. You are only allowed to add new tests automatically based on requested functionality. You are not allowed to remove or modify tests when making code changes.
+
 ## Repository
 - Never force push git
 

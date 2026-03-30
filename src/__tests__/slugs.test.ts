@@ -1,0 +1,112 @@
+import { describe, it, expect } from "vitest";
+import {
+  generateRandomSlug,
+  validateRandomSlug,
+  validateVanitySlug,
+  validateSlugLength,
+} from "../slugs";
+
+const UNAMBIGUOUS_CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+const EXCLUDED_CHARS = ["I", "O", "l", "o", "0", "1"];
+
+describe("generateRandomSlug", () => {
+  it("should only contain characters from the unambiguous charset", () => {
+    for (let i = 0; i < 100; i++) {
+      const slug = generateRandomSlug(6);
+      for (const char of slug) {
+        expect(UNAMBIGUOUS_CHARSET).toContain(char);
+      }
+    }
+  });
+
+  it("should never contain excluded ambiguous characters", () => {
+    for (let i = 0; i < 100; i++) {
+      const slug = generateRandomSlug(6);
+      for (const char of EXCLUDED_CHARS) {
+        expect(slug).not.toContain(char);
+      }
+    }
+  });
+
+  it("should match the requested length", () => {
+    expect(generateRandomSlug(3)).toHaveLength(3);
+    expect(generateRandomSlug(5)).toHaveLength(5);
+    expect(generateRandomSlug(10)).toHaveLength(10);
+  });
+});
+
+describe("validateRandomSlug", () => {
+  it("should reject slugs shorter than 3 characters", () => {
+    expect(validateRandomSlug("ab")).toBe("Slug must be at least 3 characters");
+    expect(validateRandomSlug("a")).toBe("Slug must be at least 3 characters");
+    expect(validateRandomSlug("")).toBe("Slug must be at least 3 characters");
+  });
+
+  it("should reject slugs starting with underscore", () => {
+    expect(validateRandomSlug("_abc")).toBe("Slug must not start with underscore");
+  });
+
+  it("should reject slugs with non-alphanumeric characters", () => {
+    expect(validateRandomSlug("ab-c")).toBe("Slug must contain only alphanumeric characters");
+    expect(validateRandomSlug("ab c")).toBe("Slug must contain only alphanumeric characters");
+    expect(validateRandomSlug("ab.c")).toBe("Slug must contain only alphanumeric characters");
+  });
+
+  it("should accept valid slugs", () => {
+    expect(validateRandomSlug("abc")).toBeNull();
+    expect(validateRandomSlug("ABC123")).toBeNull();
+    expect(validateRandomSlug("longSlugValue")).toBeNull();
+  });
+});
+
+describe("validateVanitySlug", () => {
+  it("should accept a single character", () => {
+    expect(validateVanitySlug("a")).toBeNull();
+    expect(validateVanitySlug("Z")).toBeNull();
+    expect(validateVanitySlug("5")).toBeNull();
+  });
+
+  it("should accept slugs with hyphens in the middle", () => {
+    expect(validateVanitySlug("my-slug")).toBeNull();
+    expect(validateVanitySlug("a-b-c")).toBeNull();
+  });
+
+  it("should reject slugs starting with a hyphen", () => {
+    expect(validateVanitySlug("-slug")).toBe(
+      "Vanity slug must not start or end with a hyphen"
+    );
+  });
+
+  it("should reject slugs ending with a hyphen", () => {
+    expect(validateVanitySlug("slug-")).toBe(
+      "Vanity slug must not start or end with a hyphen"
+    );
+  });
+
+  it("should reject slugs starting with underscore", () => {
+    expect(validateVanitySlug("_slug")).toBe("Slug must not start with underscore");
+  });
+
+  it("should reject empty slugs", () => {
+    expect(validateVanitySlug("")).toBe("Vanity slug must not be empty");
+  });
+});
+
+describe("validateSlugLength", () => {
+  it("should reject lengths below 3", () => {
+    expect(validateSlugLength(2)).toBe("Slug length must be an integer >= 3");
+    expect(validateSlugLength(1)).toBe("Slug length must be an integer >= 3");
+    expect(validateSlugLength(0)).toBe("Slug length must be an integer >= 3");
+    expect(validateSlugLength(-1)).toBe("Slug length must be an integer >= 3");
+  });
+
+  it("should reject non-integer values", () => {
+    expect(validateSlugLength(3.5)).toBe("Slug length must be an integer >= 3");
+  });
+
+  it("should accept valid lengths", () => {
+    expect(validateSlugLength(3)).toBeNull();
+    expect(validateSlugLength(5)).toBeNull();
+    expect(validateSlugLength(10)).toBeNull();
+  });
+});
