@@ -60,12 +60,6 @@ That's it. Visit `https://yourdomain.com` and Cloudflare Access will prompt you 
 
 Access supports Google, GitHub, Microsoft, Okta, SAML, OIDC, and a built-in one-time PIN — configure whichever fits your team in the Zero Trust dashboard. See [Cloudflare's IdP guides](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/) for setup instructions.
 
-## Configuration
-
-Default slug length is hardcoded to 3.
-
-You can override it from the admin settings page at runtime.
-
 ## Integrations
 
 shrtnr exposes its link-management API through two integration surfaces.

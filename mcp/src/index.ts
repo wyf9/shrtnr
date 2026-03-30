@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Copyright 2025 Oddbit (https://oddbit.id)
+// Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";

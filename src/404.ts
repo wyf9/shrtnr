@@ -1,4 +1,4 @@
-// Copyright 2025 Oddbit (https://oddbit.id)
+// Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
 export function notFoundResponse(): Response {
