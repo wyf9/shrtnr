@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.3
+
+- Fixed D1 migration gap: deploy script now applies pending migrations before deploying the Worker
+- Updated README: one-click deploy instructions now include the required deploy command change in Workers Builds settings
+
 ## 0.3.2
 
 ### Bug fixes
