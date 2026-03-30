@@ -2,6 +2,7 @@
 
 ## 0.2.0
 
+### API keys
 - App-managed API keys with SHA-256 hashed storage
 - Dual authentication: Cloudflare Access (admin) and Bearer token (API keys)
 - Scope-based authorization: create, read, or both
@@ -10,6 +11,17 @@
 - Raw key shown once at creation, prefix stored for display
 - Automatic last-used tracking on each API call
 - Admin UI page for key management with table overview, create/delete, and scope badges
+
+### Vanity slugs
+- Limit to one vanity slug per link
+- Removed DELETE endpoint for vanity slugs
+
+### Theme
+- Semantic on-color CSS variables (--on-primary, --on-secondary, --on-danger) for consistent contrast across all themes
+- Fixed light theme: buttons, toasts, and badges now render with correct text color
+
+### Release
+- Added concurrency guard to GitHub Actions release workflow
 
 ## 0.1.0
 
