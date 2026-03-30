@@ -28,7 +28,7 @@ The server reads two environment variables:
 
 | Variable | Required | Description |
 |---|---|---|
-| `SHRTNR_BASE_URL` | Yes | Base URL of your shrtnr instance, e.g. `https://s.example.com` |
+| `SHRTNR_BASE_URL` | Yes | Base URL of your shrtnr instance, e.g. `https://example.com` |
 | `SHRTNR_API_KEY` | Yes | API key from the shrtnr admin dashboard |
 
 ## Usage
