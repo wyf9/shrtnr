@@ -41,5 +41,6 @@ export function validateVanitySlug(slug: string): string | null {
 
 export function validateSlugLength(length: number): string | null {
   if (!Number.isInteger(length) || length < 3) return "Slug length must be an integer >= 3";
+  if (length > 128) return "Slug length must be an integer <= 128";
   return null;
 }

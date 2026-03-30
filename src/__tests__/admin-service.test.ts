@@ -25,8 +25,17 @@ describe("admin-management service", () => {
     }
   });
 
-  it("rejects invalid slug default length", async () => {
+  it("rejects slug default length below minimum", async () => {
     const result = await updateAppSettings(env as any, { slug_default_length: 2 });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(400);
+    }
+  });
+
+  it("rejects slug default length above maximum", async () => {
+    const result = await updateAppSettings(env as any, { slug_default_length: 200 });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {

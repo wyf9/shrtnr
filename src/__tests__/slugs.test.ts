@@ -104,9 +104,15 @@ describe("validateSlugLength", () => {
     expect(validateSlugLength(3.5)).toBe("Slug length must be an integer >= 3");
   });
 
+  it("should reject lengths above 128", () => {
+    expect(validateSlugLength(129)).toBe("Slug length must be an integer <= 128");
+    expect(validateSlugLength(1000)).toBe("Slug length must be an integer <= 128");
+  });
+
   it("should accept valid lengths", () => {
     expect(validateSlugLength(3)).toBeNull();
     expect(validateSlugLength(5)).toBeNull();
     expect(validateSlugLength(10)).toBeNull();
+    expect(validateSlugLength(128)).toBeNull();
   });
 });
