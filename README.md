@@ -26,17 +26,7 @@ Click the **Deploy to Cloudflare** button above. It will:
 2. Create a D1 database and run migrations
 3. Deploy the Worker
 
-After deploying, configure Workers Builds so that future pushes deploy automatically:
-
-1. Go to **Workers & Pages > shrtnr > Settings**
-2. Scroll to **Build** and click the edit icon on **Build configuration**
-3. Set **Deploy command** to `yarn deploy`
-4. Click the **+** next to **Variables and secrets** (in the Build section, not the runtime Variables and Secrets section at the top)
-5. Add a variable: `D1_DATABASE_ID` with the value of your D1 database ID
-
-To find your database ID, go to **Storage & databases > D1 SQL** and click your `shrtnr-db` database. The ID is shown on the overview page.
-
-Then set up authentication (see below).
+After deploying, set up authentication (see below).
 
 ### Manual
 
@@ -45,12 +35,10 @@ git clone https://github.com/oddbit/shrtnr
 cd shrtnr
 yarn install
 yarn wrangler-login
-yarn db:create          # note the database_id from the output
+yarn db:create          # copy the database_id into wrangler.toml
 yarn db:migrate
-D1_DATABASE_ID=<your-database-id> yarn deploy
+yarn deploy
 ```
-
-The deploy script reads `D1_DATABASE_ID` from the environment and injects it into `wrangler.toml` at build time. The real ID is never committed to git.
 
 ## Authentication
 
