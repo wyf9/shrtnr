@@ -34,23 +34,22 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t }) => {
           <div class="bento-card">
             <div class="form-group">
               <label class="form-label">{t("settings.language")}</label>
-              <div class="theme-toggle" id="language-picker">
+              <select
+                class="form-input"
+                id="language-picker"
+                onchange="setLanguage(this.value)"
+              >
                 {SUPPORTED_LANGUAGES.map((code) => {
                   const native = t(`lang.${code}` as any);
                   const local = t(`langLocal.${code}` as any);
-                  const isCurrent = lang === code;
-                  const label = isCurrent ? native : `${local} | ${native}`;
+                  const label = lang === code ? native : `${native} — ${local}`;
                   return (
-                    <button
-                      class={`theme-btn${isCurrent ? " active" : ""}`}
-                      data-lang={code}
-                      onclick={`setLanguage('${code}')`}
-                    >
-                      <span class="icon">translate</span> {label}
-                    </button>
+                    <option value={code} selected={lang === code}>
+                      {label}
+                    </option>
                   );
                 })}
-              </div>
+              </select>
             </div>
           </div>
 

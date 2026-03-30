@@ -93,9 +93,6 @@ function setTheme(theme) {
 
 // ---- Language ----
 function setLanguage(lang) {
-  document.querySelectorAll('#language-picker .theme-btn').forEach(function(btn) {
-    btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
-  });
   api('/preferences', { method: 'PUT', body: JSON.stringify({ language: lang }) }).then(function(res) {
     if (res.ok) window.location.reload();
     else toast(t('client.languageError'), 'error');
