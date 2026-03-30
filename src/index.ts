@@ -15,6 +15,7 @@ import { handleDashboardStats, handleLinkAnalytics } from "./api/analytics";
 import { serveAdminUI } from "./admin/ui";
 import { serveAsset } from "./assets";
 import { notFoundResponse } from "./404";
+import { applyMigrations } from "./migrate";
 
 type AuthContext = {
   email: string;
@@ -22,8 +23,15 @@ type AuthContext = {
   scope: string | null; // null = full access (admin), "create" | "read" | "create,read"
 };
 
+let migrated = false;
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    if (!migrated) {
+      await applyMigrations(env.DB);
+      migrated = true;
+    }
+
     const url = new URL(request.url);
     const path = url.pathname;
 

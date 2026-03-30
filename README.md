@@ -20,15 +20,9 @@
 
 ### One-click
 
-Click the **Deploy to Cloudflare** button above. It will fork the repo, create a D1 database, and deploy the Worker.
+Click the **Deploy to Cloudflare** button above. It will fork the repo, create a D1 database, and deploy the Worker. Database migrations apply automatically on startup.
 
-After the initial deploy, update the **deploy command** in Workers Builds so that future pushes also apply database migrations:
-
-1. Open your Worker in the [Cloudflare dashboard](https://dash.cloudflare.com/)
-2. Go to **Settings > Build > Deploy command**
-3. Change it to: `npx wrangler d1 migrations apply shrtnr-db --remote && npx wrangler deploy`
-
-Then set up authentication (see below).
+After deploying, set up authentication (see below).
 
 ### Manual
 

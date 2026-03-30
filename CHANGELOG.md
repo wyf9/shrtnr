@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.4
+
+- Automatic database migrations: the Worker applies pending schema changes on cold start, no CLI commands or dashboard configuration needed
+- Compatible with existing deployments: detects migrations already applied by wrangler and skips them
+- Reverted deploy command to plain `wrangler deploy` since migrations are now handled at runtime
+
 ## 0.3.3
 
 - Fixed D1 migration gap: deploy script now applies pending migrations before deploying the Worker
