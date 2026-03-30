@@ -185,24 +185,26 @@ async function handleApiRoute(request: Request, env: Env, path: string, auth: Au
 
   const linkMatch = path.match(/^\/_\/api\/links\/(\d+)$/);
   if (linkMatch) {
-    const denied = requireAdmin(auth);
-    if (denied) return denied;
     const id = parseInt(linkMatch[1], 10);
-    if (method === "GET") return handleGetLink(env, id);
-    if (method === "PUT") return handleUpdateLink(request, env, id);
+    if (method === "GET") {
+      if (!hasScope(auth, "read")) return forbiddenResponse();
+      return handleGetLink(env, id);
+    }
+    if (method === "PUT") {
+      if (!hasScope(auth, "create")) return forbiddenResponse();
+      return handleUpdateLink(request, env, id);
+    }
   }
 
   const disableMatch = path.match(/^\/_\/api\/links\/(\d+)\/disable$/);
   if (disableMatch && method === "POST") {
-    const denied = requireAdmin(auth);
-    if (denied) return denied;
+    if (!hasScope(auth, "create")) return forbiddenResponse();
     return handleDisableLink(env, parseInt(disableMatch[1], 10));
   }
 
   const addSlugMatch = path.match(/^\/_\/api\/links\/(\d+)\/slugs$/);
   if (addSlugMatch && method === "POST") {
-    const denied = requireAdmin(auth);
-    if (denied) return denied;
+    if (!hasScope(auth, "create")) return forbiddenResponse();
     return handleAddVanitySlug(request, env, parseInt(addSlugMatch[1], 10));
   }
 
