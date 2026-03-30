@@ -2,7 +2,7 @@
 
 All notable changes to the MCP server are documented in this file.
 
-## 0.1.3
+## 0.1.4
 
 - Config fix
 

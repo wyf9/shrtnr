@@ -2,7 +2,7 @@
 
 All notable changes to the SDK are documented in this file.
 
-## 0.2.3
+## 0.2.4
 
 - Config fix
 
