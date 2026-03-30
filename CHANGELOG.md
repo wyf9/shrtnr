@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.2
+
+### Bug fixes
+- Analytics endpoint now returns 404 for nonexistent links instead of 200 with empty data
+
+### Internal
+- Extracted shared `ServiceResult` type, `json()`, and `fromServiceResult()` into `src/api/response.ts`, removing duplication across 8 files
+- Removed dead `Click` type, unused `incrementClickCount` function, and redundant `top_links` type annotation
+- Added 14 API tests: read-scope write denial, create-scope read denial, vanity slug redirects, invalid JSON body handling, and 404s for nonexistent resources
+
 ## 0.3.1
 
 - Clarified Workers Builds setup: deploy command, build-time variables, and where to find the D1 database ID

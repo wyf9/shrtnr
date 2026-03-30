@@ -2,6 +2,10 @@
 
 All notable changes to the MCP server are documented in this file.
 
+## 0.1.2
+
+- Fixed HTTP client error handling: check response status before parsing JSON body to avoid confusing parse errors on non-JSON error responses
+
 ## 0.1.1
 
 - Updating documentation.
