@@ -9,6 +9,7 @@
 - Per-user key isolation with owner-only deletion
 - Raw key shown once at creation, prefix stored for display
 - Automatic last-used tracking on each API call
+- Admin UI page for key management with table overview, create/delete, and scope badges
 
 ## 0.1.0
 
