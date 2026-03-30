@@ -26,7 +26,7 @@ Click the **Deploy to Cloudflare** button above. It will:
 2. Create a D1 database and run migrations
 3. Deploy the Worker
 
-After deploying, set up authentication (see below).
+After deploying, add `D1_DATABASE_ID` as an environment variable in **Workers & Pages > Settings > Build > Environment variables** so that subsequent builds can inject the database binding automatically. Then set up authentication (see below).
 
 ### Manual
 
@@ -35,10 +35,12 @@ git clone https://github.com/oddbit/shrtnr
 cd shrtnr
 yarn install
 yarn wrangler-login
-yarn db:create          # copy the database_id into wrangler.toml
+yarn db:create          # note the database_id from the output
 yarn db:migrate
-yarn deploy
+yarn deploy             # uses D1_DATABASE_ID env var or wrangler.toml
 ```
+
+Set `D1_DATABASE_ID` in your shell or CI environment. The deploy script injects it into `wrangler.toml` at build time so the real ID never needs to be committed.
 
 ## Authentication
 
