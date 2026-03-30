@@ -306,17 +306,18 @@ const ADMIN_HTML = `<!DOCTYPE html>
       .sidebar-backdrop.open { display: block; }
       .main { margin-left: 0; padding: 1rem; max-width: 100vw; overflow-x: hidden; }
       .page-title { font-size: 1.5rem; }
-      .bento { grid-template-columns: 1fr; gap: 0.75rem; }
-      .bento-card.span-2, .bento-card.span-3 { grid-column: span 1; }
-      .bento-card { padding: 1rem 1.1rem; }
+      .bento { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+      .bento-card { padding: 1rem 1.1rem; grid-column: span 1; }
+      .bento-card.span-2, .bento-card.span-3 { grid-column: 1 / -1; }
+      .bento-value { font-size: 1.5rem; }
       .detail-grid { grid-template-columns: 1fr; }
       .hero-input-wrap { flex-direction: column; }
       .form-row { flex-direction: column; }
       .toolbar { flex-wrap: wrap; gap: 0.5rem; }
       .toolbar > .btn { width: 100%; justify-content: center; }
-      .link-item { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+      .link-item { gap: 0.75rem; }
       .link-url { white-space: normal; word-break: break-all; }
-      .link-meta { justify-content: flex-start; }
+      .link-clicks { font-size: 1rem; }
       .stat-name { flex: 1; min-width: 0; max-width: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .stat-bar { display: none; }
       .stat-count { min-width: 28px; }

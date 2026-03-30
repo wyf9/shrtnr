@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.4
+
+- Dashboard stat cards (Total Links, Total Clicks) sit side by side on mobile instead of stacking full-width
+- Wide dashboard cards (Recent Links, Most Clicked, Top Sources) span the full mobile grid
+- Scaled down dashboard stat numbers for mobile screens
+- Link items stay horizontal on mobile with a compact click count on the right
+- URLs wrap naturally instead of being truncated
+
 ## 0.4.3
 
 - Fixed mobile layout across all pages: dashboard, links, API keys, and settings now render correctly on narrow screens
