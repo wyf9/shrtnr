@@ -2,6 +2,10 @@
 
 All notable changes to the MCP server are documented in this file.
 
+## 0.1.1
+
+- Updating documentation.
+
 ## 0.1.0
 
 Initial release. MCP server exposing shrtnr link management to AI assistants via the Model Context Protocol (stdio transport).
