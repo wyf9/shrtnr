@@ -68,9 +68,19 @@ In `wrangler.toml`:
 SLUG_DEFAULT_LENGTH = "3"   # minimum: 3, also configurable from the admin UI
 ```
 
+## SDK
+
+For third-party integrations, use the published TypeScript SDK:
+
+- Package: https://www.npmjs.com/package/@oddbit/shrtnr
+- Documentation: [sdk/README.md](sdk/README.md)
+
 ## API
 
-All routes under `/_/api/` require authentication via Cloudflare Access.
+Authentication model:
+
+- Link-management endpoints accept Cloudflare Access auth or API key auth.
+- Administrative endpoints accept Cloudflare Access auth only.
 
 | Method | Path | Description |
 |---|---|---|
@@ -78,21 +88,35 @@ All routes under `/_/api/` require authentication via Cloudflare Access.
 | `POST` | `/_/api/links` | Create a new link |
 | `GET` | `/_/api/links/:id` | Get a link with stats |
 | `PUT` | `/_/api/links/:id` | Update a link |
-| `DELETE` | `/_/api/links/:id` | Delete a link |
 | `POST` | `/_/api/links/:id/slugs` | Add a vanity slug |
-| `DELETE` | `/_/api/links/:id/slugs/:slug` | Remove a vanity slug |
+| `POST` | `/_/api/links/:id/disable` | Disable a link |
 | `GET` | `/_/api/links/:id/analytics` | Get link click analytics |
+| `GET` | `/_/api/keys` | List API keys (admin only) |
+| `POST` | `/_/api/keys` | Create API key (admin only) |
+| `DELETE` | `/_/api/keys/:id` | Revoke API key (admin only) |
 | `GET` | `/_/api/dashboard` | Dashboard stats |
 | `GET` | `/_/api/settings` | Get instance settings |
 | `PUT` | `/_/api/settings` | Update settings |
+| `GET` | `/_/api/preferences` | Get user preferences |
+| `PUT` | `/_/api/preferences` | Update user preferences |
 | `GET` | `/_/health` | Health check (public) |
 
-## How It Works
+## Development
 
-1. Visitor hits `yourdomain.com/aBc`
-2. Worker looks up `aBc` in D1
-3. Found and not expired: 301 redirect (click analytics recorded async via `waitUntil()`)
-4. Not found: 404
+```bash
+yarn install
+yarn test
+yarn dev
+```
+
+### SDK development
+
+```bash
+cd sdk
+yarn install
+yarn test
+yarn build
+```
 
 ## Attribution
 
