@@ -11,6 +11,8 @@
 - **Vanity slugs** — human-readable aliases like `/my-blog-post` alongside random slugs
 - **Click analytics** — per-click tracking with referrer, country, device, and browser
 - **Admin UI** — dashboard, link management, analytics charts, QR codes
+- **Multi-language** — English, Indonesian, and Swedish out of the box
+- **API key auth** — scoped Bearer tokens for programmatic access
 - **TypeScript SDK** — npm package for programmatic link management
 - **MCP server** — AI assistant access via the Model Context Protocol
 - **Cloudflare Access auth** — SSO via Google, GitHub, OTP, SAML, or any IdP
@@ -41,7 +43,7 @@ The deploy button sets up [Workers Builds](https://developers.cloudflare.com/wor
 
 ## Authentication
 
-shrtnr uses [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/applications/) to protect the admin UI. Access handles login, sessions, and identity — the Worker itself has zero auth code.
+shrtnr uses [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/applications/) to protect the admin UI. Access handles login, sessions, and identity. The Worker reads the validated JWT to extract the user's email but does not verify signatures itself.
 
 ### Setup
 
@@ -84,10 +86,11 @@ Both packages cover the same public link-management operations. Neither requires
 
 Authentication model:
 
-- Public link-management endpoints accept Cloudflare Access auth or API key auth.
-- Health endpoint is public and does not require auth.
+- **Cloudflare Access** grants full admin access (UI + all API endpoints).
+- **API key Bearer tokens** grant scoped access to link-management endpoints only. Create keys from the admin UI under API Keys. Pass them as `Authorization: Bearer sk_...`.
+- The health endpoint is public and does not require auth.
 
-Administrative and internal endpoints are intentionally not documented here.
+Administrative endpoints (settings, preferences, dashboard stats, key management) require Cloudflare Access and are not documented here.
 
 | Method | Path | Description |
 |---|---|---|
