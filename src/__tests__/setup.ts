@@ -1,25 +1,30 @@
 import { env } from "cloudflare:test";
 
-// Migration SQL loaded from the migration file at build time via Vite's ?raw import.
-import MIGRATION_SQL from "../../migrations/0001_initial.sql?raw";
+// Load all migration files at build time via Vite's import.meta.glob with eager + raw.
+const migrationFiles = import.meta.glob("../../migrations/*.sql", { eager: true, query: "?raw", import: "default" }) as Record<string, string>;
 
 let migrated = false;
 
-export async function applyMigrations() {
-  if (migrated) return;
-  // Parse migration file into individual SQL statements.
-  // Strip comments, join into single string, then split on semicolons.
-  const sql = MIGRATION_SQL
+function parseSql(raw: string): string[] {
+  const sql = raw
     .split("\n")
     .filter((line: string) => !line.trimStart().startsWith("--"))
     .join(" ")
     .replace(/\s+/g, " ");
-  const statements = sql
+  return sql
     .split(";")
     .map((s: string) => s.trim())
     .filter((s: string) => s.length > 0);
-  for (const stmt of statements) {
-    await env.DB.exec(stmt);
+}
+
+export async function applyMigrations() {
+  if (migrated) return;
+  // Sort by filename to apply migrations in order.
+  const sorted = Object.keys(migrationFiles).sort();
+  for (const path of sorted) {
+    for (const stmt of parseSql(migrationFiles[path])) {
+      await env.DB.exec(stmt);
+    }
   }
   migrated = true;
 }
@@ -29,5 +34,6 @@ export async function resetData() {
   await env.DB.exec("DELETE FROM slugs");
   await env.DB.exec("DELETE FROM links");
   await env.DB.exec("DELETE FROM settings");
+  await env.DB.exec("DELETE FROM user_preferences");
   await env.DB.exec("INSERT INTO settings (key, value) VALUES ('slug_default_length', '3')");
 }

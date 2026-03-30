@@ -25,7 +25,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
   <style>
-    :root {
+    :root, [data-theme="oddbit"] {
       --bg: #001110;
       --surface-dim: #001110;
       --surface-low: #001715;
@@ -48,6 +48,42 @@ const ADMIN_HTML = `<!DOCTYPE html>
       --radius: 0.375rem;
       --radius-lg: 0.75rem;
     }
+    [data-theme="dark"] {
+      --bg: #0f1923;
+      --surface-dim: #0f1923;
+      --surface-low: #152028;
+      --surface: #1a2733;
+      --surface-high: #1f2f3d;
+      --surface-highest: #253648;
+      --surface-bright: #2b3d52;
+      --primary: #ff9061;
+      --primary-dark: #FF7637;
+      --primary-glow: rgba(255,144,97,0.10);
+      --secondary: #f0c27a;
+      --secondary-container: #3a2e1a;
+      --on-bg: #e2e8f0;
+      --on-bg-muted: #8899aa;
+      --outline: #2d3f52;
+      --danger: #ef4444;
+    }
+    [data-theme="light"] {
+      --bg: #f0f2f0;
+      --surface-dim: #e4e8e5;
+      --surface-low: #e9ece9;
+      --surface: #ffffff;
+      --surface-high: #f6f7f6;
+      --surface-highest: #eaedeb;
+      --surface-bright: #dfe3e0;
+      --primary: #c0582e;
+      --primary-dark: #a8461e;
+      --primary-glow: rgba(192,88,46,0.06);
+      --secondary: #2d6e3f;
+      --secondary-container: #e2f0e5;
+      --on-bg: #1b2420;
+      --on-bg-muted: #5c6d64;
+      --outline: #c4cdc7;
+      --danger: #c42b2b;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: var(--font-body); background: var(--bg); color: var(--on-bg); min-height: 100vh; display: flex; }
     .icon { font-family: 'Material Symbols Outlined'; font-size: 20px; vertical-align: middle; font-variation-settings: 'FILL' 0, 'wght' 400; }
@@ -64,8 +100,21 @@ const ADMIN_HTML = `<!DOCTYPE html>
     .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 0.75rem; }
     .sidebar-user { padding: 0.75rem; border-radius: var(--radius); background: var(--surface); }
     .sidebar-oddbit { text-align: center; padding: 0.75rem 0 0.25rem; }
-    .sidebar-oddbit a { display: inline-block; opacity: 0.5; transition: opacity 0.2s; }
+    .sidebar-oddbit a { display: inline-block; opacity: 0.5; transition: opacity 0.2s; color: var(--on-bg-muted); }
     .sidebar-oddbit a:hover { opacity: 0.8; }
+    [data-theme="light"] .sidebar-oddbit a { color: #09322f; opacity: 1; }
+    [data-theme="light"] .sidebar { background: #dce3dd; border-right: 1px solid #c4cdc7; }
+    [data-theme="light"] .sidebar-user { background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    [data-theme="light"] .bento-card { box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #dfe3e0; }
+    [data-theme="light"] .bento-card:hover { background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    [data-theme="light"] .hero-input { background: #ffffff; border-color: #c4cdc7; }
+    [data-theme="light"] .modal-inner { box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+    [data-theme="light"] .slug-chip { border-color: #c4cdc7; }
+    [data-theme="light"] .stat-bar { background: #dfe3e0; }
+    [data-theme="light"] .btn-primary { color: #fff; }
+    [data-theme="light"] .btn-secondary { color: #fff; }
+    [data-theme="light"] .nav-item.active { color: #1b5e20; }
+    [data-theme="oddbit"] .sidebar-oddbit a, :root .sidebar-oddbit a { color: #a7e3a1; }
     .sidebar-oddbit svg { width: 80px; height: auto; }
     .sidebar-oddbit .copyright { font-size: 0.65rem; color: var(--on-bg-muted); margin-top: 0.25rem; opacity: 0.5; }
     .sidebar-user-email { font-size: 0.75rem; color: var(--on-bg-muted); word-break: break-all; }
@@ -138,6 +187,11 @@ const ADMIN_HTML = `<!DOCTYPE html>
     .hero-input::placeholder { color: var(--on-bg-muted); }
 
     /* Forms */
+    .theme-toggle { display: inline-flex; background: var(--surface-low); border-radius: var(--radius-lg); padding: 3px; gap: 2px; border: 1px solid var(--outline); }
+    .theme-toggle .theme-btn { padding: 0.5rem 1rem; background: transparent; border: none; border-radius: calc(var(--radius-lg) - 2px); color: var(--on-bg-muted); font-family: var(--font-body); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.4rem; }
+    .theme-toggle .theme-btn:hover { color: var(--on-bg); }
+    .theme-toggle .theme-btn.active { background: var(--surface); color: var(--on-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    .theme-toggle .theme-btn .icon { font-size: 16px; }
     .form-group { margin-bottom: 1rem; }
     .form-label { display: block; font-size: 0.75rem; color: var(--secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
     .form-input { width: 100%; padding: 0.6rem 0.85rem; background: var(--surface-low); border: 2px solid var(--outline); border-radius: var(--radius); color: var(--on-bg); font-family: var(--font-body); font-size: 0.875rem; }
@@ -245,7 +299,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     </div>
     <div class="sidebar-oddbit">
       <a href="https://oddbit.id" target="_blank" rel="noopener" title="Oddbit">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2578.3 660.9"><path fill="#a7e3a1" d="M49.5,369.5c-1,7.6-1.9,18-1.9,36.2,0,108.5,88.6,199.9,191.5,199.9s185.6-85.7,185.6-196.2-81-192.3-194.2-192.3S55.2,288.5,27.6,319l56.1-110.5c33.3-22.9,95.2-46.7,151.4-46.7,136.1,0,248.6,112.3,248.6,249.5s-110.5,249.5-244.7,249.5S25.6,595.2,0,465.7l49.5-96.2Z"/><path fill="#a7e3a1" d="M521.8,411.3c0-141,112.3-243.7,227.6-243.7s108.5,18.2,143.8,43.8l36.2,71.4c-44.8-34.2-106.6-61.8-164.7-61.8-111.5,0-183.8,93.3-183.8,190.5s79,194.2,188.5,194.2,182.9-80,182.9-194.2V0h59.1v411.3c0,149.4-124.8,249.5-241.9,249.5s-247.6-110.5-247.6-249.5Z"/><path fill="#a7e3a1" d="M1060.6,411.3c0-141,112.3-243.7,227.6-243.7s108.5,18.2,143.8,43.8l36.2,71.4c-44.8-34.2-106.6-61.8-164.7-61.8-111.5,0-183.8,93.3-183.8,190.5s79,194.2,188.5,194.2,182.9-80,182.9-194.2V0h59.1v411.3c0,149.4-124.8,249.5-241.9,249.5s-247.6-110.5-247.6-249.5Z"/><path fill="#a7e3a1" d="M1614.7,411.3V0h59.1v411.3c0,114.2,90.5,194.2,182.9,194.2s188.5-91.3,188.5-194.2-72.4-190.5-183.8-190.5-119.9,27.6-164.7,61.8l36.2-71.4c35.2-25.6,85.7-43.8,143.8-43.8,115.2,0,227.6,102.9,227.6,243.7s-110.5,249.5-247.6,249.5-241.9-99.9-241.9-249.5v.2Z"/><path fill="#a7e3a1" d="M2147.9,70.4c0-21.9,19-39.9,40.9-39.9s40.9,18.2,40.9,39.9-19,39.9-40.9,39.9-40.9-18.2-40.9-39.9ZM2159.2,647.5V175.2h59.1v472.3h-59.1Z"/><path fill="#a7e3a1" d="M2286.8,464.7V187.5l59.1-61.8v315.1c0,102.9,55.2,164.7,140,164.7s64.7-8.6,92.3-26.6v53.4c-27.6,20-60,28.6-97.2,28.6-106.6,0-194.2-84.7-194.2-196.2ZM2365,230.4l28.6-55.2h184.8v55.2h-213.4Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2578.3 660.9"><path fill="currentColor" d="M49.5,369.5c-1,7.6-1.9,18-1.9,36.2,0,108.5,88.6,199.9,191.5,199.9s185.6-85.7,185.6-196.2-81-192.3-194.2-192.3S55.2,288.5,27.6,319l56.1-110.5c33.3-22.9,95.2-46.7,151.4-46.7,136.1,0,248.6,112.3,248.6,249.5s-110.5,249.5-244.7,249.5S25.6,595.2,0,465.7l49.5-96.2Z"/><path fill="currentColor" d="M521.8,411.3c0-141,112.3-243.7,227.6-243.7s108.5,18.2,143.8,43.8l36.2,71.4c-44.8-34.2-106.6-61.8-164.7-61.8-111.5,0-183.8,93.3-183.8,190.5s79,194.2,188.5,194.2,182.9-80,182.9-194.2V0h59.1v411.3c0,149.4-124.8,249.5-241.9,249.5s-247.6-110.5-247.6-249.5Z"/><path fill="currentColor" d="M1060.6,411.3c0-141,112.3-243.7,227.6-243.7s108.5,18.2,143.8,43.8l36.2,71.4c-44.8-34.2-106.6-61.8-164.7-61.8-111.5,0-183.8,93.3-183.8,190.5s79,194.2,188.5,194.2,182.9-80,182.9-194.2V0h59.1v411.3c0,149.4-124.8,249.5-241.9,249.5s-247.6-110.5-247.6-249.5Z"/><path fill="currentColor" d="M1614.7,411.3V0h59.1v411.3c0,114.2,90.5,194.2,182.9,194.2s188.5-91.3,188.5-194.2-72.4-190.5-183.8-190.5-119.9,27.6-164.7,61.8l36.2-71.4c35.2-25.6,85.7-43.8,143.8-43.8,115.2,0,227.6,102.9,227.6,243.7s-110.5,249.5-247.6,249.5-241.9-99.9-241.9-249.5v.2Z"/><path fill="currentColor" d="M2147.9,70.4c0-21.9,19-39.9,40.9-39.9s40.9,18.2,40.9,39.9-19,39.9-40.9,39.9-40.9-18.2-40.9-39.9ZM2159.2,647.5V175.2h59.1v472.3h-59.1Z"/><path fill="currentColor" d="M2286.8,464.7V187.5l59.1-61.8v315.1c0,102.9,55.2,164.7,140,164.7s64.7-8.6,92.3-26.6v53.4c-27.6,20-60,28.6-97.2,28.6-106.6,0-194.2-84.7-194.2-196.2ZM2365,230.4l28.6-55.2h184.8v55.2h-213.4Z"/></svg>
       </a>
       <div class="copyright" id="copyright-year"></div>
     </div>
@@ -302,6 +356,16 @@ const ADMIN_HTML = `<!DOCTYPE html>
       <div class="page-subtitle">Configure your URL shortener</div>
     </div>
     <div class="bento-card" style="max-width:480px">
+      <div class="form-group">
+        <label class="form-label">Theme</label>
+        <div class="theme-toggle" id="theme-picker">
+          <button class="theme-btn active" data-theme="oddbit" onclick="setTheme('oddbit')"><span class="icon">eco</span> Oddbit</button>
+          <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')"><span class="icon">dark_mode</span> Dark</button>
+          <button class="theme-btn" data-theme="light" onclick="setTheme('light')"><span class="icon">light_mode</span> Light</button>
+        </div>
+      </div>
+    </div>
+    <div class="bento-card" style="max-width:480px;margin-top:1.4rem">
       <div class="form-group">
         <label class="form-label">Default Slug Length</label>
         <div style="display:flex;gap:0.75rem;align-items:center">
@@ -644,14 +708,21 @@ async function showDetail(id, pushState) {
   html += '</div></div>';
 
   // Hero
+  const vanitySlug = l.slugs.find(s => s.is_vanity);
+  const displaySlug = vanitySlug ? vanitySlug.slug : slug;
+  const displayUrl = location.origin + '/' + displaySlug;
   html += '<div class="detail-hero">';
   if (isExpired) html += '<div style="display:inline-block;background:var(--danger);color:#fff;font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:var(--radius);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em">Disabled</div>';
-  html += '<div class="detail-short-url"' + (isExpired ? ' style="opacity:0.4"' : '') + '>' + esc(shortUrl) + '</div>';
+  html += '<div class="detail-short-url"' + (isExpired ? ' style="opacity:0.4"' : '') + '>' + esc(displayUrl) + '</div>';
   html += '<div class="detail-dest">' + esc(l.url) + '</div>';
   if (l.label) html += '<div style="color:var(--secondary);font-size:0.85rem;margin-top:0.25rem">' + esc(l.label) + '</div>';
-  html += '<div style="margin-top:0.75rem;display:flex;gap:0.5rem">';
-  html += '<button class="btn btn-secondary btn-sm" onclick="copyUrl(\\'' + slug + '\\')"><span class="icon">content_copy</span> Copy</button>';
+  html += '<div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center">';
+  html += '<button class="btn btn-secondary btn-sm" onclick="copyUrl(\\'' + displaySlug + '\\')"><span class="icon">content_copy</span> Copy</button>';
   html += '<button class="btn btn-ghost btn-sm" onclick="showQRModal(' + id + ')"><span class="icon">qr_code_2</span> QR</button>';
+  if (vanitySlug) {
+    html += '<span style="color:var(--on-bg-muted);font-size:0.75rem;margin-left:0.5rem">or</span>';
+    html += '<button class="btn btn-ghost btn-sm" style="font-size:0.75rem;opacity:0.7" onclick="copyUrl(\\'' + slug + '\\')"><span class="icon" style="font-size:14px">content_copy</span> /' + esc(slug) + '</button>';
+  }
   html += '</div></div>';
 
   // Inline edit section
@@ -701,10 +772,12 @@ async function showDetail(id, pushState) {
   html += '<div class="bento-card"><div class="bento-label">Performance</div>';
   html += '<div style="text-align:center;padding:1rem 0"><div style="font-family:var(--font-display);font-size:3rem;font-weight:700;color:var(--primary)">' + analytics.total_clicks + '</div><div style="color:var(--on-bg-muted);font-size:0.8rem">total clicks</div></div>';
   // Slugs breakdown
+  const maxSC = Math.max(1, ...l.slugs.map(x => x.click_count));
+  const maxSlugLen = Math.max(...l.slugs.map(x => x.slug.length + 1));
+  const slugColWidth = Math.max(100, maxSlugLen * 9.6);
   l.slugs.forEach(s => {
-    const maxSC = Math.max(1, ...l.slugs.map(x => x.click_count));
     const pct = (s.click_count / maxSC * 100).toFixed(0);
-    html += '<div class="stat-row"><span class="stat-name" style="font-family:var(--font-mono)">/' + esc(s.slug) + '</span><div class="stat-bar"><div class="stat-fill ' + (s.is_vanity ? 'mint' : 'orange') + '" style="width:' + pct + '%"></div></div><span class="stat-count">' + s.click_count + '</span></div>';
+    html += '<div class="stat-row"><span class="stat-name" style="font-family:var(--font-mono);min-width:' + slugColWidth + 'px;max-width:' + slugColWidth + 'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">/' + esc(s.slug) + '</span><div class="stat-bar"><div class="stat-fill ' + (s.is_vanity ? 'mint' : 'orange') + '" style="width:' + pct + '%"></div></div><span class="stat-count">' + s.click_count + '</span></div>';
   });
   html += '</div>';
 
@@ -780,6 +853,32 @@ async function saveSettings() {
   const res = await api('/settings', { method: 'PUT', body: JSON.stringify({ slug_default_length: val }) });
   if (res.ok) toast('Settings saved');
   else toast('Failed to save settings', 'error');
+}
+
+// ---- Theme ----
+let currentTheme = 'oddbit';
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  currentTheme = theme;
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+  });
+}
+
+async function setTheme(theme) {
+  applyTheme(theme);
+  const res = await api('/preferences', { method: 'PUT', body: JSON.stringify({ theme: theme }) });
+  if (res.ok) toast('Theme updated');
+  else toast('Failed to save theme', 'error');
+}
+
+async function loadPreferences() {
+  const res = await api('/preferences');
+  if (res.ok) {
+    const prefs = await res.json();
+    if (prefs.theme) applyTheme(prefs.theme);
+  }
 }
 
 // ---- Create ----
@@ -947,8 +1046,9 @@ async function clearDetailExpiry(linkId) {
 function showQRModal(id) {
   const link = links.find(l => l.id === id);
   if (!link) return;
+  const vanity = link.slugs.find(s => s.is_vanity);
   const primary = link.slugs.find(s => !s.is_vanity);
-  const slug = primary ? primary.slug : (link.slugs[0]?.slug || '');
+  const slug = vanity ? vanity.slug : (primary ? primary.slug : (link.slugs[0]?.slug || ''));
   const url = location.origin + '/' + slug;
 
   openModal(
@@ -1153,6 +1253,7 @@ function routeFromPath() {
 
 // ---- Init ----
 loadSettings();
+loadPreferences();
 loadLinks().then(function() { routeFromPath(); });
 </script>
 </body>

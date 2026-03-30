@@ -162,6 +162,35 @@ export async function setSetting(db: D1Database, key: string, value: string): Pr
     .run();
 }
 
+// --- User Preferences ---
+
+export async function getUserPreference(db: D1Database, email: string, key: string): Promise<string | null> {
+  const row = await db
+    .prepare("SELECT value FROM user_preferences WHERE email = ? AND key = ?")
+    .bind(email, key)
+    .first<{ value: string }>();
+  return row?.value ?? null;
+}
+
+export async function setUserPreference(db: D1Database, email: string, key: string, value: string): Promise<void> {
+  await db
+    .prepare("INSERT INTO user_preferences (email, key, value) VALUES (?, ?, ?) ON CONFLICT(email, key) DO UPDATE SET value = ?")
+    .bind(email, key, value, value)
+    .run();
+}
+
+export async function getUserPreferences(db: D1Database, email: string): Promise<Record<string, string>> {
+  const { results } = await db
+    .prepare("SELECT key, value FROM user_preferences WHERE email = ?")
+    .bind(email)
+    .all<{ key: string; value: string }>();
+  const prefs: Record<string, string> = {};
+  for (const row of results ?? []) {
+    prefs[row.key] = row.value;
+  }
+  return prefs;
+}
+
 // --- Click analytics ---
 
 export async function recordClick(

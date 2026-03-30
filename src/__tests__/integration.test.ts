@@ -14,6 +14,9 @@ import {
   getDashboardStats,
   getSetting,
   setSetting,
+  getUserPreference,
+  setUserPreference,
+  getUserPreferences,
 } from "../db";
 import { generateUniqueSlug } from "../slugs";
 import { applyMigrations, resetData } from "./setup";
@@ -301,5 +304,45 @@ describe("Settings", () => {
   it("should return null for a non-existent setting", async () => {
     const val = await getSetting(env.DB, "nonexistent_key");
     expect(val).toBeNull();
+  });
+});
+
+// ---- User Preferences ----
+
+describe("User Preferences", () => {
+  it("should return null for a preference that has not been set", async () => {
+    const val = await getUserPreference(env.DB, "user@example.com", "theme");
+    expect(val).toBeNull();
+  });
+
+  it("should save and retrieve a user preference", async () => {
+    await setUserPreference(env.DB, "user@example.com", "theme", "dark");
+    const val = await getUserPreference(env.DB, "user@example.com", "theme");
+    expect(val).toBe("dark");
+  });
+
+  it("should update an existing preference", async () => {
+    await setUserPreference(env.DB, "user@example.com", "theme", "dark");
+    await setUserPreference(env.DB, "user@example.com", "theme", "light");
+    const val = await getUserPreference(env.DB, "user@example.com", "theme");
+    expect(val).toBe("light");
+  });
+
+  it("should isolate preferences between users", async () => {
+    await setUserPreference(env.DB, "alice@example.com", "theme", "dark");
+    await setUserPreference(env.DB, "bob@example.com", "theme", "light");
+    expect(await getUserPreference(env.DB, "alice@example.com", "theme")).toBe("dark");
+    expect(await getUserPreference(env.DB, "bob@example.com", "theme")).toBe("light");
+  });
+
+  it("should return all preferences for a user", async () => {
+    await setUserPreference(env.DB, "user@example.com", "theme", "dark");
+    const prefs = await getUserPreferences(env.DB, "user@example.com");
+    expect(prefs).toEqual({ theme: "dark" });
+  });
+
+  it("should return empty object when user has no preferences", async () => {
+    const prefs = await getUserPreferences(env.DB, "nobody@example.com");
+    expect(prefs).toEqual({});
   });
 });

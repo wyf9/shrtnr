@@ -8,6 +8,7 @@ import { handleHealth } from "./api/health";
 import { handleListLinks, handleGetLink, handleCreateLink, handleUpdateLink, handleDisableLink } from "./api/links";
 import { handleAddVanitySlug, handleRemoveVanitySlug } from "./api/slugs";
 import { handleGetSettings, handleUpdateSettings } from "./api/settings";
+import { handleGetPreferences, handleUpdatePreferences } from "./api/preferences";
 import { handleDashboardStats, handleLinkAnalytics } from "./api/analytics";
 import { serveAdminUI } from "./admin/ui";
 import { serveAsset } from "./assets";
@@ -49,7 +50,7 @@ export default {
       if (!email) {
         return unauthorizedResponse();
       }
-      return handleApiRoute(request, env, path);
+      return handleApiRoute(request, env, path, email);
     }
 
     // Root URL — redirect to admin (Cloudflare Access will handle login)
@@ -67,7 +68,7 @@ export default {
   },
 } satisfies ExportedHandler<Env>;
 
-async function handleApiRoute(request: Request, env: Env, path: string): Promise<Response> {
+async function handleApiRoute(request: Request, env: Env, path: string, email: string): Promise<Response> {
   const method = request.method;
 
   // GET /_/api/links
@@ -88,6 +89,16 @@ async function handleApiRoute(request: Request, env: Env, path: string): Promise
   // PUT /_/api/settings
   if (path === "/_/api/settings" && method === "PUT") {
     return handleUpdateSettings(request, env);
+  }
+
+  // GET /_/api/preferences
+  if (path === "/_/api/preferences" && method === "GET") {
+    return handleGetPreferences(env, email);
+  }
+
+  // PUT /_/api/preferences
+  if (path === "/_/api/preferences" && method === "PUT") {
+    return handleUpdatePreferences(request, env, email);
   }
 
   // GET /_/api/dashboard

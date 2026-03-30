@@ -590,6 +590,72 @@ describe("Settings API", () => {
   });
 });
 
+// ---- User Preferences API ----
+
+describe("User Preferences API", () => {
+  it("GET /_/api/preferences should return empty object for new user", async () => {
+    const res = await SELF.fetch(authed("/_/api/preferences"));
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    expect(body).toEqual({});
+  });
+
+  it("PUT /_/api/preferences should save and return theme", async () => {
+    const res = await SELF.fetch(
+      authed("/_/api/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: "dark" }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    expect(body.theme).toBe("dark");
+  });
+
+  it("GET /_/api/preferences should return saved theme", async () => {
+    await SELF.fetch(
+      authed("/_/api/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: "light" }),
+      })
+    );
+    const res = await SELF.fetch(authed("/_/api/preferences"));
+    const body = await res.json() as any;
+    expect(body.theme).toBe("light");
+  });
+
+  it("PUT /_/api/preferences with invalid theme should return 400", async () => {
+    const res = await SELF.fetch(
+      authed("/_/api/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: "neon" }),
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("preferences should be scoped per user", async () => {
+    await SELF.fetch(
+      authed("/_/api/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: "dark" }),
+      })
+    );
+    const otherJwt = makeJwt("other@example.com");
+    const otherRes = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/preferences", {
+        headers: { "Cf-Access-Jwt-Assertion": otherJwt },
+      })
+    );
+    const body = await otherRes.json() as any;
+    expect(body.theme).toBeUndefined();
+  });
+});
+
 // ---- Analytics API ----
 
 describe("Analytics API", () => {
