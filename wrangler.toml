@@ -7,7 +7,3 @@ binding = "DB"
 database_name = "shrtnr-db"
 database_id = "DATABASE_ID"
 migrations_dir = "migrations"
-
-[vars]
-# Default generated slug length (minimum: 3)
-SLUG_DEFAULT_LENGTH = "3"

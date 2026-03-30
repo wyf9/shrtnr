@@ -61,12 +61,9 @@ Access supports Google, GitHub, Microsoft, Okta, SAML, OIDC, and a built-in one-
 
 ## Configuration
 
-In `wrangler.toml`:
+Default slug length is hardcoded to 3.
 
-```toml
-[vars]
-SLUG_DEFAULT_LENGTH = "3"   # minimum: 3, also configurable from the admin UI
-```
+You can override it from the admin settings page at runtime.
 
 ## SDK
 
