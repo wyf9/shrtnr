@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2
+
+- Replaced language picker toggle buttons with a dropdown select that scales to any number of languages
+
 ## 0.6.1
 
 ### Security
