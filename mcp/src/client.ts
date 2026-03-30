@@ -97,9 +97,16 @@ export class ShrtnrHttpClient {
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
-    const data = await res.json();
-    if (!res.ok) throw new ShrtnrApiError(res.status, data);
-    return data as T;
+    if (!res.ok) {
+      let parsed: unknown;
+      try {
+        parsed = await res.json();
+      } catch {
+        parsed = null;
+      }
+      throw new ShrtnrApiError(res.status, parsed);
+    }
+    return res.json() as Promise<T>;
   }
 
   health() {

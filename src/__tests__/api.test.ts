@@ -1178,4 +1178,233 @@ describe("API Key Authentication", () => {
     );
     expect(res.status).toBe(403);
   });
+
+  it("read-scoped key should not be able to update links", async () => {
+    const linkRes = await SELF.fetch(
+      authed("/_/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com" }),
+      })
+    );
+    const link = await linkRes.json() as any;
+    const keyRes = await SELF.fetch(
+      authed("/_/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Reader", scope: "read" }),
+      })
+    );
+    const { raw_key } = await keyRes.json() as any;
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${link.id}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${raw_key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ label: "Nope" }),
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("read-scoped key should not be able to disable links", async () => {
+    const linkRes = await SELF.fetch(
+      authed("/_/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com" }),
+      })
+    );
+    const link = await linkRes.json() as any;
+    const keyRes = await SELF.fetch(
+      authed("/_/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Reader", scope: "read" }),
+      })
+    );
+    const { raw_key } = await keyRes.json() as any;
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${link.id}/disable`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${raw_key}` },
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("read-scoped key should not be able to add vanity slugs", async () => {
+    const linkRes = await SELF.fetch(
+      authed("/_/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com" }),
+      })
+    );
+    const link = await linkRes.json() as any;
+    const keyRes = await SELF.fetch(
+      authed("/_/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Reader", scope: "read" }),
+      })
+    );
+    const { raw_key } = await keyRes.json() as any;
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${link.id}/slugs`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${raw_key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ slug: "denied" }),
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("create-scoped key should not be able to list links", async () => {
+    const keyRes = await SELF.fetch(
+      authed("/_/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Creator", scope: "create" }),
+      })
+    );
+    const { raw_key } = await keyRes.json() as any;
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        headers: { "Authorization": `Bearer ${raw_key}` },
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("create-scoped key should not be able to get link details", async () => {
+    const linkRes = await SELF.fetch(
+      authed("/_/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com" }),
+      })
+    );
+    const link = await linkRes.json() as any;
+    const keyRes = await SELF.fetch(
+      authed("/_/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Creator", scope: "create" }),
+      })
+    );
+    const { raw_key } = await keyRes.json() as any;
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${link.id}`, {
+        headers: { "Authorization": `Bearer ${raw_key}` },
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+});
+
+// ---- Vanity Slug Redirect ----
+
+describe("Vanity Slug Redirect", () => {
+  it("should 301 redirect via a vanity slug", async () => {
+    await SELF.fetch(
+      authed("/_/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://vanity-target.com", vanity_slug: "go" }),
+      })
+    );
+    const res = await SELF.fetch(unauthed("/go"), { redirect: "manual" });
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Location")).toBe("https://vanity-target.com/");
+  });
+});
+
+// ---- Invalid JSON Bodies ----
+
+describe("Invalid JSON Bodies", () => {
+  it("POST /_/api/links with invalid JSON should return 400", async () => {
+    const res = await SELF.fetch(
+      authed("/_/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "not json",
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("PUT /_/api/settings with invalid JSON should return 400", async () => {
+    const res = await SELF.fetch(
+      authed("/_/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: "not json",
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("PUT /_/api/preferences with invalid JSON should return 400", async () => {
+    const res = await SELF.fetch(
+      authed("/_/api/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: "not json",
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("POST /_/api/keys with invalid JSON should return 400", async () => {
+    const res = await SELF.fetch(
+      authed("/_/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "not json",
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+});
+
+// ---- Nonexistent Resources ----
+
+describe("Nonexistent Resources", () => {
+  it("GET /_/api/links/:id/analytics for nonexistent link should return 404", async () => {
+    const res = await SELF.fetch(authed("/_/api/links/99999/analytics"));
+    expect(res.status).toBe(404);
+  });
+
+  it("POST /_/api/links/:id/slugs for nonexistent link should return 404", async () => {
+    const res = await SELF.fetch(
+      authed("/_/api/links/99999/slugs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: "orphan" }),
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("PUT /_/api/links/:id for nonexistent link should return 404", async () => {
+    const res = await SELF.fetch(
+      authed("/_/api/links/99999", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://nowhere.com" }),
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("DELETE /_/api/keys/:id for nonexistent key should return 404", async () => {
+    const res = await SELF.fetch(authed("/_/api/keys/99999", { method: "DELETE" }));
+    expect(res.status).toBe(404);
+  });
 });

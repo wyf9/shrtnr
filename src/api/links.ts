@@ -7,21 +7,9 @@ import {
   disableManagedLink,
   getManagedLink,
   listManagedLinks,
-  ServiceResult,
   updateManagedLink,
 } from "../services/link-management";
-
-function json(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-function fromServiceResult<T>(result: ServiceResult<T>): Response {
-  if (!result.ok) return json({ error: result.error }, result.status);
-  return json(result.data, result.status);
-}
+import { json, fromServiceResult } from "./response";
 
 export async function handleListLinks(env: Env): Promise<Response> {
   return fromServiceResult(await listManagedLinks(env));

@@ -2,19 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Env } from "../types";
-import { addVanitySlugToLink, ServiceResult } from "../services/link-management";
-
-function json(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-function fromServiceResult<T>(result: ServiceResult<T>): Response {
-  if (!result.ok) return json({ error: result.error }, result.status);
-  return json(result.data, result.status);
-}
+import { addVanitySlugToLink } from "../services/link-management";
+import { json, fromServiceResult } from "./response";
 
 export async function handleAddVanitySlug(
   request: Request,

@@ -1,7 +1,7 @@
 // Copyright 2025 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-import { Env, Link, Slug, LinkWithSlugs, ClickStats, DashboardStats } from "./types";
+import { Link, Slug, LinkWithSlugs, ClickStats, DashboardStats } from "./types";
 
 export async function findSlugByValue(db: D1Database, slug: string): Promise<(Slug & { url: string; expires_at: number | null }) | null> {
   const result = await db
@@ -11,13 +11,6 @@ export async function findSlugByValue(db: D1Database, slug: string): Promise<(Sl
     .bind(slug)
     .first<Slug & { url: string; expires_at: number | null }>();
   return result;
-}
-
-export async function incrementClickCount(db: D1Database, slugId: number): Promise<void> {
-  await db
-    .prepare("UPDATE slugs SET click_count = click_count + 1 WHERE id = ?")
-    .bind(slugId)
-    .run();
 }
 
 export async function getAllLinks(db: D1Database): Promise<LinkWithSlugs[]> {

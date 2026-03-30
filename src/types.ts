@@ -27,16 +27,6 @@ export interface LinkWithSlugs extends Link {
   total_clicks: number;
 }
 
-export interface Click {
-  id: number;
-  slug_id: number;
-  clicked_at: number;
-  referrer: string | null;
-  country: string | null;
-  device_type: string | null;
-  browser: string | null;
-}
-
 export interface ClickStats {
   total_clicks: number;
   countries: { name: string; count: number }[];
@@ -50,7 +40,7 @@ export interface DashboardStats {
   total_links: number;
   total_clicks: number;
   recent_links: LinkWithSlugs[];
-  top_links: (LinkWithSlugs & { total_clicks: number })[];
+  top_links: LinkWithSlugs[];
   top_countries: { name: string; count: number }[];
   top_referrers: { name: string; count: number }[];
 }

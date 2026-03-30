@@ -48,15 +48,6 @@ export interface ClickStats {
   clicks_over_time: DateCount[];
 }
 
-export interface DashboardStats {
-  total_links: number;
-  total_clicks: number;
-  recent_links: Link[];
-  top_links: Link[];
-  top_countries: NameCount[];
-  top_referrers: NameCount[];
-}
-
 export interface NameCount {
   name: string;
   count: number;
@@ -65,25 +56,6 @@ export interface NameCount {
 export interface DateCount {
   date: string;
   count: number;
-}
-
-export interface ApiKey {
-  id: number;
-  email: string;
-  title: string;
-  key_prefix: string;
-  scope: string;
-  created_at: number;
-  last_used_at: number | null;
-}
-
-export interface CreatedApiKey {
-  key: ApiKey;
-  raw_key: string;
-}
-
-export interface Settings {
-  slug_default_length: number;
 }
 
 export interface HealthStatus {
@@ -108,7 +80,3 @@ export interface UpdateLinkOptions {
   expires_at?: number | null;
 }
 
-export interface CreateApiKeyOptions {
-  title: string;
-  scope: "create" | "read" | "create,read";
-}

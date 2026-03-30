@@ -16,10 +16,7 @@ import {
 import { DEFAULT_SLUG_LENGTH } from "../constants";
 import { generateUniqueSlug, validateSlugLength, validateVanitySlug } from "../slugs";
 import { ClickStats, DashboardStats, Env, LinkWithSlugs, Slug } from "../types";
-
-export type ServiceResult<T> =
-  | { ok: true; status: number; data: T }
-  | { ok: false; status: number; error: string };
+import { ServiceResult } from "../api/response";
 
 function ok<T>(data: T, status = 200): ServiceResult<T> {
   return { ok: true, status, data };
@@ -136,6 +133,8 @@ export async function addVanitySlugToLink(
 }
 
 export async function getManagedLinkAnalytics(env: Env, linkId: number): Promise<ServiceResult<ClickStats>> {
+  const link = await getLinkById(env.DB, linkId);
+  if (!link) return fail(404, "Link not found");
   return ok(await getLinkClickStats(env.DB, linkId));
 }
 

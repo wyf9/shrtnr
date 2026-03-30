@@ -3,23 +3,11 @@
 
 import { Env } from "../types";
 import {
-  AdminServiceResult,
   createApiKeyForUser,
   deleteApiKeyForUser,
   listApiKeysForUser,
 } from "../services/admin-management";
-
-function json(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-function fromServiceResult<T>(result: AdminServiceResult<T>): Response {
-  if (!result.ok) return json({ error: result.error }, result.status);
-  return json(result.data, result.status);
-}
+import { json, fromServiceResult } from "./response";
 
 export async function handleListKeys(env: Env, email: string): Promise<Response> {
   return fromServiceResult(await listApiKeysForUser(env, email));
