@@ -2,19 +2,19 @@
 
 ## 0.7.0
 
-### MCP server moved into the Worker
+### MCP endpoint refactored into the Worker
 
-The standalone `@oddbit/shrtnr-mcp` npm package has been replaced by a built-in remote MCP endpoint at `/_/mcp`. Every shrtnr deployment now serves an MCP server over Streamable HTTP transport, authenticated with API keys.
+The MCP server is now a built-in remote endpoint at `/_/mcp`, served directly by the Cloudflare Worker. Every shrtnr deployment includes the MCP server out of the box, authenticated with the same API keys as the admin API.
 
 - Added `/_/mcp` endpoint using Cloudflare's `agents` SDK with `createMcpHandler()`
-- MCP tools call the service layer directly instead of going through HTTP
+- MCP tools call the service layer directly for lower latency
 - Stateless per-request design: no Durable Objects required
-- Removed the `mcp/` package directory and its npm publish workflow
-- Updated `release-packages.yml` and `detect-releases.sh` to cover SDK only
+- Consolidated the `mcp/` directory into the main application
+- Simplified CI workflows to reflect the single-package structure
 
 ### Migration from `@oddbit/shrtnr-mcp`
 
-Replace `npx @oddbit/shrtnr-mcp` with a remote connection to your shrtnr deployment. See the MCP section in `README.md` for client configuration examples.
+Replace `npx @oddbit/shrtnr-mcp` with a remote MCP connection to your shrtnr deployment. See the MCP section in `README.md` for client configuration examples.
 
 ## 0.6.3
 
