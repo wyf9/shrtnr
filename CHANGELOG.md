@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.7.0
+
+### MCP server moved into the Worker
+
+The standalone `@oddbit/shrtnr-mcp` npm package has been replaced by a built-in remote MCP endpoint at `/_/mcp`. Every shrtnr deployment now serves an MCP server over Streamable HTTP transport, authenticated with API keys.
+
+- Added `/_/mcp` endpoint using Cloudflare's `agents` SDK with `createMcpHandler()`
+- MCP tools call the service layer directly instead of going through HTTP
+- Stateless per-request design: no Durable Objects required
+- Removed the `mcp/` package directory and its npm publish workflow
+- Updated `release-packages.yml` and `detect-releases.sh` to cover SDK only
+
+### Migration from `@oddbit/shrtnr-mcp`
+
+Replace `npx @oddbit/shrtnr-mcp` with a remote connection to your shrtnr deployment. See the MCP section in `README.md` for client configuration examples.
+
 ## 0.6.3
 
 - Removed all em dashes from source files, page titles, and comments per writing rules

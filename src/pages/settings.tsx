@@ -153,7 +153,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t }) => {
             </div>
           </a>
           <a
-            href="https://www.npmjs.com/package/@oddbit/shrtnr-mcp"
+            href="https://github.com/oddbit/shrtnr#mcp-server-ai-integration"
             target="_blank"
             rel="noopener"
             class="bento-card"
@@ -172,7 +172,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t }) => {
               <span class="icon" style="font-size:14px">
                 open_in_new
               </span>{" "}
-              @oddbit/shrtnr-mcp
+              /_/mcp
             </div>
           </a>
         </div>

@@ -20,7 +20,7 @@ It takes one click to deploy. You get a full admin UI, click analytics, a TypeSc
 - **Multi-language admin UI** with English, Indonesian, and Swedish built in
 - **API key authentication** with scoped Bearer tokens for programmatic access
 - **TypeScript SDK** ([`@oddbit/shrtnr`](https://www.npmjs.com/package/@oddbit/shrtnr)) for Node.js and browser apps
-- **MCP server** ([`@oddbit/shrtnr-mcp`](https://www.npmjs.com/package/@oddbit/shrtnr-mcp)) so Claude, Copilot, and other AI assistants can shorten URLs
+- **Built-in MCP server** at `/_/mcp` so Claude, Copilot, and other AI assistants can shorten URLs
 - **SSO via Cloudflare Access** supporting Google, GitHub, OTP, SAML, OIDC, and any IdP
 - **One-click deploy** with automatic database provisioning and migrations
 
@@ -79,12 +79,90 @@ Shorten URLs, manage links, and read analytics from any TypeScript or JavaScript
 
 ### MCP Server (AI Integration)
 
-Let Claude, GitHub Copilot, or any MCP-compatible AI assistant create and manage short links.
+Every shrtnr deployment includes a built-in [MCP](https://modelcontextprotocol.io/) endpoint at `/_/mcp`. Claude, GitHub Copilot, Cursor, and any MCP-compatible client can connect to it over Streamable HTTP transport to create and manage short links.
 
-- Package: [`@oddbit/shrtnr-mcp`](https://www.npmjs.com/package/@oddbit/shrtnr-mcp)
-- Documentation: [mcp/README.md](mcp/README.md)
+The endpoint requires an API key. Create one from the admin UI under **API Keys** with `create,read` scope.
 
-Both packages cover the same link-management operations. Configuration and usage details are in their respective READMEs.
+#### Available tools
+
+| Tool | Description |
+|---|---|
+| `health` | Check server health and version |
+| `list_links` | List all short links with slugs and click counts |
+| `get_link` | Get details for a link by ID |
+| `create_link` | Shorten a URL (supports labels, vanity slugs, expiry) |
+| `update_link` | Update a link's URL, label, or expiry |
+| `disable_link` | Disable a link so it stops redirecting |
+| `add_vanity_slug` | Add a custom slug to an existing link |
+| `get_link_analytics` | Get click stats by country, referrer, device, and browser |
+
+#### Claude Desktop
+
+Add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "shrtnr": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://your-domain.com/_/mcp"],
+      "env": {
+        "AUTHORIZATION": "Bearer sk_your_api_key"
+      }
+    }
+  }
+}
+```
+
+#### Claude Code
+
+Add to `.mcp.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "shrtnr": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://your-domain.com/_/mcp"],
+      "env": {
+        "AUTHORIZATION": "Bearer sk_your_api_key"
+      }
+    }
+  }
+}
+```
+
+#### VS Code (GitHub Copilot)
+
+Add to `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "shrtnr": {
+      "type": "http",
+      "url": "https://your-domain.com/_/mcp",
+      "headers": {
+        "Authorization": "Bearer sk_your_api_key"
+      }
+    }
+  }
+}
+```
+
+#### Cursor / Windsurf
+
+Use the same `mcp-remote` approach as Claude Desktop, or configure via each editor's MCP settings with the endpoint URL `https://your-domain.com/_/mcp` and an `Authorization: Bearer sk_...` header.
+
+#### Any HTTP MCP client
+
+Point the client at your shrtnr endpoint:
+
+- **URL:** `https://your-domain.com/_/mcp`
+- **Transport:** Streamable HTTP
+- **Auth header:** `Authorization: Bearer sk_your_api_key`
+
+Replace `your-domain.com` with your actual short domain and `sk_your_api_key` with a key created from the admin UI.
 
 ## API
 
@@ -106,6 +184,7 @@ Administrative endpoints (settings, preferences, dashboard stats, key management
 | `POST` | `/_/api/links/:id/disable` | Disable a link |
 | `GET` | `/_/api/links/:id/analytics` | Get click analytics (referrer, country, device, browser) |
 | `GET` | `/_/health` | Health check (public) |
+| `POST` | `/_/mcp` | MCP endpoint for AI assistants (Streamable HTTP transport) |
 
 ## Development
 
@@ -120,15 +199,6 @@ yarn dev
 
 ```bash
 cd sdk
-yarn install
-yarn test
-yarn build
-```
-
-### MCP server development
-
-```bash
-cd mcp
 yarn install
 yarn test
 yarn build
