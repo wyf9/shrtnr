@@ -29,7 +29,7 @@ export async function handleRedirect(
   const deviceType = ua ? parseDeviceType(ua) : null;
   const browser = ua ? parseBrowser(ua) : null;
 
-  // Async click recording — does not block the redirect
+  // Async click recording, does not block the redirect
   ctx.waitUntil(recordClick(db, record.id, referrer, country, deviceType, browser));
 
   return Response.redirect(record.url, 301);

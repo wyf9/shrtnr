@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Lightweight User-Agent parsing — no dependencies.
+ * Lightweight User-Agent parsing. No dependencies.
  * Covers the major browsers and device types for analytics.
  */
 
@@ -13,7 +13,7 @@ export function parseDeviceType(ua: string): string {
 }
 
 export function parseBrowser(ua: string): string {
-  // Order matters — check more specific patterns first
+  // Order matters: check more specific patterns first
   if (/EdgA?\//.test(ua)) return "Edge";
   if (/OPR\/|Opera/.test(ua)) return "Opera";
   if (/SamsungBrowser\//.test(ua)) return "Samsung Internet";

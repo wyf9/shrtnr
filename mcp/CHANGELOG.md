@@ -2,6 +2,13 @@
 
 All notable changes to the MCP server are documented in this file.
 
+## 0.1.5
+
+- Rewrote README with setup instructions for Claude Desktop, Claude Code, VS Code, Cursor, and Windsurf
+- Added "What This Enables" section describing concrete AI assistant use cases
+- Added scope column to tools table
+- Expanded npm keywords: `mcp-server`, `ai-tools`, `claude`, `copilot`, `link-management`
+
 ## 0.1.4
 
 - Config fix

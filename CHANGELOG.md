@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.3
+
+- Removed all em dashes from source files, page titles, and comments per writing rules
+- Rewrote README with SEO-focused copy: clearer feature descriptions, explicit search terms, improved API table
+- Language picker now shows a middle dot separator between native and localized names
+
 ## 0.6.2
 
 - Replaced language picker toggle buttons with a dropdown select that scales to any number of languages

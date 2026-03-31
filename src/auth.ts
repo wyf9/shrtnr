@@ -6,7 +6,7 @@
  *
  * Cloudflare Access sits in front of /_/* routes and sets the
  * `Cf-Access-Jwt-Assertion` header on authenticated requests.
- * Access has already validated the token and enforced the policy —
+ * Access has already validated the token and enforced the policy.
  * the Worker just reads the email claim.
  */
 export function getAuthenticatedEmail(request: Request): string | null {

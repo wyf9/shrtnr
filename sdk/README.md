@@ -1,34 +1,12 @@
-# @oddbit/shrtnr SDK
+# @oddbit/shrtnr: URL Shortener SDK for TypeScript
 
-TypeScript client for shrtnr link management APIs.
+TypeScript client for creating short links, managing URLs, and reading click analytics from a [shrtnr](https://github.com/oddbit/shrtnr) instance. Works in Node.js, Deno, Bun, and the browser.
 
 ## Install
 
 ```bash
 npm install @oddbit/shrtnr
 ```
-
-## What This SDK Covers
-
-This package only includes link-management operations.
-
-- Create links
-- List links
-- Get link details
-- Update links
-- Disable links
-- Add vanity slugs
-- Read link analytics
-- Read health status
-
-Administrative operations such as API key management, settings, and dashboard stats are not part of this public package.
-
-## Authentication
-
-You can authenticate with either:
-
-- API key using Authorization: Bearer
-- Cloudflare Access token using Cf-Access-Jwt-Assertion
 
 ## Quick Start
 
@@ -37,18 +15,21 @@ import { ShrtnrClient } from "@oddbit/shrtnr";
 
 const client = new ShrtnrClient({
   baseUrl: "https://your-shrtnr.example.com",
-  auth: { apiKey: "your_api_key" },
+  auth: { apiKey: "sk_your_api_key" },
 });
 
+// Shorten a URL
 const link = await client.createLink({
-  url: "https://example.com",
-  label: "Example",
+  url: "https://example.com/long-page",
+  label: "Campaign landing page",
 });
 
-console.log(link);
+console.log(link); // { id: 1, slugs: [{ slug: "a3x", ... }], ... }
 ```
 
-Cloudflare Access authentication example:
+### Cloudflare Access authentication
+
+If you run shrtnr behind Cloudflare Access and have a service token:
 
 ```ts
 const client = new ShrtnrClient({
@@ -57,21 +38,23 @@ const client = new ShrtnrClient({
 });
 ```
 
+## What This SDK Covers
+
+This package wraps the public link-management API:
+
+- Shorten URLs (create short links with optional vanity slugs)
+- List, read, update, and disable links
+- Add vanity slugs to existing links
+- Read click analytics (referrer, country, device, browser)
+- Check service health
+
+Administrative operations (API key management, settings, dashboard stats) are not part of this package. Those require Cloudflare Access auth and the admin UI.
+
 ## API Reference
 
-### ShrtnrClient
+### `createLink`
 
-#### health
-
-Checks service health.
-
-```ts
-const health = await client.health();
-```
-
-#### createLink
-
-Creates a new short link.
+Shorten a URL. Optionally provide a label, vanity slug, or expiry timestamp.
 
 ```ts
 const link = await client.createLink({
@@ -82,25 +65,25 @@ const link = await client.createLink({
 });
 ```
 
-#### listLinks
+### `listLinks`
 
-Lists links visible to the authenticated identity.
+List all short links.
 
 ```ts
 const links = await client.listLinks();
 ```
 
-#### getLink
+### `getLink`
 
-Gets one link by ID.
+Get a single link by ID, including its slugs and click count.
 
 ```ts
 const link = await client.getLink(123);
 ```
 
-#### updateLink
+### `updateLink`
 
-Updates mutable fields for a link.
+Update a link's URL, label, or expiry.
 
 ```ts
 const updated = await client.updateLink(123, {
@@ -109,33 +92,41 @@ const updated = await client.updateLink(123, {
 });
 ```
 
-#### disableLink
+### `disableLink`
 
-Disables a link by setting expiry to now.
+Disable a link so it stops redirecting.
 
 ```ts
 const disabled = await client.disableLink(123);
 ```
 
-#### addVanitySlug
+### `addVanitySlug`
 
-Adds a vanity slug to an existing link.
+Add a custom short URL slug to an existing link.
 
 ```ts
 const slug = await client.addVanitySlug(123, "campaign");
 ```
 
-#### getLinkAnalytics
+### `getLinkAnalytics`
 
-Returns click analytics for a link.
+Read click analytics for a link: referrer, country, device type, and browser breakdown.
 
 ```ts
 const analytics = await client.getLinkAnalytics(123);
 ```
 
+### `health`
+
+Check service health and version.
+
+```ts
+const health = await client.health();
+```
+
 ## Error Handling
 
-Non-2xx responses throw ShrtnrError.
+Non-2xx responses throw `ShrtnrError` with the status code, message, and raw response body.
 
 ```ts
 import { ShrtnrError } from "@oddbit/shrtnr";
@@ -144,9 +135,13 @@ try {
   await client.getLink(99999);
 } catch (error) {
   if (error instanceof ShrtnrError) {
-    console.error(error.status);
-    console.error(error.message);
+    console.error(error.status);  // 404
+    console.error(error.message); // "not found"
     console.error(error.body);
   }
 }
 ```
+
+## License
+
+Apache-2.0. See the root [LICENSE](../LICENSE) file.

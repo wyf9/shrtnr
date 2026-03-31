@@ -1,22 +1,28 @@
-# shrtnr
+# shrtnr: Open-Source URL Shortener on Cloudflare Workers
 
-> A free, open-source, self-hosted URL shortener built on Cloudflare Workers + D1.
+> A free, self-hosted URL shortener with click analytics, an admin dashboard, and AI integration. Runs on Cloudflare's free tier. Zero servers, zero monthly cost.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/oddbit/shrtnr)
 
+## Why shrtnr
+
+Most URL shorteners either lock you into a SaaS with per-click pricing or require you to run a VPS. shrtnr runs on Cloudflare Workers + D1, both free tier. You own your data, your domain, and your short links.
+
+It takes one click to deploy. You get a full admin UI, click analytics, a TypeScript SDK, and an MCP server for AI assistants: all from a single Cloudflare Worker.
+
 ## Features
 
-- **Zero infrastructure** — runs entirely on Cloudflare's free tier (Workers + D1)
-- **Extremely short slugs** — 3-character random slugs by default (175,616 unique combinations)
-- **Vanity slugs** — human-readable aliases like `/my-blog-post` alongside random slugs
-- **Click analytics** — per-click tracking with referrer, country, device, and browser
-- **Admin UI** — dashboard, link management, analytics charts, QR codes
-- **Multi-language** — English, Indonesian, and Swedish out of the box
-- **API key auth** — scoped Bearer tokens for programmatic access
-- **TypeScript SDK** — npm package for programmatic link management
-- **MCP server** — AI assistant access via the Model Context Protocol
-- **Cloudflare Access auth** — SSO via Google, GitHub, OTP, SAML, or any IdP
-- **One-click deploy** — click the button above and you're live
+- **Free hosting** on Cloudflare Workers + D1 (no VPS, no containers, no monthly bill)
+- **Short slugs** starting at 3 characters (175,616 unique combinations at that length)
+- **Vanity URLs** like `/my-campaign` alongside random slugs
+- **Click analytics** with referrer, country, device, and browser tracking
+- **Admin dashboard** for link management, analytics charts, and QR code generation
+- **Multi-language admin UI** with English, Indonesian, and Swedish built in
+- **API key authentication** with scoped Bearer tokens for programmatic access
+- **TypeScript SDK** ([`@oddbit/shrtnr`](https://www.npmjs.com/package/@oddbit/shrtnr)) for Node.js and browser apps
+- **MCP server** ([`@oddbit/shrtnr-mcp`](https://www.npmjs.com/package/@oddbit/shrtnr-mcp)) so Claude, Copilot, and other AI assistants can shorten URLs
+- **SSO via Cloudflare Access** supporting Google, GitHub, OTP, SAML, OIDC, and any IdP
+- **One-click deploy** with automatic database provisioning and migrations
 
 ## Deploy
 
@@ -51,7 +57,7 @@ shrtnr uses [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one
 2. Go to **Access > Applications > Add an application**
 3. Choose **Self-hosted**
 4. Set the application domain to your short domain (e.g. `oddb.it`) with path `_/*`
-5. Add a policy — for example:
+5. Add a policy, for example:
    - **Action:** Allow
    - **Include rule:** Emails ending in `@yourcompany.com`
 6. Under **Authentication**, enable at least one login method. "One-time PIN" works out of the box with no external IdP.
@@ -60,27 +66,25 @@ That's it. Visit `https://yourdomain.com` and Cloudflare Access will prompt you 
 
 ### Login methods
 
-Access supports Google, GitHub, Microsoft, Okta, SAML, OIDC, and a built-in one-time PIN — configure whichever fits your team in the Zero Trust dashboard. See [Cloudflare's IdP guides](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/) for setup instructions.
+Access supports Google, GitHub, Microsoft, Okta, SAML, OIDC, and a built-in one-time PIN. Configure whichever fits your team in the Zero Trust dashboard. See [Cloudflare's IdP guides](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/) for setup instructions.
 
 ## Integrations
 
-shrtnr exposes its link-management API through two integration surfaces.
-
 ### TypeScript SDK
 
-For programmatic access from TypeScript or JavaScript applications:
+Shorten URLs, manage links, and read analytics from any TypeScript or JavaScript app.
 
-- Package: `@oddbit/shrtnr` on [npm](https://www.npmjs.com/package/@oddbit/shrtnr)
+- Package: [`@oddbit/shrtnr`](https://www.npmjs.com/package/@oddbit/shrtnr)
 - Documentation: [sdk/README.md](sdk/README.md)
 
-### MCP Server
+### MCP Server (AI Integration)
 
-For AI assistant access via the [Model Context Protocol](https://modelcontextprotocol.io):
+Let Claude, GitHub Copilot, or any MCP-compatible AI assistant create and manage short links.
 
-- Package: `@oddbit/shrtnr-mcp` on [npm](https://www.npmjs.com/package/@oddbit/shrtnr-mcp)
+- Package: [`@oddbit/shrtnr-mcp`](https://www.npmjs.com/package/@oddbit/shrtnr-mcp)
 - Documentation: [mcp/README.md](mcp/README.md)
 
-Both packages cover the same public link-management operations. Neither requires direct API access — configuration and usage details are in their respective READMEs above.
+Both packages cover the same link-management operations. Configuration and usage details are in their respective READMEs.
 
 ## API
 
@@ -94,13 +98,13 @@ Administrative endpoints (settings, preferences, dashboard stats, key management
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/_/api/links` | List all links |
-| `POST` | `/_/api/links` | Create a new link |
-| `GET` | `/_/api/links/:id` | Get a link with stats |
-| `PUT` | `/_/api/links/:id` | Update a link |
-| `POST` | `/_/api/links/:id/slugs` | Add a vanity slug |
+| `GET` | `/_/api/links` | List all short links |
+| `POST` | `/_/api/links` | Shorten a URL (create a new link) |
+| `GET` | `/_/api/links/:id` | Get a link with click stats |
+| `PUT` | `/_/api/links/:id` | Update a link's URL, label, or expiry |
+| `POST` | `/_/api/links/:id/slugs` | Add a vanity slug to a link |
 | `POST` | `/_/api/links/:id/disable` | Disable a link |
-| `GET` | `/_/api/links/:id/analytics` | Get link click analytics |
+| `GET` | `/_/api/links/:id/analytics` | Get click analytics (referrer, country, device, browser) |
 | `GET` | `/_/health` | Health check (public) |
 
 ## Development
@@ -132,9 +136,9 @@ yarn build
 
 ## Attribution
 
-shrtnr is developed and maintained by **[Oddbit](https://oddbit.id)**.
+shrtnr is built and maintained by **[Oddbit](https://oddbit.id)**, a software development studio in Sweden.
 
-If you fork or build on this project, please keep the license, notice, and attribution files intact. Apache 2.0 requires this — and it's also just good open-source etiquette.
+If you fork or build on this project, please keep the license, notice, and attribution files intact. Apache 2.0 requires this, and it's good open-source etiquette.
 
 - Source: <https://github.com/oddbit/shrtnr>
 - License: [Apache License 2.0](LICENSE)

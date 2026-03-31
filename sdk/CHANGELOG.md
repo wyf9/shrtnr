@@ -2,6 +2,11 @@
 
 All notable changes to the SDK are documented in this file.
 
+## 0.2.5
+
+- Rewrote README with clearer quick start, concrete method descriptions, and runtime compatibility note (Node.js, Deno, Bun, browser)
+- Expanded npm keywords for better discoverability: `link-shortener`, `short-url`, `shorten-url`, `click-analytics`, `vanity-url`
+
 ## 0.2.4
 
 - Config fix

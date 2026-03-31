@@ -45,7 +45,7 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>shrtnr &mdash; Admin</title>
+        <title>shrtnr: Admin</title>
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

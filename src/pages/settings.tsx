@@ -42,7 +42,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t }) => {
                 {SUPPORTED_LANGUAGES.map((code) => {
                   const native = t(`lang.${code}` as any);
                   const local = t(`langLocal.${code}` as any);
-                  const label = lang === code ? native : `${native} — ${local}`;
+                  const label = lang === code ? native : `${native} · ${local}`;
                   return (
                     <option value={code} selected={lang === code}>
                       {label}
