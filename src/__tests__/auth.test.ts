@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getAuthenticatedEmail, unauthorizedResponse } from "../auth";
+import { ANONYMOUS_IDENTITY, getIdentity, unauthorizedResponse } from "../auth";
 
 function makeJwt(payload: Record<string, unknown>): string {
   const header = btoa(JSON.stringify({ alg: "RS256", typ: "JWT" }));
@@ -7,40 +7,50 @@ function makeJwt(payload: Record<string, unknown>): string {
   return `${header}.${body}.fakesignature`;
 }
 
-describe("getAuthenticatedEmail", () => {
-  it("should extract and lowercase the email from a valid JWT", () => {
+describe("getIdentity", () => {
+  it("should prefer email claim and lowercase it", () => {
     const jwt = makeJwt({ email: "User@Example.COM", sub: "123" });
     const request = new Request("https://example.com", {
       headers: { "Cf-Access-Jwt-Assertion": jwt },
     });
-    expect(getAuthenticatedEmail(request)).toBe("user@example.com");
+    const identity = getIdentity(request);
+    expect(identity).toEqual({ id: "user@example.com", displayName: "user@example.com" });
   });
 
-  it("should return null when header is missing", () => {
-    const request = new Request("https://example.com");
-    expect(getAuthenticatedEmail(request)).toBeNull();
-  });
-
-  it("should return null for malformed JWT (not 3 parts)", () => {
-    const request = new Request("https://example.com", {
-      headers: { "Cf-Access-Jwt-Assertion": "not.a.valid.jwt.token" },
-    });
-    expect(getAuthenticatedEmail(request)).toBeNull();
-  });
-
-  it("should return null for JWT with invalid base64 payload", () => {
-    const request = new Request("https://example.com", {
-      headers: { "Cf-Access-Jwt-Assertion": "header.!!!invalid!!!.sig" },
-    });
-    expect(getAuthenticatedEmail(request)).toBeNull();
-  });
-
-  it("should return null when email claim is absent", () => {
-    const jwt = makeJwt({ sub: "123", name: "Test" });
+  it("should fall back to sub when email is absent", () => {
+    const jwt = makeJwt({ sub: "cf-user-abc123" });
     const request = new Request("https://example.com", {
       headers: { "Cf-Access-Jwt-Assertion": jwt },
     });
-    expect(getAuthenticatedEmail(request)).toBeNull();
+    const identity = getIdentity(request);
+    expect(identity).toEqual({ id: "cf-user-abc123", displayName: "cf-user-abc123" });
+  });
+
+  it("should return anonymous identity when header is missing", () => {
+    const request = new Request("https://example.com");
+    expect(getIdentity(request)).toBe(ANONYMOUS_IDENTITY);
+  });
+
+  it("should return anonymous identity for malformed JWT (not 3 parts)", () => {
+    const request = new Request("https://example.com", {
+      headers: { "Cf-Access-Jwt-Assertion": "not.a.valid.jwt.token" },
+    });
+    expect(getIdentity(request)).toBe(ANONYMOUS_IDENTITY);
+  });
+
+  it("should return anonymous identity for JWT with invalid base64 payload", () => {
+    const request = new Request("https://example.com", {
+      headers: { "Cf-Access-Jwt-Assertion": "header.!!!invalid!!!.sig" },
+    });
+    expect(getIdentity(request)).toBe(ANONYMOUS_IDENTITY);
+  });
+
+  it("should return anonymous identity when neither email nor sub is present", () => {
+    const jwt = makeJwt({ name: "Test" });
+    const request = new Request("https://example.com", {
+      headers: { "Cf-Access-Jwt-Assertion": jwt },
+    });
+    expect(getIdentity(request)).toBe(ANONYMOUS_IDENTITY);
   });
 });
 

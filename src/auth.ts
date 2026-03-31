@@ -2,24 +2,45 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Extract the authenticated email from a Cloudflare Access JWT.
- *
- * Cloudflare Access sits in front of /_/* routes and sets the
- * `Cf-Access-Jwt-Assertion` header on authenticated requests.
- * Access has already validated the token and enforced the policy.
- * the Worker just reads the email claim.
+ * Represents an authenticated caller's identity extracted from a JWT.
  */
-export function getAuthenticatedEmail(request: Request): string | null {
+export type Identity = {
+  id: string;
+  displayName: string;
+};
+
+/**
+ * Extract the caller's identity from a Cloudflare Access JWT.
+ *
+ * Tries the `email` claim first (most readable), then falls back to the
+ * `sub` claim (always present in standard JWTs). Returns an anonymous
+ * identity when the header is missing, the token is malformed, or no
+ * usable claim is found. This keeps the app functional without
+ * Cloudflare Access: the user is simply treated as "anonymous".
+ */
+export const ANONYMOUS_IDENTITY: Identity = {
+  id: "anonymous",
+  displayName: "anonymous",
+};
+
+export function getIdentity(request: Request): Identity {
   const jwt = request.headers.get("Cf-Access-Jwt-Assertion");
-  if (!jwt) return null;
+  if (!jwt) return ANONYMOUS_IDENTITY;
 
   const payload = decodeJwtPayload(jwt);
-  if (!payload) return null;
+  if (!payload) return ANONYMOUS_IDENTITY;
 
-  const email = payload.email as string | undefined;
-  if (!email) return null;
+  const email =
+    typeof payload.email === "string" && payload.email
+      ? payload.email.toLowerCase().trim()
+      : null;
+  const sub =
+    typeof payload.sub === "string" && payload.sub ? payload.sub : null;
 
-  return email.toLowerCase();
+  const id = email || sub;
+  if (!id) return ANONYMOUS_IDENTITY;
+
+  return { id, displayName: email || sub || id };
 }
 
 function decodeJwtPayload(jwt: string): Record<string, unknown> | null {
