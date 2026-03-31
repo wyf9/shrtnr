@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.8.0
+
+### Admin routes moved under `/_/admin/`
+
+All admin pages now live at `/_/admin/*` instead of `/_/*`. This separates the Cloudflare Access protection boundary from the public API path, so API keys work without Access bypass rules.
+
+- Admin pages: `/_/admin/dashboard`, `/_/admin/links`, `/_/admin/keys`, `/_/admin/settings`
+- Admin AJAX endpoints: `/_/admin/api/*` (protected by Cloudflare Access at the edge)
+- Public API: `/_/api/links/*` (Bearer token only, no JWT)
+- MCP: `/_/mcp` (Bearer token only, no JWT)
+- Legacy redirects from old `/_/dashboard`, `/_/links`, `/_/keys`, `/_/settings` paths (301)
+
+### Auth model split
+
+The admin UI and public API now use separate auth paths:
+
+- **Admin**: identity extracted from Cloudflare Access JWT via `getIdentity()`. Falls back to "anonymous" when no JWT is present, so the app works without Access configured.
+- **Public API/MCP**: `resolveAuth()` checks Bearer token only. No JWT logic.
+- Removed `requireAdmin` (dead code). Cloudflare Access handles admin authorization at the edge.
+
+### Identity abstraction
+
+Replaced `getAuthenticatedEmail()` with `getIdentity()` returning `Identity { id, displayName }`. Tries the email claim first, falls back to sub. Decouples the app from email as the sole identity mechanism.
+
+### Cloudflare Access configuration
+
+Update your Access application path from `_/*` to `_/admin/*`. See README for details.
+
 ## 0.7.0
 
 ### MCP endpoint refactored into the Worker
