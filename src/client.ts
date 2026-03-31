@@ -11,7 +11,7 @@ export function adminClientScript(email: string, version: string, translations: 
   const tJson = JSON.stringify(translations);
   return `
 'use strict';
-var API = '/_/api';
+var API = '/_/admin/api';
 var CURRENT_USER = '${escapeForJs(email)}';
 var APP_VERSION = '${version}';
 var REPO_URL = 'https://github.com/oddbit/shrtnr';
@@ -121,7 +121,7 @@ function quickShorten() {
         var primary = link.slugs.find(function(s) { return !s.is_vanity; });
         if (primary) copyUrl(primary.slug);
         toast(t('client.linkCreatedCopied'));
-        window.location.href = '/_/links/' + link.id;
+        window.location.href = '/_/admin/links/' + link.id;
       });
     } else {
       return res.json().then(function(data) {
@@ -163,7 +163,7 @@ function createLink() {
       return res.json().then(function(link) {
         closeModal();
         toast(t('client.linkCreated'));
-        window.location.href = '/_/links/' + link.id;
+        window.location.href = '/_/admin/links/' + link.id;
       });
     } else {
       return res.json().then(function(data) {

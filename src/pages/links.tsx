@@ -64,7 +64,7 @@ export const LinksPage: FC<Props> = ({
     params.set("sort", s);
     params.set("per_page", String(perPage));
     if (showDisabled) params.set("show_disabled", "1");
-    return `/_/links?${params}`;
+    return `/_/admin/links?${params}`;
   }
 
   function pageUrl(p: number): string {
@@ -73,7 +73,7 @@ export const LinksPage: FC<Props> = ({
     params.set("page", String(p));
     params.set("per_page", String(perPage));
     if (showDisabled) params.set("show_disabled", "1");
-    return `/_/links?${params}`;
+    return `/_/admin/links?${params}`;
   }
 
   function perPageUrl(n: number): string {
@@ -81,7 +81,7 @@ export const LinksPage: FC<Props> = ({
     params.set("sort", sort);
     params.set("per_page", String(n));
     if (showDisabled) params.set("show_disabled", "1");
-    return `/_/links?${params}`;
+    return `/_/admin/links?${params}`;
   }
 
   function disabledUrl(): string {
@@ -89,7 +89,7 @@ export const LinksPage: FC<Props> = ({
     params.set("sort", sort);
     params.set("per_page", String(perPage));
     if (!showDisabled) params.set("show_disabled", "1");
-    return `/_/links?${params}`;
+    return `/_/admin/links?${params}`;
   }
 
   const countKey = filtered.length !== 1 ? "links.countPlural" : "links.count";
@@ -160,7 +160,7 @@ export const LinksPage: FC<Props> = ({
             const disabled = !!(link.expires_at && link.expires_at < now);
             return (
               <a
-                href={`/_/links/${link.id}`}
+                href={`/_/admin/links/${link.id}`}
                 class={`link-item${disabled ? " link-disabled" : ""}`}
               >
                 <div class="link-info">

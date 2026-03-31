@@ -72,7 +72,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t }) => {
   return (
     <>
       <div class="detail-header">
-        <a href="/_/links" class="detail-back">
+        <a href="/_/admin/links" class="detail-back">
           <span class="icon" style="font-size:24px">
             arrow_back
           </span>

@@ -108,7 +108,7 @@ export const DashboardPage: FC<Props> = ({ stats, t }) => {
               const slug = primarySlug(link);
               return (
                 <a
-                  href={`/_/links/${link.id}`}
+                  href={`/_/admin/links/${link.id}`}
                   style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0;cursor:pointer;overflow:hidden;min-width:0;text-decoration:none;color:inherit"
                 >
                   <span
@@ -162,7 +162,7 @@ export const DashboardPage: FC<Props> = ({ stats, t }) => {
               const slug = primarySlug(link);
               return (
                 <a
-                  href={`/_/links/${link.id}`}
+                  href={`/_/admin/links/${link.id}`}
                   style="cursor:pointer;overflow:hidden;text-decoration:none;color:inherit;display:block"
                 >
                   <div class="stat-row">
