@@ -10,9 +10,10 @@ type Props = {
   slugLength: number;
   lang: string;
   t: TranslateFn;
+  mcpConfigured: boolean;
 };
 
-export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t }) => {
+export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigured }) => {
   const combos = Math.pow(56, Math.max(slugLength, 3));
   const comboHint =
     slugLength >= 3
@@ -120,6 +121,36 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t }) => {
                   </span>{" "}
                   {t("settings.checkingUpdates")}
                 </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bento-card" style="margin-top:1.4rem">
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">{t("settings.mcpOAuth")}</label>
+              <div style="font-size:0.875rem;display:flex;align-items:center;gap:0.4rem">
+                {mcpConfigured ? (
+                  <>
+                    <span class="icon" style="font-size:16px;color:var(--success, #22c55e)">check_circle</span>
+                    <span>{t("settings.mcpConfigured")}</span>
+                  </>
+                ) : (
+                  <div>
+                    <div style="display:flex;align-items:center;gap:0.4rem;color:var(--on-bg-muted)">
+                      <span class="icon" style="font-size:16px">cancel</span>
+                      <span>{t("settings.mcpNotConfigured")}</span>
+                    </div>
+                    <a
+                      href="https://github.com/oddbit/shrtnr#mcp-server-ai-integration"
+                      target="_blank"
+                      rel="noopener"
+                      style="font-size:0.75rem;color:var(--secondary);margin-top:0.4rem;display:inline-flex;align-items:center;gap:0.25rem"
+                    >
+                      <span class="icon" style="font-size:14px">open_in_new</span>
+                      {t("settings.mcpSetupLink")}
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -156,9 +156,17 @@ app.get("/_/admin/keys", async (c) => {
 
 app.get("/_/admin/settings", async (c) => {
   const { theme, slugLength, t, lang, translations } = await getPageData(c);
+  const mcpConfigured = Boolean(
+    c.env.ACCESS_CLIENT_ID &&
+    c.env.ACCESS_CLIENT_SECRET &&
+    c.env.ACCESS_TOKEN_URL &&
+    c.env.ACCESS_AUTHORIZATION_URL &&
+    c.env.ACCESS_JWKS_URL &&
+    c.env.COOKIE_ENCRYPTION_KEY,
+  );
   return c.html(
     <Layout active="settings" theme={theme} t={t} lang={lang} translations={translations}>
-      <SettingsPage theme={theme} slugLength={slugLength} lang={lang} t={t} />
+      <SettingsPage theme={theme} slugLength={slugLength} lang={lang} t={t} mcpConfigured={mcpConfigured} />
     </Layout>,
   );
 });
@@ -294,18 +302,18 @@ export { ShrtnrMCP };
 export default new OAuthProvider({
   apiHandler: ShrtnrMCP.serve("/_/mcp"),
   apiRoute: "/_/mcp",
-  authorizeEndpoint: "/authorize",
-  clientRegistrationEndpoint: "/register",
+  authorizeEndpoint: "/_/auth/authorize",
+  clientRegistrationEndpoint: "/_/auth/register",
   defaultHandler: {
     fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {
       const { pathname } = new URL(request.url);
-      if (pathname === "/authorize" || pathname === "/callback") {
+      if (pathname === "/_/auth/authorize" || pathname === "/_/auth/callback") {
         return handleAccessRequest(request, env as never, ctx);
       }
       return app.fetch(request, env, ctx);
     },
   },
-  tokenEndpoint: "/token",
+  tokenEndpoint: "/_/auth/token",
 });
 
 // ---- Auth helpers ----

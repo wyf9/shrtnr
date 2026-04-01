@@ -103,6 +103,11 @@ const en = {
   "settings.mcpTitle": "MCP Server",
   "settings.mcpDesc":
     "Give AI assistants access to your links. Works with Claude Desktop and GitHub Copilot in VS Code.",
+  "settings.mcpOAuth": "MCP OAuth",
+  "settings.mcpConfigured": "Configured",
+  "settings.mcpNotConfigured":
+    "Not configured. Set the required secrets to enable OAuth for the MCP endpoint.",
+  "settings.mcpSetupLink": "Setup guide in README",
 
   // 404
   "notFound.label": "Not found",

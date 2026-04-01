@@ -106,6 +106,11 @@ const id: Translations = {
   "settings.mcpTitle": "MCP Server",
   "settings.mcpDesc":
     "Berikan asisten AI akses ke tautan Anda. Bekerja dengan Claude Desktop dan GitHub Copilot di VS Code.",
+  "settings.mcpOAuth": "MCP OAuth",
+  "settings.mcpConfigured": "Terkonfigurasi",
+  "settings.mcpNotConfigured":
+    "Belum dikonfigurasi. Atur rahasia yang diperlukan untuk mengaktifkan OAuth pada endpoint MCP.",
+  "settings.mcpSetupLink": "Panduan pengaturan di README",
 
   // 404
   "notFound.label": "Tidak ditemukan",

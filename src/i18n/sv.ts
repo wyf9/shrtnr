@@ -106,6 +106,11 @@ const sv: Translations = {
   "settings.mcpTitle": "MCP Server",
   "settings.mcpDesc":
     "Ge AI-assistenter åtkomst till dina länkar. Fungerar med Claude Desktop och GitHub Copilot i VS Code.",
+  "settings.mcpOAuth": "MCP OAuth",
+  "settings.mcpConfigured": "Konfigurerad",
+  "settings.mcpNotConfigured":
+    "Inte konfigurerad. Ange de nödvändiga hemligheterna för att aktivera OAuth för MCP-ändpunkten.",
+  "settings.mcpSetupLink": "Installationsguide i README",
 
   // 404
   "notFound.label": "Hittades inte",
