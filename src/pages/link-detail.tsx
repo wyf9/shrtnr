@@ -99,56 +99,59 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
         </div>
       </div>
 
-      <div class="detail-hero">
-        {isExpired && (
-          <div style="display:inline-block;background:var(--danger);color:var(--on-danger);font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:var(--radius);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em">
-            {t("linkDetail.disabled")}
-          </div>
-        )}
-        <div
-          class="detail-short-url"
-          style={isExpired ? "opacity:0.4" : undefined}
-        >
-          {`${displaySlug}`}
-        </div>
-        <div class="detail-dest">{link.url}</div>
-        {link.label && (
-          <div style="color:var(--secondary);font-size:0.85rem;margin-top:0.25rem">
-            {link.label}
-          </div>
-        )}
-        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center">
-          <button
-            class="btn btn-secondary btn-sm"
-            onclick={`copyUrl('${escHtml(displaySlug)}')`}
-          >
-            <span class="icon">content_copy</span> {t("linkDetail.copy")}
-          </button>
-          <button
-            class="btn btn-ghost btn-sm"
-            onclick={`showQRModal('${escHtml(displaySlug)}')`}
-          >
-            <span class="icon">qr_code_2</span> {t("linkDetail.qr")}
-          </button>
-          {vanitySlug && (
-            <>
-              <span style="color:var(--on-bg-muted);font-size:0.75rem;margin-left:0.5rem">
-                {t("linkDetail.or")}
-              </span>
-              <button
-                class="btn btn-ghost btn-sm"
-                style="font-size:0.75rem;opacity:0.7"
-                onclick={`copyUrl('${escHtml(slug)}')`}
-              >
-                <span class="icon" style="font-size:14px">
-                  content_copy
-                </span>{" "}
-                /{slug}
-              </button>
-            </>
+      <div class="detail-hero" style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          {isExpired && (
+            <div style="display:inline-block;background:var(--danger);color:var(--on-danger);font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:var(--radius);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em">
+              {t("linkDetail.disabled")}
+            </div>
           )}
+          <div
+            class="detail-short-url"
+            style={isExpired ? "opacity:0.4" : undefined}
+          >
+            {`${displaySlug}`}
+          </div>
+          <div class="detail-dest">{link.url}</div>
+          {link.label && (
+            <div style="color:var(--secondary);font-size:0.85rem;margin-top:0.25rem">
+              {link.label}
+            </div>
+          )}
+          <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center">
+            <button
+              class="btn btn-secondary btn-sm"
+              onclick={`copyUrl('${escHtml(displaySlug)}')`}
+            >
+              <span class="icon">content_copy</span> {t("linkDetail.copy")}
+            </button>
+            <button
+              class="btn btn-ghost btn-sm"
+              onclick={`showQRModal('${escHtml(displaySlug)}')`}
+            >
+              <span class="icon">qr_code_2</span> {t("linkDetail.qr")}
+            </button>
+            {vanitySlug && (
+              <>
+                <span style="color:var(--on-bg-muted);font-size:0.75rem;margin-left:0.5rem">
+                  {t("linkDetail.or")}
+                </span>
+                <button
+                  class="btn btn-ghost btn-sm"
+                  style="font-size:0.75rem;opacity:0.7"
+                  onclick={`copyUrl('${escHtml(slug)}')`}
+                >
+                  <span class="icon" style="font-size:14px">
+                    content_copy
+                  </span>{" "}
+                  /{slug}
+                </button>
+              </>
+            )}
+          </div>
         </div>
-        <div style="margin-top:1rem;display:flex;gap:1.4rem;flex-wrap:wrap;align-items:flex-end;border-top:1px solid var(--border);padding-top:1rem">
+
+        <div style="display:flex;flex-direction:column;gap:1rem;padding-left:2rem;border-left:1px solid var(--border);min-width:220px">
           <div>
             <label class="form-label">{t("linkDetail.vanitySlug")}</label>
             {vanity.length > 0 ? (
@@ -175,9 +178,9 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
               </div>
             )}
           </div>
-          <div style="margin-left:auto">
+          <div>
             <label class="form-label">{t("linkDetail.expiresAt")}</label>
-            <div style="display:flex;gap:0.5rem;align-items:center">
+            <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
               <input
                 class="form-input"
                 id="detail-expires"
