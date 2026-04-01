@@ -57,13 +57,14 @@ export async function createLink(
   slug: string,
   label?: string | null,
   vanitySlug?: string | null,
-  expiresAt?: number | null
+  expiresAt?: number | null,
+  createdVia?: string | null
 ): Promise<LinkWithSlugs> {
   const now = Math.floor(Date.now() / 1000);
 
   const linkResult = await db
-    .prepare("INSERT INTO links (url, label, created_at, expires_at) VALUES (?, ?, ?, ?)")
-    .bind(url, label ?? null, now, expiresAt ?? null)
+    .prepare("INSERT INTO links (url, label, created_at, expires_at, created_via) VALUES (?, ?, ?, ?, ?)")
+    .bind(url, label ?? null, now, expiresAt ?? null, createdVia ?? "app")
     .run();
 
   const linkId = linkResult.meta.last_row_id as number;
@@ -231,13 +232,14 @@ export async function recordClick(
   referrer: string | null,
   country: string | null,
   deviceType: string | null,
-  browser: string | null
+  browser: string | null,
+  channel?: string | null
 ): Promise<void> {
   const now = Math.floor(Date.now() / 1000);
   await Promise.all([
     db
-      .prepare("INSERT INTO clicks (slug_id, clicked_at, referrer, country, device_type, browser) VALUES (?, ?, ?, ?, ?, ?)")
-      .bind(slugId, now, referrer, country, deviceType, browser)
+      .prepare("INSERT INTO clicks (slug_id, clicked_at, referrer, country, device_type, browser, channel) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .bind(slugId, now, referrer, country, deviceType, browser, channel ?? "direct")
       .run(),
     db
       .prepare("UPDATE slugs SET click_count = click_count + 1 WHERE id = ?")
@@ -254,17 +256,18 @@ export async function getLinkClickStats(db: D1Database, linkId: number): Promise
   const ids = (slugIds.results ?? []).map((r) => r.id);
 
   if (ids.length === 0) {
-    return { total_clicks: 0, countries: [], referrers: [], devices: [], browsers: [], clicks_over_time: [] };
+    return { total_clicks: 0, countries: [], referrers: [], devices: [], browsers: [], channels: [], clicks_over_time: [] };
   }
 
   const placeholders = ids.map(() => "?").join(",");
 
-  const [totalRow, countries, referrers, devices, browsers, timeline] = await Promise.all([
+  const [totalRow, countries, referrers, devices, browsers, channels, timeline] = await Promise.all([
     db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE slug_id IN (${placeholders})`).bind(...ids).first<{ cnt: number }>(),
     db.prepare(`SELECT country as name, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) AND country IS NOT NULL GROUP BY country ORDER BY count DESC LIMIT 10`).bind(...ids).all<{ name: string; count: number }>(),
     db.prepare(`SELECT referrer as name, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) AND referrer IS NOT NULL GROUP BY referrer ORDER BY count DESC LIMIT 10`).bind(...ids).all<{ name: string; count: number }>(),
     db.prepare(`SELECT device_type as name, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) AND device_type IS NOT NULL GROUP BY device_type ORDER BY count DESC`).bind(...ids).all<{ name: string; count: number }>(),
     db.prepare(`SELECT browser as name, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) AND browser IS NOT NULL GROUP BY browser ORDER BY count DESC LIMIT 10`).bind(...ids).all<{ name: string; count: number }>(),
+    db.prepare(`SELECT channel as name, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) GROUP BY channel ORDER BY count DESC`).bind(...ids).all<{ name: string; count: number }>(),
     db.prepare(`SELECT date(clicked_at, 'unixepoch') as date, COUNT(*) as count FROM clicks WHERE slug_id IN (${placeholders}) GROUP BY date ORDER BY date DESC LIMIT 30`).bind(...ids).all<{ date: string; count: number }>(),
   ]);
 
@@ -274,6 +277,7 @@ export async function getLinkClickStats(db: D1Database, linkId: number): Promise
     referrers: referrers.results ?? [],
     devices: devices.results ?? [],
     browsers: browsers.results ?? [],
+    channels: channels.results ?? [],
     clicks_over_time: (timeline.results ?? []).reverse(),
   };
 }

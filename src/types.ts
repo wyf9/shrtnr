@@ -23,6 +23,7 @@ export interface Link {
   label: string | null;
   created_at: number;
   expires_at: number | null;
+  created_via: string | null;
 }
 
 export interface Slug {
@@ -45,6 +46,7 @@ export interface ClickStats {
   referrers: { name: string; count: number }[];
   devices: { name: string; count: number }[];
   browsers: { name: string; count: number }[];
+  channels: { name: string; count: number }[];
   clicks_over_time: { date: string; count: number }[];
 }
 

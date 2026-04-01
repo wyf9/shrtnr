@@ -38,7 +38,7 @@ export async function getManagedLink(env: Env, id: number): Promise<ServiceResul
 
 export async function createManagedLink(
   env: Env,
-  body: { url?: string; label?: string; slug_length?: number; vanity_slug?: string; expires_at?: number }
+  body: { url?: string; label?: string; slug_length?: number; vanity_slug?: string; expires_at?: number; created_via?: string }
 ): Promise<ServiceResult<LinkWithSlugs>> {
   if (!body.url || typeof body.url !== "string") {
     return fail(400, "url is required");
@@ -80,7 +80,7 @@ export async function createManagedLink(
     return fail(500, (e as Error).message);
   }
 
-  const link = await createLink(env.DB, body.url, slug, body.label, body.vanity_slug, body.expires_at);
+  const link = await createLink(env.DB, body.url, slug, body.label, body.vanity_slug, body.expires_at, body.created_via);
   return ok(link, 201);
 }
 
