@@ -1,32 +1,36 @@
 # Changelog
 
-## Unreleased
-
-### Deploy
-
-- The deploy script now resolves both D1 and KV namespace IDs at deploy time. The KV namespace is created automatically if it does not exist. Hardcoded IDs removed from `wrangler.toml`, so the repo works out of the box for any Cloudflare account.
+## 0.11.0
 
 ### MCP
 
-- Settings page now shows live MCP server connection status with a direct link to the MCP endpoint.
-- OAuth callback handler refactored for cleaner path handling.
-- MCP approval dialog and landing page extracted into dedicated modules (`src/mcp/approval-dialog.ts`, `src/mcp/page.ts`).
+- MCP landing page and OAuth approval dialog extracted into dedicated modules with shared design tokens.
+- MCP OAuth flow verified end-to-end with Claude Desktop, Claude Code, MCP Inspector, and VS Code Copilot.
+- Deploy script warns when Cloudflare's "Block AI bots" rule is active, which silently drops MCP connections from AI assistants.
+- README documents the required "Block AI bots" disable step as part of MCP setup.
 
-### Static assets
+### Admin UI
 
-- All static assets (icons, manifest, robots.txt) moved to the `public/` directory and served by Wrangler directly. Removed the hand-rolled asset-serving code in `src/assets.ts`.
-- Added PWA icons (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`), `manifest.webmanifest`, and `robots.txt`.
+- Links page uses a hero shorten bar instead of a modal for creating links.
+- API Keys page shows an SDK note with npm install instructions.
+- Settings page links to release notes for the current version.
 
 ### Branding
 
-- Added shrtnr and Oddbit SVG logo and logotype assets for both light and dark backgrounds.
-- Admin layout and standalone pages use the theme-aware logotype instead of text-only branding.
-- MCP landing page and OAuth approval dialog styled with the shared design system and shrtnr logotype.
+- SVG logotype and logo assets for light and dark backgrounds, served from `/public/`.
+- Admin layout and standalone pages use the theme-aware logotype.
+- Removed all inlined SVG markup in favor of `<img>` references to static assets.
+
+### Deploy
+
+- Deploy script resolves both D1 and KV namespace IDs at deploy time. Hardcoded IDs removed from `wrangler.toml`.
+- KV namespace created automatically on first deploy.
+- Static assets (icons, manifest, robots.txt) moved to `public/` and served by Wrangler directly. Removed hand-rolled asset-serving code.
 
 ### Internal
 
-- Standalone page styles split into composable exports: `standaloneBaseStyles` (design tokens and reset) and `standaloneCenteredStyles` (full-screen centered layout). The old `standalonePageStyles` is kept as a deprecated alias.
-- All dependencies updated to latest.
+- Standalone page styles split into composable `standaloneBaseStyles` and `standaloneCenteredStyles` exports.
+- All dependencies updated.
 
 ## 0.10.0
 
