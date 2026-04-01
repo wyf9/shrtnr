@@ -94,16 +94,16 @@ The MCP endpoint authenticates through OAuth via [Cloudflare Access for SaaS](ht
 
 ```bash
 # Set all six secrets (wrangler prompts for each value)
-wrangler secret put ACCESS_CLIENT_ID
-wrangler secret put ACCESS_CLIENT_SECRET
-wrangler secret put ACCESS_TOKEN_URL
-wrangler secret put ACCESS_AUTHORIZATION_URL
-wrangler secret put ACCESS_JWKS_URL
+npx wrangler secret put ACCESS_CLIENT_ID
+npx wrangler secret put ACCESS_CLIENT_SECRET
+npx wrangler secret put ACCESS_TOKEN_URL
+npx wrangler secret put ACCESS_AUTHORIZATION_URL
+npx wrangler secret put ACCESS_JWKS_URL
 ```
 
 ```bash
 # Generate and set the cookie encryption key
-openssl rand -hex 32 | wrangler secret put COOKIE_ENCRYPTION_KEY
+openssl rand -hex 32 | npx wrangler secret put COOKIE_ENCRYPTION_KEY
 ```
 
 ```bash
