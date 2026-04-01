@@ -111,7 +111,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
           <div class="bento-card" style="margin-top:1.4rem">
             <div class="form-group" style="margin-bottom:0">
               <label class="form-label">{t("settings.version")}</label>
-              <div id="version-status" style="font-size:0.875rem">
+              <div id="version-status" style="font-size:0.875rem;margin-top:0.5rem">
                 <span style="color:var(--on-bg-muted)">
                   <span
                     class="icon"
@@ -163,7 +163,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
             <div style="font-size:0.813rem;color:var(--on-bg-muted);line-height:1.45">
               {t("settings.mcpDesc")}
             </div>
-            <div style="font-size:0.813rem;margin-top:0.6rem;display:flex;align-items:center;gap:0.4rem">
+            <div style="font-size:0.813rem;margin-top:1rem;display:flex;align-items:center;gap:0.4rem">
               {mcpConfigured ? (
                 <>
                   <span class="icon" style="font-size:16px;color:var(--success, #22c55e)">check_circle</span>
@@ -181,7 +181,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
                 href="https://github.com/oddbit/shrtnr#mcp-server-ai-integration"
                 target="_blank"
                 rel="noopener"
-                style="font-size:0.75rem;color:var(--secondary);margin-top:0.4rem;display:inline-flex;align-items:center;gap:0.25rem"
+                style="font-size:0.75rem;color:var(--secondary);margin-top:0.75rem;display:inline-flex;align-items:center;gap:0.25rem"
               >
                 <span class="icon" style="font-size:14px">open_in_new</span>
                 {t("settings.mcpSetupLink")}
@@ -191,7 +191,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
               href="https://github.com/oddbit/shrtnr#mcp-server-ai-integration"
               target="_blank"
               rel="noopener"
-              style="font-size:0.7rem;color:var(--secondary);margin-top:0.4rem;display:inline-flex;align-items:center;gap:0.25rem"
+              style="font-size:0.7rem;color:var(--secondary);margin-top:0.75rem;display:inline-flex;align-items:center;gap:0.25rem"
             >
               <span class="icon" style="font-size:14px">
                 open_in_new
