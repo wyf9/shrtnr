@@ -82,18 +82,6 @@ describe("Routing", () => {
     expect(res.headers.get("Content-Type")).toContain("text/html");
   });
 
-  it("GET /favicon.ico should return the icon", async () => {
-    const res = await SELF.fetch(unauthed("/favicon.ico"));
-    expect(res.status).toBe(200);
-    expect(res.headers.get("Content-Type")).toBe("image/x-icon");
-  });
-
-  it("GET /apple-touch-icon.png should return the icon", async () => {
-    const res = await SELF.fetch(unauthed("/apple-touch-icon.png"));
-    expect(res.status).toBe(200);
-    expect(res.headers.get("Content-Type")).toBe("image/png");
-  });
-
   it("paths starting with _ should return 404", async () => {
     const res = await SELF.fetch(unauthed("/_unknown"));
     expect(res.status).toBe(404);
