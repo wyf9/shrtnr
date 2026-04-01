@@ -111,6 +111,10 @@ openssl rand -hex 32 | npx wrangler secret put COOKIE_ENCRYPTION_KEY
 yarn deploy
 ```
 
+**3. Disable "Block AI bots" for your domain.** Cloudflare's managed bot rule blocks requests from AI assistants (Claude, Copilot, etc.) at the edge before they reach your Worker. MCP clients connect from cloud infrastructure that Cloudflare classifies as AI bot traffic. If this rule is active, the OAuth handshake completes but the MCP connection itself is silently dropped.
+
+Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) > your zone > **Security** > filter by **Bot traffic** > find **Block AI bots** and set it to **Do not block (off)**.
+
 #### Available tools
 
 | Tool | Description |

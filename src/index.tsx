@@ -290,7 +290,7 @@ app.notFound(() => notFoundResponse());
 
 export { ShrtnrMCP };
 
-const oauthProvider = new OAuthProvider({
+export default new OAuthProvider({
   apiHandler: ShrtnrMCP.serve("/_/mcp"),
   apiRoute: "/_/mcp",
   authorizeEndpoint: "/oauth/authorize",
@@ -306,12 +306,6 @@ const oauthProvider = new OAuthProvider({
   },
   tokenEndpoint: "/oauth/token",
 });
-
-export default {
-  fetch: (request: Request, env: Env, ctx: ExecutionContext) => {
-    return oauthProvider.fetch(request, env, ctx);
-  },
-};
 
 // ---- Auth helpers ----
 
