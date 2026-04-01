@@ -28,6 +28,24 @@ export function serveAsset(path: string): Response | null {
       return new Response(b64decode(ICON_192), { headers: { ...CACHE_HEADERS, "Content-Type": "image/png" } });
     case "/icon-512.png":
       return new Response(b64decode(ICON_512), { headers: { ...CACHE_HEADERS, "Content-Type": "image/png" } });
+    case "/manifest.webmanifest":
+      return new Response(
+        JSON.stringify({
+          name: "shrtnr",
+          short_name: "shrtnr",
+          icons: [
+            { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+            { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+          ],
+          start_url: "/",
+          display: "standalone",
+        }),
+        { headers: { ...CACHE_HEADERS, "Content-Type": "application/manifest+json" } },
+      );
+    case "/robots.txt":
+      return new Response("User-agent: *\nAllow: /\n", {
+        headers: { ...CACHE_HEADERS, "Content-Type": "text/plain" },
+      });
     default:
       return null;
   }

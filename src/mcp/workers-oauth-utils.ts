@@ -296,6 +296,7 @@ export function renderApprovalDialog(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${serverName}: Authorize MCP Client</title>
+  <link rel="icon" href="/favicon.ico" />
   <style>
     :root {
       --primary: #f97316;

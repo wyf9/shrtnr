@@ -72,6 +72,26 @@ app.get("/apple-touch-icon.png", (c) => {
   return asset || notFoundResponse();
 });
 
+app.get("/icon-192.png", (c) => {
+  const asset = serveAsset("/icon-192.png");
+  return asset || notFoundResponse();
+});
+
+app.get("/icon-512.png", (c) => {
+  const asset = serveAsset("/icon-512.png");
+  return asset || notFoundResponse();
+});
+
+app.get("/manifest.webmanifest", (c) => {
+  const asset = serveAsset("/manifest.webmanifest");
+  return asset || notFoundResponse();
+});
+
+app.get("/robots.txt", (c) => {
+  const asset = serveAsset("/robots.txt");
+  return asset || notFoundResponse();
+});
+
 // ---- Health check (public) ----
 
 app.get("/_/health", () => handleHealth());
