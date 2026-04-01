@@ -270,10 +270,6 @@ app.post("/_/api/links/:id/slugs", (c) => {
 
 app.get("/", (c) => c.redirect("/_/admin/dashboard", 302));
 
-// ---- MCP discovery helper ----
-
-app.get("/_/mcp", () => mcpLandingResponse());
-
 // ---- Slug redirect (catch-all) ----
 
 app.get("/:slug", (c) => {
@@ -290,7 +286,7 @@ app.notFound(() => notFoundResponse());
 
 export { ShrtnrMCP };
 
-export default new OAuthProvider({
+const oauthProvider = new OAuthProvider({
   apiHandler: ShrtnrMCP.serve("/_/mcp"),
   apiRoute: "/_/mcp",
   authorizeEndpoint: "/oauth/authorize",
@@ -306,6 +302,24 @@ export default new OAuthProvider({
   },
   tokenEndpoint: "/oauth/token",
 });
+
+export default {
+  fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    // Serve the landing page for unauthenticated browser visits to /_/mcp.
+    // The OAuthProvider treats all /_/mcp requests as API calls requiring a
+    // Bearer token, so we intercept browser GETs before it runs.
+    const url = new URL(request.url);
+    if (
+      request.method === "GET" &&
+      url.pathname === "/_/mcp" &&
+      !request.headers.has("Authorization") &&
+      request.headers.get("Accept")?.includes("text/html")
+    ) {
+      return mcpLandingResponse();
+    }
+    return oauthProvider.fetch(request, env, ctx);
+  },
+};
 
 // ---- Auth helpers ----
 
