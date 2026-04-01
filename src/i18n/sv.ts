@@ -73,6 +73,7 @@ const sv: Translations = {
   // API Keys
   "keys.title": "API-nycklar",
   "keys.subtitle": "Hantera programmatisk åtkomst till förkortnings-API:et",
+  "keys.sdkNote": "Använd API-nycklar med TypeScript SDK för att skapa och hantera länkar från din egen kod:",
   "keys.count": "{count} nyckel",
   "keys.countPlural": "{count} nycklar",
   "keys.newKey": "Ny nyckel",

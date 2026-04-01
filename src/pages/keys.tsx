@@ -46,6 +46,17 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
         <div class="page-subtitle">
           {t("keys.subtitle")}
         </div>
+        <div style="font-size:0.813rem;color:var(--on-bg-muted);margin-top:0.4rem">
+          {t("keys.sdkNote")}{" "}
+          <a
+            href="https://www.npmjs.com/package/@oddbit/shrtnr"
+            target="_blank"
+            rel="noopener"
+            style="color:var(--secondary)"
+          >
+            @oddbit/shrtnr
+          </a>
+        </div>
       </div>
 
       <div class="toolbar">
