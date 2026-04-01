@@ -1,7 +1,7 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-import { GOOGLE_FONTS_HREF, standaloneCenteredStyles } from "../styles";
+import { GOOGLE_FONTS_HREF, standaloneBaseStyles } from "../styles";
 
 export function mcpLandingResponse(): Response {
   return new Response(MCP_LANDING_HTML, {
@@ -23,16 +23,19 @@ const MCP_LANDING_HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="${GOOGLE_FONTS_HREF}" rel="stylesheet">
-  <style>${standaloneCenteredStyles}
-    .logo-wrap {
-      display: inline-flex;
+  <style>${standaloneBaseStyles}
+    body {
+      min-height: 100vh;
+      display: flex;
       flex-direction: column;
-      align-items: flex-end;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
     }
     .logo-wrap img {
+      display: block;
       height: clamp(5rem, 20vw, 12rem);
       width: auto;
-      display: block;
     }
     .label {
       font-family: var(--font-display);
@@ -42,6 +45,7 @@ const MCP_LANDING_HTML = `<!DOCTYPE html>
       text-transform: uppercase;
       letter-spacing: 0.4em;
       margin-top: 0.35em;
+      text-align: right;
     }
   </style>
 </head>
