@@ -116,36 +116,45 @@ export async function handleAccessRequest(
       return new Response("Invalid OAuth request data", { status: 400 });
     }
 
-    const [accessToken, idToken, errResponse] = await fetchUpstreamAuthToken({
-      client_id: env.ACCESS_CLIENT_ID,
-      client_secret: env.ACCESS_CLIENT_SECRET,
-      code: searchParams.get("code") ?? undefined,
-      redirect_uri: new URL("/oauth/callback", request.url).href,
-      upstream_url: env.ACCESS_TOKEN_URL,
-    });
-    if (errResponse) return errResponse;
+    try {
+      const [accessToken, idToken, errResponse] = await fetchUpstreamAuthToken({
+        client_id: env.ACCESS_CLIENT_ID,
+        client_secret: env.ACCESS_CLIENT_SECRET,
+        code: searchParams.get("code") ?? undefined,
+        redirect_uri: new URL("/oauth/callback", request.url).href,
+        upstream_url: env.ACCESS_TOKEN_URL,
+      });
+      if (errResponse) return errResponse;
 
-    const idTokenClaims = await verifyToken(env, idToken);
-    const user = {
-      email: idTokenClaims.email as string,
-      name: (idTokenClaims.name as string) || (idTokenClaims.email as string),
-      sub: idTokenClaims.sub as string,
-    };
+      const idTokenClaims = await verifyToken(env, idToken);
+      const user = {
+        email: idTokenClaims.email as string,
+        name: (idTokenClaims.name as string) || (idTokenClaims.email as string),
+        sub: idTokenClaims.sub as string,
+      };
 
-    const { redirectTo } = await env.OAUTH_PROVIDER.completeAuthorization({
-      metadata: { label: user.name },
-      props: {
-        accessToken,
-        email: user.email,
-        login: user.sub,
-        name: user.name,
-      } as Props,
-      request: oauthReqInfo,
-      scope: oauthReqInfo.scope,
-      userId: user.sub,
-    });
+      const { redirectTo } = await env.OAUTH_PROVIDER.completeAuthorization({
+        metadata: { label: user.name },
+        props: {
+          accessToken,
+          email: user.email,
+          login: user.sub,
+          name: user.name,
+        } as Props,
+        request: oauthReqInfo,
+        scope: oauthReqInfo.scope,
+        userId: user.sub,
+      });
 
-    return Response.redirect(redirectTo, 302);
+      return Response.redirect(redirectTo, 302);
+    } catch (error: unknown) {
+      if (error instanceof OAuthError) return error.toResponse();
+      const message = error instanceof Error ? error.message : "Unknown error";
+      return new Response(
+        JSON.stringify({ error: "server_error", error_description: message }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
   }
 
   return new Response("Not Found", { status: 404 });
