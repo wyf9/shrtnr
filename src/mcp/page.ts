@@ -32,6 +32,11 @@ const MCP_LANDING_HTML = `<!DOCTYPE html>
       justify-content: center;
       overflow: hidden;
     }
+    .logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
     .logo-wrap img {
       display: block;
       height: clamp(5rem, 20vw, 12rem);
@@ -45,7 +50,6 @@ const MCP_LANDING_HTML = `<!DOCTYPE html>
       text-transform: uppercase;
       letter-spacing: 0.4em;
       margin-top: 0.35em;
-      text-align: right;
     }
   </style>
 </head>
