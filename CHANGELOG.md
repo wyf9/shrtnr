@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased
+
+### Deploy
+
+- The deploy script now resolves both D1 and KV namespace IDs at deploy time. The KV namespace is created automatically if it does not exist. Hardcoded IDs removed from `wrangler.toml`, so the repo works out of the box for any Cloudflare account.
+
+### MCP
+
+- Settings page now shows live MCP server connection status with a direct link to the MCP endpoint.
+- OAuth callback handler refactored for cleaner path handling.
+- MCP approval dialog and landing page extracted into dedicated modules (`src/mcp/approval-dialog.ts`, `src/mcp/page.ts`).
+
+### Static assets
+
+- All static assets (icons, manifest, robots.txt) moved to the `public/` directory and served by Wrangler directly. Removed the hand-rolled asset-serving code in `src/assets.ts`.
+- Added PWA icons (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`), `manifest.webmanifest`, and `robots.txt`.
+
+### Branding
+
+- Added shrtnr and Oddbit SVG logo and logotype assets for both light and dark backgrounds.
+- Admin layout and standalone pages use the theme-aware logotype instead of text-only branding.
+- MCP landing page and OAuth approval dialog styled with the shared design system and shrtnr logotype.
+
+### Internal
+
+- Standalone page styles split into composable exports: `standaloneBaseStyles` (design tokens and reset) and `standaloneCenteredStyles` (full-screen centered layout). The old `standalonePageStyles` is kept as a deprecated alias.
+- All dependencies updated to latest.
+
 ## 0.10.0
 
 ### MCP endpoint moved to OAuth via Cloudflare Access (breaking)

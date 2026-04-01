@@ -311,7 +311,7 @@ const oauthProvider = new OAuthProvider({
 export default {
   fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {
     const { pathname } = new URL(request.url);
-    if (pathname === "/_/mcp" && request.method === "GET") {
+    if (pathname === "/_/mcp" && request.method === "GET" && !request.headers.get("Authorization")) {
       return app.fetch(request, env, ctx);
     }
     return oauthProvider.fetch(request, env, ctx);
