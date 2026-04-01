@@ -54,7 +54,7 @@ if (!/^\s*database_id\s*=/m.test(toml)) {
 // ---- KV namespace ----
 
 const kvBindingMatch = toml.match(
-  /\[\[kv_namespaces\]\][^[]*binding\s*=\s*"([^"]+)"/,
+  /\[\[kv_namespaces\]\][^[]*binding\s*=\s*"([^"]+)"[^[]*/,
 );
 if (kvBindingMatch) {
   const kvBinding = kvBindingMatch[0];
@@ -71,7 +71,7 @@ if (kvBindingMatch) {
 
     let namespaces;
     try {
-      const raw = execSync("npx wrangler kv namespace list --json 2>/dev/null", {
+      const raw = execSync("npx wrangler kv namespace list 2>/dev/null", {
         encoding: "utf-8",
       });
       namespaces = JSON.parse(raw);
