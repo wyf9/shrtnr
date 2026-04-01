@@ -31,6 +31,7 @@ import {
   handleDashboardStats as handleDashboardStatsApi,
   handleLinkAnalytics,
 } from "./api/analytics";
+import { handleLinkQr } from "./api/qr";
 import { notFoundResponse } from "./404";
 import { mcpLandingResponse } from "./mcp/page";
 import OAuthProvider from "@cloudflare/workers-oauth-provider";
@@ -181,7 +182,7 @@ app.delete("/_/admin/api/keys/:id", (c) => {
 });
 
 // Links (admin path: no scope checks, full access)
-app.post("/_/admin/api/links", (c) => handleCreateLink(c.req.raw, c.env));
+app.post("/_/admin/api/links", (c) => handleCreateLink(c.req.raw, c.env, "app"));
 app.get("/_/admin/api/links", (c) => handleListLinks(c.env));
 app.get("/_/admin/api/links/:id", (c) => {
   const id = parseInt(c.req.param("id"), 10);
@@ -208,6 +209,11 @@ app.post("/_/admin/api/links/:id/slugs", (c) => {
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   return handleAddVanitySlug(c.req.raw, c.env, id);
 });
+app.get("/_/admin/api/links/:id/qr", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  return handleLinkQr(c.req.raw, c.env, id);
+});
 
 // Settings
 app.get("/_/admin/api/settings", (c) => handleGetSettings(c.env));
@@ -229,7 +235,8 @@ app.use("/_/api/*", async (c, next) => {
 
 app.post("/_/api/links", (c) => {
   if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleCreateLink(c.req.raw, c.env);
+  const via = c.req.header("X-Client") === "sdk" ? "sdk" : "api";
+  return handleCreateLink(c.req.raw, c.env, via);
 });
 app.get("/_/api/links", (c) => {
   if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
@@ -264,6 +271,12 @@ app.post("/_/api/links/:id/slugs", (c) => {
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
   return handleAddVanitySlug(c.req.raw, c.env, id);
+});
+app.get("/_/api/links/:id/qr", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
+  return handleLinkQr(c.req.raw, c.env, id);
 });
 
 // ---- Root redirect ----

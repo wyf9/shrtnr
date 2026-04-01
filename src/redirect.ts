@@ -28,9 +28,11 @@ export async function handleRedirect(
   const ua = request.headers.get("User-Agent") || "";
   const deviceType = ua ? parseDeviceType(ua) : null;
   const browser = ua ? parseBrowser(ua) : null;
+  const url = new URL(request.url);
+  const channel = url.searchParams.has("qr") ? "qr" : "direct";
 
   // Async click recording, does not block the redirect
-  ctx.waitUntil(recordClick(db, record.id, referrer, country, deviceType, browser));
+  ctx.waitUntil(recordClick(db, record.id, referrer, country, deviceType, browser, channel));
 
   return Response.redirect(record.url, 301);
 }

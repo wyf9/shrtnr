@@ -16,6 +16,8 @@ import {
   addVanitySlugToLink,
   getManagedLinkAnalytics,
 } from "../services/link-management";
+import { renderQrSvg } from "../qr";
+import { getLinkById } from "../db";
 import pkg from "../../package.json";
 
 type ToolResult = {
@@ -80,7 +82,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         expires_at: z.number().int().optional().describe("Unix timestamp when the link expires"),
       },
       async (opts) => {
-        const result = await createManagedLink(this.env, opts);
+        const result = await createManagedLink(this.env, { ...opts, created_via: "mcp" });
         if (!result.ok) return fail(result.error);
         return ok(result.data);
       },
@@ -139,6 +141,42 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         const result = await getManagedLinkAnalytics(this.env, link_id);
         if (!result.ok) return fail(result.error);
         return ok(result.data);
+      },
+    );
+
+    this.server.tool(
+      "get_link_qr",
+      "Get a QR code SVG for a short link. The QR encodes the short URL with a ?qr tracking parameter.",
+      {
+        link_id: z.number().int().positive().describe("Numeric ID of the link"),
+        slug: z.string().optional().describe("Specific slug to use (defaults to vanity slug or primary)"),
+        base_url: z.string().url().describe("Base URL of the shrtnr instance, e.g. https://oddb.it"),
+      },
+      async ({ link_id, slug: requestedSlug, base_url }) => {
+        const link = await getLinkById(this.env.DB, link_id);
+        if (!link) return fail("Link not found");
+
+        const target = requestedSlug
+          ? link.slugs.find((s) => s.slug === requestedSlug)
+          : link.slugs.find((s) => s.is_vanity) ?? link.slugs[0];
+
+        if (!target) return fail("Slug not found");
+
+        const qrUrl = `${base_url.replace(/\/+$/, "")}/${target.slug}?qr`;
+        const svg = renderQrSvg(qrUrl, { size: 400 });
+        if (!svg) return fail("Failed to generate QR code");
+
+        const base64 = btoa(svg);
+        return {
+          content: [
+            { type: "text" as const, text: `QR code for ${qrUrl}` },
+            {
+              type: "image" as const,
+              data: base64,
+              mimeType: "image/svg+xml",
+            },
+          ],
+        };
       },
     );
   }
