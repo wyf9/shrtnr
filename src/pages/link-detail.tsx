@@ -118,11 +118,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
               {link.label}
             </div>
           )}
-          {link.created_via && (
-            <div style="display:inline-block;background:var(--surface);color:var(--on-bg-muted);font-size:0.65rem;font-weight:600;padding:0.15rem 0.5rem;border-radius:var(--radius);margin-top:0.4rem;text-transform:uppercase;letter-spacing:0.05em;border:1px solid var(--border)">
-              {link.created_via}
-            </div>
-          )}
+
           <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center">
             <button
               class="btn btn-secondary btn-sm"
@@ -158,7 +154,14 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
 
         <div style="display:flex;flex-direction:column;gap:1rem;padding-left:2rem;border-left:1px solid var(--border);min-width:220px">
           <div>
-            <label class="form-label">{t("linkDetail.vanitySlug")}</label>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.3rem">
+              <label class="form-label" style="margin-bottom:0">{t("linkDetail.vanitySlug")}</label>
+              {link.created_via && (
+                <span style="background:var(--surface);color:var(--on-bg-muted);font-size:0.6rem;font-weight:600;padding:0.15rem 0.45rem;border-radius:var(--radius);text-transform:uppercase;letter-spacing:0.05em;border:1px solid var(--border)">
+                  {link.created_via}
+                </span>
+              )}
+            </div>
             {vanity.length > 0 ? (
               <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
                 {vanity.map((v) => (
