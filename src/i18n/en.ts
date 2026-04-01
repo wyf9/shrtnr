@@ -64,6 +64,7 @@ const en = {
   "linkDetail.sources": "Sources",
   "linkDetail.devices": "Devices",
   "linkDetail.browsers": "Browsers",
+  "linkDetail.channels": "Channels",
   "linkDetail.noData": "No data yet",
   "linkDetail.clickToCopy": "Click to copy",
 
@@ -170,6 +171,7 @@ const en = {
   "client.expiryClearError": "Failed to clear expiry",
   "client.qrCode": "QR Code",
   "client.close": "Close",
+  "client.download": "Download",
   "client.qrFailed": "QR generation failed",
   "client.minSlugLength": "Minimum slug length is 3",
   "client.settingsSaved": "Settings saved",

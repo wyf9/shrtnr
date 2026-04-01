@@ -67,6 +67,7 @@ const sv: Translations = {
   "linkDetail.sources": "Källor",
   "linkDetail.devices": "Enheter",
   "linkDetail.browsers": "Webbläsare",
+  "linkDetail.channels": "Kanaler",
   "linkDetail.noData": "Ingen data ännu",
   "linkDetail.clickToCopy": "Klicka för att kopiera",
 
@@ -174,6 +175,7 @@ const sv: Translations = {
   "client.expiryClearError": "Kunde inte rensa förfallodatum",
   "client.qrCode": "QR-kod",
   "client.close": "Stäng",
+  "client.download": "Ladda ner",
   "client.qrFailed": "QR-generering misslyckades",
   "client.minSlugLength": "Minsta slug-längd är 3",
   "client.settingsSaved": "Inställningar sparade",

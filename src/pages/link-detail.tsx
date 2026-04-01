@@ -118,6 +118,11 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
               {link.label}
             </div>
           )}
+          {link.created_via && (
+            <div style="display:inline-block;background:var(--surface);color:var(--on-bg-muted);font-size:0.65rem;font-weight:600;padding:0.15rem 0.5rem;border-radius:var(--radius);margin-top:0.4rem;text-transform:uppercase;letter-spacing:0.05em;border:1px solid var(--border)">
+              {link.created_via}
+            </div>
+          )}
           <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center">
             <button
               class="btn btn-secondary btn-sm"
@@ -333,6 +338,25 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
                 count={b.count}
                 max={analytics.browsers[0].count}
                 color="mint"
+              />
+            ))
+          ) : (
+            <div style="color:var(--on-bg-muted);font-size:0.875rem">
+              {t("linkDetail.noData")}
+            </div>
+          )}
+        </div>
+
+        <div class="bento-card">
+          <div class="bento-label">{t("linkDetail.channels")}</div>
+          {analytics.channels.length > 0 ? (
+            analytics.channels.map((ch) => (
+              <StatBar
+                name={ch.name}
+                count={ch.count}
+                max={analytics.channels[0].count}
+                color="orange"
+                icon={ch.name === "qr" ? "qr_code_2" : "link"}
               />
             ))
           ) : (

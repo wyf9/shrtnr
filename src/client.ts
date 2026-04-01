@@ -266,14 +266,28 @@ function clearDetailExpiry(linkId) {
 
 // ---- QR Code ----
 function showQRModal(slug) {
-  var url = location.origin + '/' + slug;
+  var url = location.origin + '/' + slug + '?qr';
   openModal(
     '<div class="modal-title">' + esc(t('client.qrCode')) + '</div>' +
     '<p style="text-align:center;font-size:0.85rem;color:var(--on-bg-muted);margin-bottom:1rem">' + esc(url) + '</p>' +
     '<div class="qr-wrap" id="qr-target"></div>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.close')) + '</button></div>'
+    '<div class="modal-actions">' +
+      '<button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.close')) + '</button>' +
+      '<button class="btn btn-secondary btn-sm" onclick="downloadQR(\'' + esc(slug) + '\')">' +
+        '<span class="icon">download</span> ' + esc(t('client.download')) +
+      '</button>' +
+    '</div>'
   );
   generateQR(url, document.getElementById('qr-target'));
+}
+
+function downloadQR(slug) {
+  var canvas = document.querySelector('#qr-target canvas');
+  if (!canvas) return;
+  var a = document.createElement('a');
+  a.download = slug + '-qr.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
 }
 
 function generateQR(text, container) {

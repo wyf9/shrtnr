@@ -67,6 +67,7 @@ const id: Translations = {
   "linkDetail.sources": "Sumber",
   "linkDetail.devices": "Perangkat",
   "linkDetail.browsers": "Browser",
+  "linkDetail.channels": "Kanal",
   "linkDetail.noData": "Belum ada data",
   "linkDetail.clickToCopy": "Klik untuk menyalin",
 
@@ -174,6 +175,7 @@ const id: Translations = {
   "client.expiryClearError": "Gagal menghapus kedaluwarsa",
   "client.qrCode": "Kode QR",
   "client.close": "Tutup",
+  "client.download": "Unduh",
   "client.qrFailed": "Pembuatan QR gagal",
   "client.minSlugLength": "Panjang slug minimum 3",
   "client.settingsSaved": "Pengaturan disimpan",
