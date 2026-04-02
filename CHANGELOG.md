@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.14.0
+
+### Per-user identity
+
+Settings, API keys, and link authorship are now scoped per user identity extracted from the Cloudflare Access JWT.
+
+- `extractIdentity()` reads claims in order: `email` → `phone` → `sub`, falling back to `"anonymous"`. Always returns a non-empty string safe for use as a database key.
+- Theme, language, and slug default length are stored per user in the database. They load from the database on every admin page and fall back to the cookie, then to defaults. The cookie stays as a fast-render cache and is kept in sync.
+- `setTheme()` and `setLanguage()` on the client persist the choice to the settings API, so preferences survive across browsers and devices.
+- API keys are fully scoped: each user sees and can only delete their own keys.
+- Links silently record `created_by` on creation (not exposed in the UI or API).
+- Migration `0007_user_identity.sql` recreates the `settings` table with a `(identity, key)` composite primary key, adds an `identity` column to `api_keys`, and adds `created_by` to `links`.
+
+### Deployment and migration documentation
+
+- Added a prominent warning in the README that GitHub Actions workflows are not copied when Cloudflare forks a repo via the Deploy button.
+- Clarified that running database migrations is mandatory: without them the schema is missing and the app will not function.
+- Added step-by-step instructions for running migrations manually after each update, and for copying the workflow file into a fork to automate the process.
+
 ## 0.13.0
 
 ### CF Access auth awareness
