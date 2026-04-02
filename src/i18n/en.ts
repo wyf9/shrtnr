@@ -100,6 +100,7 @@ const en = {
   "settings.minLength": "Minimum length is 3 characters",
   "settings.version": "Version",
   "settings.checkingUpdates": "Checking for updates...",
+  "settings.installApp": "Install App",
   "settings.integrations": "Integrations",
   "settings.sdkTitle": "TypeScript SDK",
   "settings.sdkDesc":

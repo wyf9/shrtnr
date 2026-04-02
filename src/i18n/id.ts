@@ -103,6 +103,7 @@ const id: Translations = {
   "settings.minLength": "Panjang minimum 3 karakter",
   "settings.version": "Versi",
   "settings.checkingUpdates": "Memeriksa pembaruan...",
+  "settings.installApp": "Instal Aplikasi",
   "settings.integrations": "Integrasi",
   "settings.sdkTitle": "TypeScript SDK",
   "settings.sdkDesc":

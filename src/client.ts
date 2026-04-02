@@ -398,6 +398,25 @@ function checkForUpdates() {
   });
 }
 
+// ---- PWA install ----
+var _installPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _installPrompt = e;
+  var btn = document.getElementById('install-app-btn');
+  if (btn) btn.style.display = '';
+});
+window.addEventListener('appinstalled', function() {
+  var btn = document.getElementById('install-app-btn');
+  if (btn) btn.style.display = 'none';
+  _installPrompt = null;
+});
+function installApp() {
+  if (!_installPrompt) return;
+  _installPrompt.prompt();
+  _installPrompt.userChoice.then(function() { _installPrompt = null; });
+}
+
 // ---- Init ----
 var quickUrlEl = document.getElementById('quick-url');
 if (quickUrlEl) quickUrlEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') quickShorten(); });

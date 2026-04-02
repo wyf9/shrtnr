@@ -103,6 +103,7 @@ const sv: Translations = {
   "settings.minLength": "Minsta längd är 3 tecken",
   "settings.version": "Version",
   "settings.checkingUpdates": "Söker efter uppdateringar...",
+  "settings.installApp": "Installera app",
   "settings.integrations": "Integrationer",
   "settings.sdkTitle": "TypeScript SDK",
   "settings.sdkDesc":

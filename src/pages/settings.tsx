@@ -122,6 +122,12 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
                   {t("settings.checkingUpdates")}
                 </span>
               </div>
+              <div id="install-app-btn" style="display:none;margin-top:0.75rem">
+                <button class="btn btn-secondary btn-sm" onclick="installApp()" style="display:inline-flex;align-items:center;gap:0.4rem">
+                  <span class="icon" style="font-size:16px">install_desktop</span>
+                  {t("settings.installApp")}
+                </button>
+              </div>
             </div>
           </div>
         </div>
