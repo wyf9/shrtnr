@@ -265,39 +265,43 @@ function clearDetailExpiry(linkId) {
 }
 
 // ---- QR Code modal ----
+var _qrSlug = '';
+var _qrSrc = '';
+
 function showQRModal(linkId, slug) {
+  _qrSlug = slug;
+  _qrSrc = API + '/links/' + linkId + '/qr?slug=' + encodeURIComponent(slug);
   var shortUrl = location.origin + '/' + slug + '?qr';
-  var svgSrc = API + '/links/' + linkId + '/qr?slug=' + encodeURIComponent(slug);
   openModal(
     '<div class="modal-title">' + esc(t('client.qrCode')) + '</div>' +
     '<p style="text-align:center;font-size:0.85rem;color:var(--on-bg-muted);margin:0 0 1.25rem">' + esc(shortUrl) + '</p>' +
     '<div style="display:flex;justify-content:center;margin-bottom:1.25rem">' +
-      '<img id="qr-img" src="' + svgSrc + '" style="width:280px;height:280px;border-radius:var(--radius);background:#fff;padding:12px;box-sizing:border-box">' +
+      '<img id="qr-img" src="' + _qrSrc + '" style="width:280px;height:280px;border-radius:var(--radius);background:#fff;padding:12px;box-sizing:border-box">' +
     '</div>' +
     '<div class="modal-actions">' +
       '<button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.close')) + '</button>' +
-      '<button class="btn btn-ghost btn-sm" onclick="downloadQrSvg(\'' + esc(slug) + '\',\'' + svgSrc + '\')">' +
+      '<button class="btn btn-ghost btn-sm" onclick="downloadQrSvg()">' +
         '<span class="icon">download</span> ' + esc(t('client.downloadSvg')) +
       '</button>' +
-      '<button class="btn btn-secondary btn-sm" onclick="downloadQrPng(\'' + esc(slug) + '\',\'' + svgSrc + '\')">' +
+      '<button class="btn btn-secondary btn-sm" onclick="downloadQrPng()">' +
         '<span class="icon">download</span> ' + esc(t('client.downloadPng')) +
       '</button>' +
     '</div>'
   );
 }
 
-function downloadQrSvg(slug, svgSrc) {
-  fetch(svgSrc).then(function(r) { return r.blob(); }).then(function(blob) {
+function downloadQrSvg() {
+  fetch(_qrSrc).then(function(r) { return r.blob(); }).then(function(blob) {
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
-    a.download = slug + '-qr.svg';
+    a.download = _qrSlug + '-qr.svg';
     a.href = url;
     a.click();
     URL.revokeObjectURL(url);
   });
 }
 
-function downloadQrPng(slug, svgSrc) {
+function downloadQrPng() {
   var img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = function() {
@@ -310,13 +314,13 @@ function downloadQrPng(slug, svgSrc) {
     canvas.toBlob(function(blob) {
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
-      a.download = slug + '-qr.png';
+      a.download = _qrSlug + '-qr.png';
       a.href = url;
       a.click();
       URL.revokeObjectURL(url);
     }, 'image/png');
   };
-  img.src = svgSrc;
+  img.src = _qrSrc;
 }
 
 // ---- Settings ----
