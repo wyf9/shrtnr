@@ -5,11 +5,11 @@
   "license": "Apache-2.0",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "node scripts/resolve-d1-id.js && npm run db:migrate:remote && wrangler deploy",
+    "deploy": "wrangler deploy && npm run db:migrate:remote",
     "wrangler-login": "wrangler login",
     "db:create": "wrangler d1 create shrtnr-db",
     "db:migrate": "wrangler d1 migrations apply shrtnr-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "db:migrate:remote": "wrangler d1 migrations apply shrtnr-db --remote",
     "secret:put": "wrangler secret put",
     "test": "vitest run",
     "test:watch": "vitest"

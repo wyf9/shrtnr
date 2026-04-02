@@ -16,7 +16,6 @@ database_name = "shrtnr-db"
 migrations_dir = "migrations"
 
 # KV namespace for MCP OAuth session state
-# ID resolved at deploy time by scripts/resolve-d1-id.js
 [[kv_namespaces]]
 binding = "OAUTH_KV"
 
