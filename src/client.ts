@@ -265,12 +265,13 @@ function clearDetailExpiry(linkId) {
 }
 
 // ---- QR Code ----
-function showQRModal(slug) {
+function showQRModal(linkId, slug) {
   var url = location.origin + '/' + slug + '?qr';
+  var src = API + '/links/' + linkId + '/qr?slug=' + encodeURIComponent(slug);
   openModal(
     '<div class="modal-title">' + esc(t('client.qrCode')) + '</div>' +
     '<p style="text-align:center;font-size:0.85rem;color:var(--on-bg-muted);margin-bottom:1rem">' + esc(url) + '</p>' +
-    '<div class="qr-wrap" id="qr-target"></div>' +
+    '<div class="qr-wrap"><img id="qr-target" src="' + src + '" style="width:220px;height:220px;border-radius:var(--radius)"></div>' +
     '<div class="modal-actions">' +
       '<button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.close')) + '</button>' +
       '<button class="btn btn-secondary btn-sm" onclick="downloadQR(\'' + esc(slug) + '\')">' +
@@ -278,36 +279,19 @@ function showQRModal(slug) {
       '</button>' +
     '</div>'
   );
-  generateQR(url, document.getElementById('qr-target'));
 }
 
 function downloadQR(slug) {
-  var canvas = document.querySelector('#qr-target canvas');
-  if (!canvas) return;
-  var a = document.createElement('a');
-  a.download = slug + '-qr.png';
-  a.href = canvas.toDataURL('image/png');
-  a.click();
-}
-
-function generateQR(text, container) {
-  var size = 220;
-  var canvas = document.createElement('canvas');
-  canvas.width = size; canvas.height = size;
-  var ctx = canvas.getContext('2d');
-  var qr = makeQR(text);
-  if (!qr) { container.textContent = t('client.qrFailed'); return; }
-  var modules = qr.length;
-  var cellSize = size / modules;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = '#001110';
-  for (var r = 0; r < modules; r++) {
-    for (var c = 0; c < modules; c++) {
-      if (qr[r][c]) ctx.fillRect(c * cellSize, r * cellSize, cellSize + 0.5, cellSize + 0.5);
-    }
-  }
-  container.appendChild(canvas);
+  var img = document.getElementById('qr-target');
+  if (!img) return;
+  fetch(img.src).then(function(r) { return r.blob(); }).then(function(blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.download = slug + '-qr.svg';
+    a.href = url;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 }
 
 function makeQR(text) {

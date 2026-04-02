@@ -122,7 +122,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
             </button>
             <button
               class="btn btn-ghost btn-sm"
-              onclick={`showQRModal('${escHtml(displaySlug)}')`}
+              onclick={`showQRModal(${link.id}, '${escHtml(displaySlug)}')`}
             >
               <span class="icon">qr_code_2</span> {t("linkDetail.qr")}
             </button>
