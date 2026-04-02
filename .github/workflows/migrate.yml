@@ -1,13 +1,15 @@
 name: Migrate
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - migrations/**
+  check_suite:
+    types: [completed]
 
 jobs:
   migrate:
+    if: >
+      github.event.check_suite.conclusion == 'success' &&
+      github.event.check_suite.head_branch == 'main' &&
+      github.event.check_suite.app.slug != 'github-actions'
     runs-on: ubuntu-latest
 
     steps:
@@ -19,9 +21,6 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-
-      - name: Wait for Workers Builds deployment
-        run: sleep 90
 
       - name: Apply database migrations
         run: yarn db:migrate:remote

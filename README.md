@@ -53,7 +53,7 @@ yarn db:migrate:remote
 
 ### Continuous deployment
 
-Cloudflare [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) redeploys the Worker on every push to your production branch. Database migrations are handled separately by the included GitHub Actions workflow at `.github/workflows/migrate.yml`, which runs whenever migration files change.
+Cloudflare [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) redeploys the Worker on every push to your production branch. Database migrations are handled separately by the included GitHub Actions workflow at `.github/workflows/migrate.yml`, which triggers when Cloudflare's check suite completes successfully.
 
 To enable automatic migrations, add two repository secrets in GitHub under **Settings > Secrets and variables > Actions**:
 
