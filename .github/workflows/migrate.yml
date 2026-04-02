@@ -1,11 +1,13 @@
 name: Migrate
 
 on:
-  deployment_status:
+  push:
+    branches: [main]
+    paths:
+      - migrations/**
 
 jobs:
   migrate:
-    if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -17,6 +19,9 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Wait for Workers Builds deployment
+        run: sleep 90
 
       - name: Apply database migrations
         run: yarn db:migrate:remote

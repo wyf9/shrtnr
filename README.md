@@ -29,7 +29,15 @@ It takes one click to deploy. You get a full admin UI, click analytics, a TypeSc
 
 ### One-click
 
-Click the **Deploy to Cloudflare** button above. Cloudflare will fork the repo, provision a D1 database, apply schema migrations, and deploy the Worker. No manual database setup required.
+Click the **Deploy to Cloudflare** button above. Cloudflare will fork the repo, provision a D1 database and KV namespace, and deploy the Worker.
+
+After the initial deploy finishes, apply database migrations once:
+
+```bash
+cd shrtnr
+yarn install
+npx wrangler d1 migrations apply DB --remote
+```
 
 ### Manual
 
@@ -39,19 +47,20 @@ cd shrtnr
 yarn install
 yarn wrangler-login
 yarn db:create
-yarn deploy             # applies migrations and deploys the Worker
+yarn deploy
+yarn db:migrate:remote
 ```
 
 ### Continuous deployment
 
-The deploy button sets up [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) automatically. Cloudflare watches your repository and redeploys the Worker on every push to your production branch.
+Cloudflare [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) redeploys the Worker on every push to your production branch. Database migrations are handled separately by the included GitHub Actions workflow at `.github/workflows/migrate.yml`, which runs whenever migration files change.
 
-Database migrations run automatically after each successful deployment via the included GitHub Actions workflow at `.github/workflows/migrate.yml`. It triggers on Cloudflare's deployment status event, so migrations apply as soon as the Worker is live.
+To enable automatic migrations, add two repository secrets in GitHub under **Settings > Secrets and variables > Actions**:
 
-To enable it, add two secrets to your GitHub repository under **Settings > Secrets and variables > Actions**:
+- `CLOUDFLARE_API_TOKEN`: a Cloudflare API token with **Workers Scripts: Edit** and **D1: Edit** permissions
+- `CLOUDFLARE_ACCOUNT_ID`: your Cloudflare account ID (visible in the dashboard URL or the right sidebar of any zone page)
 
-- `CLOUDFLARE_API_TOKEN`: a Cloudflare API token with Worker and D1 edit permissions
-- `CLOUDFLARE_ACCOUNT_ID`: your Cloudflare account ID
+Without these secrets, you can still deploy: Workers Builds handles the code, and you run `yarn db:migrate:remote` manually when pushing schema changes.
 
 ## Access Control
 
