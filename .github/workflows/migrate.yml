@@ -22,6 +22,20 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Resolve database ID
+        run: |
+          DB_NAME=$(grep 'database_name' wrangler.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
+          DB_ID=$(npx wrangler d1 list --json 2>/dev/null | node -e "
+            let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+              const db=JSON.parse(d).find(x=>x.name==='$DB_NAME');
+              if(!db){process.exit(1)}console.log(db.uuid)
+            })")
+          sed -i "s|database_name = \"$DB_NAME\"|database_name = \"$DB_NAME\"\ndatabase_id = \"$DB_ID\"|" wrangler.toml
+          echo "Resolved $DB_NAME → $DB_ID"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Apply database migrations
         run: yarn db:migrate:remote
         env:
