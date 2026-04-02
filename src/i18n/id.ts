@@ -55,6 +55,8 @@ const id: Translations = {
   "linkDetail.qr": "QR",
   "linkDetail.or": "atau",
   "linkDetail.vanitySlug": "Slug Kustom",
+  "linkDetail.label": "Label",
+  "linkDetail.createdBy": "Dibuat Oleh",
   "linkDetail.add": "Tambah",
   "linkDetail.expiresAt": "Kedaluwarsa",
   "linkDetail.clear": "Hapus",

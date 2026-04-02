@@ -52,6 +52,8 @@ const en = {
   "linkDetail.qr": "QR",
   "linkDetail.or": "or",
   "linkDetail.vanitySlug": "Vanity Slug",
+  "linkDetail.label": "Label",
+  "linkDetail.createdBy": "Created By",
   "linkDetail.add": "Add",
   "linkDetail.expiresAt": "Expires At",
   "linkDetail.clear": "Clear",

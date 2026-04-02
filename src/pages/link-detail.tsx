@@ -99,8 +99,8 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
         </div>
       </div>
 
-      <div class="detail-hero" style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap">
-        <div style="flex:1;min-width:0">
+      <div class="detail-hero" style="display:flex;gap:0;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:0;padding-right:2rem">
           {isExpired && (
             <div style="display:inline-block;background:var(--danger);color:var(--on-danger);font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:var(--radius);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em">
               {t("linkDetail.disabled")}
@@ -113,12 +113,6 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
             {`${displaySlug}`}
           </div>
           <div class="detail-dest">{link.url}</div>
-          {link.label && (
-            <div style="color:var(--secondary);font-size:0.85rem;margin-top:0.25rem">
-              {link.label}
-            </div>
-          )}
-
           <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center">
             <button
               class="btn btn-secondary btn-sm"
@@ -152,16 +146,28 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
           </div>
         </div>
 
+        <div style="display:flex;flex-direction:column;gap:1rem;padding:0 2rem;border-left:1px solid var(--border);min-width:180px">
+          <div>
+            <label class="form-label">{t("linkDetail.label")}</label>
+            {link.label ? (
+              <div style="font-size:0.9rem;color:var(--on-bg)">{link.label}</div>
+            ) : (
+              <div style="font-size:0.85rem;color:var(--on-bg-muted)">—</div>
+            )}
+          </div>
+          <div>
+            <label class="form-label">{t("linkDetail.createdBy")}</label>
+            {link.created_via ? (
+              <div style="font-size:0.9rem;color:var(--on-bg)">{link.created_via}</div>
+            ) : (
+              <div style="font-size:0.85rem;color:var(--on-bg-muted)">—</div>
+            )}
+          </div>
+        </div>
+
         <div style="display:flex;flex-direction:column;gap:1rem;padding-left:2rem;border-left:1px solid var(--border);min-width:220px">
           <div>
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.3rem">
-              <label class="form-label" style="margin-bottom:0">{t("linkDetail.vanitySlug")}</label>
-              {link.created_via && (
-                <span style="background:var(--surface);color:var(--on-bg-muted);font-size:0.6rem;font-weight:600;padding:0.15rem 0.45rem;border-radius:var(--radius);text-transform:uppercase;letter-spacing:0.05em;border:1px solid var(--border)">
-                  {link.created_via}
-                </span>
-              )}
-            </div>
+            <label class="form-label">{t("linkDetail.vanitySlug")}</label>
             {vanity.length > 0 ? (
               <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
                 {vanity.map((v) => (

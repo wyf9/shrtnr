@@ -55,6 +55,8 @@ const sv: Translations = {
   "linkDetail.qr": "QR",
   "linkDetail.or": "eller",
   "linkDetail.vanitySlug": "Anpassad slug",
+  "linkDetail.label": "Etikett",
+  "linkDetail.createdBy": "Skapad av",
   "linkDetail.add": "Lägg till",
   "linkDetail.expiresAt": "Förfaller",
   "linkDetail.clear": "Rensa",
