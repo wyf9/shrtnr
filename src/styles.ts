@@ -243,6 +243,10 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--on-bg)
 .detail-back { background: none; border: none; color: var(--on-bg-muted); cursor: pointer; padding: 0.4rem; border-radius: var(--radius); text-decoration: none; display: inline-flex; }
 .detail-back:hover { color: var(--on-bg); background: var(--surface); }
 .detail-hero { background: var(--surface); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.4rem; }
+.detail-hero-grid { display: grid; grid-template-columns: 1fr auto auto; gap: 0; align-items: stretch; }
+.detail-hero-main { min-width: 0; padding-right: 2rem; display: flex; flex-direction: column; justify-content: center; }
+.detail-hero-meta { display: flex; flex-direction: column; gap: 1rem; padding: 0 2rem; border-left: 1px solid var(--border); justify-content: center; min-width: 160px; }
+.detail-hero-config { display: flex; flex-direction: column; gap: 1rem; padding-left: 2rem; border-left: 1px solid var(--border); justify-content: center; min-width: 220px; }
 .detail-short-url { font-family: var(--font-display); font-size: 1.75rem; font-weight: 700; color: var(--primary); word-break: break-all; }
 .detail-dest { font-size: 0.85rem; color: var(--on-bg-muted); margin-top: 0.25rem; word-break: break-all; }
 .detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.4rem; }
@@ -313,6 +317,10 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--on-bg)
   .bento-card.span-2, .bento-card.span-3 { grid-column: 1 / -1; }
   .bento-value { font-size: 1.5rem; }
   .detail-grid { grid-template-columns: 1fr; }
+  .detail-hero-grid { grid-template-columns: 1fr; }
+  .detail-hero-meta { border-left: none; border-top: 1px solid var(--border); padding: 1.25rem 0 0; }
+  .detail-hero-config { border-left: none; border-top: 1px solid var(--border); padding: 1.25rem 0 0; }
+  .detail-hero-main { padding-right: 0; }
   .hero-input-wrap { flex-direction: column; }
   .form-row { flex-direction: column; }
   .toolbar { flex-wrap: wrap; gap: 0.5rem; }

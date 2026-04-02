@@ -99,8 +99,8 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
         </div>
       </div>
 
-      <div class="detail-hero" style="display:grid;grid-template-columns:1fr auto auto;gap:0;align-items:stretch">
-        <div style="min-width:0;padding-right:2rem;display:flex;flex-direction:column;justify-content:center">
+      <div class="detail-hero detail-hero-grid">
+        <div class="detail-hero-main">
           {isExpired && (
             <div style="display:inline-block;background:var(--danger);color:var(--on-danger);font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:var(--radius);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em">
               {t("linkDetail.disabled")}
@@ -146,7 +146,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
           </div>
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:1rem;padding:0 2rem;border-left:1px solid var(--border);justify-content:center;min-width:160px">
+        <div class="detail-hero-meta">
           <div>
             <label class="form-label">{t("linkDetail.label")}</label>
             {link.label ? (
@@ -165,7 +165,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
           </div>
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:1rem;padding-left:2rem;border-left:1px solid var(--border);justify-content:center;min-width:220px">
+        <div class="detail-hero-config">
           <div>
             <label class="form-label">{t("linkDetail.vanitySlug")}</label>
             {vanity.length > 0 ? (
