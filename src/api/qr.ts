@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Env } from "../types";
-import { dbGetLinkById } from "../db";
+import { getLink } from "../services/link-management";
 import { renderQrSvg } from "../qr";
 import { json } from "./response";
 
 export async function handleLinkQr(request: Request, env: Env, linkId: number): Promise<Response> {
-  const link = await dbGetLinkById(env.DB, linkId);
-  if (!link) return json({ error: "Link not found" }, 404);
+  const result = await getLink(env, linkId);
+  if (!result.ok) return json({ error: result.error }, result.status);
 
+  const link = result.data;
   const url = new URL(request.url);
   const requestedSlug = url.searchParams.get("slug");
 

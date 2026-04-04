@@ -1,9 +1,7 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-export type ServiceResult<T> =
-  | { ok: true; status: number; data: T }
-  | { ok: false; status: number; error: string };
+export type { ServiceResult } from "../services/result";
 
 export function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -12,7 +10,7 @@ export function json(data: unknown, status = 200): Response {
   });
 }
 
-export function fromServiceResult<T>(result: ServiceResult<T>): Response {
+export function fromServiceResult<T>(result: import("../services/result").ServiceResult<T>): Response {
   if (!result.ok) return json({ error: result.error }, result.status);
   return json(result.data, result.status);
 }

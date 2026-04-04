@@ -7,13 +7,14 @@ import { verifyAccessJwt, extractIdentity, type AccessUser } from "./access";
 import { handleRedirect } from "./redirect";
 import { unauthorizedResponse } from "./auth";
 import {
-  dbAuthenticateApiKey,
-  dbGetAllLinks,
-  dbGetLinkById,
-  dbGetDashboardStats,
-  dbGetLinkClickStats,
-  dbGetAllApiKeys,
-} from "./db";
+  authenticateApiKey,
+  getAppSettings,
+  getDashboardStats,
+  getLinkAnalytics,
+  listLinks,
+  getLink,
+  listAllApiKeys,
+} from "./services";
 import { DEFAULT_SLUG_LENGTH } from "./constants";
 import { createTranslateFn, getTranslations } from "./i18n";
 import { handleHealth } from "./api/health";
@@ -27,7 +28,6 @@ import {
 } from "./api/links";
 import { handleAddVanitySlug } from "./api/slugs";
 import { handleGetSettings, handleUpdateSettings } from "./api/settings";
-import { getAppSettings } from "./services/admin-management";
 import { handleListKeys, handleCreateKey, handleDeleteKey } from "./api/keys";
 import {
   handleDashboardStats as handleDashboardStatsApi,
@@ -110,8 +110,6 @@ function getCookie(request: Request, name: string): string | null {
 }
 
 async function getPageData(c: { env: Env; req: { raw: Request } }, identity: string) {
-  const db = c.env.DB;
-  // Load all user settings in one query; fall back to cookie, then defaults.
   const settingsResult = await getAppSettings(c.env, identity);
   const settings = settingsResult.ok ? settingsResult.data : null;
   const theme = settings?.theme ?? getCookie(c.req.raw, "theme") ?? "oddbit";
@@ -119,15 +117,16 @@ async function getPageData(c: { env: Env; req: { raw: Request } }, identity: str
   const slugLength = settings?.slug_default_length ?? DEFAULT_SLUG_LENGTH;
   const t = createTranslateFn(lang);
   const translations = getTranslations(lang);
-  return { db, theme, slugLength, lang, t, translations };
+  return { theme, slugLength, lang, t, translations };
 }
 
 // ---- Admin pages ----
 
 app.get("/_/admin/dashboard", async (c) => {
   const identity = c.var.identity;
-  const { db, theme, t, lang, translations } = await getPageData(c, identity);
-  const stats = await dbGetDashboardStats(db);
+  const { theme, t, lang, translations } = await getPageData(c, identity);
+  const statsResult = await getDashboardStats(c.env);
+  const stats = statsResult.ok ? statsResult.data : { total_links: 0, total_clicks: 0, recent_links: [], top_links: [], top_countries: [], top_referrers: [] };
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="dashboard" theme={theme} t={t} lang={lang} translations={translations} userEmail={userEmail}>
@@ -138,8 +137,9 @@ app.get("/_/admin/dashboard", async (c) => {
 
 app.get("/_/admin/links", async (c) => {
   const identity = c.var.identity;
-  const { db, theme, slugLength, t, lang, translations } = await getPageData(c, identity);
-  const links = await dbGetAllLinks(db);
+  const { theme, slugLength, t, lang, translations } = await getPageData(c, identity);
+  const linksResult = await listLinks(c.env);
+  const links = linksResult.ok ? linksResult.data : [];
   const sort = c.req.query("sort") || "recent";
   const page = parseInt(c.req.query("page") || "1", 10) || 1;
   const perPage = parseInt(c.req.query("per_page") || "25", 10) || 25;
@@ -164,26 +164,28 @@ app.get("/_/admin/links/:id", async (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return notFoundResponse();
   const identity = c.var.identity;
-  const { db, theme, t, lang, translations } = await getPageData(c, identity);
-  const link = await dbGetLinkById(db, id);
-  if (!link) return notFoundResponse();
-  const analytics = await dbGetLinkClickStats(db, id);
+  const { theme, t, lang, translations } = await getPageData(c, identity);
+  const linkResult = await getLink(c.env, id);
+  if (!linkResult.ok) return notFoundResponse();
+  const analyticsResult = await getLinkAnalytics(c.env, id);
+  const analytics = analyticsResult.ok ? analyticsResult.data : { total_clicks: 0, countries: [], referrers: [], devices: [], browsers: [], channels: [], clicks_over_time: [] };
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="links" theme={theme} t={t} lang={lang} translations={translations} userEmail={userEmail}>
-      <LinkDetailPage link={link} analytics={analytics} t={t} lang={lang} />
+      <LinkDetailPage link={linkResult.data} analytics={analytics} t={t} lang={lang} />
     </Layout>,
   );
 });
 
 app.get("/_/admin/keys", async (c) => {
   const identity = c.var.identity;
-  const { db, theme, t, lang, translations } = await getPageData(c, identity);
-  const keys = await dbGetAllApiKeys(db, identity);
+  const { theme, t, lang, translations } = await getPageData(c, identity);
+  const keysResult = await listAllApiKeys(c.env, identity);
+  const keys = keysResult.ok ? keysResult.data : [];
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="keys" theme={theme} t={t} lang={lang} translations={translations} userEmail={userEmail}>
-      <KeysPage keys={keys} t={t} lang={lang} />
+      <KeysPage keys={keys as any} t={t} lang={lang} />
     </Layout>,
   );
 });
@@ -340,7 +342,7 @@ app.get("/", (c) => c.redirect("/_/admin/dashboard", 302));
 app.get("/:slug", (c) => {
   const slug = c.req.param("slug");
   if (!slug || slug.startsWith("_")) return notFoundResponse();
-  return handleRedirect(slug, c.req.raw, c.env.DB, c.executionCtx);
+  return handleRedirect(slug, c.req.raw, c.env, c.executionCtx);
 });
 
 // ---- 404 fallback ----
@@ -370,9 +372,6 @@ const oauthProvider = new OAuthProvider({
 
 export default {
   fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    // Serve the landing page for unauthenticated browser visits to /_/mcp.
-    // The OAuthProvider treats all /_/mcp requests as API calls requiring a
-    // Bearer token, so we intercept browser GETs before it runs.
     const url = new URL(request.url);
     if (
       request.method === "GET" &&
@@ -395,7 +394,7 @@ async function resolveAuth(
   const authHeader = request.headers.get("Authorization");
   if (authHeader?.startsWith("Bearer ")) {
     const token = authHeader.slice(7);
-    const key = await dbAuthenticateApiKey(env.DB, token);
+    const key = await authenticateApiKey(env, token);
     if (key) {
       return { source: "apikey", scope: key.scope };
     }

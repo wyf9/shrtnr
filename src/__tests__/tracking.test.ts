@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import { env, SELF } from "cloudflare:test";
 import { applyMigrations, resetData } from "./setup";
-import { dbCreateLink, dbRecordClick, dbGetLinkClickStats } from "../db";
+import { LinkRepository, ClickRepository } from "../db";
 import { createLink } from "../services/link-management";
 import { makeQR, renderQrSvg } from "../qr";
 
@@ -40,7 +40,6 @@ describe("created_via tracking", () => {
   });
 
   it("public API link creation sets created_via to 'api'", async () => {
-    // Create an API key first
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
@@ -120,17 +119,17 @@ describe("created_via tracking", () => {
     expect(body[0].created_via).toBe("app");
   });
 
-  it("createLink db function accepts created_via parameter", async () => {
-    const link = await dbCreateLink(env.DB, "https://example.com", "abc", null, null, null, "mcp");
+  it("LinkRepository.create accepts createdVia parameter", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdVia: "mcp" });
     expect(link.created_via).toBe("mcp");
   });
 
-  it("createLink db function defaults created_via to 'app'", async () => {
-    const link = await dbCreateLink(env.DB, "https://example.com", "abc");
+  it("LinkRepository.create defaults created_via to app", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     expect(link.created_via).toBe("app");
   });
 
-  it("createManagedLink passes created_via through", async () => {
+  it("createLink service passes created_via through", async () => {
     const result = await createLink(env as any, {
       url: "https://example.com",
       created_via: "mcp",
@@ -145,10 +144,10 @@ describe("created_via tracking", () => {
 // ---- Feature 2: QR click channel tracking ----
 
 describe("QR click channel tracking", () => {
-  it("recordClick stores channel when provided", async () => {
-    const link = await dbCreateLink(env.DB, "https://example.com", "abc");
+  it("ClickRepository.record stores channel when provided", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     const slugId = link.slugs[0].id;
-    await dbRecordClick(env.DB, slugId, null, "US", "mobile", "Chrome", "qr");
+    await ClickRepository.record(env.DB, slugId, null, "US", "mobile", "Chrome", "qr");
 
     const row = await env.DB
       .prepare("SELECT channel FROM clicks WHERE slug_id = ?")
@@ -157,10 +156,10 @@ describe("QR click channel tracking", () => {
     expect(row!.channel).toBe("qr");
   });
 
-  it("recordClick defaults channel to 'direct' for regular clicks", async () => {
-    const link = await dbCreateLink(env.DB, "https://example.com", "abc");
+  it("ClickRepository.record defaults channel to 'direct' for regular clicks", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     const slugId = link.slugs[0].id;
-    await dbRecordClick(env.DB, slugId, null, "US", "mobile", "Chrome");
+    await ClickRepository.record(env.DB, slugId, null, "US", "mobile", "Chrome");
 
     const row = await env.DB
       .prepare("SELECT channel FROM clicks WHERE slug_id = ?")
@@ -170,13 +169,12 @@ describe("QR click channel tracking", () => {
   });
 
   it("redirect with ?qr records channel as 'qr'", async () => {
-    const link = await dbCreateLink(env.DB, "https://example.com", "test1");
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "test1" });
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/test1?qr", { redirect: "manual" }),
     );
     expect(res.status).toBe(301);
 
-    // Wait for async click recording
     await new Promise((r) => setTimeout(r, 100));
 
     const row = await env.DB
@@ -187,7 +185,7 @@ describe("QR click channel tracking", () => {
   });
 
   it("redirect without ?qr records channel as 'direct'", async () => {
-    const link = await dbCreateLink(env.DB, "https://example.com", "test2");
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "test2" });
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/test2", { redirect: "manual" }),
     );
@@ -203,13 +201,13 @@ describe("QR click channel tracking", () => {
   });
 
   it("analytics includes channel breakdown", async () => {
-    const link = await dbCreateLink(env.DB, "https://example.com", "abc");
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     const slugId = link.slugs[0].id;
-    await dbRecordClick(env.DB, slugId, null, null, null, null, "qr");
-    await dbRecordClick(env.DB, slugId, null, null, null, null, "qr");
-    await dbRecordClick(env.DB, slugId, null, null, null, null);
+    await ClickRepository.record(env.DB, slugId, null, null, null, null, "qr");
+    await ClickRepository.record(env.DB, slugId, null, null, null, null, "qr");
+    await ClickRepository.record(env.DB, slugId, null, null, null, null);
 
-    const stats = await dbGetLinkClickStats(env.DB, link.id);
+    const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.channels).toEqual(
       expect.arrayContaining([
         { name: "qr", count: 2 },
@@ -226,7 +224,6 @@ describe("QR code generation", () => {
     const matrix = makeQR("https://oddb.it/abc");
     expect(matrix).not.toBeNull();
     expect(matrix!.length).toBeGreaterThan(0);
-    // QR version 1 = 21x21
     expect(matrix!.length).toBe(matrix![0].length);
   });
 
@@ -282,10 +279,8 @@ describe("QR download API", () => {
     );
     const created = (await createRes.json()) as any;
 
-    // Request QR for vanity slug
     const res = await SELF.fetch(authed(`/_/admin/api/links/${created.id}/qr?slug=my-link`));
     expect(res.status).toBe(200);
-    // The SVG should encode the slug URL, not the destination URL
     const body = await res.text();
     expect(body).toContain("<svg");
   });
@@ -296,7 +291,6 @@ describe("QR download API", () => {
   });
 
   it("GET /_/api/links/:id/qr returns SVG with API key auth", async () => {
-    // Create API key
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
@@ -306,7 +300,6 @@ describe("QR download API", () => {
     );
     const { raw_key } = (await keyRes.json()) as any;
 
-    // Create link
     const createRes = await SELF.fetch(
       new Request("https://shrtnr.test/_/api/links", {
         method: "POST",
@@ -319,7 +312,6 @@ describe("QR download API", () => {
     );
     const created = (await createRes.json()) as any;
 
-    // Fetch QR
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${created.id}/qr`, {
         headers: { Authorization: `Bearer ${raw_key}` },
