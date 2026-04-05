@@ -11,7 +11,7 @@ Most URL shorteners either lock you into a SaaS with per-click pricing or requir
 
 It takes one click to deploy. You get a full admin UI, click analytics, a TypeScript SDK, and an MCP server for AI assistants: all from a single Cloudflare Worker.
 
-Read more on our [website](https://oddb.it/cCq).
+Read more on our [website](https://oddbit.id).
 
 ## Features
 
