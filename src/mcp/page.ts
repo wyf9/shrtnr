@@ -16,6 +16,7 @@ const MCP_LANDING_HTML = `<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>shrtnr: MCP</title>
   <link rel="icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/icon-48.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
