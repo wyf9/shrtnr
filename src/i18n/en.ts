@@ -68,7 +68,6 @@ const en = {
   "linkDetail.noExpiry": "No expiry",
   "linkDetail.clicksOverTime": "Clicks Over Time",
   "linkDetail.noClickData": "No click data yet",
-  "linkDetail.performance": "Performance",
   "linkDetail.totalClicks": "total clicks",
   "linkDetail.countries": "Countries",
   "linkDetail.sources": "Sources",

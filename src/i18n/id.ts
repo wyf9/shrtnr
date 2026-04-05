@@ -71,7 +71,6 @@ const id: Translations = {
   "linkDetail.noExpiry": "Tidak ada kedaluwarsa",
   "linkDetail.clicksOverTime": "Klik Seiring Waktu",
   "linkDetail.noClickData": "Belum ada data klik",
-  "linkDetail.performance": "Performa",
   "linkDetail.totalClicks": "total klik",
   "linkDetail.countries": "Negara",
   "linkDetail.sources": "Sumber",

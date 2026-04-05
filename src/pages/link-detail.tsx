@@ -150,77 +150,83 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
         </div>
 
         <div class="detail-hero-side">
-          <div>
-            <label class="form-label">{t("linkDetail.label")}</label>
-            <div class="inline-edit" id="label-display" onclick={`beginEditLabel(${link.id})`}>
-              {link.label ? (
-                <span class="inline-edit-value">{link.label}</span>
-              ) : (
-                <span class="inline-edit-placeholder">{t("linkDetail.setLabel")}</span>
-              )}
-              <span class="icon inline-edit-icon">edit</span>
-            </div>
-            <div class="inline-edit-form" id="label-form" style="display:none">
-              <input
-                class="form-input form-input-sm"
-                id="detail-label"
-                value={link.label || ""}
-                placeholder={t("linkDetail.labelPlaceholder")}
-                onkeydown={`if(event.key==='Enter')saveDetailLabel(${link.id});if(event.key==='Escape')cancelEditLabel();`}
-              />
-              <button class="inline-edit-btn confirm" onclick={`saveDetailLabel(${link.id})`}>
-                <span class="icon">check</span>
-              </button>
-              <button class="inline-edit-btn cancel" onclick="cancelEditLabel()">
-                <span class="icon">close</span>
-              </button>
-            </div>
+          <div class="detail-stats">
+            <div class="detail-stat-value">{analytics.total_clicks}</div>
+            <div class="detail-stat-label">{t("linkDetail.totalClicks")}</div>
           </div>
-          <div>
-            <label class="form-label">{t("linkDetail.createdBy")}</label>
-            {link.created_via ? (
-              <div style="font-size:0.9rem;color:var(--on-bg)">{link.created_via}</div>
-            ) : (
-              <div style="font-size:0.85rem;color:var(--on-bg-muted)">&mdash;</div>
-            )}
-          </div>
-          <div>
-            <label class="form-label">{t("linkDetail.expiresAt")}</label>
-            <div class="inline-edit" id="expiry-display" onclick={`beginEditExpiry(${link.id})`}>
-              {link.expires_at ? (
-                <span class="inline-edit-value">
-                  {new Date(link.expires_at * 1000).toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" })}
-                  {", "}
-                  {new Date(link.expires_at * 1000).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })}
-                </span>
-              ) : (
-                <span class="inline-edit-placeholder">{t("linkDetail.noExpiry")}</span>
-              )}
-              <span class="icon inline-edit-icon">edit</span>
-            </div>
-            <div class="inline-edit-form" id="expiry-form" style="display:none">
-              <input
-                class="form-input form-input-sm"
-                id="detail-expires"
-                type="datetime-local"
-                value={expVal}
-                style="width:auto"
-              />
-              <button class="inline-edit-btn confirm" onclick={`saveDetailExpiry(${link.id})`}>
-                <span class="icon">check</span>
-              </button>
-              {link.expires_at && (
-                <button
-                  class="btn btn-ghost btn-sm"
-                  style="font-size:0.75rem"
-                  onclick={`clearDetailExpiry(${link.id})`}
-                >
-                  {t("linkDetail.clear")}
+          <div class="detail-info-grid">
+            <div class="detail-info-item">
+              <label class="form-label">{t("linkDetail.label")}</label>
+              <div class="inline-edit" id="label-display" onclick={`beginEditLabel(${link.id})`}>
+                {link.label ? (
+                  <span class="inline-edit-value">{link.label}</span>
+                ) : (
+                  <span class="inline-edit-placeholder">{t("linkDetail.setLabel")}</span>
+                )}
+                <span class="icon inline-edit-icon">edit</span>
+              </div>
+              <div class="inline-edit-form" id="label-form" style="display:none">
+                <input
+                  class="form-input form-input-sm"
+                  id="detail-label"
+                  value={link.label || ""}
+                  placeholder={t("linkDetail.labelPlaceholder")}
+                  onkeydown={`if(event.key==='Enter')saveDetailLabel(${link.id});if(event.key==='Escape')cancelEditLabel();`}
+                />
+                <button class="inline-edit-btn confirm" onclick={`saveDetailLabel(${link.id})`}>
+                  <span class="icon">check</span>
                 </button>
+                <button class="inline-edit-btn cancel" onclick="cancelEditLabel()">
+                  <span class="icon">close</span>
+                </button>
+              </div>
+            </div>
+            <div class="detail-info-item">
+              <label class="form-label">{t("linkDetail.createdBy")}</label>
+              {link.created_via ? (
+                <div style="font-size:0.9rem;color:var(--on-bg)">{link.created_via}</div>
+              ) : (
+                <div style="font-size:0.85rem;color:var(--on-bg-muted)">&mdash;</div>
               )}
-              <button class="inline-edit-btn cancel" onclick="cancelEditExpiry()">
-                <span class="icon">close</span>
-              </button>
+            </div>
+            <div class="detail-info-item full-width">
+              <label class="form-label">{t("linkDetail.expiresAt")}</label>
+              <div class="inline-edit" id="expiry-display" onclick={`beginEditExpiry(${link.id})`}>
+                {link.expires_at ? (
+                  <span class="inline-edit-value">
+                    {new Date(link.expires_at * 1000).toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" })}
+                    {", "}
+                    {new Date(link.expires_at * 1000).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                ) : (
+                  <span class="inline-edit-placeholder">{t("linkDetail.noExpiry")}</span>
+                )}
+                <span class="icon inline-edit-icon">edit</span>
+              </div>
+              <div class="inline-edit-form" id="expiry-form" style="display:none">
+                <input
+                  class="form-input form-input-sm"
+                  id="detail-expires"
+                  type="datetime-local"
+                  value={expVal}
+                  style="width:auto"
+                />
+                <button class="inline-edit-btn confirm" onclick={`saveDetailExpiry(${link.id})`}>
+                  <span class="icon">check</span>
+                </button>
+                {link.expires_at && (
+                  <button
+                    class="btn btn-ghost btn-sm"
+                    style="font-size:0.75rem"
+                    onclick={`clearDetailExpiry(${link.id})`}
+                  >
+                    {t("linkDetail.clear")}
+                  </button>
+                )}
+                <button class="inline-edit-btn cancel" onclick="cancelEditExpiry()">
+                  <span class="icon">close</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -232,26 +238,16 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
         <div class="slugs-table">
           {link.slugs.map((s) => {
             const isDisabled = !!s.disabled_at;
-            const canDelete = s.is_vanity && s.click_count === 0 && !isDisabled;
-            const canDisable = s.is_vanity && !isDisabled;
-            const canEnable = s.is_vanity && isDisabled;
+            const isPrimary = s.is_primary === 1;
+            const isVanity = s.is_vanity === 1;
+            const canDelete = isVanity && s.click_count === 0 && !isDisabled;
+            const canDisable = isVanity && !isDisabled && s.click_count > 0;
+            const canEnable = isVanity && isDisabled;
+            const pct = maxSlugClicks > 0 ? ((s.click_count / maxSlugClicks) * 100).toFixed(0) : "0";
+
             return (
-              <div class={`slugs-row${isDisabled ? " slugs-row-disabled" : ""}${s.is_primary ? " slugs-row-primary" : ""}`}>
-                <div class="slugs-row-slug">
-                  <span style="font-family:var(--font-mono);font-size:0.875rem">/{s.slug}</span>
-                  {s.is_primary && (
-                    <span class="slug-badge-primary" title={t("linkDetail.primarySlug")}>
-                      <span class="icon" style="font-size:12px;vertical-align:-1px">star</span>
-                    </span>
-                  )}
-                  {!s.is_vanity && (
-                    <span class="slug-badge-auto" title={t("linkDetail.autoGenerated")}>auto</span>
-                  )}
-                </div>
-                <div class="slugs-row-clicks">
-                  {s.click_count} {t("linkDetail.clicks")}
-                </div>
-                <div class="slugs-row-actions">
+              <div class={`slugs-row${isDisabled ? " slugs-row-disabled" : ""}${isPrimary ? " slugs-row-primary" : ""}`}>
+                <div class="slugs-row-actions-left">
                   {!isDisabled && (
                     <>
                       <button
@@ -259,33 +255,59 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
                         onclick={`copyUrl('${escHtml(s.slug)}')`}
                         title={t("linkDetail.copy")}
                       >
-                        <span class="icon">content_copy</span>
+                        <span class="icon" style="font-size:18px">content_copy</span>
                       </button>
                       <button
                         class="btn-icon"
                         onclick={`showQRModal(${link.id}, '${escHtml(s.slug)}')`}
                         title={t("linkDetail.qr")}
                       >
-                        <span class="icon">qr_code_2</span>
+                        <span class="icon" style="font-size:18px">qr_code_2</span>
                       </button>
                     </>
                   )}
+                </div>
+
+                <div class="slugs-row-slug">
+                  <span style="font-family:var(--font-mono);font-size:0.875rem">/{s.slug}</span>
+                  {isPrimary && (
+                    <span class="slug-badge-primary" title={t("linkDetail.primarySlug")}>
+                      <span class="icon" style="font-size:12px;vertical-align:-1px">star</span>
+                    </span>
+                  )}
+                  {!isVanity && (
+                    <span class="slug-badge-auto" title={t("linkDetail.autoGenerated")}>auto</span>
+                  )}
+                </div>
+
+                <div class="slugs-row-bar-container">
+                  <div class="slugs-row-bar">
+                    <div
+                      class="slugs-row-fill orange"
+                      style={`width:${pct}%`}
+                    />
+                  </div>
+                </div>
+
+                <div class="slugs-row-count">{s.click_count}</div>
+
+                <div class="slugs-row-actions-right">
                   {canDelete && (
                     <button
                       class="btn-icon btn-icon-danger"
                       onclick={`confirmDeleteSlug(${link.id}, ${s.id}, '${escHtml(s.slug)}')`}
                       title={t("linkDetail.deleteSlug")}
                     >
-                      <span class="icon">delete</span>
+                      <span class="icon" style="font-size:18px">delete</span>
                     </button>
                   )}
-                  {canDisable && s.click_count > 0 && (
+                  {canDisable && (
                     <button
                       class="btn-icon btn-icon-danger"
                       onclick={`confirmDisableSlug(${link.id}, ${s.id}, '${escHtml(s.slug)}')`}
                       title={t("linkDetail.disableSlug")}
                     >
-                      <span class="icon">block</span>
+                      <span class="icon" style="font-size:18px">block</span>
                     </button>
                   )}
                   {canEnable && (
@@ -294,7 +316,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
                       onclick={`confirmEnableSlug(${link.id}, ${s.id}, '${escHtml(s.slug)}')`}
                       title={t("linkDetail.enableSlug")}
                     >
-                      <span class="icon">check_circle</span>
+                      <span class="icon" style="font-size:18px">check_circle</span>
                     </button>
                   )}
                 </div>
@@ -341,27 +363,6 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
               {t("linkDetail.noClickData")}
             </div>
           )}
-        </div>
-
-        <div class="bento-card">
-          <div class="bento-label">{t("linkDetail.performance")}</div>
-          <div style="text-align:center;padding:1rem 0">
-            <div style="font-family:var(--font-display);font-size:3rem;font-weight:700;color:var(--primary)">
-              {analytics.total_clicks}
-            </div>
-            <div style="color:var(--on-bg-muted);font-size:0.8rem">
-              {t("linkDetail.totalClicks")}
-            </div>
-          </div>
-          {link.slugs.map((s) => (
-            <StatBar
-              name={`/${s.slug}`}
-              count={s.click_count}
-              max={maxSlugClicks}
-              color={s.is_vanity ? "mint" : "orange"}
-              mono
-            />
-          ))}
         </div>
 
         <div class="bento-card">

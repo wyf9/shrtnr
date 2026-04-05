@@ -71,7 +71,6 @@ const sv: Translations = {
   "linkDetail.noExpiry": "Inget utgångsdatum",
   "linkDetail.clicksOverTime": "Klick över tid",
   "linkDetail.noClickData": "Ingen klickdata ännu",
-  "linkDetail.performance": "Prestanda",
   "linkDetail.totalClicks": "totalt antal klick",
   "linkDetail.countries": "Länder",
   "linkDetail.sources": "Källor",
