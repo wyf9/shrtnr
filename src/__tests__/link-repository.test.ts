@@ -99,7 +99,7 @@ describe("LinkRepository.getById", () => {
   it("preserves slug ordering after adding a vanity slug later", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     const now = Math.floor(Date.now() / 1000);
-    await env.DB.prepare("INSERT INTO slugs (link_id, slug, is_custom, click_count, created_at) VALUES (?, ?, 1, 0, ?)").bind(link.id, "later-vanity", now).run();
+    await env.DB.prepare("INSERT INTO slugs (link_id, slug, is_custom, created_at) VALUES (?, ?, 1, ?)").bind(link.id, "later-vanity", now).run();
     const fetched = await LinkRepository.getById(env.DB, link.id);
     expect(fetched!.slugs).toHaveLength(2);
     expect(fetched!.slugs[0].is_custom).toBe(0);

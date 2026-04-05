@@ -16,7 +16,6 @@ CREATE TABLE slugs (
   slug             TEXT NOT NULL UNIQUE,
   is_custom        INTEGER NOT NULL DEFAULT 0,
   is_primary       INTEGER NOT NULL DEFAULT 0,
-  click_count      INTEGER NOT NULL DEFAULT 0,
   link_click_count INTEGER NOT NULL DEFAULT 0,
   qr_click_count   INTEGER NOT NULL DEFAULT 0,
   created_at       INTEGER NOT NULL,
