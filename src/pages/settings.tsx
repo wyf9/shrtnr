@@ -173,7 +173,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
               <span class="icon" style="font-size:14px">
                 open_in_new
               </span>{" "}
-              @oddbit/shrtnr
+              {t("settings.sdkLink")}
             </div>
           </a>
           <a
@@ -195,7 +195,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
             {mcpConfigured ? (
               <div style="font-size:0.7rem;color:var(--color-success);margin-top:0.6rem;display:flex;align-items:center;gap:0.25rem">
                 <span class="icon" style="font-size:14px">open_in_new</span>{" "}
-                oddbit/shrtnr
+                {t("settings.mcpDocsLink")}
               </div>
             ) : (
               <div style="font-size:0.7rem;color:var(--color-success);margin-top:0.6rem;display:flex;align-items:center;gap:0.25rem">
