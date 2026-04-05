@@ -4,9 +4,10 @@ import {
   validateRandomSlug,
   validateVanitySlug,
   validateSlugLength,
+  RANDOM_CHARSET,
 } from "../slugs";
 
-const UNAMBIGUOUS_CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+const UNAMBIGUOUS_CHARSET = RANDOM_CHARSET;
 const EXCLUDED_CHARS = ["I", "O", "l", "o", "0", "1"];
 
 describe("generateRandomSlug", () => {
@@ -25,6 +26,13 @@ describe("generateRandomSlug", () => {
       for (const char of EXCLUDED_CHARS) {
         expect(slug).not.toContain(char);
       }
+    }
+  });
+
+  it("should only produce lowercase characters and digits", () => {
+    for (let i = 0; i < 100; i++) {
+      const slug = generateRandomSlug(8);
+      expect(slug).toMatch(/^[a-z0-9]+$/);
     }
   });
 
@@ -52,10 +60,15 @@ describe("validateRandomSlug", () => {
     expect(validateRandomSlug("ab.c")).toBe("Slug must contain only alphanumeric characters");
   });
 
-  it("should accept valid slugs", () => {
+  it("should accept valid lowercase slugs", () => {
     expect(validateRandomSlug("abc")).toBeNull();
-    expect(validateRandomSlug("ABC123")).toBeNull();
-    expect(validateRandomSlug("longSlugValue")).toBeNull();
+    expect(validateRandomSlug("abc123")).toBeNull();
+    expect(validateRandomSlug("longslugvalue")).toBeNull();
+  });
+
+  it("should reject uppercase characters", () => {
+    expect(validateRandomSlug("ABC123")).not.toBeNull();
+    expect(validateRandomSlug("longSlugValue")).not.toBeNull();
   });
 });
 

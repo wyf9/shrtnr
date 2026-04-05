@@ -61,7 +61,7 @@ export async function createLink(
   const lengthErr = validateSlugLength(slugLength);
   if (lengthErr) return fail(400, lengthErr);
 
-  const customSlug = body.custom_slug ?? body.vanity_slug;
+  const customSlug = (body.custom_slug ?? body.vanity_slug)?.toLowerCase();
 
   if (customSlug) {
     const customErr = validateCustomSlug(customSlug);
@@ -130,14 +130,16 @@ export async function addCustomSlugToLink(
     return fail(400, "slug is required");
   }
 
-  const err = validateCustomSlug(body.slug);
+  const normalizedSlug = body.slug.toLowerCase();
+
+  const err = validateCustomSlug(normalizedSlug);
   if (err) return fail(400, err);
 
-  if (await SlugRepository.exists(env.DB, body.slug)) {
+  if (await SlugRepository.exists(env.DB, normalizedSlug)) {
     return fail(409, "Slug already exists");
   }
 
-  const slug = await SlugRepository.addCustom(env.DB, linkId, body.slug);
+  const slug = await SlugRepository.addCustom(env.DB, linkId, normalizedSlug);
   return ok(slug, 201);
 }
 

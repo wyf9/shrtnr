@@ -21,7 +21,7 @@ export async function handleGetLink(env: Env, id: number): Promise<Response> {
 }
 
 export async function handleGetLinkBySlug(env: Env, slug: string): Promise<Response> {
-  return fromServiceResult(await getLinkBySlug(env, slug));
+  return fromServiceResult(await getLinkBySlug(env, slug.toLowerCase()));
 }
 
 export async function handleCreateLink(request: Request, env: Env, createdVia?: string, createdBy?: string): Promise<Response> {

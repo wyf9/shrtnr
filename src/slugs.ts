@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SlugRepository } from "./db";
+import { MIN_SLUG_LENGTH } from "./constants";
 
-// Unambiguous characters: removed I, O, l, o, 0, 1 to avoid confusion
-const RANDOM_CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
-const RANDOM_SLUG_REGEX = /^[a-zA-Z0-9]+$/;
+// Unambiguous lowercase characters: removed l, o, 0, 1 to avoid confusion
+export const RANDOM_CHARSET = "abcdefghijkmnpqrstuvwxyz23456789";
+const RANDOM_SLUG_REGEX = /^[a-z0-9]+$/;
 const VANITY_SLUG_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/;
 
 export function generateRandomSlug(length: number): string {
@@ -25,7 +26,7 @@ export async function generateUniqueSlug(db: D1Database, length: number): Promis
 }
 
 export function validateRandomSlug(slug: string): string | null {
-  if (slug.length < 3) return "Slug must be at least 3 characters";
+  if (slug.length < MIN_SLUG_LENGTH) return `Slug must be at least ${MIN_SLUG_LENGTH} characters`;
   if (slug.startsWith("_")) return "Slug must not start with underscore";
   if (!RANDOM_SLUG_REGEX.test(slug)) return "Slug must contain only alphanumeric characters";
   return null;
@@ -43,7 +44,7 @@ export function validateCustomSlug(slug: string): string | null {
 export const validateVanitySlug = validateCustomSlug;
 
 export function validateSlugLength(length: number): string | null {
-  if (!Number.isInteger(length) || length < 3) return "Slug length must be an integer >= 3";
+  if (!Number.isInteger(length) || length < MIN_SLUG_LENGTH) return `Slug length must be an integer >= ${MIN_SLUG_LENGTH}`;
   if (length > 128) return "Slug length must be an integer <= 128";
   return null;
 }

@@ -4,6 +4,8 @@
 import type { FC } from "hono/jsx";
 import type { TranslateFn } from "../i18n";
 import { SUPPORTED_LANGUAGES } from "../i18n";
+import { RANDOM_CHARSET } from "../slugs";
+import { MIN_SLUG_LENGTH } from "../constants";
 
 type Props = {
   theme: string;
@@ -15,7 +17,7 @@ type Props = {
 };
 
 export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigured, userEmail }) => {
-  const combos = Math.pow(56, Math.max(slugLength, 3));
+  const combos = Math.pow(RANDOM_CHARSET.length, Math.max(slugLength, MIN_SLUG_LENGTH));
   const comboHint =
     slugLength >= 3
       ? t("settings.combos", { count: combos.toLocaleString() })
@@ -92,7 +94,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
                   class="form-input"
                   type="number"
                   id="slug-length-input"
-                  min="3"
+                  min={String(MIN_SLUG_LENGTH)}
                   value={String(slugLength)}
                   style="width:80px"
                 />

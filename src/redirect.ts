@@ -12,7 +12,7 @@ export async function handleRedirect(
   env: Env,
   ctx: ExecutionContext,
 ): Promise<Response> {
-  const record = await findSlugForRedirect(env, slug);
+  const record = await findSlugForRedirect(env, slug.toLowerCase());
 
   if (!record) {
     return notFoundResponse();

@@ -142,6 +142,30 @@ describe("link-management service", () => {
     }
   });
 
+  it("lowercases custom_slug on create", async () => {
+    const result = await createLink(env as any, {
+      url: "https://example.com",
+      custom_slug: "My-Custom-Slug",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const custom = result.data.slugs.find((s) => s.is_custom === 1);
+      expect(custom?.slug).toBe("my-custom-slug");
+    }
+  });
+
+  it("lowercases slug when adding custom slug to existing link", async () => {
+    const created = await createLink(env as any, { url: "https://example.com" });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+
+    const result = await addVanitySlugToLink(env as any, created.data.id, { slug: "UPPER-CASE" });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.slug).toBe("upper-case");
+    }
+  });
+
   it("can get a link by its slug", async () => {
     const created = await createLink(env as any, {
       url: "https://example.com",

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Translations } from "./i18n/types";
+import { RANDOM_CHARSET } from "./slugs";
+import { MIN_SLUG_LENGTH } from "./constants";
 
 export function adminClientScript(version: string, translations: Translations): string {
   const tJson = JSON.stringify(translations);
@@ -10,6 +12,8 @@ export function adminClientScript(version: string, translations: Translations): 
 var API = '/_/admin/api';
 var APP_VERSION = '${version}';
 var REPO_URL = 'https://oddb.it/github-shrtnr-app';
+var CHARSET_SIZE = ${RANDOM_CHARSET.length};
+var MIN_SLUG_LEN = ${MIN_SLUG_LENGTH};
 var T = ${tJson};
 
 function t(key, params) {
@@ -539,9 +543,9 @@ function saveSettings() {
 function updateComboHint() {
   var el = document.getElementById('slug-combo-hint');
   if (!el) return;
-  var len = parseInt(document.getElementById('slug-length-input').value) || 3;
-  var combos = Math.pow(56, Math.max(len, 3));
-  el.textContent = len >= 3
+  var len = parseInt(document.getElementById('slug-length-input').value) || MIN_SLUG_LEN;
+  var combos = Math.pow(CHARSET_SIZE, Math.max(len, MIN_SLUG_LEN));
+  el.textContent = len >= MIN_SLUG_LEN
     ? t('client.combos', {count: combos.toLocaleString()})
     : t('client.minLength');
 }
