@@ -27,10 +27,23 @@ beforeEach(resetData);
 // ---- Routing ----
 
 describe("Routing", () => {
-  it("GET / should redirect to /_/admin/dashboard", async () => {
-    const res = await SELF.fetch(unauthed("/"), { redirect: "manual" });
-    expect(res.status).toBe(302);
-    expect(res.headers.get("Location")).toContain("/_/admin/dashboard");
+  it("GET / should return the landing page with status 200", async () => {
+    const res = await SELF.fetch(unauthed("/"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toContain("text/html");
+  });
+
+  it("GET / landing page should display URL SHORTENER subtitle", async () => {
+    const res = await SELF.fetch(unauthed("/"));
+    const body = await res.text();
+    expect(body).toContain("URL SHORTENER");
+  });
+
+  it("GET / landing page should contain a login link to /_/admin/dashboard", async () => {
+    const res = await SELF.fetch(unauthed("/"));
+    const body = await res.text();
+    expect(body).toContain('href="/_/admin/dashboard"');
+    expect(body).toMatch(/login/i);
   });
 
   it("GET /_/health should return ok without auth", async () => {

@@ -35,6 +35,7 @@ import {
 } from "./api/analytics";
 import { handleLinkQr } from "./api/qr";
 import { notFoundResponse } from "./404";
+import { landingResponse } from "./pages/landing";
 import { mcpLandingResponse } from "./mcp/page";
 import OAuthProvider from "@cloudflare/workers-oauth-provider";
 import { ShrtnrMCP } from "./mcp/server";
@@ -333,9 +334,9 @@ app.get("/_/api/slugs/:slug", (c) => {
   return handleGetLinkBySlug(c.env, c.req.param("slug"));
 });
 
-// ---- Root redirect ----
+// ---- Root landing page ----
 
-app.get("/", (c) => c.redirect("/_/admin/dashboard", 302));
+app.get("/", () => landingResponse());
 
 // ---- Slug redirect (catch-all) ----
 
