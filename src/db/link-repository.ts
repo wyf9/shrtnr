@@ -64,7 +64,6 @@ export class LinkRepository {
       url: string;
       slug: string;
       label?: string | null;
-      customSlug?: string | null;
       expiresAt?: number | null;
       createdVia?: string | null;
       createdBy?: string | null;
@@ -79,18 +78,10 @@ export class LinkRepository {
 
     const linkId = linkResult.meta.last_row_id as number;
 
-    const randomIsPrimary = data.customSlug ? 0 : 1;
     await db
-      .prepare("INSERT INTO slugs (link_id, slug, is_custom, is_primary, created_at) VALUES (?, ?, 0, ?, ?)")
-      .bind(linkId, data.slug, randomIsPrimary, now)
+      .prepare("INSERT INTO slugs (link_id, slug, is_custom, is_primary, created_at) VALUES (?, ?, 0, 1, ?)")
+      .bind(linkId, data.slug, now)
       .run();
-
-    if (data.customSlug) {
-      await db
-        .prepare("INSERT INTO slugs (link_id, slug, is_custom, is_primary, created_at) VALUES (?, ?, 1, 1, ?)")
-        .bind(linkId, data.customSlug, now)
-        .run();
-    }
 
     return (await LinkRepository.getById(db, linkId))!;
   }

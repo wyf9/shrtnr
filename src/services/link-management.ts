@@ -27,7 +27,7 @@ export async function getLinkBySlug(env: Env, slug: string): Promise<ServiceResu
 
 export async function createLink(
   env: Env,
-  body: { url?: string; label?: string; slug_length?: number; custom_slug?: string; expires_at?: number; created_via?: string; created_by?: string; allow_duplicate?: boolean },
+  body: { url?: string; label?: string; slug_length?: number; expires_at?: number; created_via?: string; created_by?: string; allow_duplicate?: boolean },
 ): Promise<ServiceResult<LinkWithSlugs>> {
   if (!body.url || typeof body.url !== "string") {
     return fail(400, "url is required");
@@ -61,17 +61,6 @@ export async function createLink(
   const lengthErr = validateSlugLength(slugLength);
   if (lengthErr) return fail(400, lengthErr);
 
-  const customSlug = body.custom_slug?.toLowerCase();
-
-  if (customSlug) {
-    const customErr = validateCustomSlug(customSlug);
-    if (customErr) return fail(400, customErr);
-
-    if (await SlugRepository.exists(env.DB, customSlug)) {
-      return fail(409, "Custom slug already exists");
-    }
-  }
-
   let slug: string;
   try {
     slug = await generateUniqueSlug(env.DB, slugLength);
@@ -83,7 +72,6 @@ export async function createLink(
     url: body.url,
     slug,
     label: body.label,
-    customSlug: customSlug,
     expiresAt: body.expires_at,
     createdVia: body.created_via,
     createdBy: body.created_by,

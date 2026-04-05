@@ -29,7 +29,6 @@ export async function handleCreateLink(request: Request, env: Env, createdVia?: 
     url?: string;
     label?: string;
     slug_length?: number;
-    custom_slug?: string;
     expires_at?: number;
     allow_duplicate?: boolean;
   };
