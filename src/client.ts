@@ -161,7 +161,6 @@ function createLink() {
   var len = parseInt(document.getElementById('m-len').value);
   if (len >= 3) body.slug_length = len;
   var custom = document.getElementById('m-custom').value.trim();
-  if (custom) body.custom_slug = custom;
   var exp = document.getElementById('m-expires').value;
   if (exp) body.expires_at = Math.floor(new Date(exp).getTime() / 1000);
 
@@ -169,17 +168,30 @@ function createLink() {
     if (res.ok) {
       var isDuplicate = res.status === 200;
       return res.json().then(function(link) {
-        closeModal();
         if (isDuplicate) {
+          closeModal();
           if (link.duplicate_count > 1) {
             window.location.href = '/_/admin/links?search=' + encodeURIComponent(body.url);
           } else {
             window.location.href = '/_/admin/links/' + link.id;
           }
-        } else {
+          return;
+        }
+        if (!custom) {
+          closeModal();
           toast(t('client.linkCreated'));
           window.location.href = '/_/admin/links/' + link.id;
+          return;
         }
+        api('/links/' + link.id + '/slugs', { method: 'POST', body: JSON.stringify({ slug: custom }) }).then(function(slugRes) {
+          closeModal();
+          if (!slugRes.ok) {
+            toast(t('client.linkCreated'));
+          } else {
+            toast(t('client.linkCreated'));
+          }
+          window.location.href = '/_/admin/links/' + link.id;
+        });
       });
     } else {
       return res.json().then(function(data) {
