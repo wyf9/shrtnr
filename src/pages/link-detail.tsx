@@ -155,7 +155,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
             <div class="detail-stat-label">{t("linkDetail.totalClicks")}</div>
           </div>
           <div class="detail-info-grid">
-            <div class="detail-info-item">
+            <div class="detail-info-item full-width">
               <label class="form-label">{t("linkDetail.label")}</label>
               <div class="inline-edit" id="label-display" onclick={`beginEditLabel(${link.id})`}>
                 {link.label ? (
@@ -189,7 +189,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
                 <div style="font-size:0.85rem;color:var(--on-bg-muted)">&mdash;</div>
               )}
             </div>
-            <div class="detail-info-item full-width">
+            <div class="detail-info-item">
               <label class="form-label">{t("linkDetail.expiresAt")}</label>
               <div class="inline-edit" id="expiry-display" onclick={`beginEditExpiry(${link.id})`}>
                 {link.expires_at ? (

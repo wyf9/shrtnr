@@ -254,7 +254,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--on-bg)
 .detail-stat-value { font-family: var(--font-display); font-size: 3.5rem; font-weight: 700; color: #ff9d66; line-height: 1; }
 .detail-stat-label { font-size: 0.85rem; color: var(--on-bg-muted); margin-top: 0.5rem; white-space: nowrap; }
 .detail-info-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 2rem; padding: 1rem 2rem; align-content: center; }
-.detail-info-item.full-width { grid-column: span 2; border-top: 1px solid var(--outline); padding-top: 0.75rem; }
+.detail-info-item.full-width { grid-column: span 2; border-bottom: 1px solid var(--outline); padding-bottom: 0.75rem; }
 
 /* Triple-dot menu */
 .detail-menu { position: absolute; right: 0; top: 100%; z-index: 20; background: var(--surface-highest); border: 1px solid var(--outline); border-radius: var(--radius); min-width: 220px; padding: 0.35rem 0; box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
