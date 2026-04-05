@@ -53,11 +53,38 @@ const LANDING_HTML = `<!DOCTYPE html>
     .login-link:hover {
       border-color: var(--primary);
     }
+    .footer {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0.45;
+    }
+    .footer img {
+      height: 1.6rem;
+      display: block;
+    }
+    .footer-copy {
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      color: var(--on-bg-muted);
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
   <img class="logotype" src="/logotype-white.svg" alt="shrtnr." />
   <div class="subtitle">URL SHORTENER</div>
   <a class="login-link" href="/_/admin/dashboard">login</a>
+  <footer class="footer">
+    <a href="https://oddbit.id" target="_blank" rel="noopener" title="Oddbit">
+      <img src="/oddbit-logotype-mint-green.svg" alt="Oddbit" />
+    </a>
+    <span class="footer-copy">&copy; ${new Date().getFullYear()}</span>
+  </footer>
 </body>
 </html>`;
