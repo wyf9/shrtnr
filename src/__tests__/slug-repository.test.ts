@@ -142,7 +142,7 @@ describe("SlugRepository.remove", () => {
   it("refuses to delete a slug with clicks", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     const vanity = await SlugRepository.addVanity(env.DB, link.id, "my-custom");
-    await env.DB.prepare("UPDATE slugs SET click_count = 5 WHERE id = ?").bind(vanity.id).run();
+    await env.DB.prepare("UPDATE slugs SET link_click_count = 5 WHERE id = ?").bind(vanity.id).run();
     const removed = await SlugRepository.remove(env.DB, vanity.id);
     expect(removed).toBe(false);
   });

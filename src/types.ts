@@ -39,6 +39,8 @@ export interface Slug {
   is_vanity: number;
   is_primary: number;
   click_count: number;
+  link_click_count: number;
+  qr_click_count: number;
   created_at: number;
   disabled_at: number | null;
 }

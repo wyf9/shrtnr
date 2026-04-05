@@ -21,7 +21,7 @@ export async function handleLinkQr(request: Request, env: Env, linkId: number): 
   if (!slug) return json({ error: "Slug not found" }, 404);
 
   const origin = url.origin;
-  const qrUrl = `${origin}/${slug.slug}?qr`;
+  const qrUrl = `${origin}/${slug.slug}?utm_medium=qr`;
   const svg = renderQrSvg(qrUrl);
 
   if (!svg) return json({ error: "Failed to generate QR code" }, 500);

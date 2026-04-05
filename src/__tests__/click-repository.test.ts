@@ -15,6 +15,36 @@ describe("ClickRepository.record", () => {
     expect(updated!.total_clicks).toBe(1);
   });
 
+  it("increments link_click_count for direct clicks", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    await ClickRepository.record(env.DB, link.slugs[0].id, null, null, null, null, "direct");
+    const updated = await LinkRepository.getById(env.DB, link.id);
+    expect(updated!.slugs[0].link_click_count).toBe(1);
+    expect(updated!.slugs[0].qr_click_count).toBe(0);
+    expect(updated!.slugs[0].click_count).toBe(1);
+  });
+
+  it("increments qr_click_count for qr clicks", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    await ClickRepository.record(env.DB, link.slugs[0].id, null, null, null, null, "qr");
+    const updated = await LinkRepository.getById(env.DB, link.id);
+    expect(updated!.slugs[0].link_click_count).toBe(0);
+    expect(updated!.slugs[0].qr_click_count).toBe(1);
+    expect(updated!.slugs[0].click_count).toBe(1);
+  });
+
+  it("click_count is the sum of link and qr clicks", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const slugId = link.slugs[0].id;
+    await ClickRepository.record(env.DB, slugId, null, null, null, null, "direct");
+    await ClickRepository.record(env.DB, slugId, null, null, null, null, "direct");
+    await ClickRepository.record(env.DB, slugId, null, null, null, null, "qr");
+    const updated = await LinkRepository.getById(env.DB, link.id);
+    expect(updated!.slugs[0].link_click_count).toBe(2);
+    expect(updated!.slugs[0].qr_click_count).toBe(1);
+    expect(updated!.slugs[0].click_count).toBe(3);
+  });
+
   it("stores referrer, country, device type, and browser", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     await ClickRepository.record(env.DB, link.slugs[0].id, "https://referrer.com", "US", "mobile", "Safari");

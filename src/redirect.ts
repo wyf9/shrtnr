@@ -32,7 +32,8 @@ export async function handleRedirect(
   const deviceType = ua ? parseDeviceType(ua) : null;
   const browser = ua ? parseBrowser(ua) : null;
   const url = new URL(request.url);
-  const channel = url.searchParams.has("qr") ? "qr" : "direct";
+  const utmMedium = url.searchParams.get("utm_medium")?.toLowerCase();
+  const channel = utmMedium === "qr" ? "qr" : "direct";
 
   ctx.waitUntil(recordClick(env, record.id, referrer, country, deviceType, browser, channel));
 

@@ -168,10 +168,10 @@ describe("QR click channel tracking", () => {
     expect(row!.channel).toBe("direct");
   });
 
-  it("redirect with ?qr records channel as 'qr'", async () => {
+  it("redirect with ?utm_medium=qr records channel as 'qr'", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "test1" });
     const res = await SELF.fetch(
-      new Request("https://shrtnr.test/test1?qr", { redirect: "manual" }),
+      new Request("https://shrtnr.test/test1?utm_medium=qr", { redirect: "manual" }),
     );
     expect(res.status).toBe(301);
 
@@ -184,10 +184,42 @@ describe("QR click channel tracking", () => {
     expect(row!.channel).toBe("qr");
   });
 
-  it("redirect without ?qr records channel as 'direct'", async () => {
+  it("redirect without utm_medium records channel as 'direct'", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "test2" });
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/test2", { redirect: "manual" }),
+    );
+    expect(res.status).toBe(301);
+
+    await new Promise((r) => setTimeout(r, 100));
+
+    const row = await env.DB
+      .prepare("SELECT channel FROM clicks WHERE slug_id = ?")
+      .bind(link.slugs[0].id)
+      .first<{ channel: string | null }>();
+    expect(row!.channel).toBe("direct");
+  });
+
+  it("redirect with uppercase ?utm_medium=QR records channel as 'qr'", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "test3" });
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/test3?utm_medium=QR", { redirect: "manual" }),
+    );
+    expect(res.status).toBe(301);
+
+    await new Promise((r) => setTimeout(r, 100));
+
+    const row = await env.DB
+      .prepare("SELECT channel FROM clicks WHERE slug_id = ?")
+      .bind(link.slugs[0].id)
+      .first<{ channel: string | null }>();
+    expect(row!.channel).toBe("qr");
+  });
+
+  it("redirect with unrecognized utm_medium records channel as 'direct'", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "test4" });
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/test4?utm_medium=email", { redirect: "manual" }),
     );
     expect(res.status).toBe(301);
 
@@ -269,7 +301,7 @@ describe("QR download API", () => {
     expect(body).toContain("<svg");
   });
 
-  it("GET /_/admin/api/links/:id/qr encodes URL with ?qr suffix", async () => {
+  it("GET /_/admin/api/links/:id/qr encodes URL with utm_medium=qr", async () => {
     const createRes = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",

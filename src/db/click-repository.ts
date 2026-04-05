@@ -15,13 +15,15 @@ export class ClickRepository {
     channel?: string | null,
   ): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
+    const ch = channel ?? "direct";
+    const counterCol = ch === "qr" ? "qr_click_count" : "link_click_count";
     await Promise.all([
       db
         .prepare("INSERT INTO clicks (slug_id, clicked_at, referrer, country, device_type, browser, channel) VALUES (?, ?, ?, ?, ?, ?, ?)")
-        .bind(slugId, now, referrer, country, deviceType, browser, channel ?? "direct")
+        .bind(slugId, now, referrer, country, deviceType, browser, ch)
         .run(),
       db
-        .prepare("UPDATE slugs SET click_count = click_count + 1 WHERE id = ?")
+        .prepare(`UPDATE slugs SET ${counterCol} = ${counterCol} + 1 WHERE id = ?`)
         .bind(slugId)
         .run(),
     ]);
