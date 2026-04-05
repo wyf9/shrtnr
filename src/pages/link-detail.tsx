@@ -326,135 +326,139 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
         </div>
       </div>
 
-      <div class="detail-grid">
-        <div class="bento-card">
-          <div class="bento-label">{t("linkDetail.clicksOverTime")}</div>
-          {analytics.clicks_over_time.length > 0 ? (
-            <>
-              <div class="chart-container">
-                {analytics.clicks_over_time.map((d) => {
-                  const maxVal = Math.max(
-                    1,
-                    ...analytics.clicks_over_time.map((x) => x.count),
-                  );
-                  const pct = ((d.count / maxVal) * 100).toFixed(0);
-                  return (
-                    <div
-                      class="chart-bar"
-                      style={`height:${Math.max(2, Number(pct))}%`}
-                      data-label={`${d.date}: ${d.count}`}
-                    />
-                  );
-                })}
+      <div class="detail-analytics">
+        <div class="detail-analytics-left">
+          <div class="bento-card">
+            <div class="bento-label">{t("linkDetail.clicksOverTime")}</div>
+            {analytics.clicks_over_time.length > 0 ? (
+              <>
+                <div class="chart-container">
+                  {analytics.clicks_over_time.map((d) => {
+                    const maxVal = Math.max(
+                      1,
+                      ...analytics.clicks_over_time.map((x) => x.count),
+                    );
+                    const pct = ((d.count / maxVal) * 100).toFixed(0);
+                    return (
+                      <div
+                        class="chart-bar"
+                        style={`height:${Math.max(2, Number(pct))}%`}
+                        data-label={`${d.date}: ${d.count}`}
+                      />
+                    );
+                  })}
+                </div>
+                <div class="chart-dates">
+                  <span>{analytics.clicks_over_time[0].date}</span>
+                  <span>
+                    {
+                      analytics.clicks_over_time[
+                        analytics.clicks_over_time.length - 1
+                      ].date
+                    }
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div style="color:var(--on-bg-muted);font-size:0.875rem;padding:2rem 0;text-align:center">
+                {t("linkDetail.noClickData")}
               </div>
-              <div class="chart-dates">
-                <span>{analytics.clicks_over_time[0].date}</span>
-                <span>
-                  {
-                    analytics.clicks_over_time[
-                      analytics.clicks_over_time.length - 1
-                    ].date
-                  }
-                </span>
+            )}
+          </div>
+
+          <div class="bento-card">
+            <div class="bento-label">{t("linkDetail.sources")}</div>
+            {analytics.referrers.length > 0 ? (
+              analytics.referrers.map((r) => (
+                <StatBar
+                  name={r.name}
+                  count={r.count}
+                  max={analytics.referrers[0].count}
+                  color="mint"
+                />
+              ))
+            ) : (
+              <div style="color:var(--on-bg-muted);font-size:0.875rem">
+                {t("linkDetail.noData")}
               </div>
-            </>
-          ) : (
-            <div style="color:var(--on-bg-muted);font-size:0.875rem;padding:2rem 0;text-align:center">
-              {t("linkDetail.noClickData")}
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        <div class="bento-card">
-          <div class="bento-label">{t("linkDetail.countries")}</div>
-          {analytics.countries.length > 0 ? (
-            analytics.countries.map((c) => (
-              <StatBar
-                name={countryName(c.name, lang)}
-                count={c.count}
-                max={analytics.countries[0].count}
-                color="orange"
-              />
-            ))
-          ) : (
-            <div style="color:var(--on-bg-muted);font-size:0.875rem">
-              {t("linkDetail.noData")}
-            </div>
-          )}
-        </div>
+        <div class="detail-analytics-right">
+          <div class="bento-card">
+            <div class="bento-label">{t("linkDetail.countries")}</div>
+            {analytics.countries.length > 0 ? (
+              analytics.countries.map((c) => (
+                <StatBar
+                  name={countryName(c.name, lang)}
+                  count={c.count}
+                  max={analytics.countries[0].count}
+                  color="orange"
+                />
+              ))
+            ) : (
+              <div style="color:var(--on-bg-muted);font-size:0.875rem">
+                {t("linkDetail.noData")}
+              </div>
+            )}
+          </div>
 
-        <div class="bento-card">
-          <div class="bento-label">{t("linkDetail.sources")}</div>
-          {analytics.referrers.length > 0 ? (
-            analytics.referrers.map((r) => (
-              <StatBar
-                name={r.name}
-                count={r.count}
-                max={analytics.referrers[0].count}
-                color="mint"
-              />
-            ))
-          ) : (
-            <div style="color:var(--on-bg-muted);font-size:0.875rem">
-              {t("linkDetail.noData")}
-            </div>
-          )}
-        </div>
+          <div class="bento-card">
+            <div class="bento-label">{t("linkDetail.devices")}</div>
+            {analytics.devices.length > 0 ? (
+              analytics.devices.map((d) => (
+                <StatBar
+                  name={d.name}
+                  count={d.count}
+                  max={analytics.devices[0].count}
+                  color="orange"
+                  icon={deviceIcon(d.name)}
+                />
+              ))
+            ) : (
+              <div style="color:var(--on-bg-muted);font-size:0.875rem">
+                {t("linkDetail.noData")}
+              </div>
+            )}
+          </div>
 
-        <div class="bento-card">
-          <div class="bento-label">{t("linkDetail.devices")}</div>
-          {analytics.devices.length > 0 ? (
-            analytics.devices.map((d) => (
-              <StatBar
-                name={d.name}
-                count={d.count}
-                max={analytics.devices[0].count}
-                color="orange"
-                icon={deviceIcon(d.name)}
-              />
-            ))
-          ) : (
-            <div style="color:var(--on-bg-muted);font-size:0.875rem">
-              {t("linkDetail.noData")}
-            </div>
-          )}
-        </div>
+          <div class="bento-card">
+            <div class="bento-label">{t("linkDetail.browsers")}</div>
+            {analytics.browsers.length > 0 ? (
+              analytics.browsers.map((b) => (
+                <StatBar
+                  name={b.name}
+                  count={b.count}
+                  max={analytics.browsers[0].count}
+                  color="mint"
+                />
+              ))
+            ) : (
+              <div style="color:var(--on-bg-muted);font-size:0.875rem">
+                {t("linkDetail.noData")}
+              </div>
+            )}
+          </div>
 
-        <div class="bento-card">
-          <div class="bento-label">{t("linkDetail.browsers")}</div>
-          {analytics.browsers.length > 0 ? (
-            analytics.browsers.map((b) => (
-              <StatBar
-                name={b.name}
-                count={b.count}
-                max={analytics.browsers[0].count}
-                color="mint"
-              />
-            ))
-          ) : (
-            <div style="color:var(--on-bg-muted);font-size:0.875rem">
-              {t("linkDetail.noData")}
-            </div>
-          )}
-        </div>
-
-        <div class="bento-card">
-          <div class="bento-label">{t("linkDetail.channels")}</div>
-          {analytics.channels.length > 0 ? (
-            analytics.channels.map((ch) => (
-              <StatBar
-                name={ch.name}
-                count={ch.count}
-                max={analytics.channels[0].count}
-                color="orange"
-                icon={ch.name === "qr" ? "qr_code_2" : "link"}
-              />
-            ))
-          ) : (
-            <div style="color:var(--on-bg-muted);font-size:0.875rem">
-              {t("linkDetail.noData")}
-            </div>
-          )}
+          <div class="bento-card">
+            <div class="bento-label">{t("linkDetail.channels")}</div>
+            {analytics.channels.length > 0 ? (
+              analytics.channels.map((ch) => (
+                <StatBar
+                  name={ch.name}
+                  count={ch.count}
+                  max={analytics.channels[0].count}
+                  color="orange"
+                  icon={ch.name === "qr" ? "qr_code_2" : "link"}
+                />
+              ))
+            ) : (
+              <div style="color:var(--on-bg-muted);font-size:0.875rem">
+                {t("linkDetail.noData")}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>
