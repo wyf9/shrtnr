@@ -16,6 +16,9 @@ export interface Env {
   // Cloudflare Access JWT audience tag for admin routes
   ACCESS_AUD: string;
 
+  // Dev-only: set to bypass login and assume this identity (e.g. "dev@local")
+  DEV_IDENTITY?: string;
+
   // Durable Object binding for MCP agent
   MCP_OBJECT: DurableObjectNamespace;
 }

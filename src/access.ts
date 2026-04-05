@@ -66,6 +66,7 @@ export async function extractIdentity(request: Request, env: Env): Promise<strin
     }
     const emailHeader = request.headers.get("Cf-Access-Authenticated-User-Email");
     if (emailHeader?.trim()) return emailHeader.trim();
+    if (env.DEV_IDENTITY?.trim()) return env.DEV_IDENTITY.trim();
     return "anonymous";
   }
 
@@ -109,7 +110,9 @@ export async function verifyAccessJwt(
       return typeof email === "string" && email ? { email } : null;
     }
     const emailHeader = request.headers.get("Cf-Access-Authenticated-User-Email");
-    return emailHeader ? { email: emailHeader } : null;
+    if (emailHeader) return { email: emailHeader };
+    if (env.DEV_IDENTITY) return { email: env.DEV_IDENTITY };
+    return null;
   }
 
   // Production mode: validate JWT.

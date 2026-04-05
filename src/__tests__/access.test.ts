@@ -57,6 +57,33 @@ describe("verifyAccessJwt", () => {
       expect(user).toBeNull();
     });
 
+    describe("when DEV_IDENTITY is set", () => {
+      it("should return dev identity when no token and no email header", async () => {
+        const env = fakeEnv({ DEV_IDENTITY: "dev@local" });
+        const req = makeRequest();
+
+        const user = await verifyAccessJwt(req, env);
+        expect(user).toEqual({ email: "dev@local" });
+      });
+
+      it("should prefer real JWT email over DEV_IDENTITY", async () => {
+        const env = fakeEnv({ DEV_IDENTITY: "dev@local" });
+        const token = makeJwt({ email: "real@example.com" });
+        const req = makeRequest({ "Cf-Access-Jwt-Assertion": token });
+
+        const user = await verifyAccessJwt(req, env);
+        expect(user).toEqual({ email: "real@example.com" });
+      });
+
+      it("should prefer Cf-Access-Authenticated-User-Email header over DEV_IDENTITY", async () => {
+        const env = fakeEnv({ DEV_IDENTITY: "dev@local" });
+        const req = makeRequest({ "Cf-Access-Authenticated-User-Email": "header@example.com" });
+
+        const user = await verifyAccessJwt(req, env);
+        expect(user).toEqual({ email: "header@example.com" });
+      });
+    });
+
     it("should return null for malformed JWT (not 3 parts)", async () => {
       const env = fakeEnv();
       const req = makeRequest({ "Cf-Access-Jwt-Assertion": "not.a.valid.jwt.token" });
@@ -140,6 +167,19 @@ describe("extractIdentity", () => {
   it("should return 'anonymous' when no token and no header", async () => {
     const req = makeRequest();
     expect(await extractIdentity(req, env)).toBe("anonymous");
+  });
+
+  it("should return DEV_IDENTITY when set and no token or header present", async () => {
+    const devEnv = fakeEnv({ DEV_IDENTITY: "dev@local" });
+    const req = makeRequest();
+    expect(await extractIdentity(req, devEnv)).toBe("dev@local");
+  });
+
+  it("should prefer real JWT email over DEV_IDENTITY", async () => {
+    const devEnv = fakeEnv({ DEV_IDENTITY: "dev@local" });
+    const token = makeJwt({ email: "real@example.com" });
+    const req = makeRequest({ "Cf-Access-Jwt-Assertion": token });
+    expect(await extractIdentity(req, devEnv)).toBe("real@example.com");
   });
 
   it("should return 'anonymous' for malformed JWT", async () => {
