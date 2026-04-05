@@ -49,7 +49,7 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
         <div style="font-size:0.813rem;color:var(--on-bg-muted);margin-top:0.4rem">
           {t("keys.sdkNote")}{" "}
           <a
-            href="https://www.npmjs.com/package/@oddbit/shrtnr"
+            href="https://oddb.it/shrtnr-npm"
             target="_blank"
             rel="noopener"
             style="color:var(--secondary)"

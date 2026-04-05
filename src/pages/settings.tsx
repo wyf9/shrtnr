@@ -137,7 +137,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
             {t("settings.integrations")}
           </div>
           <a
-            href="https://www.npmjs.com/package/@oddbit/shrtnr"
+            href="https://oddb.it/shrtnr-npm"
             target="_blank"
             rel="noopener"
             class="bento-card"

@@ -3,7 +3,7 @@
 
 > A free, self-hosted URL shortener with click analytics, an admin dashboard, and AI integration. Runs on Cloudflare's free tier. Zero servers, zero monthly cost.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/oddbit/shrtnr)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://oddb.it/shrtnr-deploy)
 
 ## Why shrtnr
 
@@ -22,7 +22,7 @@ Read more on our [website](https://oddb.it/cCq).
 - **Admin dashboard** for link management, analytics charts, and QR code generation
 - **Multi-language admin UI** with English, Indonesian, and Swedish built in
 - **API key authentication** with scoped Bearer tokens for programmatic access
-- **TypeScript SDK** ([`@oddbit/shrtnr`](https://www.npmjs.com/package/@oddbit/shrtnr)) for Node.js and browser apps
+- **TypeScript SDK** ([`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm)) for Node.js and browser apps
 - **Built-in MCP server** at `/_/mcp` with OAuth via Cloudflare Access, so Claude, Copilot, and other AI assistants can shorten URLs
 - **One-click deploy** with automatic database provisioning and migrations
 
@@ -37,7 +37,7 @@ Read more on our [website](https://oddb.it/cCq).
 
 Click the **Deploy to Cloudflare** button above. Cloudflare will fork the repo, provision a D1 database and KV namespace, and deploy the Worker.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/oddbit/shrtnr)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://oddb.it/shrtnr-deploy)
 
 
 **⚠️ Important: GitHub Actions workflows are not copied when Cloudflare forks your repo.** This means the automatic migration workflow (`.github/workflows/migrate.yml`) does not exist in your fork after the initial deploy. You must set up migrations yourself. Without running migrations, the database schema will be missing and the app will not work.
@@ -118,7 +118,7 @@ The worker detects the variable at runtime. When present, it validates the JWT s
 
 Shorten URLs, manage links, and read analytics from any TypeScript or JavaScript app.
 
-- Package: [`@oddbit/shrtnr`](https://www.npmjs.com/package/@oddbit/shrtnr)
+- Package: [`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm)
 - Documentation: [sdk/README.md](sdk/README.md)
 
 ### MCP Server (AI Integration)
