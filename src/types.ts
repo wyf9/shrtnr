@@ -34,8 +34,10 @@ export interface Slug {
   link_id: number;
   slug: string;
   is_vanity: number;
+  is_primary: number;
   click_count: number;
   created_at: number;
+  disabled_at: number | null;
 }
 
 export interface LinkWithSlugs extends Link {

@@ -77,14 +77,15 @@ export class LinkRepository {
 
     const linkId = linkResult.meta.last_row_id as number;
 
+    const randomIsPrimary = data.vanitySlug ? 0 : 1;
     await db
-      .prepare("INSERT INTO slugs (link_id, slug, is_vanity, click_count, created_at) VALUES (?, ?, 0, 0, ?)")
-      .bind(linkId, data.slug, now)
+      .prepare("INSERT INTO slugs (link_id, slug, is_vanity, is_primary, click_count, created_at) VALUES (?, ?, 0, ?, 0, ?)")
+      .bind(linkId, data.slug, randomIsPrimary, now)
       .run();
 
     if (data.vanitySlug) {
       await db
-        .prepare("INSERT INTO slugs (link_id, slug, is_vanity, click_count, created_at) VALUES (?, ?, 1, 0, ?)")
+        .prepare("INSERT INTO slugs (link_id, slug, is_vanity, is_primary, click_count, created_at) VALUES (?, ?, 1, 1, 0, ?)")
         .bind(linkId, data.vanitySlug, now)
         .run();
     }
@@ -129,10 +130,10 @@ export class LinkRepository {
       .prepare(
         `SELECT DISTINCT l.id FROM links l
          LEFT JOIN slugs s ON s.link_id = l.id
-         WHERE lower(l.label) LIKE ? OR lower(s.slug) LIKE ?
+         WHERE lower(l.label) LIKE ? OR lower(s.slug) LIKE ? OR lower(l.url) LIKE ?
          ORDER BY l.created_at DESC`,
       )
-      .bind(pattern, pattern)
+      .bind(pattern, pattern, pattern)
       .all<{ id: number }>();
 
     const ids = matched.results ?? [];
