@@ -73,7 +73,6 @@ const en = {
   "linkDetail.sources": "Sources",
   "linkDetail.devices": "Devices",
   "linkDetail.browsers": "Browsers",
-  "linkDetail.channels": "Channels",
   "linkDetail.noData": "No data yet",
   "linkDetail.clickToCopy": "Click to copy",
   "linkDetail.slugs": "Slugs",

@@ -76,7 +76,6 @@ const sv: Translations = {
   "linkDetail.sources": "Källor",
   "linkDetail.devices": "Enheter",
   "linkDetail.browsers": "Webbläsare",
-  "linkDetail.channels": "Kanaler",
   "linkDetail.noData": "Ingen data ännu",
   "linkDetail.clickToCopy": "Klicka för att kopiera",
   "linkDetail.slugs": "Sluggar",

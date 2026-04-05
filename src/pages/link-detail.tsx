@@ -440,25 +440,6 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
               </div>
             )}
           </div>
-
-          <div class="bento-card">
-            <div class="bento-label">{t("linkDetail.channels")}</div>
-            {analytics.channels.length > 0 ? (
-              analytics.channels.map((ch) => (
-                <StatBar
-                  name={ch.name}
-                  count={ch.count}
-                  max={analytics.channels[0].count}
-                  color="orange"
-                  icon={ch.name === "qr" ? "qr_code_2" : "link"}
-                />
-              ))
-            ) : (
-              <div style="color:var(--on-bg-muted);font-size:0.875rem">
-                {t("linkDetail.noData")}
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </>

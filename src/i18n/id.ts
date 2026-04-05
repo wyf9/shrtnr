@@ -76,7 +76,6 @@ const id: Translations = {
   "linkDetail.sources": "Sumber",
   "linkDetail.devices": "Perangkat",
   "linkDetail.browsers": "Browser",
-  "linkDetail.channels": "Kanal",
   "linkDetail.noData": "Belum ada data",
   "linkDetail.clickToCopy": "Klik untuk menyalin",
   "linkDetail.slugs": "Slug",
