@@ -276,7 +276,7 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 .link-slugs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.3rem; }
 .slug-chip { display: inline-flex; align-items: center; gap: 0.3rem; background: var(--color-surface-interactive); border: 2px solid var(--color-border); border-radius: var(--radius-md); padding: 0.2rem 0.6rem; font-family: var(--font-family-mono); font-size: 0.8rem; cursor: pointer; transition: border-color 0.2s; }
 .slug-chip:hover { border-color: var(--color-success); }
-.slug-chip.vanity { border-color: var(--color-accent); }
+.slug-chip.custom { border-color: var(--color-accent); }
 .slug-chip .icon { font-size: 14px; }
 .link-url { font-size: 0.8rem; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .link-label { font-size: 0.75rem; color: var(--color-success); }

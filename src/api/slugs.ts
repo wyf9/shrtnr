@@ -3,7 +3,7 @@
 
 import { Env } from "../types";
 import {
-  addVanitySlugToLink,
+  addCustomSlugToLink,
   setSlugPrimary,
   disableSlug,
   enableSlug,
@@ -11,7 +11,7 @@ import {
 } from "../services/link-management";
 import { json, fromServiceResult } from "./response";
 
-export async function handleAddVanitySlug(
+export async function handleAddCustomSlug(
   request: Request,
   env: Env,
   linkId: number
@@ -23,8 +23,11 @@ export async function handleAddVanitySlug(
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  return fromServiceResult(await addVanitySlugToLink(env, linkId, body));
+  return fromServiceResult(await addCustomSlugToLink(env, linkId, body));
 }
+
+/** @deprecated Use handleAddCustomSlug */
+export const handleAddVanitySlug = handleAddCustomSlug;
 
 export async function handleSetPrimarySlug(
   request: Request,

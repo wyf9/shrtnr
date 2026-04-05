@@ -3,7 +3,7 @@
 
 import { LinkRepository, SlugRepository, ClickRepository, SettingRepository } from "../db";
 import { DEFAULT_SLUG_LENGTH } from "../constants";
-import { generateUniqueSlug, validateSlugLength, validateVanitySlug } from "../slugs";
+import { generateUniqueSlug, validateSlugLength, validateCustomSlug } from "../slugs";
 import { ClickStats, DashboardStats, Env, LinkWithSlugs, Slug } from "../types";
 import { ServiceResult, ok, fail } from "./result";
 
@@ -27,7 +27,7 @@ export async function getLinkBySlug(env: Env, slug: string): Promise<ServiceResu
 
 export async function createLink(
   env: Env,
-  body: { url?: string; label?: string; slug_length?: number; vanity_slug?: string; expires_at?: number; created_via?: string; created_by?: string; allow_duplicate?: boolean },
+  body: { url?: string; label?: string; slug_length?: number; custom_slug?: string; vanity_slug?: string; expires_at?: number; created_via?: string; created_by?: string; allow_duplicate?: boolean },
 ): Promise<ServiceResult<LinkWithSlugs>> {
   if (!body.url || typeof body.url !== "string") {
     return fail(400, "url is required");
@@ -61,12 +61,14 @@ export async function createLink(
   const lengthErr = validateSlugLength(slugLength);
   if (lengthErr) return fail(400, lengthErr);
 
-  if (body.vanity_slug) {
-    const vanityErr = validateVanitySlug(body.vanity_slug);
-    if (vanityErr) return fail(400, vanityErr);
+  const customSlug = body.custom_slug ?? body.vanity_slug;
 
-    if (await SlugRepository.exists(env.DB, body.vanity_slug)) {
-      return fail(409, "Vanity slug already exists");
+  if (customSlug) {
+    const customErr = validateCustomSlug(customSlug);
+    if (customErr) return fail(400, customErr);
+
+    if (await SlugRepository.exists(env.DB, customSlug)) {
+      return fail(409, "Custom slug already exists");
     }
   }
 
@@ -81,7 +83,7 @@ export async function createLink(
     url: body.url,
     slug,
     label: body.label,
-    vanitySlug: body.vanity_slug,
+    customSlug: customSlug,
     expiresAt: body.expires_at,
     createdVia: body.created_via,
     createdBy: body.created_by,
@@ -116,7 +118,7 @@ export async function disableLink(env: Env, id: number): Promise<ServiceResult<L
   return ok(link);
 }
 
-export async function addVanitySlugToLink(
+export async function addCustomSlugToLink(
   env: Env,
   linkId: number,
   body: { slug?: string },
@@ -128,16 +130,19 @@ export async function addVanitySlugToLink(
     return fail(400, "slug is required");
   }
 
-  const err = validateVanitySlug(body.slug);
+  const err = validateCustomSlug(body.slug);
   if (err) return fail(400, err);
 
   if (await SlugRepository.exists(env.DB, body.slug)) {
     return fail(409, "Slug already exists");
   }
 
-  const slug = await SlugRepository.addVanity(env.DB, linkId, body.slug);
+  const slug = await SlugRepository.addCustom(env.DB, linkId, body.slug);
   return ok(slug, 201);
 }
+
+/** @deprecated Use addCustomSlugToLink */
+export const addVanitySlugToLink = addCustomSlugToLink;
 
 export async function setSlugPrimary(
   env: Env,
@@ -164,7 +169,7 @@ export async function disableSlug(
 
   const slug = link.slugs.find((s) => s.id === slugId);
   if (!slug) return fail(404, "Slug not found on this link");
-  if (!slug.is_vanity) return fail(400, "Cannot disable the random slug");
+  if (!slug.is_custom) return fail(400, "Cannot disable the random slug");
 
   const disabled = await SlugRepository.disable(env.DB, slugId);
   return ok(disabled!);
@@ -195,7 +200,7 @@ export async function removeSlug(
 
   const slug = link.slugs.find((s) => s.id === slugId);
   if (!slug) return fail(404, "Slug not found on this link");
-  if (!slug.is_vanity) return fail(400, "Cannot remove the random slug");
+  if (!slug.is_custom) return fail(400, "Cannot remove the random slug");
   if (slug.click_count > 0) return fail(400, "Cannot remove a slug with clicks, disable it instead");
 
   await SlugRepository.remove(env.DB, slugId);

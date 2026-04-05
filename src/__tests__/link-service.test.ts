@@ -31,7 +31,7 @@ describe("link-management service", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      const autoSlug = result.data.slugs.find((s) => s.is_vanity === 0);
+      const autoSlug = result.data.slugs.find((s) => s.is_custom === 0);
       expect(autoSlug).toBeDefined();
       expect(autoSlug?.slug).toHaveLength(6);
     }
@@ -44,7 +44,7 @@ describe("link-management service", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      const autoSlug = result.data.slugs.find((s) => s.is_vanity === 0);
+      const autoSlug = result.data.slugs.find((s) => s.is_custom === 0);
       expect(autoSlug).toBeDefined();
       expect(autoSlug?.slug).toHaveLength(3);
     }
@@ -53,7 +53,7 @@ describe("link-management service", () => {
   it("allows multiple vanity slugs per link", async () => {
     const created = await createLink(env as any, {
       url: "https://example.com",
-      vanity_slug: "initial-vanity",
+      custom_slug: "initial-vanity",
     });
 
     expect(created.ok).toBe(true);
@@ -64,7 +64,7 @@ describe("link-management service", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.slug).toBe("second-vanity");
-      expect(result.data.is_vanity).toBe(1);
+      expect(result.data.is_custom).toBe(1);
     }
   });
 
@@ -145,7 +145,7 @@ describe("link-management service", () => {
   it("can get a link by its slug", async () => {
     const created = await createLink(env as any, {
       url: "https://example.com",
-      vanity_slug: "my-custom-slug",
+      custom_slug: "my-custom-slug",
     });
     expect(created.ok).toBe(true);
 
@@ -183,7 +183,7 @@ describe("searchLinks service", () => {
   });
 
   it("returns links matching a slug query", async () => {
-    await createLink(env as any, { url: "https://oddbit.id/pricing", vanity_slug: "pricing-page" });
+    await createLink(env as any, { url: "https://oddbit.id/pricing", custom_slug: "pricing-page" });
 
     const { searchLinks } = await import("../services/link-management");
     const result = await searchLinks(env as any, "pricing");

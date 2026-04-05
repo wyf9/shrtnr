@@ -43,7 +43,7 @@ const StatBar: FC<{
 };
 
 function primarySlug(link: LinkWithSlugs): string {
-  const p = link.slugs.find((s) => !s.is_vanity);
+  const p = link.slugs.find((s) => !s.is_custom);
   return p ? p.slug : link.slugs[0]?.slug || "";
 }
 

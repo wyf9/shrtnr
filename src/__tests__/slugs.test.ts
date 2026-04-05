@@ -73,13 +73,13 @@ describe("validateVanitySlug", () => {
 
   it("should reject slugs starting with a hyphen", () => {
     expect(validateVanitySlug("-slug")).toBe(
-      "Vanity slug must not start or end with a hyphen"
+      "Custom slug must not start or end with a hyphen"
     );
   });
 
   it("should reject slugs ending with a hyphen", () => {
     expect(validateVanitySlug("slug-")).toBe(
-      "Vanity slug must not start or end with a hyphen"
+      "Custom slug must not start or end with a hyphen"
     );
   });
 
@@ -88,7 +88,7 @@ describe("validateVanitySlug", () => {
   });
 
   it("should reject empty slugs", () => {
-    expect(validateVanitySlug("")).toBe("Vanity slug must not be empty");
+    expect(validateVanitySlug("")).toBe("Custom slug must not be empty");
   });
 });
 

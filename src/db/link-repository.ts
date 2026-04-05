@@ -16,7 +16,7 @@ function assembleLink(link: Link, slugs: Slug[]): LinkWithSlugs {
 export class LinkRepository {
   static async list(db: D1Database): Promise<LinkWithSlugs[]> {
     const links = await db.prepare("SELECT * FROM links ORDER BY created_at DESC").all<Link>();
-    const slugs = await db.prepare(`SELECT ${SLUG_SELECT} FROM slugs ORDER BY is_vanity ASC, created_at ASC`).all<Slug>();
+    const slugs = await db.prepare(`SELECT ${SLUG_SELECT} FROM slugs ORDER BY is_custom ASC, created_at ASC`).all<Slug>();
 
     return (links.results ?? []).map((link) => {
       const linkSlugs = (slugs.results ?? []).filter((s) => s.link_id === link.id);
@@ -29,7 +29,7 @@ export class LinkRepository {
     if (!link) return null;
 
     const slugs = await db
-      .prepare(`SELECT ${SLUG_SELECT} FROM slugs WHERE link_id = ? ORDER BY is_vanity ASC, created_at ASC`)
+      .prepare(`SELECT ${SLUG_SELECT} FROM slugs WHERE link_id = ? ORDER BY is_custom ASC, created_at ASC`)
       .bind(id)
       .all<Slug>();
 
@@ -64,7 +64,7 @@ export class LinkRepository {
       url: string;
       slug: string;
       label?: string | null;
-      vanitySlug?: string | null;
+      customSlug?: string | null;
       expiresAt?: number | null;
       createdVia?: string | null;
       createdBy?: string | null;
@@ -79,16 +79,16 @@ export class LinkRepository {
 
     const linkId = linkResult.meta.last_row_id as number;
 
-    const randomIsPrimary = data.vanitySlug ? 0 : 1;
+    const randomIsPrimary = data.customSlug ? 0 : 1;
     await db
-      .prepare("INSERT INTO slugs (link_id, slug, is_vanity, is_primary, created_at) VALUES (?, ?, 0, ?, ?)")
+      .prepare("INSERT INTO slugs (link_id, slug, is_custom, is_primary, created_at) VALUES (?, ?, 0, ?, ?)")
       .bind(linkId, data.slug, randomIsPrimary, now)
       .run();
 
-    if (data.vanitySlug) {
+    if (data.customSlug) {
       await db
-        .prepare("INSERT INTO slugs (link_id, slug, is_vanity, is_primary, created_at) VALUES (?, ?, 1, 1, ?)")
-        .bind(linkId, data.vanitySlug, now)
+        .prepare("INSERT INTO slugs (link_id, slug, is_custom, is_primary, created_at) VALUES (?, ?, 1, 1, ?)")
+        .bind(linkId, data.customSlug, now)
         .run();
     }
 

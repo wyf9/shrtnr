@@ -120,7 +120,7 @@ function quickShorten() {
             window.location.href = '/_/admin/links/' + link.id;
           }
         } else {
-          var primary = link.slugs.find(function(s) { return !s.is_vanity; });
+          var primary = link.slugs.find(function(s) { return !s.is_custom; });
           if (primary) copyUrl(primary.slug);
           toast(t('client.linkCreatedCopied'));
           window.location.href = '/_/admin/links/' + link.id;
@@ -142,7 +142,7 @@ function showCreateModal() {
     '<div class="form-group"><label class="form-label">' + esc(t('client.destinationUrl')) + '</label><input class="form-input" id="m-url" placeholder="https://example.com/long/path"></div>' +
     '<div class="form-group"><label class="form-label">' + esc(t('client.labelOptional')) + '</label><input class="form-input" id="m-label" placeholder="My Blog Post"></div>' +
     '<div class="form-row"><div class="form-group"><label class="form-label">' + esc(t('client.slugLength')) + '</label><input class="form-input" id="m-len" type="number" min="3" value="' + esc(len) + '"></div>' +
-    '<div class="form-group"><label class="form-label">' + esc(t('client.vanityOptional')) + '</label><input class="form-input" id="m-vanity" placeholder="my-post"></div></div>' +
+    '<div class="form-group"><label class="form-label">' + esc(t('client.customOptional')) + '</label><input class="form-input" id="m-custom" placeholder="my-post"></div></div>' +
     '<div class="form-group"><label class="form-label">' + esc(t('client.expiresOptional')) + '</label><input class="form-input" id="m-expires" type="datetime-local"></div>' +
     '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="createLink()">' + esc(t('client.create')) + '</button></div>'
   );
@@ -156,8 +156,8 @@ function createLink() {
   if (label) body.label = label;
   var len = parseInt(document.getElementById('m-len').value);
   if (len >= 3) body.slug_length = len;
-  var vanity = document.getElementById('m-vanity').value.trim();
-  if (vanity) body.vanity_slug = vanity;
+  var custom = document.getElementById('m-custom').value.trim();
+  if (custom) body.custom_slug = custom;
   var exp = document.getElementById('m-expires').value;
   if (exp) body.expires_at = Math.floor(new Date(exp).getTime() / 1000);
 
@@ -190,7 +190,7 @@ function createDuplicate(url) {
   api('/links', { method: 'POST', body: JSON.stringify({ url: url, allow_duplicate: true }) }).then(function(res) {
     if (res.ok) {
       return res.json().then(function(link) {
-        var primary = link.slugs.find(function(s) { return !s.is_vanity; });
+        var primary = link.slugs.find(function(s) { return !s.is_custom; });
         if (primary) copyUrl(primary.slug);
         toast(t('client.linkCreatedCopied'));
         window.location.href = '/_/admin/links/' + link.id;
@@ -324,8 +324,8 @@ function doAddSlug(linkId) {
   var slug = document.getElementById('m-new-slug').value.trim();
   if (!slug) { toast(t('client.urlRequired'), 'error'); return; }
   api('/links/' + linkId + '/slugs', { method: 'POST', body: JSON.stringify({ slug: slug }) }).then(function(res) {
-    if (res.ok) { closeModal(); toast(t('client.vanityAdded')); window.location.reload(); }
-    else res.json().then(function(data) { toast(data.error || t('client.vanityError'), 'error'); });
+    if (res.ok) { closeModal(); toast(t('client.customAdded')); window.location.reload(); }
+    else res.json().then(function(data) { toast(data.error || t('client.customError'), 'error'); });
   });
 }
 
@@ -383,7 +383,7 @@ function confirmDeleteSlug(linkId, slugId, slugText) {
 }
 function doDeleteSlug(linkId, slugId) {
   api('/links/' + linkId + '/slugs/' + slugId, { method: 'DELETE' }).then(function(res) {
-    if (res.ok) { closeModal(); toast(t('client.vanityAdded')); window.location.reload(); }
+    if (res.ok) { closeModal(); toast(t('client.customAdded')); window.location.reload(); }
     else res.json().then(function(data) { toast(data.error || 'Error', 'error'); });
   });
 }

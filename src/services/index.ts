@@ -8,6 +8,7 @@ export {
   createLink,
   updateLink,
   disableLink,
+  addCustomSlugToLink,
   addVanitySlugToLink,
   getLinkAnalytics,
   getDashboardStats,

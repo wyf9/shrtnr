@@ -95,11 +95,11 @@ describe("ClickRepository.getStats", () => {
   });
 
   it("aggregates clicks across multiple slugs", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", vanitySlug: "vanity" });
-    const autoSlug = link.slugs.find((s) => s.is_vanity === 0)!;
-    const vanitySlug = link.slugs.find((s) => s.is_vanity === 1)!;
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", customSlug: "vanity" });
+    const autoSlug = link.slugs.find((s) => s.is_custom === 0)!;
+    const customSlug = link.slugs.find((s) => s.is_custom === 1)!;
     await ClickRepository.record(env.DB, autoSlug.id, null, "US", "desktop", "Chrome");
-    await ClickRepository.record(env.DB, vanitySlug.id, null, "DE", "mobile", "Firefox");
+    await ClickRepository.record(env.DB, customSlug.id, null, "DE", "mobile", "Firefox");
     const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.total_clicks).toBe(2);
   });

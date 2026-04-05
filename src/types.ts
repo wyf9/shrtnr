@@ -36,7 +36,7 @@ export interface Slug {
   id: number;
   link_id: number;
   slug: string;
-  is_vanity: number;
+  is_custom: number;
   is_primary: number;
   click_count: number;
   link_click_count: number;

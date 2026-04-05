@@ -176,11 +176,11 @@ export const LinksPage: FC<Props> = ({
         <>
           {pageLinks.map((link) => {
             const primarySlug = link.slugs.find((s) => s.is_primary)
-              || link.slugs.find((s) => s.is_vanity)
+              || link.slugs.find((s) => s.is_custom)
               || link.slugs[0];
             const otherSlugs = link.slugs
               .filter((s) => s !== primarySlug)
-              .sort((a, b) => a.is_vanity - b.is_vanity);
+              .sort((a, b) => a.is_custom - b.is_custom);
             const disabled = !!(link.expires_at && link.expires_at < now);
             return (
               <a
@@ -191,7 +191,7 @@ export const LinksPage: FC<Props> = ({
                   <div class="link-slugs">
                     {primarySlug && (
                       <span
-                        class={`slug-chip${primarySlug.is_vanity ? " vanity" : ""}`}
+                        class={`slug-chip${primarySlug.is_custom ? " custom" : ""}`}
                         onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(primarySlug.slug)}')`}
                         title={t("links.clickToCopy")}
                       >
@@ -201,7 +201,7 @@ export const LinksPage: FC<Props> = ({
                     )}
                     {otherSlugs.map((s) => (
                       <span
-                        class={`slug-chip${s.is_vanity ? " vanity" : ""}${s.disabled_at ? " slug-chip-disabled" : ""}`}
+                        class={`slug-chip${s.is_custom ? " custom" : ""}${s.disabled_at ? " slug-chip-disabled" : ""}`}
                         onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(s.slug)}')`}
                         title={t("links.clickToCopy")}
                         style={s.disabled_at ? "opacity:0.4" : undefined}

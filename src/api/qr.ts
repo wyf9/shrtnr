@@ -16,7 +16,7 @@ export async function handleLinkQr(request: Request, env: Env, linkId: number): 
 
   const slug = requestedSlug
     ? link.slugs.find((s) => s.slug === requestedSlug)
-    : link.slugs.find((s) => s.is_vanity) ?? link.slugs[0];
+    : link.slugs.find((s) => s.is_custom) ?? link.slugs[0];
 
   if (!slug) return json({ error: "Slug not found" }, 404);
 

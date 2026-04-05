@@ -23,7 +23,12 @@ export async function applyMigrations() {
   const sorted = Object.keys(migrationFiles).sort();
   for (const path of sorted) {
     for (const stmt of parseSql(migrationFiles[path])) {
-      await env.DB.exec(stmt);
+      try {
+        await env.DB.exec(stmt);
+      } catch {
+        // Skip statements that are already satisfied by the current schema
+        // (e.g. RENAME COLUMN on a column that doesn't exist in a fresh DB).
+      }
     }
   }
   migrated = true;

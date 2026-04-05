@@ -13,7 +13,7 @@ import {
   createLink,
   updateLink,
   disableLink,
-  addVanitySlugToLink,
+  addCustomSlugToLink,
   getLinkAnalytics,
   searchLinks,
 } from "../services/link-management";
@@ -78,7 +78,8 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         url: z.string().url().describe("Destination URL to shorten"),
         label: z.string().optional().describe("Human-readable label for the link"),
         slug_length: z.number().int().min(3).optional().describe("Length of the random slug (default: 3)"),
-        vanity_slug: z.string().optional().describe("Custom slug, e.g. 'my-blog-post'"),
+        custom_slug: z.string().optional().describe("Custom slug, e.g. 'my-blog-post'"),
+        vanity_slug: z.string().optional().describe("Alias for custom_slug (deprecated, use custom_slug)"),
         expires_at: z.number().int().optional().describe("Unix timestamp when the link expires"),
       },
       async (opts) => {
@@ -118,14 +119,28 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
     );
 
     this.server.tool(
-      "add_vanity_slug",
-      "Add a custom vanity slug to an existing link",
+      "add_custom_slug",
+      "Add a custom slug to an existing link",
       {
         link_id: z.number().int().positive().describe("Numeric ID of the link"),
         slug: z.string().min(1).describe("Custom slug to add, e.g. 'my-post'"),
       },
       async ({ link_id, slug }) => {
-        const result = await addVanitySlugToLink(this.env, link_id, { slug });
+        const result = await addCustomSlugToLink(this.env, link_id, { slug });
+        if (!result.ok) return fail(result.error);
+        return ok(result.data);
+      },
+    );
+
+    this.server.tool(
+      "add_vanity_slug",
+      "Alias for add_custom_slug (deprecated, use add_custom_slug)",
+      {
+        link_id: z.number().int().positive().describe("Numeric ID of the link"),
+        slug: z.string().min(1).describe("Custom slug to add, e.g. 'my-post'"),
+      },
+      async ({ link_id, slug }) => {
+        const result = await addCustomSlugToLink(this.env, link_id, { slug });
         if (!result.ok) return fail(result.error);
         return ok(result.data);
       },
@@ -173,7 +188,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
 
         const target = requestedSlug
           ? link.slugs.find((s) => s.slug === requestedSlug)
-          : link.slugs.find((s) => s.is_vanity) ?? link.slugs[0];
+          : link.slugs.find((s) => s.is_custom) ?? link.slugs[0];
 
         if (!target) return fail("Slug not found");
 

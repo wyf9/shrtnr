@@ -14,7 +14,7 @@ CREATE TABLE slugs (
   id               INTEGER PRIMARY KEY AUTOINCREMENT,
   link_id          INTEGER NOT NULL REFERENCES links(id) ON DELETE CASCADE,
   slug             TEXT NOT NULL UNIQUE,
-  is_vanity        INTEGER NOT NULL DEFAULT 0,
+  is_custom        INTEGER NOT NULL DEFAULT 0,
   is_primary       INTEGER NOT NULL DEFAULT 0,
   click_count      INTEGER NOT NULL DEFAULT 0,
   link_click_count INTEGER NOT NULL DEFAULT 0,

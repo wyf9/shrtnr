@@ -164,31 +164,31 @@ describe("Links API", () => {
     expect(res.status).toBe(400);
   });
 
-  it("POST /_/admin/api/links with vanity slug should attach both slugs", async () => {
+  it("POST /_/admin/api/links with custom slug should attach both slugs", async () => {
     const res = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", vanity_slug: "my-slug" }),
+        body: JSON.stringify({ url: "https://example.com", custom_slug: "my-slug" }),
       })
     );
     expect(res.status).toBe(201);
     const body = await res.json() as any;
     expect(body.slugs).toHaveLength(2);
-    expect(body.slugs.some((s: any) => s.slug === "my-slug" && s.is_vanity === 1)).toBe(true);
+    expect(body.slugs.some((s: any) => s.slug === "my-slug" && s.is_custom === 1)).toBe(true);
   });
 
-  it("POST /_/admin/api/links slugs should be ordered: auto at index 0, vanity at index 1", async () => {
+  it("POST /_/admin/api/links slugs should be ordered: auto at index 0, custom at index 1", async () => {
     const res = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", vanity_slug: "custom" }),
+        body: JSON.stringify({ url: "https://example.com", custom_slug: "custom" }),
       })
     );
     const body = await res.json() as any;
-    expect(body.slugs[0].is_vanity).toBe(0);
-    expect(body.slugs[1].is_vanity).toBe(1);
+    expect(body.slugs[0].is_custom).toBe(0);
+    expect(body.slugs[1].is_custom).toBe(1);
     expect(body.slugs[1].slug).toBe("custom");
   });
 
@@ -197,14 +197,14 @@ describe("Links API", () => {
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", vanity_slug: "ordered" }),
+        body: JSON.stringify({ url: "https://example.com", custom_slug: "ordered" }),
       })
     );
     const res = await SELF.fetch(authed("/_/admin/api/links"));
     const body = await res.json() as any;
     const link = body.find((l: any) => l.slugs.length === 2);
-    expect(link.slugs[0].is_vanity).toBe(0);
-    expect(link.slugs[1].is_vanity).toBe(1);
+    expect(link.slugs[0].is_custom).toBe(0);
+    expect(link.slugs[1].is_custom).toBe(1);
   });
 
   it("GET /_/admin/api/links/:id should preserve slug ordering", async () => {
@@ -212,30 +212,30 @@ describe("Links API", () => {
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", vanity_slug: "detail-order" }),
+        body: JSON.stringify({ url: "https://example.com", custom_slug: "detail-order" }),
       })
     );
     const created = await createRes.json() as any;
     const res = await SELF.fetch(authed(`/_/admin/api/links/${created.id}`));
     const body = await res.json() as any;
-    expect(body.slugs[0].is_vanity).toBe(0);
-    expect(body.slugs[1].is_vanity).toBe(1);
+    expect(body.slugs[0].is_custom).toBe(0);
+    expect(body.slugs[1].is_custom).toBe(1);
     expect(body.slugs[1].slug).toBe("detail-order");
   });
 
-  it("POST /_/admin/api/links with duplicate vanity slug should return 409", async () => {
+  it("POST /_/admin/api/links with duplicate custom slug should return 409", async () => {
     await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", vanity_slug: "taken" }),
+        body: JSON.stringify({ url: "https://example.com", custom_slug: "taken" }),
       })
     );
     const res = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://other.com", vanity_slug: "taken" }),
+        body: JSON.stringify({ url: "https://other.com", custom_slug: "taken" }),
       })
     );
     expect(res.status).toBe(409);
@@ -436,7 +436,7 @@ describe("Disable / Enable API", () => {
 // ---- Vanity Slugs API ----
 
 describe("Vanity Slugs API", () => {
-  it("POST /_/admin/api/links/:id/slugs should add a vanity slug", async () => {
+  it("POST /_/admin/api/links/:id/slugs should add a custom slug", async () => {
     const createRes = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
@@ -449,21 +449,21 @@ describe("Vanity Slugs API", () => {
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: "my-vanity" }),
+        body: JSON.stringify({ slug: "my-custom" }),
       })
     );
     expect(res.status).toBe(201);
     const body = await res.json() as any;
-    expect(body.slug).toBe("my-vanity");
-    expect(body.is_vanity).toBe(1);
+    expect(body.slug).toBe("my-custom");
+    expect(body.is_custom).toBe(1);
   });
 
-  it("should return 409 for duplicate vanity slug", async () => {
+  it("should return 409 for duplicate custom slug", async () => {
     const createRes = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", vanity_slug: "taken" }),
+        body: JSON.stringify({ url: "https://example.com", custom_slug: "taken" }),
       })
     );
     const created = await createRes.json() as any;
@@ -477,12 +477,12 @@ describe("Vanity Slugs API", () => {
     expect(res.status).toBe(409);
   });
 
-  it("should allow adding a second vanity slug to a link", async () => {
+  it("should allow adding a second custom slug to a link", async () => {
     const createRes = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", vanity_slug: "existing" }),
+        body: JSON.stringify({ url: "https://example.com", custom_slug: "existing" }),
       })
     );
     const created = await createRes.json() as any;
@@ -496,10 +496,10 @@ describe("Vanity Slugs API", () => {
     expect(res.status).toBe(201);
     const body = await res.json() as any;
     expect(body.slug).toBe("another");
-    expect(body.is_vanity).toBe(1);
+    expect(body.is_custom).toBe(1);
   });
 
-  it("should return 400 for invalid vanity slug", async () => {
+  it("should return 400 for invalid custom slug", async () => {
     const createRes = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
@@ -685,7 +685,7 @@ describe("Settings API", () => {
       })
     );
     const body = await res.json() as any;
-    const autoSlug = body.slugs.find((s: any) => s.is_vanity === 0);
+    const autoSlug = body.slugs.find((s: any) => s.is_custom === 0);
     expect(autoSlug.slug).toHaveLength(6);
   });
 });
@@ -1077,7 +1077,7 @@ describe("API Key Authentication", () => {
     expect(res.status).toBe(200);
   });
 
-  it("create-scoped key should be able to add vanity slugs", async () => {
+  it("create-scoped key should be able to add custom slugs", async () => {
     const linkRes = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
@@ -1166,7 +1166,7 @@ describe("API Key Authentication", () => {
     expect(res.status).toBe(403);
   });
 
-  it("read-scoped key should not be able to add vanity slugs", async () => {
+  it("read-scoped key should not be able to add custom slugs", async () => {
     const linkRes = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
@@ -1244,7 +1244,7 @@ describe("API Key Authentication", () => {
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", vanity_slug: "find-me" }),
+        body: JSON.stringify({ url: "https://example.com", custom_slug: "find-me" }),
       })
     );
     const link = await createLinkRes.json() as any;
@@ -1293,12 +1293,12 @@ describe("API Key Authentication", () => {
 // ---- Vanity Slug Redirect ----
 
 describe("Vanity Slug Redirect", () => {
-  it("should 301 redirect via a vanity slug", async () => {
+  it("should 301 redirect via a custom slug", async () => {
     await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://vanity-target.com", vanity_slug: "go" }),
+        body: JSON.stringify({ url: "https://vanity-target.com", custom_slug: "go" }),
       })
     );
     const res = await SELF.fetch(unauthed("/go"), { redirect: "manual" });

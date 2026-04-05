@@ -31,13 +31,16 @@ export function validateRandomSlug(slug: string): string | null {
   return null;
 }
 
-export function validateVanitySlug(slug: string): string | null {
-  if (slug.length < 1) return "Vanity slug must not be empty";
+export function validateCustomSlug(slug: string): string | null {
+  if (slug.length < 1) return "Custom slug must not be empty";
   if (slug.startsWith("_")) return "Slug must not start with underscore";
-  if (slug.startsWith("-") || slug.endsWith("-")) return "Vanity slug must not start or end with a hyphen";
-  if (!VANITY_SLUG_REGEX.test(slug)) return "Vanity slug must contain only alphanumeric characters and hyphens";
+  if (slug.startsWith("-") || slug.endsWith("-")) return "Custom slug must not start or end with a hyphen";
+  if (!VANITY_SLUG_REGEX.test(slug)) return "Custom slug must contain only alphanumeric characters and hyphens";
   return null;
 }
+
+/** @deprecated Use validateCustomSlug */
+export const validateVanitySlug = validateCustomSlug;
 
 export function validateSlugLength(length: number): string | null {
   if (!Number.isInteger(length) || length < 3) return "Slug length must be an integer >= 3";

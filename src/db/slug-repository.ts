@@ -21,23 +21,23 @@ export class SlugRepository {
     return row !== null;
   }
 
-  static async addVanity(db: D1Database, linkId: number, slug: string): Promise<Slug> {
+  static async addCustom(db: D1Database, linkId: number, slug: string): Promise<Slug> {
     const now = Math.floor(Date.now() / 1000);
 
-    // Check if this is the first vanity slug for the link
-    const existingVanity = await db
-      .prepare("SELECT 1 FROM slugs WHERE link_id = ? AND is_vanity = 1")
+    // Check if this is the first custom slug for the link
+    const existingCustom = await db
+      .prepare("SELECT 1 FROM slugs WHERE link_id = ? AND is_custom = 1")
       .bind(linkId)
       .first();
-    const isFirstVanity = !existingVanity;
+    const isFirstCustom = !existingCustom;
 
     await db
-      .prepare("INSERT INTO slugs (link_id, slug, is_vanity, is_primary, created_at) VALUES (?, ?, 1, ?, ?)")
-      .bind(linkId, slug, isFirstVanity ? 1 : 0, now)
+      .prepare("INSERT INTO slugs (link_id, slug, is_custom, is_primary, created_at) VALUES (?, ?, 1, ?, ?)")
+      .bind(linkId, slug, isFirstCustom ? 1 : 0, now)
       .run();
 
-    // If first vanity slug, clear primary from all other slugs on this link
-    if (isFirstVanity) {
+    // If first custom slug, clear primary from all other slugs on this link
+    if (isFirstCustom) {
       await db
         .prepare("UPDATE slugs SET is_primary = 0 WHERE link_id = ? AND slug != ?")
         .bind(linkId, slug)
@@ -66,7 +66,7 @@ export class SlugRepository {
     if (slug.is_primary) {
       await db.prepare("UPDATE slugs SET is_primary = 0 WHERE id = ?").bind(slugId).run();
       await db
-        .prepare("UPDATE slugs SET is_primary = 1 WHERE link_id = ? AND is_vanity = 0")
+        .prepare("UPDATE slugs SET is_primary = 1 WHERE link_id = ? AND is_custom = 0")
         .bind(slug.link_id)
         .run();
     }
@@ -84,7 +84,7 @@ export class SlugRepository {
     if (!slug) return false;
 
     // Cannot delete random slugs
-    if (!slug.is_vanity) return false;
+    if (!slug.is_custom) return false;
 
     // Cannot delete slugs with clicks
     if (slug.click_count > 0) return false;
@@ -92,7 +92,7 @@ export class SlugRepository {
     // If removing the primary, fall back to random slug first
     if (slug.is_primary) {
       await db
-        .prepare("UPDATE slugs SET is_primary = 1 WHERE link_id = ? AND is_vanity = 0")
+        .prepare("UPDATE slugs SET is_primary = 1 WHERE link_id = ? AND is_custom = 0")
         .bind(slug.link_id)
         .run();
     }
