@@ -114,6 +114,17 @@ export class LinkRepository {
     return LinkRepository.getById(db, id);
   }
 
+  static async delete(db: D1Database, id: number): Promise<boolean> {
+    const link = await LinkRepository.getById(db, id);
+    if (!link) return false;
+    if (link.total_clicks > 0) return false;
+
+    await db.prepare("DELETE FROM clicks WHERE slug_id IN (SELECT id FROM slugs WHERE link_id = ?)").bind(id).run();
+    await db.prepare("DELETE FROM slugs WHERE link_id = ?").bind(id).run();
+    await db.prepare("DELETE FROM links WHERE id = ?").bind(id).run();
+    return true;
+  }
+
   static async search(db: D1Database, query: string): Promise<LinkWithSlugs[]> {
     if (!query.trim()) return [];
 

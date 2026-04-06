@@ -106,6 +106,14 @@ export async function disableLink(env: Env, id: number): Promise<ServiceResult<L
   return ok(link);
 }
 
+export async function deleteLink(env: Env, id: number): Promise<ServiceResult<{ deleted: boolean }>> {
+  const link = await LinkRepository.getById(env.DB, id);
+  if (!link) return fail(404, "Link not found");
+  if (link.total_clicks > 0) return fail(400, "Cannot delete a link with clicks, disable it instead");
+  await LinkRepository.delete(env.DB, id);
+  return ok({ deleted: true });
+}
+
 export async function addCustomSlugToLink(
   env: Env,
   linkId: number,

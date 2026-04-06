@@ -110,6 +110,10 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
               <button class="detail-menu-item" onclick={`showEnableLinkModal(${link.id})`}>
                 <span class="icon">check_circle</span> {t("linkDetail.enable")}
               </button>
+            ) : link.total_clicks === 0 ? (
+              <button class="detail-menu-item detail-menu-danger" onclick={`showDeleteLinkModal(${link.id})`}>
+                <span class="icon">delete</span> {t("linkDetail.delete")}
+              </button>
             ) : (
               <button class="detail-menu-item detail-menu-danger" onclick={`showDisableLinkModal(${link.id})`}>
                 <span class="icon">block</span> {t("linkDetail.disable")}

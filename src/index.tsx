@@ -25,6 +25,7 @@ import {
   handleCreateLink,
   handleUpdateLink,
   handleDisableLink,
+  handleDeleteLink,
   handleGetLinkBySlug,
 } from "./api/links";
 import {
@@ -266,6 +267,11 @@ app.post("/_/admin/api/links/:id/disable", (c) => {
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   return handleDisableLink(c.env, id);
 });
+app.delete("/_/admin/api/links/:id", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  return handleDeleteLink(c.env, id);
+});
 app.post("/_/admin/api/links/:id/slugs", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
@@ -350,6 +356,12 @@ app.post("/_/api/links/:id/disable", (c) => {
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
   return handleDisableLink(c.env, id);
+});
+app.delete("/_/api/links/:id", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
+  return handleDeleteLink(c.env, id);
 });
 app.post("/_/api/links/:id/slugs", (c) => {
   const id = parseInt(c.req.param("id"), 10);

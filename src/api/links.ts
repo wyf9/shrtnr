@@ -5,6 +5,7 @@ import { Env } from "../types";
 import {
   createLink,
   disableLink,
+  deleteLink,
   getLink,
   getLinkBySlug,
   listLinks,
@@ -56,4 +57,8 @@ export async function handleUpdateLink(request: Request, env: Env, id: number): 
 
 export async function handleDisableLink(env: Env, id: number): Promise<Response> {
   return fromServiceResult(await disableLink(env, id));
+}
+
+export async function handleDeleteLink(env: Env, id: number): Promise<Response> {
+  return fromServiceResult(await deleteLink(env, id));
 }

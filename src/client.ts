@@ -334,6 +334,21 @@ function doDisableLink(id) {
   });
 }
 
+function showDeleteLinkModal(id) {
+  document.getElementById('detail-menu').style.display = 'none';
+  openModal(
+    '<div class="modal-title">' + esc(t('linkDetail.delete')) + '</div>' +
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDelete')) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDeleteLink(' + id + ')">' + esc(t('linkDetail.delete')) + '</button></div>'
+  );
+}
+function doDeleteLink(id) {
+  api('/links/' + id, { method: 'DELETE' }).then(function(res) {
+    if (res.ok) { closeModal(); toast(t('client.linkDeleted')); window.location.href = '/_/admin/links'; }
+    else toast(t('client.deleteError'), 'error');
+  });
+}
+
 function showEnableLinkModal(id) {
   document.getElementById('detail-menu').style.display = 'none';
   openModal(
