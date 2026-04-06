@@ -59,6 +59,25 @@ export interface DateCount {
   count: number;
 }
 
+export type TimelineRange = "24h" | "7d" | "30d" | "90d" | "1y" | "all";
+
+export interface TimelineBucket {
+  label: string;
+  count: number;
+}
+
+export interface TimelineData {
+  range: TimelineRange;
+  buckets: TimelineBucket[];
+  summary: {
+    last_24h: number;
+    last_7d: number;
+    last_30d: number;
+    last_90d: number;
+    last_1y: number;
+  };
+}
+
 export interface HealthStatus {
   status: string;
   version: string;
