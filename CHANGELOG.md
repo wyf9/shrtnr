@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.20.0 (2026-04-06)
+
+### Admin UI improvements
+
+**Landing page redirect**: Authenticated users visiting `/` are now redirected to `/_/admin/dashboard` instead of seeing the public landing page.
+
+**Smart search/shorten input**: The URL input on the links list and dashboard pages is now dual-purpose. Pasting a URL shortens it as before. Typing plain text searches existing links by slug or description. The button shows "Shorten" with a lightning bolt by default and switches to "Search" with a magnifying glass when non-URL text is detected. The placeholder text reads "Paste URL or search links..." to communicate both actions.
+
+**Delete zero-click links**: Links with no recorded clicks now show a "Delete" button instead of "Disable". Deleting removes the record from the database. Links that have been clicked can still only be disabled.
+
+**Removed broken "Create new" button**: The "Create new" button that appeared in search results was removed. It attempted to create a link from the search query string, which always failed URL validation.
+
 ## 0.19.0 (2026-04-05)
 
 ### Separated link creation from custom slugs
