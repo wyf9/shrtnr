@@ -4,7 +4,7 @@
 import { LinkRepository, SlugRepository, ClickRepository, SettingRepository } from "../db";
 import { DEFAULT_SLUG_LENGTH } from "../constants";
 import { generateUniqueSlug, validateSlugLength, validateCustomSlug } from "../slugs";
-import { ClickStats, DashboardStats, Env, LinkWithSlugs, Slug } from "../types";
+import { ClickData, ClickStats, DashboardStats, Env, LinkWithSlugs, Slug } from "../types";
 import { ServiceResult, ok, fail } from "./result";
 
 export type { ServiceResult };
@@ -227,11 +227,7 @@ export async function searchLinks(env: Env, query: string): Promise<ServiceResul
 export async function recordClick(
   env: Env,
   slugId: number,
-  referrer: string | null,
-  country: string | null,
-  deviceType: string | null,
-  browser: string | null,
-  channel?: string | null,
+  data: ClickData,
 ): Promise<void> {
-  return ClickRepository.record(env.DB, slugId, referrer, country, deviceType, browser, channel);
+  return ClickRepository.record(env.DB, slugId, data);
 }
