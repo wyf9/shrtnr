@@ -48,7 +48,6 @@ const en = {
   "links.show": "Show",
   "links.searchResults": "{count} matching links",
   "links.clearSearch": "Clear",
-  "links.createNew": "Create new",
 
   // Link Detail
   "linkDetail.title": "Link Details",

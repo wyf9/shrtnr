@@ -51,7 +51,6 @@ const id: Translations = {
   "links.show": "Tampilkan",
   "links.searchResults": "{count} tautan cocok",
   "links.clearSearch": "Hapus",
-  "links.createNew": "Buat baru",
 
   // Link Detail
   "linkDetail.title": "Detail Tautan",

@@ -51,7 +51,6 @@ const sv: Translations = {
   "links.show": "Visa",
   "links.searchResults": "{count} matchande länkar",
   "links.clearSearch": "Rensa",
-  "links.createNew": "Skapa ny",
 
   // Link Detail
   "linkDetail.title": "Länkdetaljer",

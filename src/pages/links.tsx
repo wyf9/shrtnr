@@ -120,9 +120,6 @@ export const LinksPage: FC<Props> = ({
           <a href="/_/admin/links" class="btn btn-ghost btn-sm" style="font-size:0.8rem">
             <span class="icon" style="font-size:14px">close</span> {t("links.clearSearch")}
           </a>
-          <button class="btn btn-secondary btn-sm" style="margin-left:auto;font-size:0.8rem" onclick={`createDuplicate('${escHtml(searchQuery)}')`}>
-            <span class="icon" style="font-size:14px">add</span> {t("links.createNew")}
-          </button>
         </div>
       )}
 
