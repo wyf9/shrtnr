@@ -1524,6 +1524,26 @@ describe("Smart search input", () => {
     // The page should include the client-side logic for switching button text
     expect(body).toContain("quickShorten");
   });
+
+  it("links page input should have smart action button ids", async () => {
+    const res = await SELF.fetch(authed("/_/admin/links"));
+    const body = await res.text();
+    expect(body).toContain('id="quick-action-btn"');
+    expect(body).toContain('id="quick-action-icon"');
+    expect(body).toContain('id="quick-action-label"');
+    expect(body).toContain('type="text"');
+  });
+
+  it("dashboard should render the same smart input as links page", async () => {
+    const res = await SELF.fetch(authed("/_/admin/dashboard"));
+    expect(res.status).toBe(200);
+    const body = await res.text();
+    expect(body).toContain('id="quick-action-btn"');
+    expect(body).toContain('id="quick-action-icon"');
+    expect(body).toContain('id="quick-action-label"');
+    expect(body).toContain('type="text"');
+    expect(body).toContain("quickShorten");
+  });
 });
 
 // ---- Feature: Delete zero-click links ----

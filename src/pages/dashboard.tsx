@@ -70,11 +70,11 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
         <input
           class="hero-input"
           id="quick-url"
-          type="url"
-          placeholder={t("dashboard.urlPlaceholder")}
+          type="text"
+          placeholder={t("links.inputPlaceholder")}
         />
-        <button class="btn btn-primary btn-lg" onclick="quickShorten()">
-          <span class="icon">bolt</span> {t("dashboard.shorten")}
+        <button class="btn btn-primary btn-lg" id="quick-action-btn" onclick="quickShorten()">
+          <span class="icon" id="quick-action-icon">search</span> <span id="quick-action-label">{t("links.go")}</span>
         </button>
       </div>
 
