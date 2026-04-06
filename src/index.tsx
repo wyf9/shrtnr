@@ -40,6 +40,7 @@ import { handleListKeys, handleCreateKey, handleDeleteKey } from "./api/keys";
 import {
   handleDashboardStats as handleDashboardStatsApi,
   handleLinkAnalytics,
+  handleLinkTimeline,
 } from "./api/analytics";
 import { handleLinkQr } from "./api/qr";
 import { notFoundResponse } from "./404";
@@ -181,7 +182,7 @@ app.get("/_/admin/links/:id", async (c) => {
   const linkResult = await getLink(c.env, id);
   if (!linkResult.ok) return notFoundResponse();
   const analyticsResult = await getLinkAnalytics(c.env, id);
-  const analytics = analyticsResult.ok ? analyticsResult.data : { total_clicks: 0, countries: [], referrers: [], devices: [], browsers: [], channels: [], clicks_over_time: [] };
+  const analytics = analyticsResult.ok ? analyticsResult.data : { total_clicks: 0, countries: [], referrers: [], referrer_hosts: [], devices: [], os: [], browsers: [], link_modes: [], channels: [], clicks_over_time: [] };
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="links" theme={theme} t={t} lang={lang} translations={translations} userEmail={userEmail}>
@@ -261,6 +262,11 @@ app.get("/_/admin/api/links/:id/analytics", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   return handleLinkAnalytics(c.env, id);
+});
+app.get("/_/admin/api/links/:id/timeline", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  return handleLinkTimeline(c.env, id, c.req.query("range"));
 });
 app.post("/_/admin/api/links/:id/disable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
@@ -350,6 +356,12 @@ app.get("/_/api/links/:id/analytics", (c) => {
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
   return handleLinkAnalytics(c.env, id);
+});
+app.get("/_/api/links/:id/timeline", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
+  return handleLinkTimeline(c.env, id, c.req.query("range"));
 });
 app.post("/_/api/links/:id/disable", (c) => {
   const id = parseInt(c.req.param("id"), 10);

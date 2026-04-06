@@ -11,6 +11,7 @@ export {
   deleteLink,
   addCustomSlugToLink,
   getLinkAnalytics,
+  getLinkTimeline,
   getDashboardStats,
   searchLinks,
   findSlugForRedirect,

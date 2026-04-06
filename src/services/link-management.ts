@@ -4,7 +4,7 @@
 import { LinkRepository, SlugRepository, ClickRepository, SettingRepository } from "../db";
 import { DEFAULT_SLUG_LENGTH } from "../constants";
 import { generateUniqueSlug, validateSlugLength, validateCustomSlug } from "../slugs";
-import { ClickData, ClickStats, DashboardStats, Env, LinkWithSlugs, Slug } from "../types";
+import { ClickData, ClickStats, DashboardStats, Env, LinkWithSlugs, Slug, TimelineData, TimelineRange } from "../types";
 import { ServiceResult, ok, fail } from "./result";
 
 export type { ServiceResult };
@@ -201,6 +201,12 @@ export async function removeSlug(
 
   await SlugRepository.remove(env.DB, slugId);
   return ok({ removed: true });
+}
+
+export async function getLinkTimeline(env: Env, linkId: number, range: TimelineRange): Promise<ServiceResult<TimelineData>> {
+  const link = await LinkRepository.getById(env.DB, linkId);
+  if (!link) return fail(404, "Link not found");
+  return ok(await ClickRepository.getTimeline(env.DB, linkId, range));
 }
 
 export async function getLinkAnalytics(env: Env, linkId: number): Promise<ServiceResult<ClickStats>> {
