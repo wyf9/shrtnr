@@ -34,7 +34,7 @@ const id: Translations = {
   "links.title": "Tautan",
   "links.subtitle": "Kelola semua tautan pendek Anda",
   "links.inputPlaceholder": "Tempel URL atau cari tautan...",
-  "links.go": "Buka",
+  "links.search": "Cari",
   "links.count": "{count} tautan",
   "links.countPlural": "{count} tautan",
   "links.recent": "Terbaru",

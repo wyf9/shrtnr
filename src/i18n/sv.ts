@@ -34,7 +34,7 @@ const sv: Translations = {
   "links.title": "Länkar",
   "links.subtitle": "Hantera alla dina kortlänkar",
   "links.inputPlaceholder": "Klistra in URL eller sök länkar...",
-  "links.go": "Sök",
+  "links.search": "Sök",
   "links.count": "{count} länk",
   "links.countPlural": "{count} länkar",
   "links.recent": "Senaste",
