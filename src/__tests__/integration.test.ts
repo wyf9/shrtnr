@@ -177,6 +177,44 @@ describe("Disable / Enable", () => {
   });
 });
 
+// ---- Delete (zero-click links) ----
+
+describe("Delete Link", () => {
+  // TODO: Implement LinkRepository.delete for links with zero clicks.
+  // The method should remove the link and all its slugs from the database.
+  // It should reject deletion when any slug has clicks.
+
+  it("should delete a link with zero clicks", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://deleteme.com", slug: "del" });
+    const deleted = await LinkRepository.delete(env.DB, link.id);
+    expect(deleted).toBe(true);
+    const fetched = await LinkRepository.getById(env.DB, link.id);
+    expect(fetched).toBeNull();
+  });
+
+  it("should reject deletion of a link with clicks", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://popular.com", slug: "pop" });
+    await ClickRepository.record(env.DB, link.slugs[0].id, null, null, null, null);
+    const deleted = await LinkRepository.delete(env.DB, link.id);
+    expect(deleted).toBe(false);
+    const fetched = await LinkRepository.getById(env.DB, link.id);
+    expect(fetched).not.toBeNull();
+  });
+
+  it("should return false when deleting a non-existent link", async () => {
+    const deleted = await LinkRepository.delete(env.DB, 99999);
+    expect(deleted).toBe(false);
+  });
+
+  it("should also remove all slugs of the deleted link", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://deleteme.com", slug: "del" });
+    await SlugRepository.addCustom(env.DB, link.id, "custom-del");
+    await LinkRepository.delete(env.DB, link.id);
+    expect(await SlugRepository.exists(env.DB, "del")).toBe(false);
+    expect(await SlugRepository.exists(env.DB, "custom-del")).toBe(false);
+  });
+});
+
 // ---- Custom Slugs ----
 
 describe("Custom Slugs", () => {

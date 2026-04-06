@@ -1440,3 +1440,148 @@ describe("Nonexistent Resources", () => {
     expect(res.status).toBe(404);
   });
 });
+
+// ---- Feature: Landing page redirect for authenticated users ----
+
+describe("Landing page redirect", () => {
+  // TODO: Implement landing page redirect for authenticated users.
+  // When a user visits / with a valid auth token, they should be
+  // redirected (302) to /_/admin/dashboard instead of seeing the
+  // landing page.
+
+  it("GET / with auth should redirect to /_/admin/dashboard", async () => {
+    const res = await SELF.fetch(authed("/"), { redirect: "manual" });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toContain("/_/admin/dashboard");
+  });
+
+  it("GET / without auth should still return the landing page", async () => {
+    const res = await SELF.fetch(unauthed("/"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toContain("text/html");
+    const body = await res.text();
+    expect(body).toContain("URL SHORTENER");
+  });
+});
+
+// ---- Feature: /_/admin/ redirect to dashboard ----
+
+describe("Admin root redirect", () => {
+  // TODO: Verify existing redirect from /_/admin/ to /_/admin/dashboard.
+  // Both /_/admin and /_/admin/ should 302 to /_/admin/dashboard.
+
+  it("GET /_/admin/ should redirect to /_/admin/dashboard", async () => {
+    const res = await SELF.fetch(unauthed("/_/admin/"), { redirect: "manual" });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toContain("/_/admin/dashboard");
+  });
+
+  it("GET /_/admin should redirect to /_/admin/dashboard", async () => {
+    const res = await SELF.fetch(unauthed("/_/admin"), { redirect: "manual" });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toContain("/_/admin/dashboard");
+  });
+});
+
+// ---- Feature: Smart search/shorten input on links page ----
+
+describe("Smart search input", () => {
+  // TODO: Implement smart search/shorten input. The input field on the
+  // links page should detect whether the user typed a URL or plain text.
+  // URLs trigger shorten (existing behavior). Plain text triggers search.
+  // The button label should switch from "Shorten" to "Go" dynamically.
+
+  it("GET /_/admin/links?search=test should search by text terms", async () => {
+    // Create links with matching labels/slugs
+    await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com" }),
+      })
+    );
+    const created = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://testsite.com", label: "test campaign" }),
+      })
+    );
+    const link = await created.json() as any;
+
+    // Search with text term
+    const res = await SELF.fetch(authed("/_/admin/links?search=test"));
+    expect(res.status).toBe(200);
+    const body = await res.text();
+    // Should find the link with "test" in label
+    expect(body).toContain("testsite.com");
+  });
+
+  it("links page should render search-aware button text", async () => {
+    const res = await SELF.fetch(authed("/_/admin/links"));
+    expect(res.status).toBe(200);
+    const body = await res.text();
+    // The page should include the client-side logic for switching button text
+    expect(body).toContain("quickShorten");
+  });
+});
+
+// ---- Feature: Delete zero-click links ----
+
+describe("Delete Link API", () => {
+  // TODO: Implement delete endpoint for links with zero clicks.
+  // Links with zero total_clicks should be deletable via
+  // DELETE /_/admin/api/links/:id. Links with clicks should
+  // return 400 and suggest disabling instead.
+
+  it("DELETE /_/admin/api/links/:id should delete a zero-click link", async () => {
+    const createRes = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://deletable.com" }),
+      })
+    );
+    const created = await createRes.json() as any;
+    expect(created.total_clicks).toBe(0);
+
+    const deleteRes = await SELF.fetch(
+      authed(`/_/admin/api/links/${created.id}`, { method: "DELETE" })
+    );
+    expect(deleteRes.status).toBe(200);
+
+    // Confirm the link is gone
+    const getRes = await SELF.fetch(authed(`/_/admin/api/links/${created.id}`));
+    expect(getRes.status).toBe(404);
+  });
+
+  it("DELETE /_/admin/api/links/:id should reject deletion of a link with clicks", async () => {
+    // Create a link and record a click via redirect
+    const createRes = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://popular.com" }),
+      })
+    );
+    const created = await createRes.json() as any;
+    const slug = created.slugs[0].slug;
+
+    // Generate a click by following the redirect
+    await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
+
+    const deleteRes = await SELF.fetch(
+      authed(`/_/admin/api/links/${created.id}`, { method: "DELETE" })
+    );
+    expect(deleteRes.status).toBe(400);
+    const body = await deleteRes.json() as any;
+    expect(body.error).toBeTruthy();
+  });
+
+  it("DELETE /_/admin/api/links/:id for non-existent link should return 404", async () => {
+    const res = await SELF.fetch(
+      authed("/_/admin/api/links/99999", { method: "DELETE" })
+    );
+    expect(res.status).toBe(404);
+  });
+});
