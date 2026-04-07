@@ -321,13 +321,13 @@ describe("ClickRepository.getTimeline", () => {
     expect(tl.buckets).toHaveLength(0);
   });
 
-  it("all range returns monthly buckets", async () => {
+  it("all range returns buckets with granularity based on data span", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     await ClickRepository.record(env.DB, link.slugs[0].id);
     const tl = await ClickRepository.getTimeline(env.DB, link.id, "all");
     expect(tl.range).toBe("all");
     expect(tl.buckets.length).toBeGreaterThanOrEqual(1);
-    // Monthly labels look like "YYYY-MM"
-    expect(tl.buckets[0].label).toMatch(/^\d{4}-\d{2}$/);
+    // Accept daily (YYYY-MM-DD), weekly (YYYY-MM-DD), or monthly (YYYY-MM)
+    expect(tl.buckets[0].label).toMatch(/^\d{4}-\d{2}(-\d{2})?$/);
   });
 });

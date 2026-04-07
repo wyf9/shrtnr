@@ -797,26 +797,24 @@ function fmtNum(n) {
   return String(n);
 }
 
+var MONTH_KEYS = ['month.jan','month.feb','month.mar','month.apr','month.may','month.jun','month.jul','month.aug','month.sep','month.oct','month.nov','month.dec'];
+function monthName(m) { return t(MONTH_KEYS[m - 1]); }
+
 function fmtLabel(label, range) {
   if (range === '24h') {
     // "YYYY-MM-DD HH" → "HH:00"
     return label.slice(11) + ':00';
   }
-  if (range === '7d' || range === '30d' || range === '90d') {
-    // "YYYY-MM-DD" → "MM/DD" or "DD Mon"
+  if (range === '7d' || range === '30d' || range === '90d' || range === '1y') {
     var parts = label.split('-');
-    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return months[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10);
+    return monthName(parseInt(parts[1], 10)) + ' ' + parseInt(parts[2], 10);
   }
-  if (range === '1y') {
-    var parts = label.split('-');
-    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return months[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10);
-  }
-  // "all": "YYYY-MM" → "Mon YY"
+  // "all": label can be YYYY-MM-DD (daily/weekly) or YYYY-MM (monthly)
   var parts = label.split('-');
-  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return months[parseInt(parts[1], 10) - 1] + ' ' + parts[0].slice(2);
+  if (parts.length === 3) {
+    return monthName(parseInt(parts[1], 10)) + ' ' + parseInt(parts[2], 10);
+  }
+  return monthName(parseInt(parts[1], 10)) + ' ' + parts[0].slice(2);
 }
 
 function renderTimeline(data) {

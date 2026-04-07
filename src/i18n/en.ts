@@ -150,6 +150,20 @@ const en = {
   "settings.mcpDocsLink": "MCP documentation",
   "settings.mcpSetupLink": "Setup guide in README",
 
+  // Months (short)
+  "month.jan": "Jan",
+  "month.feb": "Feb",
+  "month.mar": "Mar",
+  "month.apr": "Apr",
+  "month.may": "May",
+  "month.jun": "Jun",
+  "month.jul": "Jul",
+  "month.aug": "Aug",
+  "month.sep": "Sep",
+  "month.oct": "Oct",
+  "month.nov": "Nov",
+  "month.dec": "Dec",
+
   // Time ranges
   "range.24h": "24H",
   "range.7d": "7D",

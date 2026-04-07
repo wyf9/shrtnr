@@ -141,6 +141,8 @@ export class ClickRepository {
     // Determine bucket SQL expression and time range
     let bucketExpr: string;
     let sinceTs: number | null;
+    let allKind: "daily" | "weekly" | "monthly" = "monthly";
+    let allEarliest = ts;
 
     switch (range) {
       case "24h":
@@ -165,11 +167,28 @@ export class ClickRepository {
         bucketExpr = "date(clicked_at, 'unixepoch', 'weekday 0', '-6 days')";
         sinceTs = ts - 365 * 86400;
         break;
-      case "all":
-        // monthly buckets: "YYYY-MM"
-        bucketExpr = "strftime('%Y-%m', clicked_at, 'unixepoch')";
+      case "all": {
+        // Pick granularity based on actual data span
+        const placeholdersAll = ids.map(() => "?").join(",");
+        const earliestRow = await db
+          .prepare(`SELECT MIN(clicked_at) as t FROM clicks WHERE slug_id IN (${placeholdersAll})`)
+          .bind(...ids)
+          .first<{ t: number | null }>();
+        allEarliest = earliestRow?.t ?? ts;
+        const spanDays = Math.max(1, Math.floor((ts - allEarliest) / 86400));
+        if (spanDays <= 90) {
+          bucketExpr = "date(clicked_at, 'unixepoch')";
+          allKind = "daily";
+        } else if (spanDays <= 730) {
+          bucketExpr = "date(clicked_at, 'unixepoch', 'weekday 0', '-6 days')";
+          allKind = "weekly";
+        } else {
+          bucketExpr = "strftime('%Y-%m', clicked_at, 'unixepoch')";
+          allKind = "monthly";
+        }
         sinceTs = null;
         break;
+      }
     }
 
     const timeFilter = sinceTs !== null ? ` AND clicked_at >= ?` : "";
@@ -186,7 +205,9 @@ export class ClickRepository {
 
     const dataMap = new Map((rows.results ?? []).map((r) => [r.label, r.count]));
 
-    const buckets = fillBuckets(range, dataMap, ts, sinceTs);
+    const buckets = range === "all"
+      ? fillBucketsAll(dataMap, ts, allEarliest, allKind)
+      : fillBuckets(range, dataMap, ts, sinceTs);
 
     return { range, buckets, summary };
   }
@@ -264,10 +285,52 @@ function fillBuckets(
     return buckets;
   }
 
-  // "all": monthly buckets from earliest data to now
+  return buckets;
+}
+
+function fillBucketsAll(
+  dataMap: Map<string, number>,
+  now: number,
+  earliest: number,
+  kind: "daily" | "weekly" | "monthly",
+): TimelineBucket[] {
+  const buckets: TimelineBucket[] = [];
   if (dataMap.size === 0) return buckets;
+
+  if (kind === "daily") {
+    const start = new Date(earliest * 1000);
+    start.setUTCHours(0, 0, 0, 0);
+    const end = new Date(now * 1000);
+    end.setUTCHours(0, 0, 0, 0);
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const label = `${cursor.getUTCFullYear()}-${pad2(cursor.getUTCMonth() + 1)}-${pad2(cursor.getUTCDate())}`;
+      buckets.push({ label, count: dataMap.get(label) ?? 0 });
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+    return buckets;
+  }
+
+  if (kind === "weekly") {
+    // Weekly buckets (Mondays) from earliest to now
+    const start = new Date(earliest * 1000);
+    const startDay = start.getUTCDay();
+    const mondayOffset = startDay === 0 ? -6 : 1 - startDay;
+    start.setUTCDate(start.getUTCDate() + mondayOffset);
+    start.setUTCHours(0, 0, 0, 0);
+    const end = new Date(now * 1000);
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const label = `${cursor.getUTCFullYear()}-${pad2(cursor.getUTCMonth() + 1)}-${pad2(cursor.getUTCDate())}`;
+      buckets.push({ label, count: dataMap.get(label) ?? 0 });
+      cursor.setUTCDate(cursor.getUTCDate() + 7);
+    }
+    return buckets;
+  }
+
+  // monthly
   const keys = [...dataMap.keys()].sort();
-  const firstMonth = keys[0]; // "YYYY-MM"
+  const firstMonth = keys[0];
   const nowDate = new Date(now * 1000);
   const endMonth = `${nowDate.getUTCFullYear()}-${pad2(nowDate.getUTCMonth() + 1)}`;
   let [y, m] = firstMonth.split("-").map(Number);

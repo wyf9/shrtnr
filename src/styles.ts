@@ -346,11 +346,11 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 .timeline-range-btn:hover { color: var(--color-text); }
 .timeline-range-btn.active { background: var(--color-surface-raised); color: var(--color-accent); }
 .timeline-chart { position: relative; display: flex; height: 180px; }
-.tl-y-axis { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding-right: 0.5rem; min-width: 2rem; }
+.tl-y-axis { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding-right: 0.5rem; padding-bottom: 1.2rem; min-width: 2rem; }
 .tl-y-label { font-size: 0.6rem; color: var(--color-text-muted); font-family: var(--font-family-mono); line-height: 1; }
 .tl-plot { position: relative; flex: 1; overflow: hidden; }
 .tl-grid-line { position: absolute; left: 0; right: 0; height: 1px; background: var(--color-border); opacity: 0.3; }
-.tl-bars { display: flex; align-items: flex-end; height: calc(100% - 1.2rem); gap: 1px; padding-bottom: 1.2rem; position: relative; z-index: 1; }
+.tl-bars { display: flex; align-items: flex-end; height: 100%; gap: 1px; padding-bottom: 1.2rem; position: relative; z-index: 1; box-sizing: border-box; }
 .tl-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; min-width: 0; }
 .tl-bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
 .tl-bar { width: 100%; max-width: 12px; background: var(--color-accent); border-radius: 2px 2px 0 0; min-height: 0; transition: height 0.3s ease-out; position: relative; cursor: default; }
