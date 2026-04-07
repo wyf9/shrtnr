@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.23.2 (2026-04-07)
+
+**Bar chart percentages**: Bar widths now reflect each item's share of the total clicks rather than its share of the top item's count. Indonesia at 5 of 9 total renders at 55%, not 100%.
+
+**Sources full URL**: The Sources card now shows the hostname in the bar row and the full referrer URL below it, matching the layout of the Most Clicked card.
+
 ## 0.23.1 (2026-04-07)
 
 Fixing bar charts length.
