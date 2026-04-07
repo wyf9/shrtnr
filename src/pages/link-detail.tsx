@@ -21,28 +21,44 @@ const StatBar: FC<{
   color: string;
   icon?: string;
   mono?: boolean;
-}> = ({ name, count, max, color, icon, mono }) => {
+  subtitle?: string;
+}> = ({ name, count, max, color, icon, mono, subtitle }) => {
   const pct = max > 0 ? ((count / max) * 100).toFixed(0) : "0";
   return (
-    <div class="stat-row">
-      <span
-        class="stat-name"
-        style={mono ? "font-family:var(--font-family-mono)" : undefined}
-      >
-        {icon && (
-          <span class="icon" style="font-size:16px;vertical-align:text-bottom">
-            {icon}
-          </span>
-        )}{" "}
-        {name}
-      </span>
-      <div class="stat-bar">
-        <div class={`stat-fill ${color}`} style={`width:${pct}%`} />
+    <div>
+      <div class="stat-row">
+        <span
+          class="stat-name"
+          style={mono ? "font-family:var(--font-family-mono)" : undefined}
+        >
+          {icon && (
+            <span class="icon" style="font-size:16px;vertical-align:text-bottom">
+              {icon}
+            </span>
+          )}{" "}
+          {name}
+        </span>
+        <div class="stat-bar">
+          <div class={`stat-fill ${color}`} style={`width:${pct}%`} />
+        </div>
+        <span class="stat-count">{count}</span>
       </div>
-      <span class="stat-count">{count}</span>
+      {subtitle && (
+        <div style="font-size:0.75rem;color:var(--color-text-muted);margin:-0.15rem 0 0.5rem 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-family-mono)">
+          {subtitle}
+        </div>
+      )}
     </div>
   );
 };
+
+function referrerHost(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
 
 function deviceIcon(name: string): string {
   if (name === "mobile") return "phone_android";
@@ -88,7 +104,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
     ? new Date(link.expires_at * 1000).toISOString().slice(0, 16)
     : "";
 
-  const maxSlugClicks = Math.max(1, ...link.slugs.map((s) => s.click_count));
+  const maxSlugClicks = Math.max(1, link.slugs.reduce((s, slug) => s + slug.click_count, 0));
 
   return (
     <>
@@ -366,6 +382,26 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
             </div>
           </div>
 
+          <div class="bento-card" id="card-countries">
+            <div class="bento-label">{t("linkDetail.countries")}</div>
+            <div class="stat-card-body">
+              {analytics.countries.length > 0 ? (
+                analytics.countries.map((c) => (
+                  <StatBar
+                    name={countryName(c.name, lang)}
+                    count={c.count}
+                    max={analytics.countries.reduce((s, i) => s + i.count, 0)}
+                    color="orange"
+                  />
+                ))
+              ) : (
+                <div style="color:var(--color-text-muted);font-size:0.875rem">
+                  {t("linkDetail.noData")}
+                </div>
+              )}
+            </div>
+          </div>
+
           <div class="bento-card" id="card-referrer-hosts">
             <div class="bento-label">{t("linkDetail.referrerHosts")}</div>
             <div class="stat-card-body">
@@ -374,7 +410,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
                   <StatBar
                     name={r.name}
                     count={r.count}
-                    max={analytics.referrer_hosts[0].count}
+                    max={analytics.referrer_hosts.reduce((s, i) => s + i.count, 0)}
                     color="mint"
                     mono
                   />
@@ -393,11 +429,12 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
               {analytics.referrers.length > 0 ? (
                 analytics.referrers.map((r) => (
                   <StatBar
-                    name={r.name}
+                    name={referrerHost(r.name)}
                     count={r.count}
-                    max={analytics.referrers[0].count}
+                    max={analytics.referrers.reduce((s, i) => s + i.count, 0)}
                     color="mint"
                     mono
+                    subtitle={r.name}
                   />
                 ))
               ) : (
@@ -410,26 +447,6 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
         </div>
 
         <div class="detail-analytics-right">
-          <div class="bento-card" id="card-countries">
-            <div class="bento-label">{t("linkDetail.countries")}</div>
-            <div class="stat-card-body">
-              {analytics.countries.length > 0 ? (
-                analytics.countries.map((c) => (
-                  <StatBar
-                    name={countryName(c.name, lang)}
-                    count={c.count}
-                    max={analytics.countries[0].count}
-                    color="orange"
-                  />
-                ))
-              ) : (
-                <div style="color:var(--color-text-muted);font-size:0.875rem">
-                  {t("linkDetail.noData")}
-                </div>
-              )}
-            </div>
-          </div>
-
           <div class="bento-card" id="card-link-modes">
             <div class="bento-label">{t("linkDetail.linkModes")}</div>
             <div class="stat-card-body">
@@ -438,7 +455,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
                   <StatBar
                     name={m.name}
                     count={m.count}
-                    max={analytics.link_modes[0].count}
+                    max={analytics.link_modes.reduce((s, i) => s + i.count, 0)}
                     color="orange"
                     icon={linkModeIcon(m.name)}
                   />
@@ -459,7 +476,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
                   <StatBar
                     name={d.name}
                     count={d.count}
-                    max={analytics.devices[0].count}
+                    max={analytics.devices.reduce((s, i) => s + i.count, 0)}
                     color="orange"
                     icon={deviceIcon(d.name)}
                   />
@@ -480,7 +497,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
                   <StatBar
                     name={o.name}
                     count={o.count}
-                    max={analytics.os[0].count}
+                    max={analytics.os.reduce((s, i) => s + i.count, 0)}
                     color="mint"
                     icon={osIcon(o.name)}
                   />
@@ -501,7 +518,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
                   <StatBar
                     name={b.name}
                     count={b.count}
-                    max={analytics.browsers[0].count}
+                    max={analytics.browsers.reduce((s, i) => s + i.count, 0)}
                     color="mint"
                   />
                 ))

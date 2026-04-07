@@ -720,7 +720,9 @@ function renderStatCard(containerId, items, color, opts) {
     body.innerHTML = '<div style="color:var(--color-text-muted);font-size:0.875rem">' + esc(t('linkDetail.noData')) + '</div>';
     return;
   }
-  var maxVal = items[0].count;
+  var maxVal = 0;
+  for (var mi = 0; mi < items.length; mi++) maxVal += items[mi].count;
+  if (maxVal === 0) maxVal = 1;
   var html = '';
   for (var i = 0; i < items.length; i++) {
     var item = items[i];
@@ -762,7 +764,7 @@ function loadAnalytics(linkId, range) {
     var sc = stats.slug_clicks || [];
     for (var si = 0; si < sc.length; si++) {
       slugCounts[sc[si].slug_id] = sc[si].count;
-      if (sc[si].count > slugMax) slugMax = sc[si].count;
+      slugMax += sc[si].count;
     }
     if (slugMax === 0) slugMax = 1;
     var rows = document.querySelectorAll('.slugs-row[data-slug-id]');

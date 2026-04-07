@@ -55,9 +55,9 @@ type Props = {
 
 export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
   const d = stats;
-  const topCountryMax = d.top_countries[0]?.count || 1;
-  const topRefMax = d.top_referrers[0]?.count || 1;
-  const topLinkMax = d.top_links[0]?.total_clicks || 1;
+  const topCountryMax = d.top_countries.reduce((s, i) => s + i.count, 0) || 1;
+  const topRefMax = d.top_referrers.reduce((s, i) => s + i.count, 0) || 1;
+  const topLinkMax = d.top_links.reduce((s, i) => s + i.total_clicks, 0) || 1;
 
   return (
     <>
