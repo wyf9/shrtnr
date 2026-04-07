@@ -56,7 +56,8 @@ function linkModeIcon(name: string): string {
 }
 
 function osIcon(name: string): string {
-  if (name === "ios" || name === "macos") return "apple";
+  if (name === "ios") return "phone_iphone";
+  if (name === "macos") return "laptop_mac";
   if (name === "android") return "android";
   if (name === "windows") return "desktop_windows";
   if (name === "linux" || name === "chromeos") return "computer";
