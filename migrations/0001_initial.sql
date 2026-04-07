@@ -11,15 +11,13 @@ CREATE TABLE links (
 );
 
 CREATE TABLE slugs (
-  id               INTEGER PRIMARY KEY AUTOINCREMENT,
-  link_id          INTEGER NOT NULL REFERENCES links(id) ON DELETE CASCADE,
-  slug             TEXT NOT NULL UNIQUE,
-  is_custom        INTEGER NOT NULL DEFAULT 0,
-  is_primary       INTEGER NOT NULL DEFAULT 0,
-  link_click_count INTEGER NOT NULL DEFAULT 0,
-  qr_click_count   INTEGER NOT NULL DEFAULT 0,
-  created_at       INTEGER NOT NULL,
-  disabled_at      INTEGER
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  link_id     INTEGER NOT NULL REFERENCES links(id) ON DELETE CASCADE,
+  slug        TEXT NOT NULL UNIQUE,
+  is_custom   INTEGER NOT NULL DEFAULT 0,
+  is_primary  INTEGER NOT NULL DEFAULT 0,
+  created_at  INTEGER NOT NULL,
+  disabled_at INTEGER
 );
 
 CREATE INDEX idx_slugs_slug ON slugs(slug);
