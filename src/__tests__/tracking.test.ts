@@ -347,6 +347,54 @@ describe("OS and referrer_host tracking", () => {
     expect(row!.referrer_host).toBe("google.com");
   });
 
+  it("strips www. prefix from referrer_host", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ref-www" });
+    await SELF.fetch(
+      new Request("https://shrtnr.test/ref-www", {
+        redirect: "manual",
+        headers: { Referer: "https://www.linkedin.com/feed" },
+      }),
+    );
+    await new Promise((r) => setTimeout(r, 100));
+    const row = await env.DB
+      .prepare("SELECT referrer_host FROM clicks WHERE slug_id = ?")
+      .bind(link.slugs[0].id)
+      .first<{ referrer_host: string }>();
+    expect(row!.referrer_host).toBe("linkedin.com");
+  });
+
+  it("keeps meaningful subdomains in referrer_host", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ref-sub" });
+    await SELF.fetch(
+      new Request("https://shrtnr.test/ref-sub", {
+        redirect: "manual",
+        headers: { Referer: "https://firebase.google.com/docs" },
+      }),
+    );
+    await new Promise((r) => setTimeout(r, 100));
+    const row = await env.DB
+      .prepare("SELECT referrer_host FROM clicks WHERE slug_id = ?")
+      .bind(link.slugs[0].id)
+      .first<{ referrer_host: string }>();
+    expect(row!.referrer_host).toBe("firebase.google.com");
+  });
+
+  it("keeps country-code second-level domains intact in referrer_host", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ref-ccld" });
+    await SELF.fetch(
+      new Request("https://shrtnr.test/ref-ccld", {
+        redirect: "manual",
+        headers: { Referer: "https://somedomain.co.uk/page" },
+      }),
+    );
+    await new Promise((r) => setTimeout(r, 100));
+    const row = await env.DB
+      .prepare("SELECT referrer_host FROM clicks WHERE slug_id = ?")
+      .bind(link.slugs[0].id)
+      .first<{ referrer_host: string }>();
+    expect(row!.referrer_host).toBe("somedomain.co.uk");
+  });
+
   it("redirect stores user_agent string", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ua1" });
     const uaString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";

@@ -9,7 +9,8 @@ import { ClickData, Env } from "./types";
 function parseReferrerHost(referrer: string | null): string | null {
   if (!referrer) return null;
   try {
-    return new URL(referrer).hostname;
+    const host = new URL(referrer).hostname;
+    return host.startsWith("www.") ? host.slice(4) : host;
   } catch {
     return null;
   }
