@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.24.0 (2026-04-08)
+
+### MCP auth switched to Cloudflare Access Managed OAuth
+
+The custom OAuth provider (`@cloudflare/workers-oauth-provider`) is replaced by Cloudflare's built-in Access Managed OAuth. MCP clients now authenticate through a standard CF Access login flow instead of a Worker-managed OAuth handshake.
+
+- Removed `src/mcp/access-handler.ts`, `src/mcp/approval-dialog.ts`, `src/mcp/oauth-types.ts`, and `src/mcp/workers-oauth-utils.ts`. The Worker no longer implements its own OAuth 2.1 server.
+- Removed the `OAUTH_KV` binding and the six `ACCESS_*` OAuth secrets. MCP auth relies on the same `ACCESS_AUD` JWT verification used by the admin UI.
+- The Durable Object (`McpAgent`) is removed. MCP sessions are stateless again.
+- Extracted `isSignedIn()` helper in `access.ts` to share JWT-check logic between admin routes and the landing page redirect.
+- Refined light theme color palette for better contrast.
+- Updated dependencies and added `engines.node >= 22` constraint to `package.json`.
+
 ## 0.23.2 (2026-04-07)
 
 **Bar chart percentages**: Bar widths now reflect each item's share of the total clicks rather than its share of the top item's count. Indonesia at 5 of 9 total renders at 55%, not 100%.
