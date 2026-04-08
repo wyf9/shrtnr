@@ -7,10 +7,6 @@ export default defineConfig({
       wrangler: { configPath: "./wrangler.jsonc" },
       miniflare: {
         d1Databases: { DB: "test-db" },
-        kvNamespaces: ["OAUTH_KV"],
-        durableObjects: {
-          MCP_OBJECT: "ShrtnrMCP",
-        },
       },
     }),
   ],

@@ -18,51 +18,71 @@ import {
 beforeAll(applyMigrations);
 beforeEach(resetData);
 
-// ---- MCP endpoint auth ----
+// ---- Helper: build an unsigned fake JWT for dev/test mode ----
 
-describe("MCP endpoint auth", () => {
-  it("rejects unauthenticated requests", async () => {
+function makeFakeJwt(payload: Record<string, unknown>): string {
+  const header = btoa(JSON.stringify({ alg: "none", typ: "JWT" }));
+  const body = btoa(JSON.stringify(payload));
+  return `${header}.${body}.fakesig`;
+}
+
+// ---- Old OAuth routes return 404 ----
+
+describe("Old OAuth routes return 404", () => {
+  it("GET /oauth/authorize returns 404", async () => {
     const res = await SELF.fetch(
-      new Request("https://shrtnr.test/_/mcp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json, text/event-stream",
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "initialize",
-          params: {
-            protocolVersion: "2025-03-26",
-            capabilities: {},
-            clientInfo: { name: "test", version: "1.0.0" },
-          },
-        }),
-      }),
+      new Request("https://shrtnr.test/oauth/authorize"),
     );
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(404);
   });
 
-  it("rejects API key Bearer tokens on the MCP endpoint", async () => {
-    // Create an API key via the admin API
-    const createRes = await SELF.fetch(
-      new Request("https://shrtnr.test/_/admin/api/keys", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "mcp-test-key", scope: "create,read" }),
+  it("POST /oauth/callback returns 404", async () => {
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/oauth/callback", { method: "POST" }),
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("POST /oauth/token returns 404", async () => {
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/oauth/token", { method: "POST" }),
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("POST /oauth/register returns 404", async () => {
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/oauth/register", { method: "POST" }),
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+// ---- MCP landing page ----
+
+describe("MCP landing page", () => {
+  it("GET /_/mcp with Accept: text/html returns 200 with app name", async () => {
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/mcp", {
+        headers: { Accept: "text/html" },
       }),
     );
-    const { raw_key } = (await createRes.json()) as { raw_key: string };
+    expect(res.status).toBe(200);
+    const body = await res.text();
+    expect(body).toContain("shrtnr");
+  });
+});
 
-    // Try to use API key on MCP endpoint: should be rejected
+// ---- MCP transport in dev mode ----
+
+describe("MCP transport (dev mode, no MCP_ACCESS_AUD)", () => {
+  it("POST /_/mcp with Content-Type: application/json reaches MCP handler", async () => {
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/_/mcp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json, text/event-stream",
-          Authorization: `Bearer ${raw_key}`,
         },
         body: JSON.stringify({
           jsonrpc: "2.0",
@@ -76,72 +96,68 @@ describe("MCP endpoint auth", () => {
         }),
       }),
     );
-    expect(res.status).toBe(401);
+    // Should reach the MCP handler (not 404, not 401, not 403)
+    expect(res.status).not.toBe(404);
+    expect(res.status).not.toBe(401);
+    expect(res.status).not.toBe(403);
+  });
+
+  it("POST /_/mcp with Cf-Access-Jwt-Assertion fake JWT reaches MCP handler", async () => {
+    const token = makeFakeJwt({ email: "test@example.com" });
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/mcp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json, text/event-stream",
+          "Cf-Access-Jwt-Assertion": token,
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2025-03-26",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1.0.0" },
+          },
+        }),
+      }),
+    );
+    expect(res.status).not.toBe(404);
+    expect(res.status).not.toBe(401);
+    expect(res.status).not.toBe(403);
   });
 });
 
 // ---- OAuth discovery ----
 
 describe("OAuth discovery", () => {
-  it("serves OAuth authorization server metadata", async () => {
+  it("GET /.well-known/oauth-authorization-server returns 200 with correct endpoints", async () => {
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/.well-known/oauth-authorization-server"),
     );
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
-    expect(body.token_endpoint).toBeDefined();
-    expect(body.authorization_endpoint).toBeDefined();
+    expect(body.issuer).toBe("https://shrtnr.test");
+    expect(body.authorization_endpoint).toBe(
+      "https://shrtnr.test/cdn-cgi/access/oauth/authorization",
+    );
+    expect(body.token_endpoint).toBe(
+      "https://shrtnr.test/cdn-cgi/access/oauth/token",
+    );
+    expect(body.registration_endpoint).toBe(
+      "https://shrtnr.test/cdn-cgi/access/oauth/registration",
+    );
+    // Endpoints start with the test origin
+    expect((body.authorization_endpoint as string).startsWith("https://shrtnr.test")).toBe(true);
   });
 
-  it("serves OAuth protected resource metadata", async () => {
+  it("includes CORS header", async () => {
     const res = await SELF.fetch(
-      new Request("https://shrtnr.test/.well-known/oauth-protected-resource"),
+      new Request("https://shrtnr.test/.well-known/oauth-authorization-server"),
     );
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.resource).toBeDefined();
-    expect(body.authorization_servers).toBeDefined();
-  });
-
-  it("serves per-route protected resource metadata for /_/mcp", async () => {
-    const res = await SELF.fetch(
-      new Request("https://shrtnr.test/.well-known/oauth-protected-resource/_/mcp"),
-    );
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.resource).toContain("/_/mcp");
-  });
-
-  it("accepts dynamic client registration", async () => {
-    const res = await SELF.fetch(
-      new Request("https://shrtnr.test/oauth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          redirect_uris: ["https://example.com/callback"],
-          client_name: "Test Client",
-          token_endpoint_auth_method: "none",
-          grant_types: ["authorization_code", "refresh_token"],
-          response_types: ["code"],
-        }),
-      }),
-    );
-    expect(res.status).toBe(201);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.client_id).toBeDefined();
-  });
-
-  it("token endpoint rejects invalid grant", async () => {
-    const res = await SELF.fetch(
-      new Request("https://shrtnr.test/oauth/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: "grant_type=authorization_code&code=invalid&client_id=fake&redirect_uri=https://example.com/cb&code_verifier=test",
-      }),
-    );
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.error).toBeDefined();
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
   });
 });
 

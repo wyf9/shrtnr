@@ -1,5 +1,22 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
+//
+// Worker entry point.
+//
+// Authentication architecture:
+// - Cloudflare Access protects the MCP endpoint (/_/mcp) as a self-hosted
+//   application with Managed OAuth enabled. Access handles the full OAuth
+//   protocol for MCP clients: discovery, client registration, token
+//   issuance, and token validation.
+// - By the time requests reach this Worker, Access has validated the
+//   token and added identity headers (Cf-Access-Jwt-Assertion,
+//   Cf-Access-Authenticated-User-Email).
+// - The Worker extracts identity from these headers and passes it as
+//   props to the McpAgent Durable Object via ctx.props.
+// - The admin dashboard (/_/admin/*) is protected by a separate Access
+//   application with its own policies.
+// - In dev mode (no ACCESS_AUD), identity falls back to DEV_IDENTITY
+//   or "anonymous" so MCP and admin routes work without Access.
 
 import { Hono } from "hono";
 import type { Env } from "./types";
@@ -46,9 +63,7 @@ import { handleLinkQr } from "./api/qr";
 import { notFoundResponse } from "./404";
 import { landingResponse } from "./pages/landing";
 import { mcpLandingResponse } from "./mcp/page";
-import OAuthProvider from "@cloudflare/workers-oauth-provider";
 import { ShrtnrMCP } from "./mcp/server";
-import { handleAccessRequest } from "./mcp/access-handler";
 
 import { Layout } from "./pages/layout";
 import { DashboardPage } from "./pages/dashboard";
@@ -207,14 +222,7 @@ app.get("/_/admin/keys", async (c) => {
 app.get("/_/admin/settings", async (c) => {
   const identity = c.var.identity;
   const { theme, slugLength, t, lang, translations } = await getPageData(c, identity);
-  const mcpConfigured = Boolean(
-    c.env.ACCESS_CLIENT_ID &&
-    c.env.ACCESS_CLIENT_SECRET &&
-    c.env.ACCESS_TOKEN_URL &&
-    c.env.ACCESS_AUTHORIZATION_URL &&
-    c.env.ACCESS_JWKS_URL &&
-    c.env.COOKIE_ENCRYPTION_KEY,
-  );
+  const mcpConfigured = Boolean(c.env.MCP_ACCESS_AUD && c.env.ACCESS_JWKS_URL);
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="settings" theme={theme} t={t} lang={lang} translations={translations} userEmail={userEmail}>
@@ -419,30 +427,17 @@ app.get("/:slug", (c) => {
 
 app.notFound(() => notFoundResponse());
 
-// ---- MCP OAuth provider (top-level Worker export) ----
+// ---- MCP transport handler ----
 
 export { ShrtnrMCP };
 
-const oauthProvider = new OAuthProvider({
-  apiHandler: ShrtnrMCP.serve("/_/mcp"),
-  apiRoute: "/_/mcp",
-  authorizeEndpoint: "/oauth/authorize",
-  clientRegistrationEndpoint: "/oauth/register",
-  defaultHandler: {
-    fetch: async (request: Request, env: Env, ctx: ExecutionContext) => {
-      const { pathname } = new URL(request.url);
-      if (pathname === "/oauth/authorize" || pathname === "/oauth/callback") {
-        return handleAccessRequest(request, env as never, ctx);
-      }
-      return app.fetch(request, env, ctx);
-    },
-  },
-  tokenEndpoint: "/oauth/token",
-});
+const mcpHandler = ShrtnrMCP.serve("/_/mcp");
 
 export default {
-  fetch(request: Request, env: Env, ctx: ExecutionContext) {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    // MCP landing page for browser visits (no Bearer token, wants HTML).
     if (
       request.method === "GET" &&
       url.pathname === "/_/mcp" &&
@@ -451,9 +446,67 @@ export default {
     ) {
       return mcpLandingResponse();
     }
-    return oauthProvider.fetch(request, env, ctx);
+
+    // MCP transport endpoint.
+    // The MCP Access application has its own AUD tag (MCP_ACCESS_AUD),
+    // distinct from the admin application (ACCESS_AUD). Pass it explicitly
+    // so JWT validation uses the correct audience.
+    if (url.pathname === "/_/mcp" || url.pathname.startsWith("/_/mcp/")) {
+      const identity = await extractIdentity(request, env, env.MCP_ACCESS_AUD);
+      // In production (MCP_ACCESS_AUD set), reject anonymous requests so
+      // MCP clients and the CF Access AI Controls portal correctly detect
+      // that this endpoint requires authentication.
+      if (identity === "anonymous" && env.MCP_ACCESS_AUD) {
+        return new Response("Unauthorized", {
+          status: 401,
+          headers: {
+            "WWW-Authenticate": `Bearer realm="shrtnr"`,
+          },
+        });
+      }
+      (ctx as unknown as { props: Record<string, unknown> }).props = {
+        email: identity,
+      };
+      return mcpHandler.fetch!(request, env, ctx);
+    }
+
+    // OAuth Authorization Server Metadata (RFC 8414).
+    // MCP clients fetch this to discover OAuth endpoints. Endpoints are
+    // served at the application domain so CF Access can intercept
+    // /cdn-cgi/access/* requests with the correct application context.
+    if (url.pathname === "/.well-known/oauth-authorization-server") {
+      const base = `${url.protocol}//${url.host}`;
+      return Response.json(
+        {
+          issuer: base,
+          authorization_endpoint: `${base}/cdn-cgi/access/oauth/authorization`,
+          token_endpoint: `${base}/cdn-cgi/access/oauth/token`,
+          registration_endpoint: `${base}/cdn-cgi/access/oauth/registration`,
+          jwks_uri: `${base}/cdn-cgi/access/certs`,
+          revocation_endpoint: `${base}/cdn-cgi/access/oauth/revoke`,
+          response_types_supported: ["code"],
+          response_modes_supported: ["query"],
+          grant_types_supported: ["authorization_code", "refresh_token"],
+          token_endpoint_auth_methods_supported: [
+            "client_secret_basic",
+            "client_secret_post",
+            "none",
+          ],
+          code_challenge_methods_supported: ["S256"],
+        },
+        { headers: { "Access-Control-Allow-Origin": "*" } },
+      );
+    }
+
+    // Old OAuth routes: return 404.
+    if (url.pathname.startsWith("/oauth/")) {
+      return notFoundResponse();
+    }
+
+    // Everything else goes to the Hono app.
+    return app.fetch(request, env, ctx);
   },
-};
+} satisfies ExportedHandler<Env>;
 
 // ---- Auth helpers ----
 

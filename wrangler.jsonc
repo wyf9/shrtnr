@@ -21,12 +21,6 @@
       "migrations_dir": "migrations"
     }
   ],
-  // KV namespace for MCP OAuth session state
-  "kv_namespaces": [
-    {
-      "binding": "OAUTH_KV"
-    }
-  ],
   // Durable Object for MCP agent sessions
   "durable_objects": {
     "bindings": [

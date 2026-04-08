@@ -4,17 +4,10 @@
 export interface Env {
   DB: D1Database;
 
-  // OAuth / Cloudflare Access bindings
-  OAUTH_KV: KVNamespace;
-  ACCESS_CLIENT_ID: string;
-  ACCESS_CLIENT_SECRET: string;
-  ACCESS_TOKEN_URL: string;
-  ACCESS_AUTHORIZATION_URL: string;
-  ACCESS_JWKS_URL: string;
-  COOKIE_ENCRYPTION_KEY: string;
-
-  // Cloudflare Access JWT audience tag for admin routes
-  ACCESS_AUD: string;
+  // Cloudflare Access JWT audience tags
+  ACCESS_AUD: string;       // AUD tag from the admin CF Access application
+  MCP_ACCESS_AUD: string;   // AUD tag from the MCP CF Access application (Managed OAuth)
+  ACCESS_JWKS_URL: string;  // https://<team>.cloudflareaccess.com/cdn-cgi/access/certs
 
   // Dev-only: set to bypass login and assume this identity (e.g. "dev@local")
   DEV_IDENTITY?: string;

@@ -5,14 +5,9 @@ import type { Env } from "../types";
 function fakeEnv(overrides: Partial<Env> = {}): Env {
   return {
     DB: {} as D1Database,
-    OAUTH_KV: {} as KVNamespace,
-    ACCESS_CLIENT_ID: "",
-    ACCESS_CLIENT_SECRET: "",
-    ACCESS_TOKEN_URL: "",
-    ACCESS_AUTHORIZATION_URL: "",
-    ACCESS_JWKS_URL: "",
-    COOKIE_ENCRYPTION_KEY: "",
     ACCESS_AUD: "",
+    MCP_ACCESS_AUD: "",
+    ACCESS_JWKS_URL: "",
     MCP_OBJECT: {} as DurableObjectNamespace,
     ...overrides,
   };

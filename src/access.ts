@@ -36,14 +36,18 @@ function parseJwtPayload(token: string): Record<string, unknown> | null {
 /**
  * Extract a stable identity string from a request.
  *
- * In dev/test mode (ACCESS_AUD not set), reads from an unverified JWT or the
+ * In dev/test mode (aud not set), reads from an unverified JWT or the
  * Cf-Access-Authenticated-User-Email header. In production mode, reads from
  * the verified JWT payload.
  *
- * Tries claims in order: email → phone → sub. Falls back to "anonymous" so
+ * Tries claims in order: email -> phone -> sub. Falls back to "anonymous" so
  * the return value is always a non-empty string safe to use as a DB key.
+ *
+ * Pass the AUD for the Access application protecting the current route:
+ * - Admin routes: env.ACCESS_AUD
+ * - MCP routes:   env.MCP_ACCESS_AUD
  */
-export async function extractIdentity(request: Request, env: Env): Promise<string> {
+export async function extractIdentity(request: Request, env: Env, aud = env.ACCESS_AUD): Promise<string> {
   function fromPayload(payload: Record<string, unknown>): string | null {
     for (const claim of ["email", "phone", "sub"] as const) {
       const val = payload[claim];
@@ -53,7 +57,6 @@ export async function extractIdentity(request: Request, env: Env): Promise<strin
   }
 
   const token = request.headers.get("Cf-Access-Jwt-Assertion");
-  const aud = env.ACCESS_AUD;
 
   if (!aud) {
     // Dev/test mode: no cryptographic validation.
@@ -88,7 +91,10 @@ export async function extractIdentity(request: Request, env: Env): Promise<strin
 /**
  * Verify a Cloudflare Access JWT and extract the user email.
  *
- * Behavior depends on whether ACCESS_AUD is configured:
+ * Pass the AUD for the Access application protecting the current route.
+ * Defaults to env.ACCESS_AUD (admin application).
+ *
+ * Behavior depends on whether the aud is configured:
  * - Not configured (dev/test): extracts email from unverified JWT or
  *   the Cf-Access-Authenticated-User-Email header. Returns null if
  *   neither is present.
@@ -98,9 +104,9 @@ export async function extractIdentity(request: Request, env: Env): Promise<strin
 export async function verifyAccessJwt(
   request: Request,
   env: Env,
+  aud = env.ACCESS_AUD,
 ): Promise<AccessUser | null> {
   const token = request.headers.get("Cf-Access-Jwt-Assertion");
-  const aud = env.ACCESS_AUD;
 
   // Dev/test mode: no audience configured, skip cryptographic validation.
   if (!aud) {

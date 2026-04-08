@@ -5,7 +5,15 @@ import { McpAgent } from "agents/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { Env } from "../types";
-import type { Props } from "./oauth-types";
+
+/**
+ * Identity props populated from Cloudflare Access headers.
+ * With Managed OAuth, CF Access handles the OAuth protocol and
+ * the Worker reads identity from the forwarded request headers.
+ */
+interface Props {
+  email: string;
+}
 import { handleHealth } from "../api/health";
 import {
   listLinks,
