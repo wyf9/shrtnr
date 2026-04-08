@@ -89,6 +89,20 @@ export async function extractIdentity(request: Request, env: Env, aud = env.ACCE
 }
 
 /**
+ * Check whether the request carries a valid Cloudflare Access session.
+ * Looks for explicit auth signals (JWT header, CF_Authorization cookie)
+ * and verifies the JWT if present. Does not fall back to DEV_IDENTITY.
+ */
+export async function isSignedIn(request: Request, env: Env): Promise<boolean> {
+  const hasJwt = request.headers.has("Cf-Access-Jwt-Assertion");
+  const cookies = request.headers.get("Cookie") ?? "";
+  const hasCookie = cookies.includes("CF_Authorization=");
+  if (!hasJwt && !hasCookie) return false;
+  const user = await verifyAccessJwt(request, env);
+  return user !== null;
+}
+
+/**
  * Verify a Cloudflare Access JWT and extract the user email.
  *
  * Pass the AUD for the Access application protecting the current route.

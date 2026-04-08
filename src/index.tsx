@@ -20,7 +20,7 @@
 
 import { Hono } from "hono";
 import type { Env } from "./types";
-import { verifyAccessJwt, extractIdentity, type AccessUser } from "./access";
+import { verifyAccessJwt, extractIdentity, isSignedIn, type AccessUser } from "./access";
 import { handleRedirect } from "./redirect";
 import { unauthorizedResponse } from "./auth";
 import {
@@ -98,9 +98,10 @@ app.get("/_/health", () => handleHealth());
 
 app.use("/_/admin/*", async (c, next) => {
   const user = await verifyAccessJwt(c.req.raw, c.env);
-  // When ACCESS_AUD is configured, reject unauthenticated requests
+  // When ACCESS_AUD is configured, redirect unauthenticated visitors to
+  // the landing page rather than showing a raw 403.
   if (c.env.ACCESS_AUD && !user) {
-    return c.text("Unauthorized", 403);
+    return c.redirect("/", 302);
   }
   c.set("user", user);
   const identity = await extractIdentity(c.req.raw, c.env);
@@ -403,16 +404,13 @@ app.get("/_/api/slugs/:slug", (c) => {
 // ---- Root landing page ----
 
 app.get("/", async (c) => {
-  // Redirect to admin when the visitor has an active session.
-  // Only check explicit auth signals (JWT header, cookie), not DEV_IDENTITY.
-  const hasJwt = c.req.raw.headers.has("Cf-Access-Jwt-Assertion");
-  const cookies = c.req.raw.headers.get("Cookie") ?? "";
-  const hasCookie = cookies.includes("CF_Authorization=");
-  if (hasJwt || hasCookie) {
-    const user = await verifyAccessJwt(c.req.raw, c.env);
-    if (user) return c.redirect("/_/admin/dashboard", 302);
-  }
+  if (await isSignedIn(c.req.raw, c.env)) return c.redirect("/_/admin/dashboard", 302);
   return landingResponse();
+});
+
+app.get("/_", async (c) => {
+  if (await isSignedIn(c.req.raw, c.env)) return c.redirect("/_/admin/dashboard", 302);
+  return c.redirect("/", 302);
 });
 
 // ---- Slug redirect (catch-all) ----
