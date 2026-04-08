@@ -433,7 +433,24 @@ const mcpHandler = ShrtnrMCP.serve("/_/mcp");
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const url = new URL(request.url);
+    let url = new URL(request.url);
+
+    // CF Access MCP-type applications cannot be scoped to a path — they must
+    // own a full subdomain. Requests arriving on mcp.* are rewritten to the
+    // /_/mcp path so the rest of the routing logic stays unchanged.
+    // The CF MCP portal sends requests to /mcp on the subdomain, so strip that
+    // prefix before prepending the internal /_/mcp mount point.
+    if (
+      url.host.startsWith("mcp.") &&
+      !url.pathname.startsWith("/.well-known") &&
+      !url.pathname.startsWith("/cdn-cgi/")
+    ) {
+      const rewritten = new URL(url.href);
+      const stripped = url.pathname.replace(/^\/mcp(?=\/|$)/, "") || "/";
+      rewritten.pathname = "/_/mcp" + (stripped === "/" ? "" : stripped);
+      request = new Request(rewritten, request);
+      url = rewritten;
+    }
 
     // MCP landing page for browser visits (no Bearer token, wants HTML).
     if (

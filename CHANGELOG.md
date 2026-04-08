@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.25.0
+
+- MCP endpoint moved from path-based (`/_/mcp`) to dedicated subdomain (`mcp.*`). CF Access MCP-type applications cannot be scoped to a path, so the Worker now detects requests on any `mcp.*` host and rewrites them to the internal `/_/mcp` handler. Paths reserved by Cloudflare (`/.well-known/*`, `/cdn-cgi/*`) are excluded from the rewrite.
+- Updated README: MCP setup instructions now cover the subdomain requirement, Custom Domain registration, "Block AI bots" warning, and `claude.com` redirect URI. All client connection URLs updated from path-based to subdomain-based.
+
 ## 0.24.0 (2026-04-08)
 
 ### MCP auth switched to Cloudflare Access Managed OAuth
