@@ -2,6 +2,10 @@
 
 All notable changes to the SDK are documented in this file.
 
+## 0.6.1
+
+- `ClickStats` now includes `slug_clicks`, providing a breakdown of clicks for each individual slug associated with a link.
+
 ## 0.6.0
 
 ### Breaking

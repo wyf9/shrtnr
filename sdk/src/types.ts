@@ -49,6 +49,12 @@ export interface ClickStats {
   link_modes: NameCount[];
   channels: NameCount[];
   clicks_over_time: DateCount[];
+  slug_clicks: SlugCount[];
+}
+
+export interface SlugCount {
+  slug: string;
+  count: number;
 }
 
 export interface NameCount {
