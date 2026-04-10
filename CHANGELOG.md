@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.26.1 (2026-04-10)
+
+- MCP `create_link` now passes the authenticated user's email as `created_by`, so links created through MCP are owned by the caller.
+
 ## 0.26.0 (2026-04-10)
 
 ### Ownership-based access control
