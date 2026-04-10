@@ -103,7 +103,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         expires_at: z.number().int().optional().describe("Unix timestamp when the link expires"),
       },
       async ({ custom_slug, vanity_slug, ...opts }) => {
-        const result = await createLink(this.env, { ...opts, created_via: "mcp" });
+        const result = await createLink(this.env, { ...opts, created_via: "mcp", created_by: this.props.email });
         if (!result.ok) return fail(result.error);
 
         const requestedSlugs = custom_slug
