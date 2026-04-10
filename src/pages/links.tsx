@@ -44,9 +44,11 @@ export const LinksPage: FC<Props> = ({
   lang,
 }) => {
   const now = Math.floor(Date.now() / 1000);
+  const isLinkDisabled = (l: LinkWithSlugs) =>
+    !!(l.expires_at && l.expires_at < now);
   const filtered = showDisabled
     ? links
-    : links.filter((l) => !l.expires_at || l.expires_at > now);
+    : links.filter((l) => !isLinkDisabled(l));
 
   const sorted = [...filtered].sort((a, b) =>
     sort === "popular"
@@ -176,7 +178,7 @@ export const LinksPage: FC<Props> = ({
               if (a.is_custom !== b.is_custom) return a.is_custom - b.is_custom;
               return a.created_at - b.created_at;
             });
-            const disabled = !!(link.expires_at && link.expires_at < now);
+            const disabled = isLinkDisabled(link);
             return (
               <a
                 href={`/_/admin/links/${link.id}`}
@@ -189,10 +191,10 @@ export const LinksPage: FC<Props> = ({
                   <div class="link-slugs">
                     {orderedSlugs.map((s) => (
                       <span
-                        class={`slug-chip${s.is_custom ? " custom" : ""}${s.disabled_at ? " slug-chip-disabled" : ""}`}
+                        class={`slug-chip${s.is_custom ? " custom" : ""}${(s.disabled_at || disabled) ? " slug-chip-disabled" : ""}`}
                         onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(s.slug)}')`}
                         title={t("links.clickToCopy")}
-                        style={s.disabled_at ? "opacity:0.4" : undefined}
+                        style={(s.disabled_at || disabled) ? "opacity:0.4" : undefined}
                       >
                         {s.slug} <span class="icon">content_copy</span>
                       </span>

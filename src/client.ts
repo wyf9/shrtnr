@@ -330,7 +330,7 @@ function showDisableLinkModal(id) {
 function doDisableLink(id) {
   api('/links/' + id + '/disable', { method: 'POST' }).then(function(res) {
     if (res.ok) { closeModal(); toast(t('client.linkDisabled')); window.location.reload(); }
-    else toast(t('client.disableError'), 'error');
+    else res.json().then(function(body) { toast(body.error || t('client.disableError'), 'error'); }).catch(function() { toast(t('client.disableError'), 'error'); });
   });
 }
 
@@ -345,7 +345,7 @@ function showDeleteLinkModal(id) {
 function doDeleteLink(id) {
   api('/links/' + id, { method: 'DELETE' }).then(function(res) {
     if (res.ok) { closeModal(); toast(t('client.linkDeleted')); window.location.href = '/_/admin/links'; }
-    else toast(t('client.deleteError'), 'error');
+    else res.json().then(function(body) { toast(body.error || t('client.deleteError'), 'error'); }).catch(function() { toast(t('client.deleteError'), 'error'); });
   });
 }
 
@@ -358,9 +358,9 @@ function showEnableLinkModal(id) {
   );
 }
 function doEnableLink(id) {
-  api('/links/' + id, { method: 'PUT', body: JSON.stringify({ expires_at: null }) }).then(function(res) {
+  api('/links/' + id + '/enable', { method: 'POST' }).then(function(res) {
     if (res.ok) { closeModal(); toast(t('client.linkEnabled')); window.location.reload(); }
-    else toast(t('client.enableError'), 'error');
+    else res.json().then(function(body) { toast(body.error || t('client.enableError'), 'error'); }).catch(function() { toast(t('client.enableError'), 'error'); });
   });
 }
 

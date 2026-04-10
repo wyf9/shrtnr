@@ -85,11 +85,13 @@ type Props = {
   analytics: ClickStats;
   t: TranslateFn;
   lang: string;
+  identity: string;
 };
 
-export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
+export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }) => {
   const now = Math.floor(Date.now() / 1000);
   const isExpired = !!(link.expires_at && link.expires_at < now);
+  const isOwner = identity === link.created_by;
 
   // Primary slug is the one marked is_primary, falling back to first custom, then random
   const primarySlug = link.slugs.find((s) => s.is_primary)
@@ -146,19 +148,23 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
             <button class="detail-menu-item" onclick={`showDuplicateModal(${link.id}, '${escHtml(link.url)}')`}>
               <span class="icon">content_copy</span> {t("linkDetail.duplicate")}
             </button>
-            <div class="detail-menu-divider" />
-            {isExpired ? (
-              <button class="detail-menu-item" onclick={`showEnableLinkModal(${link.id})`}>
-                <span class="icon">check_circle</span> {t("linkDetail.enable")}
-              </button>
-            ) : link.total_clicks === 0 ? (
-              <button class="detail-menu-item detail-menu-danger" onclick={`showDeleteLinkModal(${link.id})`}>
-                <span class="icon">delete</span> {t("linkDetail.delete")}
-              </button>
-            ) : (
-              <button class="detail-menu-item detail-menu-danger" onclick={`showDisableLinkModal(${link.id})`}>
-                <span class="icon">block</span> {t("linkDetail.disable")}
-              </button>
+            {isOwner && (
+              <>
+                <div class="detail-menu-divider" />
+                {isExpired ? (
+                  <button class="detail-menu-item" onclick={`showEnableLinkModal(${link.id})`}>
+                    <span class="icon">check_circle</span> {t("linkDetail.enable")}
+                  </button>
+                ) : link.total_clicks === 0 ? (
+                  <button class="detail-menu-item detail-menu-danger" onclick={`showDeleteLinkModal(${link.id})`}>
+                    <span class="icon">delete</span> {t("linkDetail.delete")}
+                  </button>
+                ) : (
+                  <button class="detail-menu-item detail-menu-danger" onclick={`showDisableLinkModal(${link.id})`}>
+                    <span class="icon">block</span> {t("linkDetail.disable")}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -281,18 +287,19 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang }) => {
         <div class="bento-label">{t("linkDetail.slugs")}</div>
         <div class="slugs-table">
           {[...link.slugs].sort((a, b) => a.is_custom - b.is_custom).map((s) => {
-            const isDisabled = !!s.disabled_at;
+            const slugDisabled = !!s.disabled_at;
+            const effectivelyDisabled = slugDisabled || isExpired;
             const isPrimary = s.is_primary === 1;
             const isCustom = s.is_custom === 1;
-            const canDelete = isCustom && s.click_count === 0 && !isDisabled;
-            const canDisable = isCustom && !isDisabled && s.click_count > 0;
-            const canEnable = isCustom && isDisabled;
+            const canDelete = isOwner && isCustom && s.click_count === 0 && !slugDisabled;
+            const canDisable = isOwner && isCustom && !slugDisabled && s.click_count > 0;
+            const canEnable = isOwner && isCustom && slugDisabled;
             const pct = maxSlugClicks > 0 ? ((s.click_count / maxSlugClicks) * 100).toFixed(0) : "0";
 
             return (
-              <div class={`slugs-row${isDisabled ? " slugs-row-disabled" : ""}${isPrimary ? " slugs-row-primary" : ""}`} data-slug-id={s.id}>
+              <div class={`slugs-row${effectivelyDisabled ? " slugs-row-disabled" : ""}${isPrimary ? " slugs-row-primary" : ""}`} data-slug-id={s.id}>
                 <div class="slugs-row-actions-left">
-                  {!isDisabled && (
+                  {!effectivelyDisabled && (
                     <>
                       <button
                         class="btn-icon"
