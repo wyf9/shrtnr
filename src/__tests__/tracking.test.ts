@@ -146,8 +146,8 @@ describe("created_via tracking", () => {
 describe("QR link mode tracking", () => {
   it("ClickRepository.record stores link_mode when provided", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    const slugId = link.slugs[0].id;
-    await ClickRepository.record(env.DB, slugId, {
+    const slug = link.slugs[0].slug;
+    await ClickRepository.record(env.DB, slug, {
       country: "US",
       deviceType: "mobile",
       browser: "Chrome",
@@ -155,24 +155,24 @@ describe("QR link mode tracking", () => {
     });
 
     const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug_id = ?")
-      .bind(slugId)
+      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+      .bind(slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("qr");
   });
 
   it("ClickRepository.record defaults link_mode to 'link' for regular clicks", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    const slugId = link.slugs[0].id;
-    await ClickRepository.record(env.DB, slugId, {
+    const slug = link.slugs[0].slug;
+    await ClickRepository.record(env.DB, slug, {
       country: "US",
       deviceType: "mobile",
       browser: "Chrome",
     });
 
     const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug_id = ?")
-      .bind(slugId)
+      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+      .bind(slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("link");
   });
@@ -187,8 +187,8 @@ describe("QR link mode tracking", () => {
     await new Promise((r) => setTimeout(r, 100));
 
     const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("qr");
   });
@@ -203,8 +203,8 @@ describe("QR link mode tracking", () => {
     await new Promise((r) => setTimeout(r, 100));
 
     const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("link");
   });
@@ -219,8 +219,8 @@ describe("QR link mode tracking", () => {
     await new Promise((r) => setTimeout(r, 100));
 
     const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("qr");
   });
@@ -235,18 +235,18 @@ describe("QR link mode tracking", () => {
     await new Promise((r) => setTimeout(r, 100));
 
     const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("link");
   });
 
   it("analytics includes link_mode breakdown", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    const slugId = link.slugs[0].id;
-    await ClickRepository.record(env.DB, slugId, { linkMode: "qr" });
-    await ClickRepository.record(env.DB, slugId, { linkMode: "qr" });
-    await ClickRepository.record(env.DB, slugId);
+    const slug = link.slugs[0].slug;
+    await ClickRepository.record(env.DB, slug, { linkMode: "qr" });
+    await ClickRepository.record(env.DB, slug, { linkMode: "qr" });
+    await ClickRepository.record(env.DB, slug);
 
     const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.link_modes).toEqual(
@@ -271,8 +271,8 @@ describe("UTM parameter tracking", () => {
     await new Promise((r) => setTimeout(r, 100));
 
     const row = await env.DB
-      .prepare("SELECT utm_source, utm_medium, utm_campaign, utm_term, utm_content FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT utm_source, utm_medium, utm_campaign, utm_term, utm_content FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ utm_source: string; utm_medium: string; utm_campaign: string; utm_term: string; utm_content: string }>();
     expect(row!.utm_source).toBe("newsletter");
     expect(row!.utm_medium).toBe("email");
@@ -291,8 +291,8 @@ describe("UTM parameter tracking", () => {
     await new Promise((r) => setTimeout(r, 100));
 
     const row = await env.DB
-      .prepare("SELECT link_mode, utm_medium, utm_source, utm_campaign FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT link_mode, utm_medium, utm_source, utm_campaign FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ link_mode: string; utm_medium: string; utm_source: string; utm_campaign: string }>();
     expect(row!.link_mode).toBe("qr");
     expect(row!.utm_medium).toBe("qr");
@@ -319,8 +319,8 @@ describe("OS and referrer_host tracking", () => {
     await new Promise((r) => setTimeout(r, 100));
 
     const row = await env.DB
-      .prepare("SELECT os FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT os FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ os: string }>();
     expect(row!.os).toBe("ios");
   });
@@ -340,8 +340,8 @@ describe("OS and referrer_host tracking", () => {
     await new Promise((r) => setTimeout(r, 100));
 
     const row = await env.DB
-      .prepare("SELECT referrer, referrer_host FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT referrer, referrer_host FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ referrer: string; referrer_host: string }>();
     expect(row!.referrer).toBe("https://google.com/search?q=test");
     expect(row!.referrer_host).toBe("google.com");
@@ -357,8 +357,8 @@ describe("OS and referrer_host tracking", () => {
     );
     await new Promise((r) => setTimeout(r, 100));
     const row = await env.DB
-      .prepare("SELECT referrer_host FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT referrer_host FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ referrer_host: string }>();
     expect(row!.referrer_host).toBe("linkedin.com");
   });
@@ -373,8 +373,8 @@ describe("OS and referrer_host tracking", () => {
     );
     await new Promise((r) => setTimeout(r, 100));
     const row = await env.DB
-      .prepare("SELECT referrer_host FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT referrer_host FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ referrer_host: string }>();
     expect(row!.referrer_host).toBe("firebase.google.com");
   });
@@ -389,8 +389,8 @@ describe("OS and referrer_host tracking", () => {
     );
     await new Promise((r) => setTimeout(r, 100));
     const row = await env.DB
-      .prepare("SELECT referrer_host FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT referrer_host FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ referrer_host: string }>();
     expect(row!.referrer_host).toBe("somedomain.co.uk");
   });
@@ -409,8 +409,8 @@ describe("OS and referrer_host tracking", () => {
     await new Promise((r) => setTimeout(r, 100));
 
     const row = await env.DB
-      .prepare("SELECT user_agent FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+      .prepare("SELECT user_agent FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ user_agent: string }>();
     expect(row!.user_agent).toBe(uaString);
   });

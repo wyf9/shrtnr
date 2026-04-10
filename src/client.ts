@@ -394,7 +394,7 @@ function showChangePrimaryModal(linkId) {
       html += '<div style="display:flex;flex-direction:column;gap:0.25rem;margin-bottom:1rem">';
       link.slugs.forEach(function(s) {
         var active = s.is_primary ? ' style="background:var(--color-selection);border-color:var(--color-accent)"' : '';
-        html += '<button class="btn btn-ghost" ' + active + ' onclick="doSetPrimary(' + linkId + ',' + s.id + ')" style="justify-content:flex-start;font-family:var(--font-family-mono);font-size:0.875rem">';
+        html += '<button class="btn btn-ghost" ' + active + ' onclick="doSetPrimary(' + linkId + ',\'' + s.slug + '\')" style="justify-content:flex-start;font-family:var(--font-family-mono);font-size:0.875rem">';
         html += '/' + esc(s.slug);
         if (s.is_primary) html += ' <span class="icon" style="font-size:14px;color:var(--color-accent);margin-left:auto">star</span>';
         html += '</button>';
@@ -405,8 +405,8 @@ function showChangePrimaryModal(linkId) {
     });
   });
 }
-function doSetPrimary(linkId, slugId) {
-  api('/links/' + linkId + '/slugs/primary', { method: 'PUT', body: JSON.stringify({ slug_id: slugId }) }).then(function(res) {
+function doSetPrimary(linkId, slug) {
+  api('/links/' + linkId + '/slugs/primary', { method: 'PUT', body: JSON.stringify({ slug: slug }) }).then(function(res) {
     if (res.ok) { closeModal(); toast(t('client.labelUpdated')); window.location.reload(); }
     else res.json().then(function(data) { toast(data.error || 'Error', 'error'); });
   });
@@ -428,43 +428,43 @@ function doDuplicate(url) {
 }
 
 // ---- Slug actions (detail page) ----
-function confirmDeleteSlug(linkId, slugId, slugText) {
+function confirmDeleteSlug(linkId, slug) {
   openModal(
     '<div class="modal-title">' + esc(t('linkDetail.deleteSlug')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDeleteSlug').replace('{slug}', slugText)) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDeleteSlug(' + linkId + ',' + slugId + ')">' + esc(t('linkDetail.deleteSlug')) + '</button></div>'
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDeleteSlug').replace('{slug}', slug)) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDeleteSlug(' + linkId + ',\'' + slug + '\')">' + esc(t('linkDetail.deleteSlug')) + '</button></div>'
   );
 }
-function doDeleteSlug(linkId, slugId) {
-  api('/links/' + linkId + '/slugs/' + slugId, { method: 'DELETE' }).then(function(res) {
+function doDeleteSlug(linkId, slug) {
+  api('/links/' + linkId + '/slugs/' + slug, { method: 'DELETE' }).then(function(res) {
     if (res.ok) { closeModal(); toast(t('client.customAdded')); window.location.reload(); }
     else res.json().then(function(data) { toast(data.error || 'Error', 'error'); });
   });
 }
 
-function confirmDisableSlug(linkId, slugId, slugText) {
+function confirmDisableSlug(linkId, slug) {
   openModal(
     '<div class="modal-title">' + esc(t('linkDetail.disableSlug')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDisableSlug').replace('{slug}', slugText)) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDisableSlug(' + linkId + ',' + slugId + ')">' + esc(t('linkDetail.disableSlug')) + '</button></div>'
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDisableSlug').replace('{slug}', slug)) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDisableSlug(' + linkId + ',\'' + slug + '\')">' + esc(t('linkDetail.disableSlug')) + '</button></div>'
   );
 }
-function doDisableSlug(linkId, slugId) {
-  api('/links/' + linkId + '/slugs/' + slugId + '/disable', { method: 'POST' }).then(function(res) {
+function doDisableSlug(linkId, slug) {
+  api('/links/' + linkId + '/slugs/' + slug + '/disable', { method: 'POST' }).then(function(res) {
     if (res.ok) { closeModal(); window.location.reload(); }
     else res.json().then(function(data) { toast(data.error || 'Error', 'error'); });
   });
 }
 
-function confirmEnableSlug(linkId, slugId, slugText) {
+function confirmEnableSlug(linkId, slug) {
   openModal(
     '<div class="modal-title">' + esc(t('linkDetail.enableSlug')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmEnableSlug').replace('{slug}', slugText)) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="doEnableSlug(' + linkId + ',' + slugId + ')">' + esc(t('linkDetail.enableSlug')) + '</button></div>'
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmEnableSlug').replace('{slug}', slug)) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="doEnableSlug(' + linkId + ',\'' + slug + '\')">' + esc(t('linkDetail.enableSlug')) + '</button></div>'
   );
 }
-function doEnableSlug(linkId, slugId) {
-  api('/links/' + linkId + '/slugs/' + slugId + '/enable', { method: 'POST' }).then(function(res) {
+function doEnableSlug(linkId, slug) {
+  api('/links/' + linkId + '/slugs/' + slug + '/enable', { method: 'POST' }).then(function(res) {
     if (res.ok) { closeModal(); window.location.reload(); }
     else res.json().then(function(data) { toast(data.error || 'Error', 'error'); });
   });

@@ -11,7 +11,7 @@ describe("ClickRepository.record", () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     expect(link.slugs[0].click_count).toBe(0);
 
-    await ClickRepository.record(env.DB, link.slugs[0].id);
+    await ClickRepository.record(env.DB, link.slugs[0].slug);
     const after1 = await LinkRepository.getById(env.DB, link.id);
     expect(after1!.slugs[0].click_count).toBe(1);
     expect(after1!.total_clicks).toBe(1);
@@ -19,17 +19,17 @@ describe("ClickRepository.record", () => {
 
   it("click_count counts all link modes together", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    const slugId = link.slugs[0].id;
-    await ClickRepository.record(env.DB, slugId, { linkMode: "link" });
-    await ClickRepository.record(env.DB, slugId, { linkMode: "link" });
-    await ClickRepository.record(env.DB, slugId, { linkMode: "qr" });
+    const slug = link.slugs[0].slug;
+    await ClickRepository.record(env.DB, slug, { linkMode: "link" });
+    await ClickRepository.record(env.DB, slug, { linkMode: "link" });
+    await ClickRepository.record(env.DB, slug, { linkMode: "qr" });
     const updated = await LinkRepository.getById(env.DB, link.id);
     expect(updated!.slugs[0].click_count).toBe(3);
   });
 
   it("stores referrer, country, device type, and browser", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, {
+    await ClickRepository.record(env.DB, link.slugs[0].slug, {
       referrer: "https://referrer.com",
       country: "US",
       deviceType: "mobile",
@@ -45,26 +45,26 @@ describe("ClickRepository.record", () => {
 
   it("stores link_mode when provided", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, {
+    await ClickRepository.record(env.DB, link.slugs[0].slug, {
       country: "US",
       deviceType: "mobile",
       browser: "Chrome",
       linkMode: "qr",
     });
-    const row = await env.DB.prepare("SELECT link_mode FROM clicks WHERE slug_id = ?").bind(link.slugs[0].id).first<{ link_mode: string }>();
+    const row = await env.DB.prepare("SELECT link_mode FROM clicks WHERE slug = ?").bind(link.slugs[0].slug).first<{ link_mode: string }>();
     expect(row!.link_mode).toBe("qr");
   });
 
   it("defaults link_mode to link when not provided", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id);
-    const row = await env.DB.prepare("SELECT link_mode FROM clicks WHERE slug_id = ?").bind(link.slugs[0].id).first<{ link_mode: string }>();
+    await ClickRepository.record(env.DB, link.slugs[0].slug);
+    const row = await env.DB.prepare("SELECT link_mode FROM clicks WHERE slug = ?").bind(link.slugs[0].slug).first<{ link_mode: string }>();
     expect(row!.link_mode).toBe("link");
   });
 
   it("handles null values without error", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id);
+    await ClickRepository.record(env.DB, link.slugs[0].slug);
     const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.total_clicks).toBe(1);
     expect(stats.countries).toEqual([]);
@@ -75,14 +75,14 @@ describe("ClickRepository.record", () => {
 
   it("stores os when provided", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { os: "ios" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { os: "ios" });
     const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.os).toEqual([{ name: "ios", count: 1 }]);
   });
 
   it("stores referrer_host when provided", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, {
+    await ClickRepository.record(env.DB, link.slugs[0].slug, {
       referrer: "https://google.com/search?q=test",
       referrerHost: "google.com",
     });
@@ -92,13 +92,13 @@ describe("ClickRepository.record", () => {
 
   it("stores UTM parameters", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, {
+    await ClickRepository.record(env.DB, link.slugs[0].slug, {
       utmSource: "newsletter",
       utmMedium: "email",
       utmCampaign: "spring-launch",
     });
-    const row = await env.DB.prepare("SELECT utm_source, utm_medium, utm_campaign FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+    const row = await env.DB.prepare("SELECT utm_source, utm_medium, utm_campaign FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ utm_source: string; utm_medium: string; utm_campaign: string }>();
     expect(row!.utm_source).toBe("newsletter");
     expect(row!.utm_medium).toBe("email");
@@ -107,12 +107,12 @@ describe("ClickRepository.record", () => {
 
   it("stores channel (traffic source) separately from link_mode", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, {
+    await ClickRepository.record(env.DB, link.slugs[0].slug, {
       linkMode: "qr",
       channel: "social",
     });
-    const row = await env.DB.prepare("SELECT link_mode, channel FROM clicks WHERE slug_id = ?")
-      .bind(link.slugs[0].id)
+    const row = await env.DB.prepare("SELECT link_mode, channel FROM clicks WHERE slug = ?")
+      .bind(link.slugs[0].slug)
       .first<{ link_mode: string; channel: string }>();
     expect(row!.link_mode).toBe("qr");
     expect(row!.channel).toBe("social");
@@ -141,17 +141,17 @@ describe("ClickRepository.getStats", () => {
     const fetched = (await LinkRepository.getById(env.DB, link.id))!;
     const autoSlug = fetched.slugs.find((s) => s.is_custom === 0)!;
     const customSlug = fetched.slugs.find((s) => s.is_custom === 1)!;
-    await ClickRepository.record(env.DB, autoSlug.id, { country: "US", deviceType: "desktop", browser: "Chrome" });
-    await ClickRepository.record(env.DB, customSlug.id, { country: "DE", deviceType: "mobile", browser: "Firefox" });
+    await ClickRepository.record(env.DB, autoSlug.slug, { country: "US", deviceType: "desktop", browser: "Chrome" });
+    await ClickRepository.record(env.DB, customSlug.slug, { country: "DE", deviceType: "mobile", browser: "Firefox" });
     const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.total_clicks).toBe(2);
   });
 
   it("returns link_mode breakdown", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { linkMode: "qr" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { linkMode: "qr" });
-    await ClickRepository.record(env.DB, link.slugs[0].id);
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { linkMode: "qr" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { linkMode: "qr" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug);
     const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.link_modes).toEqual(
       expect.arrayContaining([
@@ -163,9 +163,9 @@ describe("ClickRepository.getStats", () => {
 
   it("returns os breakdown", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { os: "ios" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { os: "android" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { os: "ios" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { os: "ios" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { os: "android" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { os: "ios" });
     const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.os).toEqual([
       { name: "ios", count: 2 },
@@ -175,9 +175,9 @@ describe("ClickRepository.getStats", () => {
 
   it("returns referrer_hosts breakdown", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { referrerHost: "google.com" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { referrerHost: "google.com" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { referrerHost: "facebook.com" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { referrerHost: "google.com" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { referrerHost: "google.com" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { referrerHost: "facebook.com" });
     const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.referrer_hosts).toEqual([
       { name: "google.com", count: 2 },
@@ -189,7 +189,7 @@ describe("ClickRepository.getStats", () => {
 describe("ClickRepository.getDashboardStats", () => {
   it("returns totals and top lists", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { country: "US", deviceType: "desktop", browser: "Chrome" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { country: "US", deviceType: "desktop", browser: "Chrome" });
     const stats = await ClickRepository.getDashboardStats(env.DB);
     expect(stats.total_links).toBe(1);
     expect(stats.total_clicks).toBe(1);
@@ -210,22 +210,22 @@ describe("ClickRepository.getDashboardStats", () => {
 describe("ClickRepository.getStats with range filter", () => {
   it("returns all clicks when range is undefined", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { country: "US" });
-    await ClickRepository.record(env.DB, link.slugs[0].id, { country: "DE" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { country: "US" });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { country: "DE" });
     const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.total_clicks).toBe(2);
   });
 
   it("filters clicks by 7d range", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    const slugId = link.slugs[0].id;
+    const slug = link.slugs[0].slug;
     // Insert a recent click
-    await ClickRepository.record(env.DB, slugId, { country: "US" });
+    await ClickRepository.record(env.DB, slug, { country: "US" });
     // Insert an old click (30 days ago) by directly writing to DB
     const oldTs = Math.floor(Date.now() / 1000) - 30 * 86400;
     await env.DB.prepare(
-      "INSERT INTO clicks (slug_id, clicked_at, country, link_mode) VALUES (?, ?, ?, ?)"
-    ).bind(slugId, oldTs, "DE", "link").run();
+      "INSERT INTO clicks (slug, clicked_at, country, link_mode) VALUES (?, ?, ?, ?)"
+    ).bind(slug, oldTs, "DE", "link").run();
 
     const allStats = await ClickRepository.getStats(env.DB, link.id);
     expect(allStats.total_clicks).toBe(2);
@@ -237,9 +237,9 @@ describe("ClickRepository.getStats with range filter", () => {
 
   it("filters all breakdown fields by range", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    const slugId = link.slugs[0].id;
+    const slug = link.slugs[0].slug;
     // Recent click
-    await ClickRepository.record(env.DB, slugId, {
+    await ClickRepository.record(env.DB, slug, {
       country: "US",
       referrerHost: "google.com",
       os: "ios",
@@ -249,8 +249,8 @@ describe("ClickRepository.getStats with range filter", () => {
     // Old click (60 days ago)
     const oldTs = Math.floor(Date.now() / 1000) - 60 * 86400;
     await env.DB.prepare(
-      "INSERT INTO clicks (slug_id, clicked_at, country, referrer_host, os, browser, device_type, link_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-    ).bind(slugId, oldTs, "DE", "facebook.com", "android", "Chrome", "desktop", "link").run();
+      "INSERT INTO clicks (slug, clicked_at, country, referrer_host, os, browser, device_type, link_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    ).bind(slug, oldTs, "DE", "facebook.com", "android", "Chrome", "desktop", "link").run();
 
     const stats = await ClickRepository.getStats(env.DB, link.id, "30d");
     expect(stats.total_clicks).toBe(1);
@@ -296,8 +296,8 @@ describe("ClickRepository.getTimeline", () => {
 
   it("counts clicks in summary stats", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id);
-    await ClickRepository.record(env.DB, link.slugs[0].id);
+    await ClickRepository.record(env.DB, link.slugs[0].slug);
+    await ClickRepository.record(env.DB, link.slugs[0].slug);
     const tl = await ClickRepository.getTimeline(env.DB, link.id, "7d");
     expect(tl.summary.last_24h).toBe(2);
     expect(tl.summary.last_7d).toBe(2);
@@ -308,7 +308,7 @@ describe("ClickRepository.getTimeline", () => {
 
   it("places click counts in the correct bucket", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id);
+    await ClickRepository.record(env.DB, link.slugs[0].slug);
     const tl = await ClickRepository.getTimeline(env.DB, link.id, "7d");
     // The last bucket (today) should have the click
     const lastBucket = tl.buckets[tl.buckets.length - 1];
@@ -323,7 +323,7 @@ describe("ClickRepository.getTimeline", () => {
 
   it("all range returns buckets with granularity based on data span", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].id);
+    await ClickRepository.record(env.DB, link.slugs[0].slug);
     const tl = await ClickRepository.getTimeline(env.DB, link.id, "all");
     expect(tl.range).toBe("all");
     expect(tl.buckets.length).toBeGreaterThanOrEqual(1);

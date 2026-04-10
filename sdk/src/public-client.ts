@@ -57,16 +57,16 @@ export class ShrtnrClient extends ShrtnrBaseClient {
     return this.request("POST", `/_/api/links/${linkId}/slugs`, { slug });
   }
 
-  async disableSlug(linkId: number, slugId: number): Promise<Slug> {
-    return this.request("POST", `/_/api/links/${linkId}/slugs/${slugId}/disable`);
+  async disableSlug(linkId: number, slug: string): Promise<Slug> {
+    return this.request("POST", `/_/api/links/${linkId}/slugs/${encodeURIComponent(slug)}/disable`);
   }
 
-  async enableSlug(linkId: number, slugId: number): Promise<Slug> {
-    return this.request("POST", `/_/api/links/${linkId}/slugs/${slugId}/enable`);
+  async enableSlug(linkId: number, slug: string): Promise<Slug> {
+    return this.request("POST", `/_/api/links/${linkId}/slugs/${encodeURIComponent(slug)}/enable`);
   }
 
-  async removeSlug(linkId: number, slugId: number): Promise<{ removed: boolean }> {
-    return this.request("DELETE", `/_/api/links/${linkId}/slugs/${slugId}`);
+  async removeSlug(linkId: number, slug: string): Promise<{ removed: boolean }> {
+    return this.request("DELETE", `/_/api/links/${linkId}/slugs/${encodeURIComponent(slug)}`);
   }
 
   async getLinkBySlug(slug: string): Promise<Link> {

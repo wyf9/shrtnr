@@ -302,7 +302,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
             const pct = maxSlugClicks > 0 ? ((s.click_count / maxSlugClicks) * 100).toFixed(0) : "0";
 
             return (
-              <div class={`slugs-row${effectivelyDisabled ? " slugs-row-disabled" : ""}${isPrimary ? " slugs-row-primary" : ""}`} data-slug-id={s.id}>
+              <div class={`slugs-row${effectivelyDisabled ? " slugs-row-disabled" : ""}${isPrimary ? " slugs-row-primary" : ""}`} data-slug-id={s.slug}>
                 <div class="slugs-row-actions-left">
                   {!effectivelyDisabled && (
                     <>
@@ -340,19 +340,19 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   <div class="slugs-row-bar">
                     <div
                       class="slugs-row-fill orange"
-                      data-slug-fill={s.id}
+                      data-slug-fill={s.slug}
                       style={`width:${pct}%`}
                     />
                   </div>
                 </div>
 
-                <div class="slugs-row-count" data-slug-count={s.id}>{s.click_count}</div>
+                <div class="slugs-row-count" data-slug-count={s.slug}>{s.click_count}</div>
 
                 <div class="slugs-row-actions-right">
                   {canDelete && (
                     <button
                       class="btn-icon btn-icon-danger"
-                      onclick={`confirmDeleteSlug(${link.id}, ${s.id}, '${escHtml(s.slug)}')`}
+                      onclick={`confirmDeleteSlug(${link.id}, '${escHtml(s.slug)}')`}
                       title={t("linkDetail.deleteSlug")}
                     >
                       <span class="icon" style="font-size:18px">delete</span>
@@ -361,7 +361,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   {canDisable && (
                     <button
                       class="btn-icon btn-icon-danger"
-                      onclick={`confirmDisableSlug(${link.id}, ${s.id}, '${escHtml(s.slug)}')`}
+                      onclick={`confirmDisableSlug(${link.id}, '${escHtml(s.slug)}')`}
                       title={t("linkDetail.disableSlug")}
                     >
                       <span class="icon" style="font-size:18px">block</span>
@@ -370,7 +370,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   {canEnable && (
                     <button
                       class="btn-icon"
-                      onclick={`confirmEnableSlug(${link.id}, ${s.id}, '${escHtml(s.slug)}')`}
+                      onclick={`confirmEnableSlug(${link.id}, '${escHtml(s.slug)}')`}
                       title={t("linkDetail.enableSlug")}
                     >
                       <span class="icon" style="font-size:18px">check_circle</span>

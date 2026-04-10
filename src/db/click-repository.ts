@@ -13,18 +13,18 @@ const VALID_DIMENSIONS = new Set<BreakdownDimension>([
 export class ClickRepository {
   static async record(
     db: D1Database,
-    slugId: number,
+    slug: string,
     data: ClickData = {},
   ): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
     const mode = data.linkMode ?? "link";
     await db
       .prepare(
-        `INSERT INTO clicks (slug_id, clicked_at, referrer, referrer_host, country, region, city, device_type, os, browser, language, link_mode, channel, utm_source, utm_medium, utm_campaign, utm_term, utm_content, user_agent, is_bot)
+        `INSERT INTO clicks (slug, clicked_at, referrer, referrer_host, country, region, city, device_type, os, browser, language, link_mode, channel, utm_source, utm_medium, utm_campaign, utm_term, utm_content, user_agent, is_bot)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
-        slugId,
+        slug,
         now,
         data.referrer ?? null,
         data.referrerHost ?? null,
@@ -49,18 +49,18 @@ export class ClickRepository {
   }
 
   static async getStats(db: D1Database, linkId: number, range?: TimelineRange): Promise<ClickStats> {
-    const slugIds = await db
-      .prepare("SELECT id FROM slugs WHERE link_id = ?")
+    const slugRows = await db
+      .prepare("SELECT slug FROM slugs WHERE link_id = ?")
       .bind(linkId)
-      .all<{ id: number }>();
-    const ids = (slugIds.results ?? []).map((r) => r.id);
+      .all<{ slug: string }>();
+    const slugs = (slugRows.results ?? []).map((r) => r.slug);
 
     const empty: ClickStats = { total_clicks: 0, countries: [], referrers: [], referrer_hosts: [], devices: [], os: [], browsers: [], link_modes: [], channels: [], clicks_over_time: [], slug_clicks: [] };
-    if (ids.length === 0) return empty;
+    if (slugs.length === 0) return empty;
 
-    const placeholders = ids.map(() => "?").join(",");
-    let where = `slug_id IN (${placeholders})`;
-    const binds: (string | number)[] = [...ids];
+    const placeholders = slugs.map(() => "?").join(",");
+    let where = `slug IN (${placeholders})`;
+    const binds: (string | number)[] = [...slugs];
 
     if (range && range !== "all") {
       const now = Math.floor(Date.now() / 1000);
@@ -81,7 +81,7 @@ export class ClickRepository {
       db.prepare(`SELECT link_mode as name, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY link_mode ORDER BY count DESC`).bind(...binds).all<{ name: string; count: number }>(),
       db.prepare(`SELECT channel as name, COUNT(*) as count FROM clicks WHERE ${where} AND channel IS NOT NULL GROUP BY channel ORDER BY count DESC`).bind(...binds).all<{ name: string; count: number }>(),
       db.prepare(`SELECT date(clicked_at, 'unixepoch') as date, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY date ORDER BY date DESC LIMIT 30`).bind(...binds).all<{ date: string; count: number }>(),
-      db.prepare(`SELECT slug_id, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY slug_id`).bind(...binds).all<{ slug_id: number; count: number }>(),
+      db.prepare(`SELECT slug, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY slug`).bind(...binds).all<{ slug: string; count: number }>(),
     ]);
 
     return {
@@ -106,21 +106,21 @@ export class ClickRepository {
     now?: number,
   ): Promise<TimelineData> {
     const ts = now ?? Math.floor(Date.now() / 1000);
-    const slugIds = await db
-      .prepare("SELECT id FROM slugs WHERE link_id = ?")
+    const slugRows = await db
+      .prepare("SELECT slug FROM slugs WHERE link_id = ?")
       .bind(linkId)
-      .all<{ id: number }>();
-    const ids = (slugIds.results ?? []).map((r) => r.id);
+      .all<{ slug: string }>();
+    const slugs = (slugRows.results ?? []).map((r) => r.slug);
 
     const empty: TimelineData = {
       range,
       buckets: [],
       summary: { last_24h: 0, last_7d: 0, last_30d: 0, last_90d: 0, last_1y: 0 },
     };
-    if (ids.length === 0) return empty;
+    if (slugs.length === 0) return empty;
 
-    const placeholders = ids.map(() => "?").join(",");
-    const where = `slug_id IN (${placeholders})`;
+    const placeholders = slugs.map(() => "?").join(",");
+    const where = `slug IN (${placeholders})`;
 
     // Summary counts
     const t24h = ts - 86400;
@@ -129,11 +129,11 @@ export class ClickRepository {
     const t90d = ts - 90 * 86400;
     const t1y = ts - 365 * 86400;
     const [last24h, last7d, last30d, last90d, last1y] = await Promise.all([
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...ids, t24h).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...ids, t7d).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...ids, t30d).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...ids, t90d).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...ids, t1y).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...slugs, t24h).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...slugs, t7d).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...slugs, t30d).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...slugs, t90d).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...slugs, t1y).first<{ cnt: number }>(),
     ]);
 
     const summary = {
@@ -175,10 +175,10 @@ export class ClickRepository {
         break;
       case "all": {
         // Pick granularity based on actual data span
-        const placeholdersAll = ids.map(() => "?").join(",");
+        const placeholdersAll = slugs.map(() => "?").join(",");
         const earliestRow = await db
-          .prepare(`SELECT MIN(clicked_at) as t FROM clicks WHERE slug_id IN (${placeholdersAll})`)
-          .bind(...ids)
+          .prepare(`SELECT MIN(clicked_at) as t FROM clicks WHERE slug IN (${placeholdersAll})`)
+          .bind(...slugs)
           .first<{ t: number | null }>();
         allEarliest = earliestRow?.t ?? ts;
         const spanDays = Math.max(1, Math.floor((ts - allEarliest) / 86400));
@@ -198,7 +198,7 @@ export class ClickRepository {
     }
 
     const timeFilter = sinceTs !== null ? ` AND clicked_at >= ?` : "";
-    const binds = sinceTs !== null ? [...ids, sinceTs] : [...ids];
+    const binds = sinceTs !== null ? [...slugs, sinceTs] : [...slugs];
 
     const rows = await db
       .prepare(
@@ -237,7 +237,7 @@ export class ClickRepository {
       .prepare(
         `SELECT s.link_id, COUNT(*) as clicks, l.url, l.label
          FROM clicks c
-         JOIN slugs s ON s.id = c.slug_id
+         JOIN slugs s ON s.slug = c.slug
          JOIN links l ON l.id = s.link_id
          WHERE ${where}
          GROUP BY s.link_id
@@ -314,16 +314,16 @@ export class ClickRepository {
   ): Promise<{ name: string; count: number }[]> {
     if (!VALID_DIMENSIONS.has(dimension)) return [];
 
-    const slugIds = await db
-      .prepare("SELECT id FROM slugs WHERE link_id = ?")
+    const slugRows = await db
+      .prepare("SELECT slug FROM slugs WHERE link_id = ?")
       .bind(linkId)
-      .all<{ id: number }>();
-    const ids = (slugIds.results ?? []).map((r) => r.id);
-    if (ids.length === 0) return [];
+      .all<{ slug: string }>();
+    const slugs = (slugRows.results ?? []).map((r) => r.slug);
+    if (slugs.length === 0) return [];
 
-    const placeholders = ids.map(() => "?").join(",");
-    let where = `slug_id IN (${placeholders}) AND ${dimension} IS NOT NULL`;
-    const binds: (string | number)[] = [...ids];
+    const placeholders = slugs.map(() => "?").join(",");
+    let where = `slug IN (${placeholders}) AND ${dimension} IS NOT NULL`;
+    const binds: (string | number)[] = [...slugs];
 
     if (range && range !== "all") {
       const now = Math.floor(Date.now() / 1000);
@@ -352,19 +352,19 @@ export class ClickRepository {
     linkId: number,
     range: TimelineRange,
   ): Promise<{ total_clicks: number; top_country: string | null; top_referrer: string | null }> {
-    const slugIds = await db
-      .prepare("SELECT id FROM slugs WHERE link_id = ?")
+    const slugRows = await db
+      .prepare("SELECT slug FROM slugs WHERE link_id = ?")
       .bind(linkId)
-      .all<{ id: number }>();
-    const ids = (slugIds.results ?? []).map((r) => r.id);
+      .all<{ slug: string }>();
+    const slugs = (slugRows.results ?? []).map((r) => r.slug);
 
-    if (ids.length === 0) {
+    if (slugs.length === 0) {
       return { total_clicks: 0, top_country: null, top_referrer: null };
     }
 
-    const placeholders = ids.map(() => "?").join(",");
-    let where = `slug_id IN (${placeholders})`;
-    const binds: (string | number)[] = [...ids];
+    const placeholders = slugs.map(() => "?").join(",");
+    let where = `slug IN (${placeholders})`;
+    const binds: (string | number)[] = [...slugs];
 
     if (range && range !== "all") {
       const now = Math.floor(Date.now() / 1000);

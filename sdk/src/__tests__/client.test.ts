@@ -221,34 +221,34 @@ describe("listLinksByOwner", () => {
 });
 
 describe("disableSlug", () => {
-  it("should POST /_/api/links/:linkId/slugs/:slugId/disable", async () => {
+  it("should POST /_/api/links/:linkId/slugs/:slug/disable", async () => {
     const client = new ShrtnrClient({ baseUrl: BASE, auth: { apiKey: "sk_test" } });
-    mockFetch(200, { id: 5, slug: "abc" });
-    await client.disableSlug(1, 5);
+    mockFetch(200, { slug: "abc" });
+    await client.disableSlug(1, "abc");
     const [url, init] = fetchSpy.mock.calls[0];
-    expect(url).toBe(BASE + "/_/api/links/1/slugs/5/disable");
+    expect(url).toBe(BASE + "/_/api/links/1/slugs/abc/disable");
     expect(init.method).toBe("POST");
   });
 });
 
 describe("enableSlug", () => {
-  it("should POST /_/api/links/:linkId/slugs/:slugId/enable", async () => {
+  it("should POST /_/api/links/:linkId/slugs/:slug/enable", async () => {
     const client = new ShrtnrClient({ baseUrl: BASE, auth: { apiKey: "sk_test" } });
-    mockFetch(200, { id: 5, slug: "abc" });
-    await client.enableSlug(1, 5);
+    mockFetch(200, { slug: "abc" });
+    await client.enableSlug(1, "abc");
     const [url, init] = fetchSpy.mock.calls[0];
-    expect(url).toBe(BASE + "/_/api/links/1/slugs/5/enable");
+    expect(url).toBe(BASE + "/_/api/links/1/slugs/abc/enable");
     expect(init.method).toBe("POST");
   });
 });
 
 describe("removeSlug", () => {
-  it("should DELETE /_/api/links/:linkId/slugs/:slugId", async () => {
+  it("should DELETE /_/api/links/:linkId/slugs/:slug", async () => {
     const client = new ShrtnrClient({ baseUrl: BASE, auth: { apiKey: "sk_test" } });
     mockFetch(200, { removed: true });
-    await client.removeSlug(1, 5);
+    await client.removeSlug(1, "abc");
     const [url, init] = fetchSpy.mock.calls[0];
-    expect(url).toBe(BASE + "/_/api/links/1/slugs/5");
+    expect(url).toBe(BASE + "/_/api/links/1/slugs/abc");
     expect(init.method).toBe("DELETE");
   });
 });

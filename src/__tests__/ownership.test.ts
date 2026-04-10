@@ -97,7 +97,7 @@ describe("Slug ownership: disable", () => {
     const refreshed = await LinkRepository.getById(env.DB, link.id);
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
 
-    const result = await disableSlug(env as any, link.id, customSlug.id, OWNER);
+    const result = await disableSlug(env as any, link.id, customSlug.slug, OWNER);
     expect(result.ok).toBe(true);
   });
 
@@ -107,7 +107,7 @@ describe("Slug ownership: disable", () => {
     const refreshed = await LinkRepository.getById(env.DB, link.id);
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
 
-    const result = await disableSlug(env as any, link.id, customSlug.id, OTHER);
+    const result = await disableSlug(env as any, link.id, customSlug.slug, OTHER);
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.status).toBe(403);
@@ -121,9 +121,9 @@ describe("Slug ownership: enable", () => {
     await addCustomSlugToLink(env as any, link.id, { slug: "custom-slug" });
     const refreshed = await LinkRepository.getById(env.DB, link.id);
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
-    await disableSlug(env as any, link.id, customSlug.id, OWNER);
+    await disableSlug(env as any, link.id, customSlug.slug, OWNER);
 
-    const result = await enableSlug(env as any, link.id, customSlug.id, OWNER);
+    const result = await enableSlug(env as any, link.id, customSlug.slug, OWNER);
     expect(result.ok).toBe(true);
   });
 
@@ -132,9 +132,9 @@ describe("Slug ownership: enable", () => {
     await addCustomSlugToLink(env as any, link.id, { slug: "custom-slug" });
     const refreshed = await LinkRepository.getById(env.DB, link.id);
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
-    await disableSlug(env as any, link.id, customSlug.id, OWNER);
+    await disableSlug(env as any, link.id, customSlug.slug, OWNER);
 
-    const result = await enableSlug(env as any, link.id, customSlug.id, OTHER);
+    const result = await enableSlug(env as any, link.id, customSlug.slug, OTHER);
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.status).toBe(403);
@@ -149,7 +149,7 @@ describe("Slug ownership: remove", () => {
     const refreshed = await LinkRepository.getById(env.DB, link.id);
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
 
-    const result = await removeSlug(env as any, link.id, customSlug.id, OWNER);
+    const result = await removeSlug(env as any, link.id, customSlug.slug, OWNER);
     expect(result.ok).toBe(true);
   });
 
@@ -159,7 +159,7 @@ describe("Slug ownership: remove", () => {
     const refreshed = await LinkRepository.getById(env.DB, link.id);
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
 
-    const result = await removeSlug(env as any, link.id, customSlug.id, OTHER);
+    const result = await removeSlug(env as any, link.id, customSlug.slug, OTHER);
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.status).toBe(403);

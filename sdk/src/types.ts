@@ -17,7 +17,6 @@ export interface ShrtnrConfig {
 // ---- API Models ----
 
 export interface Slug {
-  id: number;
   link_id: number;
   slug: string;
   is_custom: number;

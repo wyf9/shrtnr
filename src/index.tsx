@@ -304,23 +304,23 @@ app.put("/_/admin/api/links/:id/slugs/primary", (c) => {
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   return handleSetPrimarySlug(c.req.raw, c.env, id);
 });
-app.post("/_/admin/api/links/:id/slugs/:slugId/disable", (c) => {
+app.post("/_/admin/api/links/:id/slugs/:slug/disable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
-  const slugId = parseInt(c.req.param("slugId"), 10);
-  if (isNaN(id) || isNaN(slugId)) return c.json({ error: "Not Found" }, 404);
-  return handleDisableSlug(c.env, id, slugId, c.var.identity);
+  const slug = c.req.param("slug");
+  if (isNaN(id) || !slug) return c.json({ error: "Not Found" }, 404);
+  return handleDisableSlug(c.env, id, slug, c.var.identity);
 });
-app.post("/_/admin/api/links/:id/slugs/:slugId/enable", (c) => {
+app.post("/_/admin/api/links/:id/slugs/:slug/enable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
-  const slugId = parseInt(c.req.param("slugId"), 10);
-  if (isNaN(id) || isNaN(slugId)) return c.json({ error: "Not Found" }, 404);
-  return handleEnableSlug(c.env, id, slugId, c.var.identity);
+  const slug = c.req.param("slug");
+  if (isNaN(id) || !slug) return c.json({ error: "Not Found" }, 404);
+  return handleEnableSlug(c.env, id, slug, c.var.identity);
 });
-app.delete("/_/admin/api/links/:id/slugs/:slugId", (c) => {
+app.delete("/_/admin/api/links/:id/slugs/:slug", (c) => {
   const id = parseInt(c.req.param("id"), 10);
-  const slugId = parseInt(c.req.param("slugId"), 10);
-  if (isNaN(id) || isNaN(slugId)) return c.json({ error: "Not Found" }, 404);
-  return handleRemoveSlug(c.env, id, slugId, c.var.identity);
+  const slug = c.req.param("slug");
+  if (isNaN(id) || !slug) return c.json({ error: "Not Found" }, 404);
+  return handleRemoveSlug(c.env, id, slug, c.var.identity);
 });
 app.get("/_/admin/api/links/:id/qr", (c) => {
   const id = parseInt(c.req.param("id"), 10);

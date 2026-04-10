@@ -3,7 +3,7 @@
 
 import { Link, Slug, LinkWithSlugs } from "../types";
 
-const SLUG_SELECT = "s.*, (SELECT COUNT(*) FROM clicks c WHERE c.slug_id = s.id) AS click_count";
+const SLUG_SELECT = "s.*, (SELECT COUNT(*) FROM clicks c WHERE c.slug = s.slug) AS click_count";
 
 function assembleLink(link: Link, slugs: Slug[]): LinkWithSlugs {
   return {
@@ -126,7 +126,7 @@ export class LinkRepository {
     if (!link) return false;
     if (link.total_clicks > 0) return false;
 
-    await db.prepare("DELETE FROM clicks WHERE slug_id IN (SELECT id FROM slugs WHERE link_id = ?)").bind(id).run();
+    await db.prepare("DELETE FROM clicks WHERE slug IN (SELECT slug FROM slugs WHERE link_id = ?)").bind(id).run();
     await db.prepare("DELETE FROM slugs WHERE link_id = ?").bind(id).run();
     await db.prepare("DELETE FROM links WHERE id = ?").bind(id).run();
     return true;

@@ -154,69 +154,69 @@ export async function addCustomSlugToLink(
 export async function setSlugPrimary(
   env: Env,
   linkId: number,
-  slugId: number,
+  slug: string,
 ): Promise<ServiceResult<LinkWithSlugs>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
 
-  const slug = link.slugs.find((s) => s.id === slugId);
-  if (!slug) return fail(404, "Slug not found on this link");
+  const slugObj = link.slugs.find((s) => s.slug === slug);
+  if (!slugObj) return fail(404, "Slug not found on this link");
 
-  await SlugRepository.setPrimary(env.DB, linkId, slugId);
+  await SlugRepository.setPrimary(env.DB, linkId, slug);
   return ok((await LinkRepository.getById(env.DB, linkId))!);
 }
 
 export async function disableSlug(
   env: Env,
   linkId: number,
-  slugId: number,
+  slug: string,
   identity?: string,
 ): Promise<ServiceResult<Slug>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
   if (identity && link.created_by !== identity) return fail(403, "Only the link owner can disable slugs on this link");
 
-  const slug = link.slugs.find((s) => s.id === slugId);
-  if (!slug) return fail(404, "Slug not found on this link");
-  if (!slug.is_custom) return fail(400, "Cannot disable the random slug");
+  const slugObj = link.slugs.find((s) => s.slug === slug);
+  if (!slugObj) return fail(404, "Slug not found on this link");
+  if (!slugObj.is_custom) return fail(400, "Cannot disable the random slug");
 
-  const disabled = await SlugRepository.disable(env.DB, slugId);
+  const disabled = await SlugRepository.disable(env.DB, slug);
   return ok(disabled!);
 }
 
 export async function enableSlug(
   env: Env,
   linkId: number,
-  slugId: number,
+  slug: string,
   identity?: string,
 ): Promise<ServiceResult<Slug>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
   if (identity && link.created_by !== identity) return fail(403, "Only the link owner can enable slugs on this link");
 
-  const slug = link.slugs.find((s) => s.id === slugId);
-  if (!slug) return fail(404, "Slug not found on this link");
+  const slugObj = link.slugs.find((s) => s.slug === slug);
+  if (!slugObj) return fail(404, "Slug not found on this link");
 
-  const enabled = await SlugRepository.enable(env.DB, slugId);
+  const enabled = await SlugRepository.enable(env.DB, slug);
   return ok(enabled!);
 }
 
 export async function removeSlug(
   env: Env,
   linkId: number,
-  slugId: number,
+  slug: string,
   identity?: string,
 ): Promise<ServiceResult<{ removed: boolean }>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
   if (identity && link.created_by !== identity) return fail(403, "Only the link owner can remove slugs on this link");
 
-  const slug = link.slugs.find((s) => s.id === slugId);
-  if (!slug) return fail(404, "Slug not found on this link");
-  if (!slug.is_custom) return fail(400, "Cannot remove the random slug");
-  if (slug.click_count > 0) return fail(400, "Cannot remove a slug with clicks, disable it instead");
+  const slugObj = link.slugs.find((s) => s.slug === slug);
+  if (!slugObj) return fail(404, "Slug not found on this link");
+  if (!slugObj.is_custom) return fail(400, "Cannot remove the random slug");
+  if (slugObj.click_count > 0) return fail(400, "Cannot remove a slug with clicks, disable it instead");
 
-  await SlugRepository.remove(env.DB, slugId);
+  await SlugRepository.remove(env.DB, slug);
   return ok({ removed: true });
 }
 
@@ -268,8 +268,8 @@ export async function autoLabelLink(
 
 export async function recordClick(
   env: Env,
-  slugId: number,
+  slug: string,
   data: ClickData,
 ): Promise<void> {
-  return ClickRepository.record(env.DB, slugId, data);
+  return ClickRepository.record(env.DB, slug, data);
 }

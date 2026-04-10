@@ -59,7 +59,7 @@ export async function handleRedirect(
     userAgent: ua || null,
   };
 
-  ctx.waitUntil(recordClick(env, record.id, data));
+  ctx.waitUntil(recordClick(env, record.slug, data));
 
   return Response.redirect(record.url, 301);
 }

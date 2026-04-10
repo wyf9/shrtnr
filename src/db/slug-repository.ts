@@ -3,7 +3,7 @@
 
 import { Slug } from "../types";
 
-const SLUG_SELECT = "s.*, (SELECT COUNT(*) FROM clicks c WHERE c.slug_id = s.id) AS click_count";
+const SLUG_SELECT = "s.*, (SELECT COUNT(*) FROM clicks c WHERE c.slug = s.slug) AS click_count";
 
 export class SlugRepository {
   static async findByValue(
@@ -50,54 +50,54 @@ export class SlugRepository {
       .first<Slug>())!;
   }
 
-  static async setPrimary(db: D1Database, linkId: number, slugId: number): Promise<void> {
+  static async setPrimary(db: D1Database, linkId: number, slug: string): Promise<void> {
     await db.prepare("UPDATE slugs SET is_primary = 0 WHERE link_id = ?").bind(linkId).run();
-    await db.prepare("UPDATE slugs SET is_primary = 1 WHERE id = ? AND link_id = ?").bind(slugId, linkId).run();
+    await db.prepare("UPDATE slugs SET is_primary = 1 WHERE slug = ? AND link_id = ?").bind(slug, linkId).run();
   }
 
-  static async disable(db: D1Database, slugId: number): Promise<Slug | null> {
+  static async disable(db: D1Database, slug: string): Promise<Slug | null> {
     const now = Math.floor(Date.now() / 1000);
-    const slug = await db.prepare(`SELECT ${SLUG_SELECT} FROM slugs s WHERE id = ?`).bind(slugId).first<Slug>();
-    if (!slug) return null;
+    const row = await db.prepare(`SELECT ${SLUG_SELECT} FROM slugs s WHERE slug = ?`).bind(slug).first<Slug>();
+    if (!row) return null;
 
-    await db.prepare("UPDATE slugs SET disabled_at = ? WHERE id = ?").bind(now, slugId).run();
+    await db.prepare("UPDATE slugs SET disabled_at = ? WHERE slug = ?").bind(now, slug).run();
 
     // If disabling the primary, fall back to the random slug
-    if (slug.is_primary) {
-      await db.prepare("UPDATE slugs SET is_primary = 0 WHERE id = ?").bind(slugId).run();
+    if (row.is_primary) {
+      await db.prepare("UPDATE slugs SET is_primary = 0 WHERE slug = ?").bind(slug).run();
       await db
         .prepare("UPDATE slugs SET is_primary = 1 WHERE link_id = ? AND is_custom = 0")
-        .bind(slug.link_id)
+        .bind(row.link_id)
         .run();
     }
 
-    return db.prepare(`SELECT ${SLUG_SELECT} FROM slugs s WHERE id = ?`).bind(slugId).first<Slug>();
+    return db.prepare(`SELECT ${SLUG_SELECT} FROM slugs s WHERE slug = ?`).bind(slug).first<Slug>();
   }
 
-  static async enable(db: D1Database, slugId: number): Promise<Slug | null> {
-    await db.prepare("UPDATE slugs SET disabled_at = NULL WHERE id = ?").bind(slugId).run();
-    return db.prepare(`SELECT ${SLUG_SELECT} FROM slugs s WHERE id = ?`).bind(slugId).first<Slug>();
+  static async enable(db: D1Database, slug: string): Promise<Slug | null> {
+    await db.prepare("UPDATE slugs SET disabled_at = NULL WHERE slug = ?").bind(slug).run();
+    return db.prepare(`SELECT ${SLUG_SELECT} FROM slugs s WHERE slug = ?`).bind(slug).first<Slug>();
   }
 
-  static async remove(db: D1Database, slugId: number): Promise<boolean> {
-    const slug = await db.prepare(`SELECT ${SLUG_SELECT} FROM slugs s WHERE id = ?`).bind(slugId).first<Slug>();
-    if (!slug) return false;
+  static async remove(db: D1Database, slug: string): Promise<boolean> {
+    const row = await db.prepare(`SELECT ${SLUG_SELECT} FROM slugs s WHERE slug = ?`).bind(slug).first<Slug>();
+    if (!row) return false;
 
     // Cannot delete random slugs
-    if (!slug.is_custom) return false;
+    if (!row.is_custom) return false;
 
     // Cannot delete slugs with clicks
-    if (slug.click_count > 0) return false;
+    if (row.click_count > 0) return false;
 
     // If removing the primary, fall back to random slug first
-    if (slug.is_primary) {
+    if (row.is_primary) {
       await db
         .prepare("UPDATE slugs SET is_primary = 1 WHERE link_id = ? AND is_custom = 0")
-        .bind(slug.link_id)
+        .bind(row.link_id)
         .run();
     }
 
-    await db.prepare("DELETE FROM slugs WHERE id = ?").bind(slugId).run();
+    await db.prepare("DELETE FROM slugs WHERE slug = ?").bind(slug).run();
     return true;
   }
 }

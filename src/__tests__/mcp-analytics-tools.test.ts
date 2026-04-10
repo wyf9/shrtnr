@@ -33,12 +33,12 @@ async function seedLink(url: string, label?: string) {
 }
 
 async function recordClicks(
-  slugId: number,
+  slug: string,
   count: number,
   overrides: Partial<Parameters<typeof ClickRepository.record>[2]> = {},
 ) {
   for (let i = 0; i < count; i++) {
-    await ClickRepository.record(env.DB, slugId, {
+    await ClickRepository.record(env.DB, slug, {
       country: overrides.country ?? "US",
       referrerHost: overrides.referrerHost ?? null,
       deviceType: overrides.deviceType ?? "desktop",
@@ -57,8 +57,8 @@ describe("get_trending_links", () => {
     const linkA = await seedLink("https://a.com", "Link A");
     const linkB = await seedLink("https://b.com", "Link B");
 
-    await recordClicks(linkA.slugs[0].id, 2);
-    await recordClicks(linkB.slugs[0].id, 5);
+    await recordClicks(linkA.slugs[0].slug, 2);
+    await recordClicks(linkB.slugs[0].slug, 5);
 
     const result = await getTrendingLinks(env as never, "24h", 10);
     expect(result.ok).toBe(true);
@@ -76,9 +76,9 @@ describe("get_trending_links", () => {
     const linkB = await seedLink("https://b.com", "B");
     const linkC = await seedLink("https://c.com", "C");
 
-    await recordClicks(linkA.slugs[0].id, 3);
-    await recordClicks(linkB.slugs[0].id, 2);
-    await recordClicks(linkC.slugs[0].id, 1);
+    await recordClicks(linkA.slugs[0].slug, 3);
+    await recordClicks(linkB.slugs[0].slug, 2);
+    await recordClicks(linkC.slugs[0].slug, 1);
 
     const result = await getTrendingLinks(env as never, "24h", 2);
     expect(result.ok).toBe(true);
@@ -101,7 +101,7 @@ describe("get_trending_links", () => {
 describe("get_dashboard_stats (service)", () => {
   it("returns total links, total clicks, and top lists", async () => {
     const link = await seedLink("https://example.com", "Test");
-    await recordClicks(link.slugs[0].id, 3, { country: "SE" });
+    await recordClicks(link.slugs[0].slug, 3, { country: "SE" });
 
     const result = await getDashboardStats(env as never);
     expect(result.ok).toBe(true);
@@ -119,7 +119,7 @@ describe("get_dashboard_stats (service)", () => {
 describe("get_link_timeline (service)", () => {
   it("returns timeline buckets and summary for a link", async () => {
     const link = await seedLink("https://example.com");
-    await recordClicks(link.slugs[0].id, 5);
+    await recordClicks(link.slugs[0].slug, 5);
 
     const result = await getLinkTimeline(env as never, link.id, "24h");
     expect(result.ok).toBe(true);
@@ -146,9 +146,9 @@ describe("get_clicks_by_country", () => {
     const linkA = await seedLink("https://a.com");
     const linkB = await seedLink("https://b.com");
 
-    await recordClicks(linkA.slugs[0].id, 3, { country: "US" });
-    await recordClicks(linkB.slugs[0].id, 2, { country: "SE" });
-    await recordClicks(linkB.slugs[0].id, 1, { country: "US" });
+    await recordClicks(linkA.slugs[0].slug, 3, { country: "US" });
+    await recordClicks(linkB.slugs[0].slug, 2, { country: "SE" });
+    await recordClicks(linkB.slugs[0].slug, 1, { country: "US" });
 
     const result = await getGlobalBreakdown(env as never, "country", "all", 10);
     expect(result.ok).toBe(true);
@@ -168,8 +168,8 @@ describe("get_clicks_by_referrer", () => {
   it("returns cross-link referrer host breakdown", async () => {
     const link = await seedLink("https://a.com");
 
-    await recordClicks(link.slugs[0].id, 3, { referrerHost: "twitter.com" });
-    await recordClicks(link.slugs[0].id, 1, { referrerHost: "linkedin.com" });
+    await recordClicks(link.slugs[0].slug, 3, { referrerHost: "twitter.com" });
+    await recordClicks(link.slugs[0].slug, 1, { referrerHost: "linkedin.com" });
 
     const result = await getGlobalBreakdown(env as never, "referrer_host", "all", 10);
     expect(result.ok).toBe(true);
@@ -186,8 +186,8 @@ describe("get_clicks_by_device", () => {
   it("returns cross-link device type breakdown", async () => {
     const link = await seedLink("https://a.com");
 
-    await recordClicks(link.slugs[0].id, 4, { deviceType: "mobile" });
-    await recordClicks(link.slugs[0].id, 2, { deviceType: "desktop" });
+    await recordClicks(link.slugs[0].slug, 4, { deviceType: "mobile" });
+    await recordClicks(link.slugs[0].slug, 2, { deviceType: "desktop" });
 
     const result = await getGlobalBreakdown(env as never, "device_type", "all", 10);
     expect(result.ok).toBe(true);
@@ -199,8 +199,8 @@ describe("get_clicks_by_device", () => {
 
   it("supports os dimension", async () => {
     const link = await seedLink("https://a.com");
-    await recordClicks(link.slugs[0].id, 3, { os: "iOS" });
-    await recordClicks(link.slugs[0].id, 1, { os: "Android" });
+    await recordClicks(link.slugs[0].slug, 3, { os: "iOS" });
+    await recordClicks(link.slugs[0].slug, 1, { os: "Android" });
 
     const result = await getGlobalBreakdown(env as never, "os", "all", 10);
     expect(result.ok).toBe(true);
@@ -211,7 +211,7 @@ describe("get_clicks_by_device", () => {
 
   it("supports browser dimension", async () => {
     const link = await seedLink("https://a.com");
-    await recordClicks(link.slugs[0].id, 2, { browser: "Firefox" });
+    await recordClicks(link.slugs[0].slug, 2, { browser: "Firefox" });
 
     const result = await getGlobalBreakdown(env as never, "browser", "all", 10);
     expect(result.ok).toBe(true);
@@ -228,8 +228,8 @@ describe("compare_links", () => {
     const linkA = await seedLink("https://a.com", "Link A");
     const linkB = await seedLink("https://b.com", "Link B");
 
-    await recordClicks(linkA.slugs[0].id, 5, { country: "US", referrerHost: "google.com" });
-    await recordClicks(linkB.slugs[0].id, 3, { country: "SE", referrerHost: "twitter.com" });
+    await recordClicks(linkA.slugs[0].slug, 5, { country: "US", referrerHost: "google.com" });
+    await recordClicks(linkB.slugs[0].slug, 3, { country: "SE", referrerHost: "twitter.com" });
 
     const result = await compareLinkStats(env as never, [linkA.id, linkB.id], "all");
     expect(result.ok).toBe(true);
@@ -265,9 +265,9 @@ describe("get_link_breakdown", () => {
   it("returns single-dimension breakdown with configurable limit", async () => {
     const link = await seedLink("https://a.com");
 
-    await recordClicks(link.slugs[0].id, 5, { country: "US" });
-    await recordClicks(link.slugs[0].id, 3, { country: "SE" });
-    await recordClicks(link.slugs[0].id, 1, { country: "ID" });
+    await recordClicks(link.slugs[0].slug, 5, { country: "US" });
+    await recordClicks(link.slugs[0].slug, 3, { country: "SE" });
+    await recordClicks(link.slugs[0].slug, 1, { country: "ID" });
 
     const result = await getLinkBreakdown(env as never, link.id, "country", "all", 2);
     expect(result.ok).toBe(true);
@@ -296,8 +296,8 @@ describe("get_total_clicks", () => {
     const linkA = await seedLink("https://a.com");
     const linkB = await seedLink("https://b.com");
 
-    await recordClicks(linkA.slugs[0].id, 3);
-    await recordClicks(linkB.slugs[0].id, 7);
+    await recordClicks(linkA.slugs[0].slug, 3);
+    await recordClicks(linkB.slugs[0].slug, 7);
 
     const result = await getTotalClicks(env as never, "all");
     expect(result.ok).toBe(true);
@@ -328,7 +328,7 @@ describe("delete_link", () => {
 
   it("refuses to delete a link with clicks", async () => {
     const link = await seedLink("https://clicked.com");
-    await recordClicks(link.slugs[0].id, 1);
+    await recordClicks(link.slugs[0].slug, 1);
 
     const result = await deleteLink(env as never, link.id);
     expect(result.ok).toBe(false);
