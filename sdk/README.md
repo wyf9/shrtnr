@@ -32,8 +32,9 @@ console.log(link); // { id: 1, slugs: [{ slug: "a3x", ... }], ... }
 This package wraps the public link-management API:
 
 - Shorten URLs (create short links)
-- Add custom slugs after creation, with partial-success reporting
-- List, read, update, and disable links
+- Add, disable, enable, and remove custom slugs
+- List, read, update, disable, enable, and delete links
+- List links by owner identity
 - Read click analytics (referrer, country, device, browser)
 - Check service health
 
@@ -103,6 +104,30 @@ Disable a link so it stops redirecting.
 const disabled = await client.disableLink(123);
 ```
 
+### `enableLink`
+
+Re-enable a previously disabled link.
+
+```ts
+const link = await client.enableLink(123);
+```
+
+### `deleteLink`
+
+Permanently delete a link. Only succeeds if the link has zero clicks — disable it instead if it has traffic.
+
+```ts
+await client.deleteLink(123);
+```
+
+### `listLinksByOwner`
+
+List all links created by a specific identity (typically an email address).
+
+```ts
+const links = await client.listLinksByOwner("user@example.com");
+```
+
 ### `addCustomSlug`
 
 Add a custom short URL slug to an existing link. Throws `ShrtnrError` with
@@ -110,6 +135,30 @@ status 409 if the slug already exists, or 400 for invalid format.
 
 ```ts
 const slug = await client.addCustomSlug(123, "campaign");
+```
+
+### `disableSlug`
+
+Disable a custom slug without affecting the parent link or its other slugs.
+
+```ts
+await client.disableSlug(123, 456);
+```
+
+### `enableSlug`
+
+Re-enable a disabled custom slug.
+
+```ts
+await client.enableSlug(123, 456);
+```
+
+### `removeSlug`
+
+Permanently remove a custom slug. Only succeeds if the slug has zero clicks.
+
+```ts
+await client.removeSlug(123, 456);
 ```
 
 ### `getLinkQR`

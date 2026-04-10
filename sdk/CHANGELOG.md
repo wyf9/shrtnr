@@ -2,6 +2,23 @@
 
 All notable changes to the SDK are documented in this file.
 
+## 0.5.0
+
+### New methods
+
+- `enableLink(id)` — re-enable a previously disabled link.
+- `deleteLink(id)` — delete a zero-click link permanently.
+- `listLinksByOwner(owner)` — list all links created by a specific identity (email).
+- `disableSlug(linkId, slugId)` — disable a custom slug without touching the parent link.
+- `enableSlug(linkId, slugId)` — re-enable a disabled custom slug.
+- `removeSlug(linkId, slugId)` — permanently remove a zero-click custom slug.
+
+### Type additions
+
+- `Link.created_by` — identity (email or "anonymous") that created the link.
+- `Slug.is_primary` — whether the slug is the primary redirect target.
+- `Slug.disabled_at` — Unix timestamp when the slug was disabled, or null if active.
+
 ## 0.3.0
 
 ### Breaking
