@@ -186,6 +186,73 @@ describe("getLinkBySlug", () => {
   });
 });
 
+describe("enableLink", () => {
+  it("should POST /_/api/links/:id/enable", async () => {
+    const client = new ShrtnrClient({ baseUrl: BASE, auth: { apiKey: "sk_test" } });
+    mockFetch(200, { id: 1 });
+    await client.enableLink(1);
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe(BASE + "/_/api/links/1/enable");
+    expect(init.method).toBe("POST");
+  });
+});
+
+describe("deleteLink", () => {
+  it("should DELETE /_/api/links/:id", async () => {
+    const client = new ShrtnrClient({ baseUrl: BASE, auth: { apiKey: "sk_test" } });
+    mockFetch(200, { deleted: true });
+    await client.deleteLink(1);
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe(BASE + "/_/api/links/1");
+    expect(init.method).toBe("DELETE");
+  });
+});
+
+describe("listLinksByOwner", () => {
+  it("should GET /_/api/links?owner=... with encoded owner", async () => {
+    const client = new ShrtnrClient({ baseUrl: BASE, auth: { apiKey: "sk_test" } });
+    mockFetch(200, []);
+    const result = await client.listLinksByOwner("user@example.com");
+    expect(result).toEqual([]);
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe(BASE + "/_/api/links?owner=user%40example.com");
+    expect(init.method).toBe("GET");
+  });
+});
+
+describe("disableSlug", () => {
+  it("should POST /_/api/links/:linkId/slugs/:slugId/disable", async () => {
+    const client = new ShrtnrClient({ baseUrl: BASE, auth: { apiKey: "sk_test" } });
+    mockFetch(200, { id: 5, slug: "abc" });
+    await client.disableSlug(1, 5);
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe(BASE + "/_/api/links/1/slugs/5/disable");
+    expect(init.method).toBe("POST");
+  });
+});
+
+describe("enableSlug", () => {
+  it("should POST /_/api/links/:linkId/slugs/:slugId/enable", async () => {
+    const client = new ShrtnrClient({ baseUrl: BASE, auth: { apiKey: "sk_test" } });
+    mockFetch(200, { id: 5, slug: "abc" });
+    await client.enableSlug(1, 5);
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe(BASE + "/_/api/links/1/slugs/5/enable");
+    expect(init.method).toBe("POST");
+  });
+});
+
+describe("removeSlug", () => {
+  it("should DELETE /_/api/links/:linkId/slugs/:slugId", async () => {
+    const client = new ShrtnrClient({ baseUrl: BASE, auth: { apiKey: "sk_test" } });
+    mockFetch(200, { removed: true });
+    await client.removeSlug(1, 5);
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe(BASE + "/_/api/links/1/slugs/5");
+    expect(init.method).toBe("DELETE");
+  });
+});
+
 // ---- Base URL handling ----
 
 describe("Base URL normalization", () => {

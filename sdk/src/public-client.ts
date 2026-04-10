@@ -41,8 +41,32 @@ export class ShrtnrClient extends ShrtnrBaseClient {
     return this.request("POST", `/_/api/links/${id}/disable`);
   }
 
+  async enableLink(id: number): Promise<Link> {
+    return this.request("POST", `/_/api/links/${id}/enable`);
+  }
+
+  async deleteLink(id: number): Promise<{ deleted: boolean }> {
+    return this.request("DELETE", `/_/api/links/${id}`);
+  }
+
+  async listLinksByOwner(owner: string): Promise<Link[]> {
+    return this.request("GET", `/_/api/links?owner=${encodeURIComponent(owner)}`);
+  }
+
   async addCustomSlug(linkId: number, slug: string): Promise<Slug> {
     return this.request("POST", `/_/api/links/${linkId}/slugs`, { slug });
+  }
+
+  async disableSlug(linkId: number, slugId: number): Promise<Slug> {
+    return this.request("POST", `/_/api/links/${linkId}/slugs/${slugId}/disable`);
+  }
+
+  async enableSlug(linkId: number, slugId: number): Promise<Slug> {
+    return this.request("POST", `/_/api/links/${linkId}/slugs/${slugId}/enable`);
+  }
+
+  async removeSlug(linkId: number, slugId: number): Promise<{ removed: boolean }> {
+    return this.request("DELETE", `/_/api/links/${linkId}/slugs/${slugId}`);
   }
 
   async getLinkBySlug(slug: string): Promise<Link> {

@@ -21,6 +21,8 @@ export interface Slug {
   link_id: number;
   slug: string;
   is_custom: number;
+  is_primary: number;
+  disabled_at: number | null;
   click_count: number;
   created_at: number;
 }
@@ -32,6 +34,7 @@ export interface Link {
   created_at: number;
   expires_at: number | null;
   created_via: string | null;
+  created_by: string;
   slugs: Slug[];
   total_clicks: number;
 }
