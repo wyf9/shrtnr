@@ -394,7 +394,7 @@ function showChangePrimaryModal(linkId) {
       html += '<div style="display:flex;flex-direction:column;gap:0.25rem;margin-bottom:1rem">';
       link.slugs.forEach(function(s) {
         var active = s.is_primary ? ' style="background:var(--color-selection);border-color:var(--color-accent)"' : '';
-        html += '<button class="btn btn-ghost" ' + active + ' onclick="doSetPrimary(' + linkId + ',\'' + s.slug + '\')" style="justify-content:flex-start;font-family:var(--font-family-mono);font-size:0.875rem">';
+        html += '<button class="btn btn-ghost" ' + active + ' onclick="doSetPrimary(' + linkId + ',\\'' + s.slug + '\\')" style="justify-content:flex-start;font-family:var(--font-family-mono);font-size:0.875rem">';
         html += '/' + esc(s.slug);
         if (s.is_primary) html += ' <span class="icon" style="font-size:14px;color:var(--color-accent);margin-left:auto">star</span>';
         html += '</button>';
@@ -432,7 +432,7 @@ function confirmDeleteSlug(linkId, slug) {
   openModal(
     '<div class="modal-title">' + esc(t('linkDetail.deleteSlug')) + '</div>' +
     '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDeleteSlug').replace('{slug}', slug)) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDeleteSlug(' + linkId + ',\'' + slug + '\')">' + esc(t('linkDetail.deleteSlug')) + '</button></div>'
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDeleteSlug(' + linkId + ',\\'' + slug + '\\')">' + esc(t('linkDetail.deleteSlug')) + '</button></div>'
   );
 }
 function doDeleteSlug(linkId, slug) {
@@ -446,7 +446,7 @@ function confirmDisableSlug(linkId, slug) {
   openModal(
     '<div class="modal-title">' + esc(t('linkDetail.disableSlug')) + '</div>' +
     '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDisableSlug').replace('{slug}', slug)) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDisableSlug(' + linkId + ',\'' + slug + '\')">' + esc(t('linkDetail.disableSlug')) + '</button></div>'
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDisableSlug(' + linkId + ',\\'' + slug + '\\')">' + esc(t('linkDetail.disableSlug')) + '</button></div>'
   );
 }
 function doDisableSlug(linkId, slug) {
@@ -460,7 +460,7 @@ function confirmEnableSlug(linkId, slug) {
   openModal(
     '<div class="modal-title">' + esc(t('linkDetail.enableSlug')) + '</div>' +
     '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmEnableSlug').replace('{slug}', slug)) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="doEnableSlug(' + linkId + ',\'' + slug + '\')">' + esc(t('linkDetail.enableSlug')) + '</button></div>'
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="doEnableSlug(' + linkId + ',\\'' + slug + '\\')">' + esc(t('linkDetail.enableSlug')) + '</button></div>'
   );
 }
 function doEnableSlug(linkId, slug) {
@@ -763,7 +763,7 @@ function loadAnalytics(linkId, range) {
     var slugMax = 0;
     var sc = stats.slug_clicks || [];
     for (var si = 0; si < sc.length; si++) {
-      slugCounts[sc[si].slug_id] = sc[si].count;
+      slugCounts[sc[si].slug] = sc[si].count;
       slugMax += sc[si].count;
     }
     if (slugMax === 0) slugMax = 1;
