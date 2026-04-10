@@ -100,15 +100,26 @@ export async function updateLink(
   return ok(link);
 }
 
-export async function disableLink(env: Env, id: number): Promise<ServiceResult<LinkWithSlugs>> {
-  const link = await LinkRepository.disable(env.DB, id);
-  if (!link) return fail(404, "Link not found");
-  return ok(link);
-}
-
-export async function deleteLink(env: Env, id: number): Promise<ServiceResult<{ deleted: boolean }>> {
+export async function disableLink(env: Env, id: number, identity?: string): Promise<ServiceResult<LinkWithSlugs>> {
   const link = await LinkRepository.getById(env.DB, id);
   if (!link) return fail(404, "Link not found");
+  if (identity && link.created_by !== identity) return fail(403, "Only the link owner can disable this link");
+  const disabled = await LinkRepository.disable(env.DB, id);
+  return ok(disabled!);
+}
+
+export async function enableLink(env: Env, id: number, identity?: string): Promise<ServiceResult<LinkWithSlugs>> {
+  const link = await LinkRepository.getById(env.DB, id);
+  if (!link) return fail(404, "Link not found");
+  if (identity && link.created_by !== identity) return fail(403, "Only the link owner can enable this link");
+  const enabled = await LinkRepository.update(env.DB, id, { expires_at: null });
+  return ok(enabled!);
+}
+
+export async function deleteLink(env: Env, id: number, identity?: string): Promise<ServiceResult<{ deleted: boolean }>> {
+  const link = await LinkRepository.getById(env.DB, id);
+  if (!link) return fail(404, "Link not found");
+  if (identity && link.created_by !== identity) return fail(403, "Only the link owner can delete this link");
   if (link.total_clicks > 0) return fail(400, "Cannot delete a link with clicks, disable it instead");
   await LinkRepository.delete(env.DB, id);
   return ok({ deleted: true });
@@ -159,9 +170,11 @@ export async function disableSlug(
   env: Env,
   linkId: number,
   slugId: number,
+  identity?: string,
 ): Promise<ServiceResult<Slug>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
+  if (identity && link.created_by !== identity) return fail(403, "Only the link owner can disable slugs on this link");
 
   const slug = link.slugs.find((s) => s.id === slugId);
   if (!slug) return fail(404, "Slug not found on this link");
@@ -175,9 +188,11 @@ export async function enableSlug(
   env: Env,
   linkId: number,
   slugId: number,
+  identity?: string,
 ): Promise<ServiceResult<Slug>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
+  if (identity && link.created_by !== identity) return fail(403, "Only the link owner can enable slugs on this link");
 
   const slug = link.slugs.find((s) => s.id === slugId);
   if (!slug) return fail(404, "Slug not found on this link");
@@ -190,9 +205,11 @@ export async function removeSlug(
   env: Env,
   linkId: number,
   slugId: number,
+  identity?: string,
 ): Promise<ServiceResult<{ removed: boolean }>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
+  if (identity && link.created_by !== identity) return fail(403, "Only the link owner can remove slugs on this link");
 
   const slug = link.slugs.find((s) => s.id === slugId);
   if (!slug) return fail(404, "Slug not found on this link");

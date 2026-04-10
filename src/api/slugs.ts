@@ -46,22 +46,25 @@ export async function handleDisableSlug(
   env: Env,
   linkId: number,
   slugId: number,
+  identity?: string,
 ): Promise<Response> {
-  return fromServiceResult(await disableSlug(env, linkId, slugId));
+  return fromServiceResult(await disableSlug(env, linkId, slugId, identity));
 }
 
 export async function handleEnableSlug(
   env: Env,
   linkId: number,
   slugId: number,
+  identity?: string,
 ): Promise<Response> {
-  return fromServiceResult(await enableSlug(env, linkId, slugId));
+  return fromServiceResult(await enableSlug(env, linkId, slugId, identity));
 }
 
 export async function handleRemoveSlug(
   env: Env,
   linkId: number,
   slugId: number,
+  identity?: string,
 ): Promise<Response> {
-  return fromServiceResult(await removeSlug(env, linkId, slugId));
+  return fromServiceResult(await removeSlug(env, linkId, slugId, identity));
 }

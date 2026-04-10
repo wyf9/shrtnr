@@ -21,6 +21,7 @@ import {
   createLink,
   updateLink,
   disableLink,
+  enableLink,
   deleteLink,
   addCustomSlugToLink,
   getLinkAnalytics,
@@ -146,12 +147,25 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
 
     this.server.tool(
       "disable_link",
-      "Disable a short link so it stops redirecting",
+      "Disable a short link so it stops redirecting. Only the link owner can disable it.",
       {
         link_id: z.number().int().positive().describe("Numeric ID of the link to disable"),
       },
       async ({ link_id }) => {
-        const result = await disableLink(this.env, link_id);
+        const result = await disableLink(this.env, link_id, this.props.email);
+        if (!result.ok) return fail(result.error);
+        return ok(result.data);
+      },
+    );
+
+    this.server.tool(
+      "enable_link",
+      "Re-enable a disabled short link so it starts redirecting again. Only the link owner can enable it.",
+      {
+        link_id: z.number().int().positive().describe("Numeric ID of the link to enable"),
+      },
+      async ({ link_id }) => {
+        const result = await enableLink(this.env, link_id, this.props.email);
         if (!result.ok) return fail(result.error);
         return ok(result.data);
       },
@@ -382,12 +396,12 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
 
     this.server.tool(
       "delete_link",
-      "Delete a short link. Only links with zero clicks can be deleted. Links with clicks should be disabled instead.",
+      "Delete a short link. Only links with zero clicks can be deleted. Links with clicks should be disabled instead. Only the link owner can delete it.",
       {
         link_id: z.number().int().positive().describe("Numeric ID of the link to delete"),
       },
       async ({ link_id }) => {
-        const result = await deleteLink(this.env, link_id);
+        const result = await deleteLink(this.env, link_id, this.props.email);
         if (!result.ok) return fail(result.error);
         return ok(result.data);
       },

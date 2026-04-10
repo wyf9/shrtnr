@@ -23,6 +23,7 @@ export interface Link {
   created_at: number;
   expires_at: number | null;
   created_via: string | null;
+  created_by: string;
 }
 
 export interface Slug {

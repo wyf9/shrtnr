@@ -114,6 +114,13 @@ export class LinkRepository {
     return LinkRepository.getById(db, id);
   }
 
+  static async enable(db: D1Database, id: number): Promise<LinkWithSlugs | null> {
+    const link = await db.prepare("SELECT id FROM links WHERE id = ?").bind(id).first<{ id: number }>();
+    if (!link) return null;
+    await db.prepare("UPDATE links SET expires_at = NULL WHERE id = ?").bind(id).run();
+    return LinkRepository.getById(db, id);
+  }
+
   static async delete(db: D1Database, id: number): Promise<boolean> {
     const link = await LinkRepository.getById(db, id);
     if (!link) return false;

@@ -42,6 +42,7 @@ import {
   handleCreateLink,
   handleUpdateLink,
   handleDisableLink,
+  handleEnableLink,
   handleDeleteLink,
   handleGetLinkBySlug,
 } from "./api/links";
@@ -77,6 +78,7 @@ import { SettingsPage } from "./pages/settings";
 type AuthContext = {
   source: "apikey";
   scope: string | null;
+  identity: string;
 };
 
 type HonoEnv = {
@@ -202,7 +204,7 @@ app.get("/_/admin/links/:id", async (c) => {
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="links" theme={theme} t={t} lang={lang} translations={translations} userEmail={userEmail}>
-      <LinkDetailPage link={linkResult.data} analytics={analytics} t={t} lang={lang} />
+      <LinkDetailPage link={linkResult.data} analytics={analytics} t={t} lang={lang} identity={identity} />
     </Layout>,
   );
 });
@@ -280,12 +282,17 @@ app.get("/_/admin/api/links/:id/timeline", (c) => {
 app.post("/_/admin/api/links/:id/disable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleDisableLink(c.env, id);
+  return handleDisableLink(c.env, id, c.var.identity);
+});
+app.post("/_/admin/api/links/:id/enable", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  return handleEnableLink(c.env, id, c.var.identity);
 });
 app.delete("/_/admin/api/links/:id", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleDeleteLink(c.env, id);
+  return handleDeleteLink(c.env, id, c.var.identity);
 });
 app.post("/_/admin/api/links/:id/slugs", (c) => {
   const id = parseInt(c.req.param("id"), 10);
@@ -301,19 +308,19 @@ app.post("/_/admin/api/links/:id/slugs/:slugId/disable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   const slugId = parseInt(c.req.param("slugId"), 10);
   if (isNaN(id) || isNaN(slugId)) return c.json({ error: "Not Found" }, 404);
-  return handleDisableSlug(c.env, id, slugId);
+  return handleDisableSlug(c.env, id, slugId, c.var.identity);
 });
 app.post("/_/admin/api/links/:id/slugs/:slugId/enable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   const slugId = parseInt(c.req.param("slugId"), 10);
   if (isNaN(id) || isNaN(slugId)) return c.json({ error: "Not Found" }, 404);
-  return handleEnableSlug(c.env, id, slugId);
+  return handleEnableSlug(c.env, id, slugId, c.var.identity);
 });
 app.delete("/_/admin/api/links/:id/slugs/:slugId", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   const slugId = parseInt(c.req.param("slugId"), 10);
   if (isNaN(id) || isNaN(slugId)) return c.json({ error: "Not Found" }, 404);
-  return handleRemoveSlug(c.env, id, slugId);
+  return handleRemoveSlug(c.env, id, slugId, c.var.identity);
 });
 app.get("/_/admin/api/links/:id/qr", (c) => {
   const id = parseInt(c.req.param("id"), 10);
@@ -342,7 +349,7 @@ app.use("/_/api/*", async (c, next) => {
 app.post("/_/api/links", (c) => {
   if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
   const via = c.req.header("X-Client") === "sdk" ? "sdk" : "api";
-  return handleCreateLink(c.req.raw, c.env, via, undefined, c.executionCtx);
+  return handleCreateLink(c.req.raw, c.env, via, c.var.auth.identity, c.executionCtx);
 });
 app.get("/_/api/links", (c) => {
   if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
@@ -376,13 +383,19 @@ app.post("/_/api/links/:id/disable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleDisableLink(c.env, id);
+  return handleDisableLink(c.env, id, c.var.auth.identity);
+});
+app.post("/_/api/links/:id/enable", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
+  return handleEnableLink(c.env, id, c.var.auth.identity);
 });
 app.delete("/_/api/links/:id", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleDeleteLink(c.env, id);
+  return handleDeleteLink(c.env, id, c.var.auth.identity);
 });
 app.post("/_/api/links/:id/slugs", (c) => {
   const id = parseInt(c.req.param("id"), 10);
@@ -534,7 +547,7 @@ async function resolveAuth(
     const token = authHeader.slice(7);
     const key = await authenticateApiKey(env, token);
     if (key) {
-      return { source: "apikey", scope: key.scope };
+      return { source: "apikey", scope: key.scope, identity: key.identity };
     }
   }
   return null;

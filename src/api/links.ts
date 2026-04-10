@@ -6,6 +6,7 @@ import {
   autoLabelLink,
   createLink,
   disableLink,
+  enableLink,
   deleteLink,
   getLink,
   getLinkBySlug,
@@ -63,10 +64,14 @@ export async function handleUpdateLink(request: Request, env: Env, id: number): 
   return fromServiceResult(await updateLink(env, id, body));
 }
 
-export async function handleDisableLink(env: Env, id: number): Promise<Response> {
-  return fromServiceResult(await disableLink(env, id));
+export async function handleDisableLink(env: Env, id: number, identity?: string): Promise<Response> {
+  return fromServiceResult(await disableLink(env, id, identity));
 }
 
-export async function handleDeleteLink(env: Env, id: number): Promise<Response> {
-  return fromServiceResult(await deleteLink(env, id));
+export async function handleEnableLink(env: Env, id: number, identity?: string): Promise<Response> {
+  return fromServiceResult(await enableLink(env, id, identity));
+}
+
+export async function handleDeleteLink(env: Env, id: number, identity?: string): Promise<Response> {
+  return fromServiceResult(await deleteLink(env, id, identity));
 }
