@@ -174,10 +174,9 @@ export const LinksPage: FC<Props> = ({
       ) : (
         <>
           {pageLinks.map((link) => {
-            const orderedSlugs = [...link.slugs].sort((a, b) => {
-              if (a.is_custom !== b.is_custom) return a.is_custom - b.is_custom;
-              return a.created_at - b.created_at;
-            });
+            const mainSlug = link.slugs.find((s) => s.is_primary)
+              || link.slugs.find((s) => s.is_custom)
+              || link.slugs[0];
             const disabled = isLinkDisabled(link);
             return (
               <a
@@ -189,16 +188,16 @@ export const LinksPage: FC<Props> = ({
                     <div class="link-label">{link.label}</div>
                   )}
                   <div class="link-slugs">
-                    {orderedSlugs.map((s) => (
+                    {mainSlug && (
                       <span
-                        class={`slug-chip${s.is_custom ? " custom" : ""}${(s.disabled_at || disabled) ? " slug-chip-disabled" : ""}`}
-                        onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(s.slug)}')`}
+                        class={`slug-chip${(mainSlug.disabled_at || disabled) ? " slug-chip-disabled" : ""}`}
+                        onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(mainSlug.slug)}')`}
                         title={t("links.clickToCopy")}
-                        style={(s.disabled_at || disabled) ? "opacity:0.4" : undefined}
+                        style={(mainSlug.disabled_at || disabled) ? "opacity:0.4" : undefined}
                       >
-                        {s.slug} <span class="icon">content_copy</span>
+                        {mainSlug.slug} <span class="icon">content_copy</span>
                       </span>
-                    ))}
+                    )}
                     {disabled && (
                       <span class="disabled-badge">
                         <span class="icon" style="font-size:14px">
