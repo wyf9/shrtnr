@@ -29,6 +29,42 @@ describe("SlugRepository.findByValue", () => {
   });
 });
 
+describe("SlugRepository.findForRedirect", () => {
+  it("returns url, disabled_at, and expires_at for a known slug", async () => {
+    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const found = await SlugRepository.findForRedirect(env.DB, "abc");
+    expect(found).not.toBeNull();
+    expect(found!.url).toBe("https://example.com");
+    expect(found!.disabled_at).toBeNull();
+    expect(found!.expires_at).toBeNull();
+  });
+
+  it("returns null for a non-existent slug", async () => {
+    expect(await SlugRepository.findForRedirect(env.DB, "nope")).toBeNull();
+  });
+
+  it("includes expires_at from the parent link", async () => {
+    const future = Math.floor(Date.now() / 1000) + 3600;
+    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "exp", expiresAt: future });
+    const found = await SlugRepository.findForRedirect(env.DB, "exp");
+    expect(found!.expires_at).toBe(future);
+  });
+
+  it("includes disabled_at when slug is disabled", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    await SlugRepository.addCustom(env.DB, link.id, "my-custom");
+    await SlugRepository.disable(env.DB, "my-custom");
+    const found = await SlugRepository.findForRedirect(env.DB, "my-custom");
+    expect(found!.disabled_at).toBeGreaterThan(0);
+  });
+
+  it("does not include click_count", async () => {
+    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const found = await SlugRepository.findForRedirect(env.DB, "abc");
+    expect(found).not.toHaveProperty("click_count");
+  });
+});
+
 describe("SlugRepository.exists", () => {
   it("returns true for a slug that exists", async () => {
     await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });

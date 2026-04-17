@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { LinkRepository, SlugRepository, ClickRepository, SettingRepository } from "../db";
+import { SlugCache } from "../kv";
 import { DEFAULT_SLUG_LENGTH } from "../constants";
 import { generateUniqueSlug, validateSlugLength, validateCustomSlug } from "../slugs";
 import { ClickData, ClickStats, DashboardStats, Env, LinkWithSlugs, Slug, TimelineData, TimelineRange } from "../types";
@@ -76,6 +77,13 @@ export async function createLink(
     createdVia: body.created_via,
     createdBy: body.created_by,
   });
+
+  await SlugCache.put(env.SLUG_KV, slug, {
+    url: body.url,
+    disabled_at: null,
+    expires_at: body.expires_at ?? null,
+  });
+
   return ok(link, 201);
 }
 
@@ -97,6 +105,17 @@ export async function updateLink(
 
   const link = await LinkRepository.update(env.DB, id, body);
   if (!link) return fail(404, "Link not found");
+
+  await Promise.all(
+    link.slugs.map((s) =>
+      SlugCache.put(env.SLUG_KV, s.slug, {
+        url: link.url,
+        disabled_at: s.disabled_at,
+        expires_at: link.expires_at,
+      }),
+    ),
+  );
+
   return ok(link);
 }
 
@@ -105,6 +124,17 @@ export async function disableLink(env: Env, id: number, identity?: string): Prom
   if (!link) return fail(404, "Link not found");
   if (identity && link.created_by !== identity) return fail(403, "Only the link owner can disable this link");
   const disabled = await LinkRepository.disable(env.DB, id);
+
+  await Promise.all(
+    disabled!.slugs.map((s) =>
+      SlugCache.put(env.SLUG_KV, s.slug, {
+        url: disabled!.url,
+        disabled_at: s.disabled_at,
+        expires_at: disabled!.expires_at,
+      }),
+    ),
+  );
+
   return ok(disabled!);
 }
 
@@ -113,6 +143,17 @@ export async function enableLink(env: Env, id: number, identity?: string): Promi
   if (!link) return fail(404, "Link not found");
   if (identity && link.created_by !== identity) return fail(403, "Only the link owner can enable this link");
   const enabled = await LinkRepository.update(env.DB, id, { expires_at: null });
+
+  await Promise.all(
+    enabled!.slugs.map((s) =>
+      SlugCache.put(env.SLUG_KV, s.slug, {
+        url: enabled!.url,
+        disabled_at: s.disabled_at,
+        expires_at: null,
+      }),
+    ),
+  );
+
   return ok(enabled!);
 }
 
@@ -121,7 +162,11 @@ export async function deleteLink(env: Env, id: number, identity?: string): Promi
   if (!link) return fail(404, "Link not found");
   if (identity && link.created_by !== identity) return fail(403, "Only the link owner can delete this link");
   if (link.total_clicks > 0) return fail(400, "Cannot delete a link with clicks, disable it instead");
+
+  const slugsToDelete = link.slugs.map((s) => s.slug);
   await LinkRepository.delete(env.DB, id);
+  await Promise.all(slugsToDelete.map((s) => SlugCache.delete(env.SLUG_KV, s)));
+
   return ok({ deleted: true });
 }
 
@@ -147,6 +192,13 @@ export async function addCustomSlugToLink(
   }
 
   const slug = await SlugRepository.addCustom(env.DB, linkId, normalizedSlug);
+
+  await SlugCache.put(env.SLUG_KV, normalizedSlug, {
+    url: link.url,
+    disabled_at: null,
+    expires_at: link.expires_at,
+  });
+
   return ok(slug, 201);
 }
 
@@ -181,6 +233,13 @@ export async function disableSlug(
   if (!slugObj.is_custom) return fail(400, "Cannot disable the random slug");
 
   const disabled = await SlugRepository.disable(env.DB, slug);
+
+  await SlugCache.put(env.SLUG_KV, slug, {
+    url: link.url,
+    disabled_at: disabled!.disabled_at,
+    expires_at: link.expires_at,
+  });
+
   return ok(disabled!);
 }
 
@@ -198,6 +257,13 @@ export async function enableSlug(
   if (!slugObj) return fail(404, "Slug not found on this link");
 
   const enabled = await SlugRepository.enable(env.DB, slug);
+
+  await SlugCache.put(env.SLUG_KV, slug, {
+    url: link.url,
+    disabled_at: null,
+    expires_at: link.expires_at,
+  });
+
   return ok(enabled!);
 }
 
@@ -217,6 +283,8 @@ export async function removeSlug(
   if (slugObj.click_count > 0) return fail(400, "Cannot remove a slug with clicks, disable it instead");
 
   await SlugRepository.remove(env.DB, slug);
+  await SlugCache.delete(env.SLUG_KV, slug);
+
   return ok({ removed: true });
 }
 

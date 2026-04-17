@@ -5,6 +5,7 @@ import type { Env } from "../types";
 function fakeEnv(overrides: Partial<Env> = {}): Env {
   return {
     DB: {} as D1Database,
+    SLUG_KV: {} as KVNamespace,
     ACCESS_AUD: "",
     MCP_ACCESS_AUD: "",
     ACCESS_JWKS_URL: "",

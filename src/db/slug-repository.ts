@@ -16,6 +16,16 @@ export class SlugRepository {
       .first<Slug & { url: string; expires_at: number | null }>();
   }
 
+  static async findForRedirect(
+    db: D1Database,
+    slug: string,
+  ): Promise<{ url: string; disabled_at: number | null; expires_at: number | null } | null> {
+    return db
+      .prepare("SELECT s.disabled_at, l.url, l.expires_at FROM slugs s JOIN links l ON s.link_id = l.id WHERE s.slug = ?")
+      .bind(slug)
+      .first<{ url: string; disabled_at: number | null; expires_at: number | null }>();
+  }
+
   static async exists(db: D1Database, slug: string): Promise<boolean> {
     const row = await db.prepare("SELECT 1 FROM slugs WHERE slug = ?").bind(slug).first();
     return row !== null;

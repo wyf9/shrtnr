@@ -14,6 +14,12 @@
       "enabled": true
     }
   },
+  "kv_namespaces": [
+    {
+      "binding": "SLUG_KV",
+      "id": "PLACEHOLDER_CREATE_VIA_WRANGLER"
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB",

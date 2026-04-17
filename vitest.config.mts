@@ -7,6 +7,7 @@ export default defineConfig({
       wrangler: { configPath: "./wrangler.jsonc" },
       miniflare: {
         d1Databases: { DB: "test-db" },
+        kvNamespaces: ["SLUG_KV"],
       },
     }),
   ],

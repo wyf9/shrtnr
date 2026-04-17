@@ -3,6 +3,7 @@
 
 export interface Env {
   DB: D1Database;
+  SLUG_KV?: KVNamespace;
 
   // Cloudflare Access JWT audience tags
   ACCESS_AUD: string;       // AUD tag from the admin CF Access application

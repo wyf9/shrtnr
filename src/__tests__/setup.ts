@@ -41,4 +41,8 @@ export async function resetData() {
   await env.DB.exec("DELETE FROM settings");
   await env.DB.exec("DELETE FROM api_keys");
   await env.DB.exec("INSERT INTO settings (identity, key, value) VALUES ('anonymous', 'slug_default_length', '3')");
+
+  // Clear KV cache
+  const { keys } = await env.SLUG_KV.list();
+  await Promise.all(keys.map((k) => env.SLUG_KV.delete(k.name)));
 }
