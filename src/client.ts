@@ -932,5 +932,173 @@ if (labelDisplay && !labelDisplay.querySelector('.inline-edit-value')) {
     }, 2000);
   }
 }
+
+// ---- Live polling (15s) ----
+var POLL_INTERVAL = 15000;
+
+function getActiveRange() {
+  var btn = document.querySelector('.timeline-range-btn.active');
+  return btn ? btn.getAttribute('data-range') : 'all';
+}
+
+// Dashboard polling
+function pollDashboard() {
+  api('/dashboard').then(function(res) {
+    if (!res.ok) return;
+    return res.json();
+  }).then(function(d) {
+    if (!d) return;
+    var el;
+
+    el = document.getElementById('dash-total-links');
+    if (el) el.textContent = String(d.total_links);
+
+    el = document.getElementById('dash-total-clicks');
+    if (el) el.textContent = String(d.total_clicks);
+
+    // Top countries
+    var countriesCard = document.getElementById('dash-top-countries');
+    if (countriesCard) {
+      var cBody = countriesCard.querySelector('.bento-value');
+      var cAfter = '';
+      var cMax = 0;
+      for (var ci = 0; ci < d.top_countries.length; ci++) cMax += d.top_countries[ci].count;
+      if (cMax === 0) cMax = 1;
+      if (d.top_countries.length === 0) {
+        cAfter = '';
+        if (cBody) cBody.innerHTML = '<span style="color:var(--color-text-muted)">' + esc(t('dashboard.noData')) + '</span>';
+      } else {
+        if (cBody) cBody.innerHTML = '';
+      }
+      // Remove old stat rows and rebuild
+      var oldCRows = countriesCard.querySelectorAll('.stat-row');
+      for (var cr = 0; cr < oldCRows.length; cr++) oldCRows[cr].remove();
+      for (var ci = 0; ci < d.top_countries.length; ci++) {
+        var cc = d.top_countries[ci];
+        var cpct = ((cc.count / cMax) * 100).toFixed(0);
+        var row = document.createElement('div');
+        row.className = 'stat-row';
+        row.innerHTML = '<span class="stat-name">' + esc(countryName(cc.name)) + '</span><div class="stat-bar"><div class="stat-fill orange" style="width:' + cpct + '%"></div></div><span class="stat-count">' + cc.count + '</span>';
+        countriesCard.appendChild(row);
+      }
+    }
+
+    // Top sources
+    var sourcesCard = document.getElementById('dash-top-sources');
+    if (sourcesCard) {
+      var oldSRows = sourcesCard.querySelectorAll('.stat-row');
+      for (var sr = 0; sr < oldSRows.length; sr++) oldSRows[sr].remove();
+      var sNoData = sourcesCard.querySelector('div[style]');
+      var sMax = 0;
+      for (var si = 0; si < d.top_referrers.length; si++) sMax += d.top_referrers[si].count;
+      if (sMax === 0) sMax = 1;
+      if (d.top_referrers.length === 0) {
+        if (!sNoData) {
+          var nd = document.createElement('div');
+          nd.style.cssText = 'color:var(--color-text-muted);font-size:0.875rem';
+          nd.textContent = t('dashboard.noData');
+          sourcesCard.appendChild(nd);
+        }
+      } else {
+        if (sNoData && sNoData.textContent === t('dashboard.noData')) sNoData.remove();
+        for (var si = 0; si < d.top_referrers.length; si++) {
+          var ref = d.top_referrers[si];
+          var rpct = ((ref.count / sMax) * 100).toFixed(0);
+          var row = document.createElement('div');
+          row.className = 'stat-row';
+          row.innerHTML = '<span class="stat-name">' + esc(ref.name) + '</span><div class="stat-bar"><div class="stat-fill mint" style="width:' + rpct + '%"></div></div><span class="stat-count">' + ref.count + '</span>';
+          sourcesCard.appendChild(row);
+        }
+      }
+    }
+
+    // Recent links
+    var recentCard = document.getElementById('dash-recent-links');
+    if (recentCard) {
+      var recentLinks = recentCard.querySelectorAll('a');
+      for (var rl = 0; rl < recentLinks.length; rl++) recentLinks[rl].remove();
+      var recentNoData = recentCard.querySelector('div[style*="color:var(--color-text-muted)"]');
+      if (d.recent_links.length === 0) {
+        if (!recentNoData) {
+          var nd = document.createElement('div');
+          nd.style.cssText = 'color:var(--color-text-muted);font-size:0.875rem';
+          nd.textContent = t('dashboard.noLinks');
+          recentCard.appendChild(nd);
+        }
+      } else {
+        if (recentNoData) recentNoData.remove();
+        for (var ri = 0; ri < d.recent_links.length; ri++) {
+          var link = d.recent_links[ri];
+          var slug = '';
+          for (var si = 0; si < link.slugs.length; si++) {
+            if (!link.slugs[si].is_custom) { slug = link.slugs[si].slug; break; }
+          }
+          if (!slug && link.slugs.length > 0) slug = link.slugs[0].slug;
+          var a = document.createElement('a');
+          a.href = '/_/admin/links/' + link.id;
+          a.style.cssText = 'display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0;cursor:pointer;overflow:hidden;min-width:0;text-decoration:none;color:inherit';
+          a.innerHTML = '<span class="slug-chip" onclick="event.preventDefault();event.stopPropagation();copyUrl(\\'' + esc(slug) + '\\')" title="' + esc(t('dashboard.clickToCopy')) + '">' + esc(slug) + ' <span class="icon" style="font-size:14px">content_copy</span></span>' +
+            '<span style="flex:1;min-width:0;font-size:0.8rem;color:var(--color-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(link.url) + '</span>' +
+            '<span style="font-family:var(--font-family-display);font-weight:700;color:var(--color-accent);flex-shrink:0">' + link.total_clicks + '</span>';
+          recentCard.appendChild(a);
+        }
+      }
+    }
+
+    // Top links
+    var topLinksCard = document.getElementById('dash-top-links');
+    if (topLinksCard) {
+      var oldTLinks = topLinksCard.querySelectorAll('a');
+      for (var tl = 0; tl < oldTLinks.length; tl++) oldTLinks[tl].remove();
+      var tlNoData = topLinksCard.querySelector('div[style*="color:var(--color-text-muted)"]');
+      var tlMax = 0;
+      for (var ti = 0; ti < d.top_links.length; ti++) tlMax += d.top_links[ti].total_clicks;
+      if (tlMax === 0) tlMax = 1;
+      if (d.top_links.length === 0) {
+        if (!tlNoData) {
+          var nd = document.createElement('div');
+          nd.style.cssText = 'color:var(--color-text-muted);font-size:0.875rem';
+          nd.textContent = t('dashboard.noData');
+          topLinksCard.appendChild(nd);
+        }
+      } else {
+        if (tlNoData) tlNoData.remove();
+        for (var ti = 0; ti < d.top_links.length; ti++) {
+          var tLink = d.top_links[ti];
+          var tSlug = '';
+          for (var si = 0; si < tLink.slugs.length; si++) {
+            if (!tLink.slugs[si].is_custom) { tSlug = tLink.slugs[si].slug; break; }
+          }
+          if (!tSlug && tLink.slugs.length > 0) tSlug = tLink.slugs[0].slug;
+          var tPct = ((tLink.total_clicks / tlMax) * 100).toFixed(0);
+          var a = document.createElement('a');
+          a.href = '/_/admin/links/' + tLink.id;
+          a.style.cssText = 'cursor:pointer;overflow:hidden;text-decoration:none;color:inherit;display:block';
+          a.innerHTML = '<div class="stat-row"><span class="stat-name" style="font-family:var(--font-family-mono)">' + esc(tSlug) + '</span><div class="stat-bar"><div class="stat-fill orange" style="width:' + tPct + '%"></div></div><span class="stat-count">' + tLink.total_clicks + '</span></div>' +
+            '<div style="font-size:0.75rem;color:var(--color-text-muted);margin:-0.15rem 0 0.5rem 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(tLink.url) + '</div>';
+          topLinksCard.appendChild(a);
+        }
+      }
+    }
+  });
+}
+
+// Link detail polling
+function pollLinkDetail(linkId) {
+  var range = getActiveRange();
+  loadAnalytics(linkId, range);
+}
+
+// Start polling based on current page
+if (document.getElementById('dashboard-bento')) {
+  setInterval(pollDashboard, POLL_INTERVAL);
+}
+
+if (analyticsRangeBar) {
+  var pollLinkId = parseInt(analyticsRangeBar.getAttribute('data-link-id'), 10);
+  if (pollLinkId) {
+    setInterval(function() { pollLinkDetail(pollLinkId); }, POLL_INTERVAL);
+  }
+}
 `;
 }

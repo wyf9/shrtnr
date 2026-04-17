@@ -14,16 +14,6 @@ function escHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-const StatCard: FC<{ label: string; value: string | number }> = ({
-  label,
-  value,
-}) => (
-  <div class="bento-card">
-    <div class="bento-label">{label}</div>
-    <div class="bento-value">{value}</div>
-  </div>
-);
-
 const StatBar: FC<{
   name: string;
   count: number;
@@ -78,11 +68,17 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
         </button>
       </div>
 
-      <div class="bento">
-        <StatCard label={t("dashboard.totalLinks")} value={d.total_links} />
-        <StatCard label={t("dashboard.totalClicks")} value={d.total_clicks} />
-
+      <div class="bento" id="dashboard-bento">
         <div class="bento-card">
+          <div class="bento-label">{t("dashboard.totalLinks")}</div>
+          <div class="bento-value" id="dash-total-links">{d.total_links}</div>
+        </div>
+        <div class="bento-card">
+          <div class="bento-label">{t("dashboard.totalClicks")}</div>
+          <div class="bento-value" id="dash-total-clicks">{d.total_clicks}</div>
+        </div>
+
+        <div class="bento-card" id="dash-top-countries">
           <div class="bento-label">{t("dashboard.topCountries")}</div>
           <div class="bento-value small">
             {d.top_countries.length === 0 && (
@@ -99,7 +95,7 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
           ))}
         </div>
 
-        <div class="bento-card span-2">
+        <div class="bento-card span-2" id="dash-recent-links">
           <div class="bento-label">{t("dashboard.recentLinks")}</div>
           {d.recent_links.length === 0 ? (
             <div style="color:var(--color-text-muted);font-size:0.875rem">
@@ -135,7 +131,7 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
           )}
         </div>
 
-        <div class="bento-card">
+        <div class="bento-card" id="dash-top-sources">
           <div class="bento-label">{t("dashboard.topSources")}</div>
           {d.top_referrers.length === 0 ? (
             <div style="color:var(--color-text-muted);font-size:0.875rem">
@@ -153,7 +149,7 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
           )}
         </div>
 
-        <div class="bento-card span-3">
+        <div class="bento-card span-3" id="dash-top-links">
           <div class="bento-label">{t("dashboard.mostClicked")}</div>
           {d.top_links.length === 0 ? (
             <div style="color:var(--color-text-muted);font-size:0.875rem">
