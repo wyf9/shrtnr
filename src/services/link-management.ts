@@ -6,6 +6,7 @@ import { SlugCache } from "../kv";
 import { DEFAULT_SLUG_LENGTH } from "../constants";
 import { generateUniqueSlug, validateSlugLength, validateCustomSlug } from "../slugs";
 import { ClickData, ClickStats, DashboardStats, Env, LinkWithSlugs, Slug, TimelineData, TimelineRange } from "../types";
+import { normalizeUrl } from "../normalize-url";
 import { ServiceResult, ok, fail } from "./result";
 
 export type { ServiceResult };
@@ -42,6 +43,8 @@ export async function createLink(
   } catch {
     return fail(400, "url must be a valid URL");
   }
+
+  body.url = normalizeUrl(body.url);
 
   if (!body.allow_duplicate) {
     const existing = await LinkRepository.findByUrl(env.DB, body.url);

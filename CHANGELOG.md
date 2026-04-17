@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.28.0 (2026-04-17)
+
+- KV write-through cache for slug redirects. Slug lookups now check Workers KV before hitting D1, reducing redirect latency for hot links.
+- Fixed duplicate detection treating URLs with trailing `/`, `?`, or `#` as distinct from the clean URL. These trailing characters are now stripped before lookup and storage.
+
 ## 0.27.2 (2026-04-16)
 
 - Fixed landing page not redirecting logged-in users to the dashboard. The `CF_Authorization` cookie is now used as a fallback when the `Cf-Access-Jwt-Assertion` header is absent (unprotected routes).
