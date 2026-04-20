@@ -2,15 +2,14 @@ name: Release pub.dev SDK
 
 on:
   push:
-    branches: [main]
-    paths:
-      - sdk/dart/pubspec.yaml
-  workflow_dispatch:
+    tags:
+      - 'pub-v*'
 
 permissions:
   contents: write
   # Required so dart-lang/setup-dart can request an OIDC token that pub.dev
-  # trusts for automated publishing.
+  # trusts for automated publishing. pub.dev requires the token to carry
+  # refType=tag, so this workflow must be triggered by a tag push.
   id-token: write
 
 concurrency:
@@ -26,25 +25,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Read version and check tag
+      - name: Resolve version from tag
         id: version
         run: |
-          CURRENT=$(grep '^version:' sdk/dart/pubspec.yaml | head -n1 | awk '{print $2}' | tr -d '"')
-          if [ -z "$CURRENT" ]; then
-            echo "Could not read version from sdk/dart/pubspec.yaml" >&2
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#pub-v}"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$TAG" ]; then
+            echo "Tag $TAG does not match expected pub-v<version> pattern" >&2
             exit 1
           fi
-          TAG="pub-v$CURRENT"
-          if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+          MANIFEST_VERSION=$(grep '^version:' sdk/dart/pubspec.yaml | head -n1 | awk '{print $2}' | tr -d '"')
+          if [ "$MANIFEST_VERSION" != "$VERSION" ]; then
+            echo "Tag version $VERSION does not match pubspec.yaml version $MANIFEST_VERSION" >&2
+            exit 1
           fi
-          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "current=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Extract changelog for version
-        if: steps.version.outputs.exists == 'false'
         run: |
           bash scripts/extract-changelog.sh \
             "${{ steps.version.outputs.current }}" \
@@ -52,25 +50,20 @@ jobs:
             /tmp/pub-release-notes.md
 
       - uses: dart-lang/setup-dart@v1
-        if: steps.version.outputs.exists == 'false'
 
       - name: Install dependencies
-        if: steps.version.outputs.exists == 'false'
         working-directory: sdk/dart
         run: dart pub get
 
       - name: Analyze
-        if: steps.version.outputs.exists == 'false'
         working-directory: sdk/dart
         run: dart analyze --fatal-infos
 
       - name: Test
-        if: steps.version.outputs.exists == 'false'
         working-directory: sdk/dart
         run: dart test
 
       - name: Publish to pub.dev
-        if: steps.version.outputs.exists == 'false'
         working-directory: sdk/dart
         # Auth is handled by dart-lang/setup-dart via OIDC. Configure the
         # trust relationship once in pub.dev: package admin -> Automated
@@ -78,14 +71,10 @@ jobs:
         # pattern pub-v{{version}}.
         run: dart pub publish --force
 
-      - name: Create tag and release
-        if: steps.version.outputs.exists == 'false'
+      - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
-          git tag "$TAG"
-          git push origin "$TAG"
-          gh release create "$TAG" \
-            --title "$TAG" \
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --title "${{ steps.version.outputs.tag }}" \
             --notes-file /tmp/pub-release-notes.md
