@@ -5,6 +5,7 @@ import type { FC } from "hono/jsx";
 import type { LinkWithSlugs, ClickStats } from "../types";
 import type { TranslateFn } from "../i18n";
 import { countryName } from "../country";
+import { KpiCard } from "../components/kpi-card";
 
 function escHtml(s: string): string {
   return s
@@ -40,6 +41,16 @@ const StatBar: FC<{
     </div>
   );
 };
+
+function avgPerDay(totalClicks: number, createdAt: number, now: number): string {
+  const seconds = Math.max(1, now - createdAt);
+  const days = Math.max(1, seconds / 86400);
+  const avg = totalClicks / days;
+  if (avg === 0) return "0";
+  if (avg < 1) return avg.toFixed(2);
+  if (avg < 10) return avg.toFixed(1);
+  return Math.round(avg).toString();
+}
 
 function referrerHost(url: string): string {
   try {
@@ -158,113 +169,128 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
       </div>
 
       <div class="detail-hero">
-        <div class="detail-hero-grid">
-          <div class="detail-hero-main">
-            <div class="detail-hero-label" id="label-display" onclick={`beginEditLabel(${link.id})`}>
-              {link.label ? (
-                <span class="inline-edit-value">{link.label}</span>
-              ) : (
-                <span class="inline-edit-placeholder">{t("linkDetail.setLabel")}</span>
-              )}
-              <span class="icon inline-edit-icon">edit</span>
-            </div>
-            <div class="inline-edit-form" id="label-form" style="display:none">
-              <input
-                class="form-input form-input-sm"
-                id="detail-label"
-                value={link.label || ""}
-                placeholder={t("linkDetail.labelPlaceholder")}
-                onkeydown={`if(event.key==='Enter')saveDetailLabel(${link.id});if(event.key==='Escape')cancelEditLabel();`}
-              />
-              <button class="inline-edit-btn confirm" onclick={`saveDetailLabel(${link.id})`}>
-                <span class="icon">check</span>
-              </button>
-              <button class="inline-edit-btn cancel" onclick="cancelEditLabel()">
-                <span class="icon">close</span>
-              </button>
-            </div>
-            {isExpired && (
-              <div class="disabled-badge mb-sm">{t("linkDetail.disabled")}</div>
+        <div class="detail-hero-main">
+          <div class="detail-hero-label" id="label-display" onclick={`beginEditLabel(${link.id})`}>
+            {link.label ? (
+              <span class="inline-edit-value">{link.label}</span>
+            ) : (
+              <span class="inline-edit-placeholder">{t("linkDetail.setLabel")}</span>
             )}
-            <div class={`detail-short-url${isExpired ? " dimmed" : ""}`}>
-              {displaySlug}
-            </div>
-            <div class="detail-dest">{link.url}</div>
-            <div class="detail-actions">
-              <button
-                class="btn btn-secondary btn-sm"
-                onclick={`copyUrl('${escHtml(displaySlug)}')`}
-              >
-                <span class="icon">content_copy</span> {t("linkDetail.copy")}
-              </button>
-              <button
-                class="btn btn-ghost btn-sm"
-                onclick={`showQRModal(${link.id}, '${escHtml(displaySlug)}')`}
-              >
-                <span class="icon">qr_code_2</span> {t("linkDetail.qr")}
-              </button>
-            </div>
+            <span class="icon inline-edit-icon">edit</span>
           </div>
-
-          <div class="detail-hero-side">
-            <div class="detail-stats">
-              <div class="detail-stat-value" id="hero-total-clicks">{analytics.total_clicks}</div>
-              <div class="detail-stat-label">{t("linkDetail.totalClicks")}</div>
-            </div>
-            <div class="detail-info-grid">
-              <div class="detail-info-item">
-                <label class="form-label">{t("linkDetail.createdBy")}</label>
-                <div class="meta-row">
-                  {link.created_by && link.created_by !== "anonymous" ? (
-                    <span class="meta-value mono">{link.created_by}</span>
-                  ) : (
-                    <span class="meta-value muted">&mdash;</span>
-                  )}
-                  {link.created_via && (
-                    <span class="slug-badge-auto">{link.created_via}</span>
-                  )}
-                </div>
+          <div class="inline-edit-form" id="label-form" style="display:none">
+            <input
+              class="form-input form-input-sm"
+              id="detail-label"
+              value={link.label || ""}
+              placeholder={t("linkDetail.labelPlaceholder")}
+              onkeydown={`if(event.key==='Enter')saveDetailLabel(${link.id});if(event.key==='Escape')cancelEditLabel();`}
+            />
+            <button class="inline-edit-btn confirm" onclick={`saveDetailLabel(${link.id})`}>
+              <span class="icon">check</span>
+            </button>
+            <button class="inline-edit-btn cancel" onclick="cancelEditLabel()">
+              <span class="icon">close</span>
+            </button>
+          </div>
+          {isExpired && (
+            <div class="disabled-badge mb-sm">{t("linkDetail.disabled")}</div>
+          )}
+          <div class={`detail-short-url${isExpired ? " dimmed" : ""}`}>
+            {displaySlug}
+          </div>
+          <div class="detail-dest">{link.url}</div>
+          <div class="detail-actions">
+            <button
+              class="btn btn-secondary btn-sm"
+              onclick={`copyUrl('${escHtml(displaySlug)}')`}
+            >
+              <span class="icon">content_copy</span> {t("linkDetail.copy")}
+            </button>
+            <button
+              class="btn btn-ghost btn-sm"
+              onclick={`showQRModal(${link.id}, '${escHtml(displaySlug)}')`}
+            >
+              <span class="icon">qr_code_2</span> {t("linkDetail.qr")}
+            </button>
+          </div>
+          <div class="detail-hero-meta">
+            <div class="detail-info-item">
+              <label class="form-label">{t("linkDetail.createdBy")}</label>
+              <div class="meta-row">
+                {link.created_by && link.created_by !== "anonymous" ? (
+                  <span class="meta-value mono">{link.created_by}</span>
+                ) : (
+                  <span class="meta-value muted">&mdash;</span>
+                )}
+                {link.created_via && (
+                  <span class="slug-badge-auto">{link.created_via}</span>
+                )}
               </div>
-              <div class="detail-info-item">
-                <label class="form-label">{t("linkDetail.expiresAt")}</label>
-                <div class="inline-edit" id="expiry-display" onclick={`beginEditExpiry(${link.id})`}>
-                  {link.expires_at ? (
-                    <span class="inline-edit-value">
-                      {new Date(link.expires_at * 1000).toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" })}
-                      {", "}
-                      {new Date(link.expires_at * 1000).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  ) : (
-                    <span class="inline-edit-placeholder">{t("linkDetail.noExpiry")}</span>
-                  )}
-                  <span class="icon inline-edit-icon">edit</span>
-                </div>
-                <div class="inline-edit-form expiry-form" id="expiry-form" style="display:none">
-                  <input
-                    class="form-input form-input-sm"
-                    id="detail-expires"
-                    type="datetime-local"
-                    value={expVal}
-                  />
-                  <button class="inline-edit-btn confirm" onclick={`saveDetailExpiry(${link.id})`}>
-                    <span class="icon">check</span>
+            </div>
+            <div class="detail-info-item">
+              <label class="form-label">{t("linkDetail.expiresAt")}</label>
+              <div class="inline-edit" id="expiry-display" onclick={`beginEditExpiry(${link.id})`}>
+                {link.expires_at ? (
+                  <span class="inline-edit-value">
+                    {new Date(link.expires_at * 1000).toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" })}
+                    {", "}
+                    {new Date(link.expires_at * 1000).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                ) : (
+                  <span class="inline-edit-placeholder">{t("linkDetail.noExpiry")}</span>
+                )}
+                <span class="icon inline-edit-icon">edit</span>
+              </div>
+              <div class="inline-edit-form expiry-form" id="expiry-form" style="display:none">
+                <input
+                  class="form-input form-input-sm"
+                  id="detail-expires"
+                  type="datetime-local"
+                  value={expVal}
+                />
+                <button class="inline-edit-btn confirm" onclick={`saveDetailExpiry(${link.id})`}>
+                  <span class="icon">check</span>
+                </button>
+                {link.expires_at && (
+                  <button
+                    class="btn btn-ghost btn-sm"
+                    onclick={`clearDetailExpiry(${link.id})`}
+                  >
+                    {t("linkDetail.clear")}
                   </button>
-                  {link.expires_at && (
-                    <button
-                      class="btn btn-ghost btn-sm"
-                      onclick={`clearDetailExpiry(${link.id})`}
-                    >
-                      {t("linkDetail.clear")}
-                    </button>
-                  )}
-                  <button class="inline-edit-btn cancel" onclick="cancelEditExpiry()">
-                    <span class="icon">close</span>
-                  </button>
-                </div>
+                )}
+                <button class="inline-edit-btn cancel" onclick="cancelEditExpiry()">
+                  <span class="icon">close</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="kpi-row">
+        <KpiCard
+          icon="mouse"
+          label={t("linkDetail.totalClicks")}
+          value={analytics.total_clicks}
+          valueId="hero-total-clicks"
+        />
+        <KpiCard
+          icon="calendar_month"
+          label={t("linkDetail.avgPerDay")}
+          value={avgPerDay(analytics.total_clicks, link.created_at, now)}
+        />
+        <KpiCard
+          icon="public"
+          label={t("linkDetail.countries")}
+          value={analytics.countries.length}
+        />
+        <KpiCard
+          icon="hub"
+          label={t("linkDetail.sources")}
+          value={analytics.referrer_hosts.length}
+        />
       </div>
 
       {/* Slugs management section */}

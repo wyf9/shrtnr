@@ -488,6 +488,11 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
   .kpi-row { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* Detail-hero meta row (created_by + expires_at pulled below the actions) */
+.detail-hero-meta { display: flex; flex-wrap: wrap; gap: 1.5rem 2.5rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--color-border); }
+.detail-hero-meta .detail-info-item { min-width: 0; flex: 1 1 220px; }
+.detail-hero-meta .form-label { display: block; font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+
 /* Range picker (time range selector) */
 .range-picker { display: inline-flex; gap: 2px; background: var(--color-surface-interactive); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 2px; }
 .range-picker a, .range-picker button { border: none; background: transparent; cursor: pointer; padding: 0.3rem 0.65rem; border-radius: calc(var(--radius-md) - 2px); color: var(--color-text-muted); font-family: var(--font-family-body); font-size: 0.72rem; font-weight: 600; text-decoration: none; letter-spacing: 0.02em; transition: color 0.15s, background 0.15s; }
