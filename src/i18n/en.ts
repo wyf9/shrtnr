@@ -192,6 +192,12 @@ const en = {
   "range.90d": "90D",
   "range.1y": "1Y",
   "range.all": "ALL",
+  "range.long.24h": "24 hours",
+  "range.long.7d": "7 days",
+  "range.long.30d": "30 days",
+  "range.long.90d": "90 days",
+  "range.long.1y": "12 months",
+  "range.long.all": "all time",
 
   // 404
   "notFound.label": "Not found",

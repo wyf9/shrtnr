@@ -195,6 +195,12 @@ const id: Translations = {
   "range.90d": "90H",
   "range.1y": "1T",
   "range.all": "SEMUA",
+  "range.long.24h": "24 jam",
+  "range.long.7d": "7 hari",
+  "range.long.30d": "30 hari",
+  "range.long.90d": "90 hari",
+  "range.long.1y": "12 bulan",
+  "range.long.all": "seluruh waktu",
 
   // 404
   "notFound.label": "Tidak ditemukan",

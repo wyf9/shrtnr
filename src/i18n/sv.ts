@@ -195,6 +195,12 @@ const sv: Translations = {
   "range.90d": "90D",
   "range.1y": "1Å",
   "range.all": "ALLT",
+  "range.long.24h": "24 timmar",
+  "range.long.7d": "7 dagar",
+  "range.long.30d": "30 dagar",
+  "range.long.90d": "90 dagar",
+  "range.long.1y": "12 månader",
+  "range.long.all": "all tid",
 
   // 404
   "notFound.label": "Hittades inte",
