@@ -32,7 +32,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/oddbit/shrtnr.git",
-    "directory": "sdk"
+    "directory": "sdk/typescript"
   },
   "keywords": [
     "url-shortener",
