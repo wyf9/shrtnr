@@ -1,6 +1,6 @@
 # shrtnr: URL Shortener SDK for Dart and Flutter
 
-Dart client for creating short links, managing URLs, and reading click analytics from a [shrtnr](https://oddb.it/github-shrtnr-pub) instance. Works on the Dart VM, Flutter (mobile, desktop, web), and anywhere `package:http` runs.
+Dart client for creating short links, managing URLs, and reading click analytics from a [shrtnr](https://oddb.it/shrtnr-website-pub) instance. Works on the Dart VM, Flutter (mobile, desktop, web), and anywhere `package:http` runs.
 
 ## Install
 

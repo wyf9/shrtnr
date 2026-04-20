@@ -1,6 +1,6 @@
 # @oddbit/shrtnr: URL Shortener SDK for TypeScript
 
-TypeScript client for creating short links, managing URLs, and reading click analytics from a [shrtnr](https://oddb.it/github-shrtnr-npm) instance. Works in Node.js, Deno, Bun, and the browser.
+TypeScript client for creating short links, managing URLs, and reading click analytics from a [shrtnr](https://oddb.it/shrtnr-website-npm) instance. Works in Node.js, Deno, Bun, and the browser.
 
 ## Install
 

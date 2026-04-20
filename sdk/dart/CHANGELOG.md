@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Updating documentation.
+
 ## 0.1.0
 
 Initial Dart SDK release. Mirrors the TypeScript SDK's public surface:
