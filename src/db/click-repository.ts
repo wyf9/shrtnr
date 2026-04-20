@@ -1,7 +1,7 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-import { ClickData, ClickStats, DashboardStats, TimelineBucket, TimelineData, TimelineRange } from "../types";
+import { ClickData, ClickStats, DashboardStats, LinkWithSlugs, TimelineBucket, TimelineData, TimelineRange } from "../types";
 import { LinkRepository } from "./link-repository";
 import { RANGE_SECONDS, computeDelta } from "../services/trends";
 

@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { FC } from "hono/jsx";
-import type { DashboardStats, LinkWithSlugs } from "../types";
+import type { DashboardStats, LinkWithSlugs, TimelineRange } from "../types";
 import type { TranslateFn } from "../i18n";
 import { countryName } from "../country";
+import { KpiCard } from "../components/kpi-card";
+import { RangePicker } from "../components/range-picker";
 
 function escHtml(s: string): string {
   return s
@@ -41,9 +43,10 @@ type Props = {
   stats: DashboardStats;
   t: TranslateFn;
   lang: string;
+  range: TimelineRange;
 };
 
-export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
+export const DashboardPage: FC<Props> = ({ stats, t, lang, range }) => {
   const d = stats;
   const topCountryMax = d.top_countries.reduce((s, i) => s + i.count, 0) || 1;
   const topRefMax = d.top_referrers.reduce((s, i) => s + i.count, 0) || 1;
@@ -51,9 +54,14 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
 
   return (
     <>
-      <div class="page-header">
-        <div class="page-title">{t("dashboard.title")}</div>
-        <div class="page-subtitle">{t("dashboard.subtitle")}</div>
+      <div class="page-header topbar">
+        <div>
+          <div class="page-title">{t("dashboard.title")}</div>
+          <div class="page-subtitle">{t("dashboard.subtitle")}</div>
+        </div>
+        <div class="topbar-actions">
+          <RangePicker current={range} basePath="/_/admin/dashboard" />
+        </div>
       </div>
 
       <div class="hero-input-wrap">
@@ -69,20 +77,33 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
       </div>
 
       <div class="bento" id="dashboard-bento">
-        <div class="bento-card bento-card-compact">
-          <div class="bento-label">{t("dashboard.totalLinks")}</div>
-          <div class="bento-value" id="dash-total-links">{d.total_links}</div>
-        </div>
-        <div class="bento-card bento-card-compact">
-          <div class="bento-label">{t("dashboard.totalClicks")}</div>
-          <div class="bento-value" id="dash-total-clicks">{d.total_clicks}</div>
-        </div>
+        <KpiCard
+          id="dash-kpi-links"
+          icon="link"
+          label={t("dashboard.totalLinks")}
+          value={d.total_links}
+          valueId="dash-total-links"
+          deltaPct={d.new_links_delta}
+          deltaId="dash-links-delta"
+          hint={`+${d.new_links_in_range} ${range === "all" ? "" : range}`.trim()}
+        />
+        <KpiCard
+          id="dash-kpi-clicks"
+          icon="mouse"
+          label={t("dashboard.totalClicks")}
+          value={d.total_clicks}
+          valueId="dash-total-clicks"
+          deltaPct={d.total_clicks_delta}
+          deltaId="dash-clicks-delta"
+          sparkline={d.timeline}
+          span={2}
+        />
 
         <div class="bento-card" id="dash-top-countries">
           <div class="bento-label">{t("dashboard.topCountries")}</div>
           <div class="bento-value small">
             {d.top_countries.length === 0 && (
-              <span style="color:var(--color-text-muted)">{t("dashboard.noData")}</span>
+              <span class="muted-hint">{t("dashboard.noData")}</span>
             )}
           </div>
           {d.top_countries.map((c) => (
@@ -98,33 +119,22 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
         <div class="bento-card span-2" id="dash-recent-links">
           <div class="bento-label">{t("dashboard.recentLinks")}</div>
           {d.recent_links.length === 0 ? (
-            <div style="color:var(--color-text-muted);font-size:0.875rem">
-              {t("dashboard.noLinks")}
-            </div>
+            <div class="muted-hint">{t("dashboard.noLinks")}</div>
           ) : (
             d.recent_links.map((link) => {
               const slug = primarySlug(link);
               return (
-                <a
-                  href={`/_/admin/links/${link.id}`}
-                  style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0;cursor:pointer;overflow:hidden;min-width:0;text-decoration:none;color:inherit"
-                >
+                <a href={`/_/admin/links/${link.id}`} class="recent-row">
                   <span
                     class="slug-chip"
                     onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(slug)}')`}
                     title={t("dashboard.clickToCopy")}
                   >
                     {slug}{" "}
-                    <span class="icon" style="font-size:14px">
-                      content_copy
-                    </span>
+                    <span class="icon">content_copy</span>
                   </span>
-                  <span style="flex:1;min-width:0;font-size:0.8rem;color:var(--color-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                    {link.url}
-                  </span>
-                  <span style="font-family:var(--font-family-display);font-weight:700;color:var(--color-accent);flex-shrink:0">
-                    {link.total_clicks}
-                  </span>
+                  <span class="recent-row-url">{link.url}</span>
+                  <span class="recent-row-clicks">{link.total_clicks}</span>
                 </a>
               );
             })
@@ -134,9 +144,7 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
         <div class="bento-card" id="dash-top-sources">
           <div class="bento-label">{t("dashboard.topSources")}</div>
           {d.top_referrers.length === 0 ? (
-            <div style="color:var(--color-text-muted);font-size:0.875rem">
-              {t("dashboard.noData")}
-            </div>
+            <div class="muted-hint">{t("dashboard.noData")}</div>
           ) : (
             d.top_referrers.map((r) => (
               <StatBar
@@ -152,24 +160,14 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
         <div class="bento-card span-3" id="dash-top-links">
           <div class="bento-label">{t("dashboard.mostClicked")}</div>
           {d.top_links.length === 0 ? (
-            <div style="color:var(--color-text-muted);font-size:0.875rem">
-              {t("dashboard.noData")}
-            </div>
+            <div class="muted-hint">{t("dashboard.noData")}</div>
           ) : (
             d.top_links.map((link) => {
               const slug = primarySlug(link);
               return (
-                <a
-                  href={`/_/admin/links/${link.id}`}
-                  style="cursor:pointer;overflow:hidden;text-decoration:none;color:inherit;display:block"
-                >
+                <a href={`/_/admin/links/${link.id}`} class="top-link-row">
                   <div class="stat-row">
-                    <span
-                      class="stat-name"
-                      style="font-family:var(--font-family-mono)"
-                    >
-                      {slug}
-                    </span>
+                    <span class="stat-name stat-name-mono">{slug}</span>
                     <div class="stat-bar">
                       <div
                         class="stat-fill orange"
@@ -178,9 +176,7 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang }) => {
                     </div>
                     <span class="stat-count">{link.total_clicks}</span>
                   </div>
-                  <div style="font-size:0.75rem;color:var(--color-text-muted);margin:-0.15rem 0 0.5rem 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                    {link.url}
-                  </div>
+                  <div class="top-link-row-url">{link.url}</div>
                 </a>
               );
             })
