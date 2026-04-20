@@ -5,7 +5,6 @@ import type { FC } from "hono/jsx";
 import type { LinkWithSlugs, ClickStats } from "../types";
 import type { TranslateFn } from "../i18n";
 import { countryName } from "../country";
-import { KpiCard } from "../components/kpi-card";
 
 function escHtml(s: string): string {
   return s

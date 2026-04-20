@@ -2,6 +2,9 @@
 
 ## Coding
 
+### Styling
+- Never inline custom styling into components for things that are global design. Make design files and centrally declared styles that are imported by components and pages to ensure consistency and maintainability.
+
 ### Releases
 
 When instructed to "update the version", "bump version" or "create a release":
@@ -22,10 +25,6 @@ When instructed to "update the version", "bump version" or "create a release":
 - All user-facing strings in admin pages and components must be added to the translation files and read through the `t()` translator. Never hardcode English (or any language) strings inline in JSX/TSX.
 - When introducing new UI copy (buttons, labels, headings, hints, empty states, aria-labels), add the key and text to the i18n translation sources first, then reference it via `t("namespace.key")`. Applies to new features and to refactors that touch existing copy.
 
-### Commits
-
-- Make logically grouped commits as you work. Each commit should capture one coherent change (one refactor, one feature, one fix) with a message that explains the rationale. Do not batch unrelated changes into a single commit, and do not wait until the end of a task to commit everything at once.
-
 ### Database migrations
 
 - Migrations must preserve all existing data. D1 does not support `ALTER TABLE ... DROP CONSTRAINT` or `ADD CONSTRAINT`, so schema changes to CHECK constraints require recreating the table.
@@ -36,6 +35,7 @@ When instructed to "update the version", "bump version" or "create a release":
 
 - Never force push git.
 - Do NOT include "Co-Authored-By" notes in commit messages (e.g., "Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"). Commit messages should be clean and focused on the technical rationale.
+- Make logically grouped commits as you work. Each commit should capture one coherent change (one refactor, one feature, one fix) with a message that explains the rationale. Do not batch unrelated changes into a single commit, and do not wait until the end of a task to commit everything at once.
 
 ## Writing Rules
 

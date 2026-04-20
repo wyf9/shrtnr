@@ -481,17 +481,17 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 .kpi-spark { margin-top: auto; height: 32px; }
 .kpi-spark svg { width: 100%; height: 100%; display: block; }
 
-/* KPI row (4 cells for link-detail hero) */
-.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-.kpi-row .bento-card { margin-bottom: 0; }
-@media (max-width: 1100px) {
-  .kpi-row { grid-template-columns: repeat(2, 1fr); }
-}
-
 /* Detail-hero meta row (created_by + expires_at pulled below the actions) */
 .detail-hero-meta { display: flex; flex-wrap: wrap; gap: 1.5rem 2.5rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--color-border); }
 .detail-hero-meta .detail-info-item { min-width: 0; flex: 1 1 220px; }
 .detail-hero-meta .form-label { display: block; font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+
+/* Detail-hero KPI stats (right column of the hero card) */
+.detail-hero-stats { display: grid; grid-template-columns: repeat(2, minmax(120px, 1fr)); gap: 1.5rem 2rem; padding: 0.25rem 0 0.25rem 2rem; border-left: 1px solid var(--color-border); min-width: 320px; align-content: center; }
+.detail-hero-stat { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.detail-hero-stat-value { font-family: var(--font-family-display); font-size: 2.75rem; font-weight: 700; color: var(--color-accent); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.detail-hero-stat-label { font-size: 0.7rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.detail-hero-stat-hint { font-size: 0.72rem; color: var(--color-text-muted); }
 
 /* Range picker (time range selector) */
 .range-picker { display: inline-flex; gap: 2px; background: var(--color-surface-interactive); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 2px; }
@@ -741,6 +741,8 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
   .detail-hero-grid { grid-template-columns: 1fr; }
   .detail-hero-main { grid-row: span 1; padding-right: 0; }
   .detail-hero-side { border-left: none; border-top: 1px solid var(--color-border); min-width: 0; margin-top: 1rem; padding-top: 1rem; flex-direction: column; gap: 1rem; }
+  .detail-hero-stats { border-left: none; border-top: 1px solid var(--color-border); min-width: 0; margin-top: 1rem; padding: 1rem 0 0; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .detail-hero-stat-value { font-size: 2.25rem; }
   .detail-stats { padding: 0 0 1rem; border-right: none; border-bottom: 1px solid var(--color-border); }
   .detail-info-grid { padding: 0; }
   .hero-input-wrap { flex-direction: column; }
