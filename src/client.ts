@@ -726,18 +726,19 @@ function renderStatCard(containerId, items, color, opts) {
   var html = '';
   for (var i = 0; i < items.length; i++) {
     var item = items[i];
-    var pct = maxVal > 0 ? ((item.count / maxVal) * 100).toFixed(0) : '0';
+    var pct = maxVal > 0 ? Math.round((item.count / maxVal) * 100) : 0;
     var name = opts.mapName ? opts.mapName(item.name) : item.name;
-    var iconStr = opts.iconFn ? '<span class="icon" style="font-size:16px;vertical-align:text-bottom">' + opts.iconFn(item.name) + '</span> ' : '';
+    var flagStr = opts.flagFromName ? '<span class="flag">' + esc(item.name) + '</span>' : '';
+    var iconStr = opts.iconFn ? '<span class="icon">' + opts.iconFn(item.name) + '</span>' : '';
     html += '<div class="stat-row">';
-    html += '<span class="stat-name"' + (opts.mono ? ' style="font-family:var(--font-family-mono)"' : '') + '>' + iconStr + esc(name) + '</span>';
-    html += '<div class="stat-bar"><div class="stat-fill ' + color + '" style="width:' + pct + '%"></div></div>';
-    html += '<span class="stat-count">' + item.count + '</span>';
+    html += '<div class="name' + (opts.mono ? ' mono' : '') + '">' + flagStr + iconStr + '<span class="label">' + esc(name) + '</span></div>';
+    html += '<div class="right"><span class="count">' + item.count.toLocaleString() + '</span><span class="pct">' + pct + '%</span></div>';
+    html += '<div class="bar"><div class="fill ' + color + '" style="width:' + pct + '%"></div></div>';
     html += '</div>';
     if (opts.subtitleFn) {
       var subtitle = opts.subtitleFn(item);
       if (subtitle) {
-        html += '<div style="font-size:0.75rem;color:var(--color-text-muted);margin:-0.15rem 0 0.5rem 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-family-mono)">' + esc(subtitle) + '</div>';
+        html += '<div class="stat-row-subtitle">' + esc(subtitle) + '</div>';
       }
     }
   }
@@ -789,7 +790,7 @@ function loadAnalytics(linkId, range) {
     renderTimeline(tlData);
 
     // Update all stat cards
-    renderStatCard('card-countries', stats.countries, 'orange', { mapName: countryName });
+    renderStatCard('card-countries', stats.countries, 'orange', { mapName: countryName, flagFromName: true });
     renderStatCard('card-referrer-hosts', stats.referrer_hosts, 'mint', { mono: true });
     renderStatCard('card-referrers', stats.referrers, 'mint', {
       mono: true,
@@ -997,10 +998,12 @@ function pollDashboard() {
       for (var cr = 0; cr < oldCRows.length; cr++) oldCRows[cr].remove();
       for (var ci = 0; ci < d.top_countries.length; ci++) {
         var cc = d.top_countries[ci];
-        var cpct = ((cc.count / cMax) * 100).toFixed(0);
+        var cpct = Math.round((cc.count / cMax) * 100);
         var row = document.createElement('div');
         row.className = 'stat-row';
-        row.innerHTML = '<span class="stat-name">' + esc(countryName(cc.name)) + '</span><div class="stat-bar"><div class="stat-fill orange" style="width:' + cpct + '%"></div></div><span class="stat-count">' + cc.count + '</span>';
+        row.innerHTML = '<div class="name"><span class="flag">' + esc(cc.name) + '</span><span class="label">' + esc(countryName(cc.name)) + '</span></div>' +
+          '<div class="right"><span class="count">' + cc.count.toLocaleString() + '</span><span class="pct">' + cpct + '%</span></div>' +
+          '<div class="bar"><div class="fill orange" style="width:' + cpct + '%"></div></div>';
         countriesCard.appendChild(row);
       }
     }
@@ -1025,10 +1028,12 @@ function pollDashboard() {
         if (sNoData && sNoData.textContent === t('dashboard.noData')) sNoData.remove();
         for (var si = 0; si < d.top_referrers.length; si++) {
           var ref = d.top_referrers[si];
-          var rpct = ((ref.count / sMax) * 100).toFixed(0);
+          var rpct = Math.round((ref.count / sMax) * 100);
           var row = document.createElement('div');
           row.className = 'stat-row';
-          row.innerHTML = '<span class="stat-name">' + esc(ref.name) + '</span><div class="stat-bar"><div class="stat-fill mint" style="width:' + rpct + '%"></div></div><span class="stat-count">' + ref.count + '</span>';
+          row.innerHTML = '<div class="name"><span class="label">' + esc(ref.name) + '</span></div>' +
+            '<div class="right"><span class="count">' + ref.count.toLocaleString() + '</span><span class="pct">' + rpct + '%</span></div>' +
+            '<div class="bar"><div class="fill mint" style="width:' + rpct + '%"></div></div>';
           sourcesCard.appendChild(row);
         }
       }
@@ -1092,12 +1097,16 @@ function pollDashboard() {
             if (!tLink.slugs[si].is_custom) { tSlug = tLink.slugs[si].slug; break; }
           }
           if (!tSlug && tLink.slugs.length > 0) tSlug = tLink.slugs[0].slug;
-          var tPct = ((tLink.total_clicks / tlMax) * 100).toFixed(0);
+          var tPct = Math.round((tLink.total_clicks / tlMax) * 100);
           var a = document.createElement('a');
           a.href = '/_/admin/links/' + tLink.id;
-          a.style.cssText = 'cursor:pointer;overflow:hidden;text-decoration:none;color:inherit;display:block';
-          a.innerHTML = '<div class="stat-row"><span class="stat-name" style="font-family:var(--font-family-mono)">' + esc(tSlug) + '</span><div class="stat-bar"><div class="stat-fill orange" style="width:' + tPct + '%"></div></div><span class="stat-count">' + tLink.total_clicks + '</span></div>' +
-            '<div style="font-size:0.75rem;color:var(--color-text-muted);margin:-0.15rem 0 0.5rem 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(tLink.url) + '</div>';
+          a.className = 'top-link-row';
+          a.innerHTML = '<div class="stat-row">' +
+            '<div class="name mono"><span class="label">' + esc(tSlug) + '</span></div>' +
+            '<div class="right"><span class="count">' + tLink.total_clicks.toLocaleString() + '</span><span class="pct">' + tPct + '%</span></div>' +
+            '<div class="bar"><div class="fill orange" style="width:' + tPct + '%"></div></div>' +
+            '</div>' +
+            '<div class="top-link-row-url">' + esc(tLink.url) + '</div>';
           topLinksCard.appendChild(a);
         }
       }

@@ -21,15 +21,21 @@ const StatBar: FC<{
   count: number;
   max: number;
   color: string;
-}> = ({ name, count, max, color }) => {
-  const pct = max > 0 ? ((count / max) * 100).toFixed(0) : "0";
+  flag?: string;
+  mono?: boolean;
+}> = ({ name, count, max, color, flag, mono }) => {
+  const pct = max > 0 ? Math.round((count / max) * 100) : 0;
   return (
     <div class="stat-row">
-      <span class="stat-name">{name}</span>
-      <div class="stat-bar">
-        <div class={`stat-fill ${color}`} style={`width:${pct}%`} />
+      <div class={`name${mono ? " mono" : ""}`}>
+        {flag && <span class="flag">{flag}</span>}
+        <span class="label">{name}</span>
       </div>
-      <span class="stat-count">{count}</span>
+      <div class="right">
+        <span class="count">{count.toLocaleString()}</span>
+        <span class="pct">{pct}%</span>
+      </div>
+      <div class="bar"><div class={`fill ${color}`} style={`width:${pct}%`} /></div>
     </div>
   );
 };
@@ -109,6 +115,7 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range }) => {
           {d.top_countries.map((c) => (
             <StatBar
               name={countryName(c.name, lang)}
+              flag={c.name}
               count={c.count}
               max={topCountryMax}
               color="orange"
@@ -164,17 +171,18 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range }) => {
           ) : (
             d.top_links.map((link) => {
               const slug = primarySlug(link);
+              const pct = Math.round((link.total_clicks / topLinkMax) * 100);
               return (
                 <a href={`/_/admin/links/${link.id}`} class="top-link-row">
                   <div class="stat-row">
-                    <span class="stat-name stat-name-mono">{slug}</span>
-                    <div class="stat-bar">
-                      <div
-                        class="stat-fill orange"
-                        style={`width:${((link.total_clicks / topLinkMax) * 100).toFixed(0)}%`}
-                      />
+                    <div class="name mono">
+                      <span class="label">{slug}</span>
                     </div>
-                    <span class="stat-count">{link.total_clicks}</span>
+                    <div class="right">
+                      <span class="count">{link.total_clicks.toLocaleString()}</span>
+                      <span class="pct">{pct}%</span>
+                    </div>
+                    <div class="bar"><div class="fill orange" style={`width:${pct}%`} /></div>
                   </div>
                   <div class="top-link-row-url">{link.url}</div>
                 </a>

@@ -240,7 +240,7 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 [data-theme="light"] .hero-input { background: var(--color-surface); border-color: var(--color-border); }
 [data-theme="light"] .modal-inner { box-shadow: 0 8px 32px var(--shadow-color); }
 [data-theme="light"] .slug-chip { border-color: var(--color-border); }
-[data-theme="light"] .stat-bar { background: var(--color-surface-interactive); }
+[data-theme="light"] .stat-row .bar { background: var(--color-surface-interactive); }
 [data-theme="light"] .nav-item.active { color: #1b5e20; }
 [data-theme="oddbit"] .sidebar-oddbit a, :root .sidebar-oddbit a { color: var(--color-success); }
 .sidebar-oddbit img { width: 80px; height: auto; }
@@ -266,14 +266,20 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 .bento-value { font-family: var(--font-family-display); font-size: 2rem; font-weight: 700; }
 .bento-value.small { font-size: 1rem; font-weight: 500; }
 
-/* Stat bars */
-.stat-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0; }
-.stat-name { font-size: 0.8rem; width: 160px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text); }
-.stat-bar { flex: 1; height: 8px; background: var(--color-surface); border-radius: 4px; overflow: hidden; }
-.stat-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease-out; }
-.stat-fill.orange { background: linear-gradient(135deg, var(--color-accent), var(--color-accent-active)); }
-.stat-fill.mint { background: var(--color-success); }
-.stat-count { font-family: var(--font-family-mono); font-size: 0.8rem; color: var(--color-text-muted); min-width: 40px; text-align: right; }
+/* Stat bar rows: name + count + pct on row 1, full-width bar on row 2 */
+.stat-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 0.75rem; row-gap: 0.35rem; padding: 0.4rem 0; }
+.stat-row .name { display: flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; min-width: 0; color: var(--color-text); }
+.stat-row .name .flag { min-width: 22px; height: 16px; padding: 0 0.25rem; border-radius: 2px; background: linear-gradient(135deg, var(--color-accent), var(--color-accent-active)); flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 700; color: #fff; letter-spacing: 0.02em; text-transform: uppercase; }
+.stat-row .name .icon { font-size: 16px; color: var(--color-text-subtle); flex-shrink: 0; }
+.stat-row .name .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.stat-row .name.mono .label { font-family: var(--font-family-mono); font-size: 0.82rem; }
+.stat-row .right { display: flex; align-items: baseline; gap: 0.6rem; justify-content: flex-end; font-variant-numeric: tabular-nums; }
+.stat-row .count { font-size: 0.95rem; color: var(--color-text); font-weight: 700; }
+.stat-row .pct { font-size: 0.75rem; color: var(--color-text-subtle); min-width: 34px; text-align: right; }
+.stat-row .bar { grid-column: 1 / -1; height: 4px; background: var(--color-surface); border-radius: 2px; overflow: hidden; }
+.stat-row .bar .fill { height: 100%; border-radius: 2px; transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.stat-row .bar .fill.orange { background: linear-gradient(135deg, var(--color-accent), var(--color-accent-active)); }
+.stat-row .bar .fill.mint { background: var(--color-success); }
 
 /* Links list */
 .link-item { background: var(--color-surface-raised); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; transition: background 0.2s; display: flex; align-items: center; gap: 1rem; cursor: pointer; text-decoration: none; color: inherit; }
@@ -565,9 +571,6 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 /* Empty hint centered inside a card */
 .empty-card-hint { color: var(--color-text-muted); font-size: 0.875rem; padding: 2rem 0; text-align: center; }
 
-/* Stat-row inline mono font (for slug name, etc.) */
-.stat-row .stat-name.mono { font-family: var(--font-family-mono); }
-
 /* Stat-row subtitle (used by link-detail referrers) */
 .stat-row-subtitle { font-size: 0.75rem; color: var(--color-text-muted); margin: -0.15rem 0 0.5rem 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-family-mono); }
 
@@ -681,7 +684,6 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 
 /* Top-link row: label+slug stat bar with url caption under it */
 .top-link-row { display: block; text-decoration: none; color: inherit; overflow: hidden; }
-.top-link-row .stat-name-mono { font-family: var(--font-family-mono); }
 .top-link-row-url { font-size: 0.75rem; color: var(--color-text-muted); margin: -0.15rem 0 0.5rem 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Keys table */
@@ -741,9 +743,6 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
   .link-item { gap: 0.75rem; }
   .link-url { white-space: normal; word-break: break-all; }
   .link-clicks { font-size: 1rem; }
-  .stat-name { flex: 1; min-width: 0; max-width: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .stat-bar { display: none; }
-  .stat-count { min-width: 28px; }
   .slugs-row { gap: 0.5rem; flex-wrap: nowrap; }
   .slugs-row-actions-left { min-width: 0; }
   .slugs-row-slug { width: auto; flex: 1; min-width: 0; }

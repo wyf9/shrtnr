@@ -20,21 +20,24 @@ const StatBar: FC<{
   max: number;
   color: string;
   icon?: string;
+  flag?: string;
   mono?: boolean;
   subtitle?: string;
-}> = ({ name, count, max, color, icon, mono, subtitle }) => {
-  const pct = max > 0 ? ((count / max) * 100).toFixed(0) : "0";
+}> = ({ name, count, max, color, icon, flag, mono, subtitle }) => {
+  const pct = max > 0 ? Math.round((count / max) * 100) : 0;
   return (
     <div>
       <div class="stat-row">
-        <span class={`stat-name${mono ? " mono" : ""}`}>
-          {icon && <span class="icon icon-sm icon-baseline">{icon}</span>}{" "}
-          {name}
-        </span>
-        <div class="stat-bar">
-          <div class={`stat-fill ${color}`} style={`width:${pct}%`} />
+        <div class={`name${mono ? " mono" : ""}`}>
+          {flag && <span class="flag">{flag}</span>}
+          {icon && <span class="icon">{icon}</span>}
+          <span class="label">{name}</span>
         </div>
-        <span class="stat-count">{count}</span>
+        <div class="right">
+          <span class="count">{count.toLocaleString()}</span>
+          <span class="pct">{pct}%</span>
+        </div>
+        <div class="bar"><div class={`fill ${color}`} style={`width:${pct}%`} /></div>
       </div>
       {subtitle && <div class="stat-row-subtitle">{subtitle}</div>}
     </div>
@@ -415,6 +418,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                 analytics.countries.map((c) => (
                   <StatBar
                     name={countryName(c.name, lang)}
+                    flag={c.name}
                     count={c.count}
                     max={analytics.countries.reduce((s, i) => s + i.count, 0)}
                     color="orange"
