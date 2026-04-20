@@ -358,6 +358,7 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 .timeline-range-btn:hover { color: var(--color-text); }
 .timeline-range-btn.active { background: var(--color-surface-raised); color: var(--color-accent); }
 .timeline-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.9rem; gap: 0.75rem; }
+.timeline-range-pill { font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); background: var(--color-surface); padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); letter-spacing: 0.02em; }
 .timeline-head-main { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
 .timeline-total-row { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
 .timeline-total { font-family: var(--font-family-display); font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; color: var(--color-text); font-variant-numeric: tabular-nums; line-height: 1; }

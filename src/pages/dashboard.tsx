@@ -7,6 +7,7 @@ import type { TranslateFn } from "../i18n";
 import { countryName } from "../country";
 import { KpiCard } from "../components/kpi-card";
 import { RangePicker } from "../components/range-picker";
+import { BigChart } from "../components/big-chart";
 
 function escHtml(s: string): string {
   return s
@@ -105,43 +106,54 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range }) => {
           span={2}
         />
 
-        <div class="bento-card" id="dash-top-countries">
-          <div class="bento-label">{t("dashboard.topCountries")}</div>
-          <div class="bento-value small">
-            {d.top_countries.length === 0 && (
-              <span class="muted-hint">{t("dashboard.noData")}</span>
-            )}
+        <div class="bento-card span-2 timeline-card" id="dash-timeline">
+          <div class="timeline-head">
+            <div class="bento-label">{t("linkDetail.clicksOverTime")}</div>
+            <span class="timeline-range-pill">{t(`range.long.${range}` as const)}</span>
           </div>
-          {d.top_countries.map((c) => (
-            <StatBar
-              name={countryName(c.name, lang)}
-              flag={c.name}
-              count={c.count}
-              max={topCountryMax}
-              color="orange"
-            />
-          ))}
+          <div class="timeline-chart">
+            <BigChart values={d.timeline} range={range} t={t} id="dash-bigchart" />
+          </div>
         </div>
 
-        <div class="bento-card span-2" id="dash-recent-links">
-          <div class="bento-label">{t("dashboard.recentLinks")}</div>
-          {d.recent_links.length === 0 ? (
-            <div class="muted-hint">{t("dashboard.noLinks")}</div>
+        <div class="bento-card" id="dash-top-countries">
+          <div class="bento-label">{t("dashboard.topCountries")}</div>
+          {d.top_countries.length === 0 ? (
+            <div class="muted-hint">{t("dashboard.noData")}</div>
           ) : (
-            d.recent_links.map((link) => {
+            d.top_countries.map((c) => (
+              <StatBar
+                name={countryName(c.name, lang)}
+                flag={c.name}
+                count={c.count}
+                max={topCountryMax}
+                color="orange"
+              />
+            ))
+          )}
+        </div>
+
+        <div class="bento-card span-2" id="dash-top-links">
+          <div class="bento-label">{t("dashboard.mostClicked")}</div>
+          {d.top_links.length === 0 ? (
+            <div class="muted-hint">{t("dashboard.noData")}</div>
+          ) : (
+            d.top_links.map((link) => {
               const slug = primarySlug(link);
+              const pct = Math.round((link.total_clicks / topLinkMax) * 100);
               return (
-                <a href={`/_/admin/links/${link.id}`} class="recent-row">
-                  <span
-                    class="slug-chip"
-                    onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(slug)}')`}
-                    title={t("dashboard.clickToCopy")}
-                  >
-                    {slug}{" "}
-                    <span class="icon">content_copy</span>
-                  </span>
-                  <span class="recent-row-url">{link.url}</span>
-                  <span class="recent-row-clicks">{link.total_clicks}</span>
+                <a href={`/_/admin/links/${link.id}`} class="top-link-row">
+                  <div class="stat-row">
+                    <div class="name mono">
+                      <span class="label">{slug}</span>
+                    </div>
+                    <div class="right">
+                      <span class="count">{link.total_clicks.toLocaleString()}</span>
+                      <span class="pct">{pct}%</span>
+                    </div>
+                    <div class="bar"><div class="fill orange" style={`width:${pct}%`} /></div>
+                  </div>
+                  <div class="top-link-row-url">{link.url}</div>
                 </a>
               );
             })
@@ -164,27 +176,25 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range }) => {
           )}
         </div>
 
-        <div class="bento-card span-3" id="dash-top-links">
-          <div class="bento-label">{t("dashboard.mostClicked")}</div>
-          {d.top_links.length === 0 ? (
-            <div class="muted-hint">{t("dashboard.noData")}</div>
+        <div class="bento-card span-3" id="dash-recent-links">
+          <div class="bento-label">{t("dashboard.recentLinks")}</div>
+          {d.recent_links.length === 0 ? (
+            <div class="muted-hint">{t("dashboard.noLinks")}</div>
           ) : (
-            d.top_links.map((link) => {
+            d.recent_links.map((link) => {
               const slug = primarySlug(link);
-              const pct = Math.round((link.total_clicks / topLinkMax) * 100);
               return (
-                <a href={`/_/admin/links/${link.id}`} class="top-link-row">
-                  <div class="stat-row">
-                    <div class="name mono">
-                      <span class="label">{slug}</span>
-                    </div>
-                    <div class="right">
-                      <span class="count">{link.total_clicks.toLocaleString()}</span>
-                      <span class="pct">{pct}%</span>
-                    </div>
-                    <div class="bar"><div class="fill orange" style={`width:${pct}%`} /></div>
-                  </div>
-                  <div class="top-link-row-url">{link.url}</div>
+                <a href={`/_/admin/links/${link.id}`} class="recent-row">
+                  <span
+                    class="slug-chip"
+                    onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(slug)}')`}
+                    title={t("dashboard.clickToCopy")}
+                  >
+                    {slug}{" "}
+                    <span class="icon">content_copy</span>
+                  </span>
+                  <span class="recent-row-url">{link.url}</span>
+                  <span class="recent-row-clicks">{link.total_clicks}</span>
                 </a>
               );
             })
