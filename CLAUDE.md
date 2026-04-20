@@ -17,6 +17,15 @@ When instructed to "update the version", "bump version" or "create a release":
 - Always write tests for change requests.
 - Never change tests to accommodate code changes. **Always** stop and notify the developer if a new feature breaks an existing test. You may only add new tests automatically based on requested functionality. You may not remove or modify tests when making code changes.
 
+### Internationalization
+
+- All user-facing strings in admin pages and components must be added to the translation files and read through the `t()` translator. Never hardcode English (or any language) strings inline in JSX/TSX.
+- When introducing new UI copy (buttons, labels, headings, hints, empty states, aria-labels), add the key and text to the i18n translation sources first, then reference it via `t("namespace.key")`. Applies to new features and to refactors that touch existing copy.
+
+### Commits
+
+- Make logically grouped commits as you work. Each commit should capture one coherent change (one refactor, one feature, one fix) with a message that explains the rationale. Do not batch unrelated changes into a single commit, and do not wait until the end of a task to commit everything at once.
+
 ### Database migrations
 
 - Migrations must preserve all existing data. D1 does not support `ALTER TABLE ... DROP CONSTRAINT` or `ADD CONSTRAINT`, so schema changes to CHECK constraints require recreating the table.
