@@ -587,6 +587,16 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 /* Detail-menu anchor positioning wrapper */
 .detail-menu-anchor { position: relative; }
 
+/* Keys page tweaks */
+.page-note { font-size: 0.813rem; color: var(--color-text-muted); margin-top: 0.4rem; }
+.page-note a { color: var(--color-success); }
+.bento-card-flush { padding: 0; }
+.keys-table td.col-title { font-weight: 600; }
+.keys-table td.col-date { color: var(--color-text-muted); font-size: 0.8rem; }
+.keys-table td.col-last-used { font-size: 0.8rem; }
+.keys-table .col-key-prefix { font-family: var(--font-family-mono); font-size: 0.8rem; color: var(--color-text-muted); }
+.keys-table .col-never { color: var(--color-text-muted); }
+
 /* Links page: search-results bar + inline toolbar group */
 .search-results-bar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .search-results-bar .count { font-size: 0.85rem; color: var(--color-text-muted); }

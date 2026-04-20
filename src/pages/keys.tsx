@@ -46,14 +46,9 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
         <div class="page-subtitle">
           {t("keys.subtitle")}
         </div>
-        <div style="font-size:0.813rem;color:var(--color-text-muted);margin-top:0.4rem">
+        <div class="page-note">
           {t("keys.sdkNote")}{" "}
-          <a
-            href="https://oddb.it/shrtnr-npm-app"
-            target="_blank"
-            rel="noopener"
-            style="color:var(--color-success)"
-          >
+          <a href="https://oddb.it/shrtnr-npm-app" target="_blank" rel="noopener">
             @oddbit/shrtnr
           </a>
         </div>
@@ -76,7 +71,7 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
           </p>
         </div>
       ) : (
-        <div class="bento-card" style="padding:0">
+        <div class="bento-card bento-card-flush">
           <div class="keys-table-scroll">
             <table class="keys-table">
               <thead>
@@ -94,30 +89,23 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
                   const scopes = k.scope.split(",");
                   return (
                     <tr>
-                      <td data-label={t("keys.colTitle")} style="font-weight:600">
-                        {k.title}
-                      </td>
+                      <td data-label={t("keys.colTitle")} class="col-title">{k.title}</td>
                       <td data-label={t("keys.colKey")}>
-                        <span style="font-family:var(--font-family-mono);font-size:0.8rem;color:var(--color-text-muted)">
-                          {k.key_prefix}&hellip;
-                        </span>
+                        <span class="col-key-prefix">{k.key_prefix}&hellip;</span>
                       </td>
                       <td data-label={t("keys.colScope")}>
                         {scopes.map((s) => (
                           <span class={`scope-badge ${s}`}>{s} </span>
                         ))}
                       </td>
-                      <td
-                        data-label={t("keys.colCreated")}
-                        style="color:var(--color-text-muted);font-size:0.8rem"
-                      >
+                      <td data-label={t("keys.colCreated")} class="col-date">
                         {formatDate(k.created_at, lang)}
                       </td>
-                      <td data-label={t("keys.colLastUsed")} style="font-size:0.8rem">
+                      <td data-label={t("keys.colLastUsed")} class="col-last-used">
                         {k.last_used_at ? (
                           formatDate(k.last_used_at, lang)
                         ) : (
-                          <span style="color:var(--color-text-muted)">{t("keys.never")}</span>
+                          <span class="col-never">{t("keys.never")}</span>
                         )}
                       </td>
                       <td>
@@ -125,9 +113,7 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
                           class="btn btn-danger btn-sm"
                           onclick={`deleteKey(${k.id},'${escHtml(k.title).replace(/'/g, "\\'")}')`}
                         >
-                          <span class="icon" style="font-size:16px">
-                            delete
-                          </span>
+                          <span class="icon icon-sm">delete</span>
                         </button>
                       </td>
                     </tr>
