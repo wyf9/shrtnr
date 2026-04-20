@@ -19,7 +19,7 @@
 //   or "anonymous" so MCP and admin routes work without Access.
 
 import { Hono } from "hono";
-import type { Env } from "./types";
+import type { Env, TimelineRange } from "./types";
 import { verifyAccessJwt, extractIdentity, isSignedIn, type AccessUser } from "./access";
 import { handleRedirect } from "./redirect";
 import { unauthorizedResponse } from "./auth";
@@ -164,12 +164,30 @@ async function getPageData(c: { env: Env; req: { raw: Request } }, identity: str
 app.get("/_/admin/dashboard", async (c) => {
   const identity = c.var.identity;
   const { theme, t, lang, translations } = await getPageData(c, identity);
-  const statsResult = await getDashboardStats(c.env);
-  const stats = statsResult.ok ? statsResult.data : { total_links: 0, total_clicks: 0, recent_links: [], top_links: [], top_countries: [], top_referrers: [] };
+  const rangeParam = c.req.query("range");
+  const validRanges = new Set(["24h", "7d", "30d", "90d", "1y", "all"]);
+  const range = (validRanges.has(rangeParam || "") ? rangeParam : "30d") as TimelineRange;
+  const statsResult = await getDashboardStats(c.env, range);
+  const stats = statsResult.ok
+    ? statsResult.data
+    : {
+        range,
+        total_links: 0,
+        new_links_in_range: 0,
+        total_clicks: 0,
+        total_clicks_previous: 0,
+        total_clicks_delta: 0,
+        new_links_delta: 0,
+        timeline: [],
+        recent_links: [],
+        top_links: [],
+        top_countries: [],
+        top_referrers: [],
+      };
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="dashboard" theme={theme} t={t} lang={lang} translations={translations} userEmail={userEmail}>
-      <DashboardPage stats={stats} t={t} lang={lang} />
+      <DashboardPage stats={stats} t={t} lang={lang} range={range} />
     </Layout>,
   );
 });
@@ -344,7 +362,7 @@ app.get("/_/admin/api/settings", (c) => handleGetSettings(c.env, c.var.identity)
 app.put("/_/admin/api/settings", (c) => handleUpdateSettings(c.req.raw, c.env, c.var.identity));
 
 // Dashboard stats
-app.get("/_/admin/api/dashboard", (c) => handleDashboardStatsApi(c.env));
+app.get("/_/admin/api/dashboard", (c) => handleDashboardStatsApi(c.env, c.req.query("range")));
 
 // ---- Public API auth middleware ----
 

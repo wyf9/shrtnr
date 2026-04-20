@@ -40,6 +40,8 @@ export interface Slug {
 export interface LinkWithSlugs extends Link {
   slugs: Slug[];
   total_clicks: number;
+  /** Percent change in clicks vs the previous equivalent period. Optional. */
+  delta_pct?: number;
 }
 
 export interface ClickData {
@@ -97,8 +99,19 @@ export interface TimelineData {
 }
 
 export interface DashboardStats {
+  range: TimelineRange;
   total_links: number;
+  /** Links created in the current period. */
+  new_links_in_range: number;
   total_clicks: number;
+  /** Clicks in the immediately previous equivalent period. */
+  total_clicks_previous: number;
+  /** Percent change vs previous period. 0 when previous is 0 and current is 0. */
+  total_clicks_delta: number;
+  /** Percent change in new-link creation rate vs previous period. */
+  new_links_delta: number;
+  /** Timeline sparkline — counts per bucket within the current period. */
+  timeline: number[];
   recent_links: LinkWithSlugs[];
   top_links: LinkWithSlugs[];
   top_countries: { name: string; count: number }[];

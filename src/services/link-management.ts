@@ -303,8 +303,11 @@ export async function getLinkAnalytics(env: Env, linkId: number, range?: Timelin
   return ok(await ClickRepository.getStats(env.DB, linkId, range));
 }
 
-export async function getDashboardStats(env: Env): Promise<ServiceResult<DashboardStats>> {
-  return ok(await ClickRepository.getDashboardStats(env.DB));
+export async function getDashboardStats(
+  env: Env,
+  range: TimelineRange = "30d",
+): Promise<ServiceResult<DashboardStats>> {
+  return ok(await ClickRepository.getDashboardStats(env.DB, range));
 }
 
 export async function findSlugForRedirect(

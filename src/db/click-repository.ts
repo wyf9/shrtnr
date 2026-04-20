@@ -3,6 +3,7 @@
 
 import { ClickData, ClickStats, DashboardStats, TimelineBucket, TimelineData, TimelineRange } from "../types";
 import { LinkRepository } from "./link-repository";
+import { RANGE_SECONDS, computeDelta } from "../services/trends";
 
 export type BreakdownDimension = "country" | "referrer_host" | "device_type" | "os" | "browser" | "link_mode" | "channel";
 
@@ -386,21 +387,227 @@ export class ClickRepository {
     };
   }
 
-  static async getDashboardStats(db: D1Database): Promise<DashboardStats> {
-    const [linkCount, clickCount, recentLinks, topCountries, topReferrers] = await Promise.all([
-      db.prepare("SELECT COUNT(*) as cnt FROM links").first<{ cnt: number }>(),
-      db.prepare("SELECT COUNT(*) as cnt FROM clicks").first<{ cnt: number }>(),
+  /**
+   * Returns click totals for the current `range` and the equivalent previous window.
+   * Scoped to one link when `linkId` is provided.
+   *
+   * "All time" has no previous window, so `previous` is always 0.
+   */
+  static async getPeriodClicks(
+    db: D1Database,
+    range: TimelineRange,
+    now?: number,
+    linkId?: number,
+  ): Promise<{ current: number; previous: number }> {
+    const ts = now ?? Math.floor(Date.now() / 1000);
+
+    let linkFilter = "";
+    const linkBinds: number[] = [];
+    if (linkId !== undefined) {
+      linkFilter = "slug IN (SELECT slug FROM slugs WHERE link_id = ?)";
+      linkBinds.push(linkId);
+    }
+
+    if (range === "all") {
+      const where = linkFilter ? `WHERE ${linkFilter}` : "";
+      const row = await db
+        .prepare(`SELECT COUNT(*) as cnt FROM clicks ${where}`)
+        .bind(...linkBinds)
+        .first<{ cnt: number }>();
+      return { current: row?.cnt ?? 0, previous: 0 };
+    }
+
+    const span = RANGE_SECONDS[range];
+    const currStart = ts - span;
+    const prevStart = ts - 2 * span;
+
+    const baseWhere = linkFilter ? `${linkFilter} AND ` : "";
+    const [cur, prev] = await Promise.all([
+      db
+        .prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${baseWhere}clicked_at >= ?`)
+        .bind(...linkBinds, currStart)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${baseWhere}clicked_at >= ? AND clicked_at < ?`)
+        .bind(...linkBinds, prevStart, currStart)
+        .first<{ cnt: number }>(),
+    ]);
+    return { current: cur?.cnt ?? 0, previous: prev?.cnt ?? 0 };
+  }
+
+  /**
+   * Returns counts of links created in current and previous windows.
+   * "All time" has no previous window.
+   */
+  static async getLinkCreationPeriods(
+    db: D1Database,
+    range: TimelineRange,
+    now?: number,
+  ): Promise<{ current: number; previous: number; total: number }> {
+    const ts = now ?? Math.floor(Date.now() / 1000);
+    const totalRow = await db
+      .prepare("SELECT COUNT(*) as cnt FROM links")
+      .first<{ cnt: number }>();
+    const total = totalRow?.cnt ?? 0;
+
+    if (range === "all") {
+      return { current: total, previous: 0, total };
+    }
+
+    const span = RANGE_SECONDS[range];
+    const currStart = ts - span;
+    const prevStart = ts - 2 * span;
+
+    const [cur, prev] = await Promise.all([
+      db
+        .prepare("SELECT COUNT(*) as cnt FROM links WHERE created_at >= ?")
+        .bind(currStart)
+        .first<{ cnt: number }>(),
+      db
+        .prepare("SELECT COUNT(*) as cnt FROM links WHERE created_at >= ? AND created_at < ?")
+        .bind(prevStart, currStart)
+        .first<{ cnt: number }>(),
+    ]);
+    return { current: cur?.cnt ?? 0, previous: prev?.cnt ?? 0, total };
+  }
+
+  /**
+   * Returns a fixed-size counts series for the selected range — used to render
+   * sparklines on KPI cards. Buckets are daily for ranges >= 7d, hourly for 24h,
+   * weekly for 1y, and monthly for all.
+   */
+  static async getSparkline(
+    db: D1Database,
+    range: TimelineRange,
+    now?: number,
+  ): Promise<number[]> {
+    const ts = now ?? Math.floor(Date.now() / 1000);
+
+    let bucketExpr: string;
+    let since: number | null;
+    let buckets: number;
+    let stepSec: number;
+
+    switch (range) {
+      case "24h":
+        bucketExpr = "strftime('%Y-%m-%d %H', clicked_at, 'unixepoch')";
+        since = ts - 86400;
+        buckets = 24;
+        stepSec = 3600;
+        break;
+      case "7d":
+        bucketExpr = "date(clicked_at, 'unixepoch')";
+        since = ts - 7 * 86400;
+        buckets = 7;
+        stepSec = 86400;
+        break;
+      case "30d":
+        bucketExpr = "date(clicked_at, 'unixepoch')";
+        since = ts - 30 * 86400;
+        buckets = 30;
+        stepSec = 86400;
+        break;
+      case "90d":
+        bucketExpr = "date(clicked_at, 'unixepoch')";
+        since = ts - 90 * 86400;
+        buckets = 90;
+        stepSec = 86400;
+        break;
+      case "1y":
+        bucketExpr = "strftime('%Y-%m', clicked_at, 'unixepoch')";
+        since = ts - 365 * 86400;
+        buckets = 12;
+        stepSec = 30 * 86400;
+        break;
+      case "all":
+      default:
+        bucketExpr = "strftime('%Y-%m', clicked_at, 'unixepoch')";
+        since = null;
+        buckets = 12;
+        stepSec = 30 * 86400;
+        break;
+    }
+
+    const where = since !== null ? "WHERE clicked_at >= ?" : "";
+    const binds = since !== null ? [since] : [];
+
+    const rows = await db
+      .prepare(
+        `SELECT ${bucketExpr} as label, COUNT(*) as count
+         FROM clicks ${where}
+         GROUP BY label ORDER BY label ASC`,
+      )
+      .bind(...binds)
+      .all<{ label: string; count: number }>();
+
+    const map = new Map((rows.results ?? []).map((r) => [r.label, r.count]));
+
+    const out: number[] = [];
+    for (let i = buckets - 1; i >= 0; i--) {
+      const t = ts - i * stepSec;
+      const d = new Date(t * 1000);
+      let label: string;
+      if (range === "24h") {
+        label = `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())} ${pad2(d.getUTCHours())}`;
+      } else if (range === "1y" || range === "all") {
+        label = `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}`;
+      } else {
+        label = `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+      }
+      out.push(map.get(label) ?? 0);
+    }
+    return out;
+  }
+
+  /**
+   * Enriches links with delta_pct for the selected range.
+   * Done in one query per link to keep the dashboard lightweight.
+   */
+  static async attachLinkDeltas(
+    db: D1Database,
+    links: LinkWithSlugs[],
+    range: TimelineRange,
+    now?: number,
+  ): Promise<LinkWithSlugs[]> {
+    if (range === "all") return links;
+    const results = await Promise.all(
+      links.map(async (link) => {
+        const { current, previous } = await this.getPeriodClicks(db, range, now, link.id);
+        return { ...link, delta_pct: computeDelta(current, previous) };
+      }),
+    );
+    return results;
+  }
+
+  static async getDashboardStats(
+    db: D1Database,
+    range: TimelineRange = "30d",
+    now?: number,
+  ): Promise<DashboardStats> {
+    const ts = now ?? Math.floor(Date.now() / 1000);
+
+    const [clicks, linkPeriods, recentLinks, topCountries, topReferrers, spark] = await Promise.all([
+      this.getPeriodClicks(db, range, ts),
+      this.getLinkCreationPeriods(db, range, ts),
       LinkRepository.list(db),
       db.prepare("SELECT country as name, COUNT(*) as count FROM clicks WHERE country IS NOT NULL GROUP BY country ORDER BY count DESC LIMIT 5").all<{ name: string; count: number }>(),
       db.prepare("SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE referrer_host IS NOT NULL GROUP BY referrer_host ORDER BY count DESC LIMIT 5").all<{ name: string; count: number }>(),
+      this.getSparkline(db, range, ts),
     ]);
 
-    const sorted = [...recentLinks].sort((a, b) => b.total_clicks - a.total_clicks);
+    const withDeltas = await this.attachLinkDeltas(db, recentLinks, range, ts);
+    const sorted = [...withDeltas].sort((a, b) => b.total_clicks - a.total_clicks);
 
     return {
-      total_links: linkCount?.cnt ?? 0,
-      total_clicks: clickCount?.cnt ?? 0,
-      recent_links: recentLinks.slice(0, 5),
+      range,
+      total_links: linkPeriods.total,
+      new_links_in_range: linkPeriods.current,
+      total_clicks: clicks.current,
+      total_clicks_previous: clicks.previous,
+      total_clicks_delta: computeDelta(clicks.current, clicks.previous),
+      new_links_delta: computeDelta(linkPeriods.current, linkPeriods.previous),
+      timeline: spark,
+      recent_links: withDeltas.slice(0, 5),
       top_links: sorted.slice(0, 5),
       top_countries: topCountries.results ?? [],
       top_referrers: topReferrers.results ?? [],
