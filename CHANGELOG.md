@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.29.1 (2026-04-20)
+
+- Fixed the Total Links KPI card displaying the lifetime count regardless of the selected range. It now counts links created within the chosen window, matching the Total Clicks behavior.
+- Fixed dashboard live polling ignoring the selected time range. Auto-refresh now preserves the active range instead of snapping breakdowns back to the default.
+
 ## 0.29.0 (2026-04-20)
 
 - New per-user "default time range" setting on the settings page. When set, the dashboard and link detail pages open in the chosen range; the dashboard `?range=` query param still overrides it. Unset preserves the previous behavior.
