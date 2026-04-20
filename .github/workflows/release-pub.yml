@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - sdk/dart/pubspec.yaml
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -21,35 +22,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Detect version change
+      - name: Read version and check tag
         id: version
         run: |
           CURRENT=$(grep '^version:' sdk/dart/pubspec.yaml | head -n1 | awk '{print $2}' | tr -d '"')
-          PREVIOUS=$(git show HEAD~1:sdk/dart/pubspec.yaml 2>/dev/null | grep '^version:' | head -n1 | awk '{print $2}' | tr -d '"' || echo "")
-          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
-          if [ "$CURRENT" != "$PREVIOUS" ] && [ -n "$CURRENT" ]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+          if [ -z "$CURRENT" ]; then
+            echo "Could not read version from sdk/dart/pubspec.yaml" >&2
+            exit 1
           fi
-
-      - name: Check tag does not exist
-        if: steps.version.outputs.changed == 'true'
-        id: check_tag
-        run: |
-          TAG="pub-v${{ steps.version.outputs.current }}"
+          TAG="pub-v$CURRENT"
           if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Extract changelog for version
-        if: steps.version.outputs.changed == 'true' && steps.check_tag.outputs.exists == 'false'
+        if: steps.version.outputs.exists == 'false'
         run: |
           bash scripts/extract-changelog.sh \
             "${{ steps.version.outputs.current }}" \
@@ -57,25 +52,25 @@ jobs:
             /tmp/pub-release-notes.md
 
       - uses: dart-lang/setup-dart@v1
-        if: steps.version.outputs.changed == 'true' && steps.check_tag.outputs.exists == 'false'
+        if: steps.version.outputs.exists == 'false'
 
       - name: Install dependencies
-        if: steps.version.outputs.changed == 'true' && steps.check_tag.outputs.exists == 'false'
+        if: steps.version.outputs.exists == 'false'
         working-directory: sdk/dart
         run: dart pub get
 
       - name: Analyze
-        if: steps.version.outputs.changed == 'true' && steps.check_tag.outputs.exists == 'false'
+        if: steps.version.outputs.exists == 'false'
         working-directory: sdk/dart
         run: dart analyze --fatal-infos
 
       - name: Test
-        if: steps.version.outputs.changed == 'true' && steps.check_tag.outputs.exists == 'false'
+        if: steps.version.outputs.exists == 'false'
         working-directory: sdk/dart
         run: dart test
 
       - name: Publish to pub.dev
-        if: steps.version.outputs.changed == 'true' && steps.check_tag.outputs.exists == 'false'
+        if: steps.version.outputs.exists == 'false'
         working-directory: sdk/dart
         # Auth is handled by dart-lang/setup-dart via OIDC. Configure the
         # trust relationship once in pub.dev: package admin -> Automated
@@ -84,11 +79,11 @@ jobs:
         run: dart pub publish --force
 
       - name: Create tag and release
-        if: steps.version.outputs.changed == 'true' && steps.check_tag.outputs.exists == 'false'
+        if: steps.version.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="pub-v${{ steps.version.outputs.current }}"
+          TAG="${{ steps.version.outputs.tag }}"
           git tag "$TAG"
           git push origin "$TAG"
           gh release create "$TAG" \
