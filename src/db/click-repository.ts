@@ -579,6 +579,49 @@ export class ClickRepository {
     return results;
   }
 
+  /**
+   * Bulk-enriches links with delta_pct using two grouped queries regardless
+   * of list size. Safe for the listings page where per-link queries would
+   * exceed D1's subrequest limit.
+   */
+  static async attachLinkDeltasBulk(
+    db: D1Database,
+    links: LinkWithSlugs[],
+    range: TimelineRange,
+    now?: number,
+  ): Promise<LinkWithSlugs[]> {
+    if (links.length === 0) return links;
+    if (range === "all") return links;
+
+    const ts = now ?? Math.floor(Date.now() / 1000);
+    const span = RANGE_SECONDS[range];
+    const currStart = ts - span;
+    const prevStart = ts - 2 * span;
+
+    const [curRows, prevRows] = await Promise.all([
+      db
+        .prepare(
+          "SELECT s.link_id as link_id, COUNT(*) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug WHERE c.clicked_at >= ? GROUP BY s.link_id",
+        )
+        .bind(currStart)
+        .all<{ link_id: number; cnt: number }>(),
+      db
+        .prepare(
+          "SELECT s.link_id as link_id, COUNT(*) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug WHERE c.clicked_at >= ? AND c.clicked_at < ? GROUP BY s.link_id",
+        )
+        .bind(prevStart, currStart)
+        .all<{ link_id: number; cnt: number }>(),
+    ]);
+
+    const curMap = new Map((curRows.results ?? []).map((r) => [r.link_id, r.cnt]));
+    const prevMap = new Map((prevRows.results ?? []).map((r) => [r.link_id, r.cnt]));
+
+    return links.map((link) => ({
+      ...link,
+      delta_pct: computeDelta(curMap.get(link.id) ?? 0, prevMap.get(link.id) ?? 0),
+    }));
+  }
+
   static async getDashboardStats(
     db: D1Database,
     range: TimelineRange = "30d",

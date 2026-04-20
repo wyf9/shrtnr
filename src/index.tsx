@@ -197,13 +197,19 @@ app.get("/_/admin/links", async (c) => {
   const { theme, slugLength, t, lang, translations } = await getPageData(c, identity);
   const searchQuery = c.req.query("search") || "";
   const linksResult = searchQuery
-    ? await searchLinks(c.env, searchQuery, { includeOwner: true })
-    : await listLinks(c.env);
+    ? await searchLinks(c.env, searchQuery, { includeOwner: true, withDeltaRange: "30d" })
+    : await listLinks(c.env, { withDeltaRange: "30d" });
   const links = linksResult.ok ? linksResult.data : [];
   const sort = c.req.query("sort") || "recent";
   const page = parseInt(c.req.query("page") || "1", 10) || 1;
   const perPage = parseInt(c.req.query("per_page") || "25", 10) || 25;
-  const showDisabled = c.req.query("show_disabled") === "1";
+  const filterParam = c.req.query("filter");
+  const legacyShowDisabled = c.req.query("show_disabled") === "1";
+  const filter = filterParam === "disabled" || filterParam === "all" || filterParam === "active"
+    ? filterParam
+    : legacyShowDisabled
+      ? "all"
+      : "active";
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="links" theme={theme} t={t} lang={lang} translations={translations} userEmail={userEmail}>
@@ -212,7 +218,7 @@ app.get("/_/admin/links", async (c) => {
         sort={sort}
         page={page}
         perPage={perPage}
-        showDisabled={showDisabled}
+        filter={filter}
         searchQuery={searchQuery}
         t={t}
         lang={lang}

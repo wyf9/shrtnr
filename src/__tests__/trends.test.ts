@@ -75,6 +75,44 @@ describe("ClickRepository.getPeriodClicks", () => {
   });
 });
 
+describe("ClickRepository.attachLinkDeltasBulk", () => {
+  it("returns empty array for empty input", async () => {
+    const result = await ClickRepository.attachLinkDeltasBulk(env.DB, [], "30d");
+    expect(result).toEqual([]);
+  });
+
+  it("returns links unchanged when range is all", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const result = await ClickRepository.attachLinkDeltasBulk(env.DB, [link], "all");
+    expect(result[0].delta_pct).toBeUndefined();
+  });
+
+  it("computes per-link delta across current and previous windows", async () => {
+    const a = await LinkRepository.create(env.DB, { url: "https://a.example", slug: "aaa" });
+    const b = await LinkRepository.create(env.DB, { url: "https://b.example", slug: "bbb" });
+    const now = Math.floor(Date.now() / 1000);
+    const insertClick = (slug: string, t: number) =>
+      env.DB.prepare("INSERT INTO clicks (slug, clicked_at) VALUES (?, ?)").bind(slug, t).run();
+
+    // Link a: 10 in current 24h, 5 in previous 24h => +100%
+    for (let i = 0; i < 10; i++) await insertClick(a.slugs[0].slug, now - i * 60);
+    for (let i = 0; i < 5; i++) await insertClick(a.slugs[0].slug, now - 86401 - i * 60);
+    // Link b: 3 in current 24h, 6 in previous 24h => -50%
+    for (let i = 0; i < 3; i++) await insertClick(b.slugs[0].slug, now - i * 60);
+    for (let i = 0; i < 6; i++) await insertClick(b.slugs[0].slug, now - 86401 - i * 60);
+
+    const [outA, outB] = await ClickRepository.attachLinkDeltasBulk(env.DB, [a, b], "24h", now);
+    expect(outA.delta_pct).toBe(100);
+    expect(outB.delta_pct).toBe(-50);
+  });
+
+  it("returns 0 delta for a link with no clicks in either window", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const [out] = await ClickRepository.attachLinkDeltasBulk(env.DB, [link], "24h");
+    expect(out.delta_pct).toBe(0);
+  });
+});
+
 describe("getDashboardStats with trends", () => {
   it("includes delta_pct for total clicks", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });

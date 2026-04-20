@@ -11,8 +11,11 @@ import { ServiceResult, ok, fail } from "./result";
 
 export type { ServiceResult };
 
-export async function listLinks(env: Env): Promise<ServiceResult<LinkWithSlugs[]>> {
-  return ok(await LinkRepository.list(env.DB));
+export async function listLinks(env: Env, opts?: { withDeltaRange?: TimelineRange }): Promise<ServiceResult<LinkWithSlugs[]>> {
+  const links = await LinkRepository.list(env.DB);
+  if (!opts?.withDeltaRange) return ok(links);
+  const enriched = await ClickRepository.attachLinkDeltasBulk(env.DB, links, opts.withDeltaRange);
+  return ok(enriched);
 }
 
 export async function getLink(env: Env, id: number): Promise<ServiceResult<LinkWithSlugs>> {
@@ -317,8 +320,15 @@ export async function findSlugForRedirect(
   return SlugRepository.findByValue(env.DB, slug);
 }
 
-export async function searchLinks(env: Env, query: string, opts?: { includeOwner?: boolean }): Promise<ServiceResult<LinkWithSlugs[]>> {
-  return ok(await LinkRepository.search(env.DB, query, opts));
+export async function searchLinks(
+  env: Env,
+  query: string,
+  opts?: { includeOwner?: boolean; withDeltaRange?: TimelineRange },
+): Promise<ServiceResult<LinkWithSlugs[]>> {
+  const links = await LinkRepository.search(env.DB, query, opts);
+  if (!opts?.withDeltaRange) return ok(links);
+  const enriched = await ClickRepository.attachLinkDeltasBulk(env.DB, links, opts.withDeltaRange);
+  return ok(enriched);
 }
 
 export async function listLinksByOwner(env: Env, owner: string): Promise<ServiceResult<LinkWithSlugs[]>> {
