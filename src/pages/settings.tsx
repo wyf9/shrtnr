@@ -30,11 +30,8 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
         <div class="page-subtitle">{t("settings.subtitle")}</div>
       </div>
 
-      <div
-        class="settings-layout"
-        style="display:flex;gap:2.5rem;align-items:flex-start;flex-wrap:wrap"
-      >
-        <div style="flex:1;min-width:280px;max-width:480px">
+      <div class="settings-layout">
+        <div class="settings-main">
           <div class="bento-card">
             <div class="form-group">
               <label class="form-label">{t("settings.language")}</label>
@@ -57,7 +54,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
             </div>
           </div>
 
-          <div class="bento-card" style="margin-top:1.4rem">
+          <div class="bento-card">
             <div class="form-group">
               <label class="form-label">{t("settings.theme")}</label>
               <div class="theme-toggle" id="theme-picker">
@@ -86,61 +83,46 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
             </div>
           </div>
 
-          <div class="bento-card" style="margin-top:1.4rem">
+          <div class="bento-card">
             <div class="form-group">
               <label class="form-label">{t("settings.slugLength")}</label>
-              <div style="display:flex;gap:0.75rem;align-items:center">
+              <div class="slug-length-row">
                 <input
                   class="form-input"
                   type="number"
                   id="slug-length-input"
                   min={String(MIN_SLUG_LENGTH)}
                   value={String(slugLength)}
-                  style="width:80px"
                 />
                 <button class="btn btn-secondary btn-sm" onclick="saveSettings()">
                   {t("settings.save")}
                 </button>
               </div>
-              <div
-                style="font-size:0.75rem;color:var(--color-text-muted);margin-top:0.4rem"
-                id="slug-combo-hint"
-              >
-                {comboHint}
-              </div>
+              <div class="form-hint" id="slug-combo-hint">{comboHint}</div>
             </div>
           </div>
 
-          <div class="bento-card" style="margin-top:1.4rem">
-            <div class="form-group" style="margin-bottom:0">
-              <label class="form-label">{t("settings.version")}</label>              <div id="version-status" style="font-size:0.875rem;margin-top:0.5rem">
-                <span style="color:var(--color-text-muted)">
-                  <span
-                    class="icon"
-                    style="font-size:16px;vertical-align:text-bottom;animation:spin 1s linear infinite"
-                  >
-                    progress_activity
-                  </span>{" "}
-                  {t("settings.checkingUpdates")}
-                </span>
+          <div class="bento-card">
+            <div class="form-group form-group-flush">
+              <label class="form-label">{t("settings.version")}</label>
+              <div id="version-status" class="version-status">
+                <span class="icon icon-spin">progress_activity</span>
+                <span>{t("settings.checkingUpdates")}</span>
               </div>
             </div>
           </div>
 
           {userEmail && (
-            <div class="bento-card" style="margin-top:1.4rem">
-              <div class="form-group" style="margin-bottom:0">
+            <div class="bento-card">
+              <div class="form-group form-group-flush">
                 <label class="form-label">{t("settings.account")}</label>
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:0.5rem">
-                  <div style="display:flex;align-items:center;gap:0.5rem;min-width:0">
-                    <span class="icon" style="font-size:18px;color:var(--color-text-muted);flex-shrink:0">person</span>
-                    <span style="font-size:0.875rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{userEmail}</span>
+                <div class="account-row">
+                  <div class="account-identity">
+                    <span class="icon">person</span>
+                    <span class="email">{userEmail}</span>
                   </div>
-                  <a
-                    href="/_/admin/logout"
-                    style="font-size:0.813rem;color:var(--color-text-muted);text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:0.3rem"
-                  >
-                    <span class="icon" style="font-size:15px">logout</span>
+                  <a href="/_/admin/logout" class="account-logout">
+                    <span class="icon">logout</span>
                     {t("nav.logout")}
                   </a>
                 </div>
@@ -149,30 +131,21 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
           )}
         </div>
 
-        <div style="min-width:240px;max-width:300px;display:flex;flex-direction:column;gap:1.4rem">
-          <div style="font-size:0.75rem;color:var(--color-success);font-weight:600;text-transform:uppercase">
-            {t("settings.integrations")}
-          </div>
+        <div class="settings-side">
+          <div class="settings-side-label">{t("settings.integrations")}</div>
           <a
             href="https://oddb.it/shrtnr-npm-app"
             target="_blank"
             rel="noopener"
-            class="bento-card"
-            style="text-decoration:none;color:inherit;display:block"
+            class="bento-card integration-card"
           >
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
-              <span class="icon" style="color:var(--color-accent)">
-                terminal
-              </span>
-              <span style="font-weight:600">{t("settings.sdkTitle")}</span>
+            <div class="integration-card-head">
+              <span class="icon">terminal</span>
+              <span class="integration-card-title">{t("settings.sdkTitle")}</span>
             </div>
-            <div style="font-size:0.813rem;color:var(--color-text-muted);line-height:1.45">
-              {t("settings.sdkDesc")}
-            </div>
-            <div style="font-size:0.7rem;color:var(--color-success);margin-top:0.6rem;display:flex;align-items:center;gap:0.25rem">
-              <span class="icon" style="font-size:14px">
-                open_in_new
-              </span>{" "}
+            <div class="integration-card-desc">{t("settings.sdkDesc")}</div>
+            <div class="integration-card-link">
+              <span class="icon">open_in_new</span>
               {t("settings.sdkLink")}
             </div>
           </a>
@@ -180,29 +153,17 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, t, mcpConfigu
             href="https://oddb.it/mcp-documentation-app"
             target="_blank"
             rel="noopener"
-            class="bento-card"
-            style="text-decoration:none;color:inherit;display:block"
+            class="bento-card integration-card"
           >
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
-              <span class="icon" style="color:var(--color-accent)">
-                smart_toy
-              </span>
-              <span style="font-weight:600">{t("settings.mcpTitle")}</span>
+            <div class="integration-card-head">
+              <span class="icon">smart_toy</span>
+              <span class="integration-card-title">{t("settings.mcpTitle")}</span>
             </div>
-            <div style="font-size:0.813rem;color:var(--color-text-muted);line-height:1.45">
-              {t("settings.mcpDesc")}
+            <div class="integration-card-desc">{t("settings.mcpDesc")}</div>
+            <div class="integration-card-link">
+              <span class="icon">open_in_new</span>
+              {mcpConfigured ? t("settings.mcpDocsLink") : t("settings.mcpSetupLink")}
             </div>
-            {mcpConfigured ? (
-              <div style="font-size:0.7rem;color:var(--color-success);margin-top:0.6rem;display:flex;align-items:center;gap:0.25rem">
-                <span class="icon" style="font-size:14px">open_in_new</span>{" "}
-                {t("settings.mcpDocsLink")}
-              </div>
-            ) : (
-              <div style="font-size:0.7rem;color:var(--color-success);margin-top:0.6rem;display:flex;align-items:center;gap:0.25rem">
-                <span class="icon" style="font-size:14px">open_in_new</span>{" "}
-                {t("settings.mcpSetupLink")}
-              </div>
-            )}
           </a>
         </div>
       </div>

@@ -555,6 +555,40 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 /* Link clicks cell centered */
 .link-clicks-cell { text-align: center; }
 
+/* Settings page layout */
+.settings-layout { display: flex; gap: 2.5rem; align-items: flex-start; flex-wrap: wrap; }
+.settings-main { flex: 1; min-width: 280px; max-width: 480px; display: flex; flex-direction: column; gap: 1.4rem; }
+.settings-side { min-width: 240px; max-width: 300px; display: flex; flex-direction: column; gap: 1rem; }
+.settings-side-label { font-size: 0.75rem; color: var(--color-success); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Slug length row (number input + save) */
+.slug-length-row { display: flex; gap: 0.75rem; align-items: center; }
+.slug-length-row .form-input { width: 80px; }
+.form-hint { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.4rem; }
+.form-group-flush { margin-bottom: 0; }
+
+/* Version row spinner */
+.version-status { font-size: 0.875rem; margin-top: 0.5rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 0.35rem; }
+.icon-spin { font-size: 16px; vertical-align: text-bottom; animation: spin 1s linear infinite; }
+
+/* Account row (identity + logout) */
+.account-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.5rem; }
+.account-identity { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+.account-identity .icon { font-size: 18px; color: var(--color-text-muted); flex-shrink: 0; }
+.account-identity .email { font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-logout { font-size: 0.813rem; color: var(--color-text-muted); text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem; }
+.account-logout:hover { color: var(--color-text); }
+.account-logout .icon { font-size: 15px; }
+
+/* Integration cards (link-as-card) */
+.integration-card { text-decoration: none; color: inherit; display: block; }
+.integration-card-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.integration-card-head .icon { color: var(--color-accent); }
+.integration-card-title { font-weight: 600; }
+.integration-card-desc { font-size: 0.813rem; color: var(--color-text-muted); line-height: 1.45; }
+.integration-card-link { font-size: 0.7rem; color: var(--color-success); margin-top: 0.6rem; display: inline-flex; align-items: center; gap: 0.25rem; }
+.integration-card-link .icon { font-size: 14px; }
+
 /* Top-link row: label+slug stat bar with url caption under it */
 .top-link-row { display: block; text-decoration: none; color: inherit; overflow: hidden; }
 .top-link-row .stat-name-mono { font-family: var(--font-family-mono); }
