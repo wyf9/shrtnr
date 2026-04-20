@@ -92,10 +92,10 @@ export const LinksPage: FC<Props> = ({
 
   const countKey = filtered.length !== 1 ? "links.countPlural" : "links.count";
 
-  const filterChips: { key: LinksFilter; labelKey: "links.filterActive" | "links.filterDisabled" | "links.filterAll"; icon: string; count: number }[] = [
-    { key: "active", labelKey: "links.filterActive", icon: "link", count: activeLinks.length },
-    { key: "disabled", labelKey: "links.filterDisabled", icon: "block", count: disabledLinks.length },
-    { key: "all", labelKey: "links.filterAll", icon: "all_inclusive", count: links.length },
+  const filterChips: { key: LinksFilter; labelKey: "links.filterActive" | "links.filterDisabled" | "links.filterAll"; icon: string }[] = [
+    { key: "active", labelKey: "links.filterActive", icon: "link" },
+    { key: "disabled", labelKey: "links.filterDisabled", icon: "block" },
+    { key: "all", labelKey: "links.filterAll", icon: "all_inclusive" },
   ];
 
   return (
@@ -137,7 +137,6 @@ export const LinksPage: FC<Props> = ({
               >
                 <span class="icon">{chip.icon}</span>
                 <span>{t(chip.labelKey)}</span>
-                <span class="count">{chip.count}</span>
               </a>
             ))}
           </div>
@@ -181,7 +180,7 @@ export const LinksPage: FC<Props> = ({
                   <tr>
                     <th>{t("links.colLink")}</th>
                     <th>{t("links.colShort")}</th>
-                    <th class="num">{t("links.colClicks")}</th>
+                    <th class="num">{t("links.colClicksRange", { range: "30d" })}</th>
                     <th>{t("links.colCreated")}</th>
                   </tr>
                 </thead>
@@ -207,7 +206,12 @@ export const LinksPage: FC<Props> = ({
                               </span>
                             )}
                           </div>
-                          {link.label && <div class="col-link-url">{link.url}</div>}
+                          {link.label && (
+                            <div class="col-link-url">
+                              <span class="icon icon-xs">open_in_new</span>
+                              <span>{link.url}</span>
+                            </div>
+                          )}
                         </td>
                         <td data-label={t("links.colShort")} class="col-short">
                           {mainSlug && (
@@ -216,20 +220,24 @@ export const LinksPage: FC<Props> = ({
                               onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(mainSlug.slug)}')`}
                               title={t("links.clickToCopy")}
                             >
-                              {mainSlug.slug} <span class="icon">content_copy</span>
+                              <span class="col-short-chip-dot" aria-hidden="true" />
+                              <span class="col-short-chip-slug">{mainSlug.slug}</span>
+                              <span class="icon">content_copy</span>
                             </span>
                           )}
                         </td>
-                        <td data-label={t("links.colClicks")} class="col-clicks">
+                        <td data-label={t("links.colClicksRange", { range: "30d" })} class="col-clicks">
                           <span class="col-clicks-cell">
-                            {typeof link.delta_pct === "number" && link.total_clicks > 0 && (
-                              <Delta pct={link.delta_pct} />
-                            )}
-                            <span>{link.total_clicks}</span>
+                            <span class="col-clicks-value">{link.total_clicks.toLocaleString()}</span>
                           </span>
                         </td>
                         <td data-label={t("links.colCreated")} class="col-date">
-                          {formatDate(link.created_at, lang)}
+                          <span class="col-date-cell">
+                            {typeof link.delta_pct === "number" && link.total_clicks > 0 && (
+                              <Delta pct={link.delta_pct} />
+                            )}
+                            <span>{formatDate(link.created_at, lang)}</span>
+                          </span>
                         </td>
                       </tr>
                     );
@@ -241,6 +249,13 @@ export const LinksPage: FC<Props> = ({
 
           {(totalPages > 1 || links.length > 25) && (
             <div class="pagination">
+              <div class="pagination-summary">
+                {t("links.pageSummary", {
+                  from: sorted.length === 0 ? 0 : start + 1,
+                  to: Math.min(start + perPage, sorted.length),
+                  total: sorted.length,
+                })}
+              </div>
               <div class="pagination-pages">
                 <a
                   class={`page-btn${currentPage <= 1 ? " disabled" : ""}`}
@@ -270,15 +285,21 @@ export const LinksPage: FC<Props> = ({
                 </a>
               </div>
               <div class="per-page">
-                {t("links.show")}{" "}
-                {[25, 50, 100].map((n) => (
-                  <a
-                    class={`per-page-btn${perPage === n ? " active" : ""}`}
-                    href={perPageUrl(n)}
+                <span class="per-page-label">{t("links.show")}</span>
+                <div class="form-select per-page-select">
+                  <select
+                    class="form-input form-input-sm"
+                    onchange="location.href=this.value"
+                    aria-label={t("links.perPageAria")}
                   >
-                    {n}
-                  </a>
-                ))}
+                    {[25, 50, 100].map((n) => (
+                      <option value={perPageUrl(n)} selected={perPage === n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <span class="per-page-label">{t("links.perPage")}</span>
               </div>
             </div>
           )}

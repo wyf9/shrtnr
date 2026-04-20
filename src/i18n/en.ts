@@ -50,7 +50,11 @@ const en = {
   "links.colLink": "Link",
   "links.colShort": "Short URL",
   "links.colClicks": "Clicks",
+  "links.colClicksRange": "Clicks ({range})",
   "links.colCreated": "Created",
+  "links.pageSummary": "{from}–{to} of {total}",
+  "links.perPage": "per page",
+  "links.perPageAria": "Links per page",
   "links.colTrend": "Trend",
   "links.newLink": "New Link",
   "links.allDisabled":

@@ -52,7 +52,11 @@ const id: Translations = {
   "links.colLink": "Tautan",
   "links.colShort": "URL Pendek",
   "links.colClicks": "Klik",
+  "links.colClicksRange": "Klik ({range})",
   "links.colCreated": "Dibuat",
+  "links.pageSummary": "{from}–{to} dari {total}",
+  "links.perPage": "per halaman",
+  "links.perPageAria": "Tautan per halaman",
   "links.colTrend": "Tren",
   "links.newLink": "Tautan Baru",
   "links.allDisabled":

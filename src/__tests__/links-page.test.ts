@@ -48,4 +48,45 @@ describe("Links listing page", () => {
     // The designated primary slug should appear
     expect(html).toContain("branded-link");
   });
+
+  it("clicks column header includes a range indicator", async () => {
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
+    const res = await SELF.fetch(req("/_/admin/links"));
+    const html = await res.text();
+    // Expect the header row to contain a range window (e.g. "Clicks (30d)")
+    expect(html).toMatch(/Clicks\s*\(30d\)/i);
+  });
+
+  it("delta pct renders inside the created column, not the clicks column", async () => {
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
+    // Seed a click so the link has total_clicks > 0 and a delta is computed
+    await env.DB.prepare("INSERT INTO clicks (slug, clicked_at) VALUES (?, ?)")
+      .bind(link.slugs[0].slug, Math.floor(Date.now() / 1000) - 60)
+      .run();
+
+    const res = await SELF.fetch(req("/_/admin/links"));
+    const html = await res.text();
+    // Delta pill should be present somewhere
+    expect(html).toMatch(/class="delta /);
+    // The delta should appear in a created-column cell, not a clicks-column cell
+    expect(html).toMatch(/<td[^>]*class="[^"]*col-date[^"]*"[^>]*>[\s\S]*?class="delta /);
+  });
+
+  it("pagination shows a '1–N of Total' summary", async () => {
+    for (let i = 0; i < 30; i++) {
+      await LinkRepository.create(env.DB, {
+        url: `https://example${i}.com`,
+        slug: `s${i}`,
+      });
+    }
+    const res = await SELF.fetch(req("/_/admin/links"));
+    const html = await res.text();
+    expect(html).toMatch(/1\s*[–-]\s*25\s+of\s+30/);
+  });
 });
