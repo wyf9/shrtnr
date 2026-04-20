@@ -763,6 +763,8 @@ function loadAnalytics(linkId, range) {
     // Update hero total clicks
     var heroTotal = document.getElementById('hero-total-clicks');
     if (heroTotal) heroTotal.textContent = fmtNum(stats.total_clicks);
+    var timelineTotal = document.getElementById('timeline-total');
+    if (timelineTotal) timelineTotal.textContent = fmtNum(stats.total_clicks);
 
     // Update per-slug click counts and bars
     var slugCounts = {};
@@ -830,57 +832,77 @@ function fmtLabel(label, range) {
 function renderTimeline(data) {
   var container = document.getElementById('timeline-chart');
   if (!data.buckets || data.buckets.length === 0) {
-    container.innerHTML = '<div style="color:var(--color-text-muted);font-size:0.875rem;padding:2rem 0;text-align:center">No click data yet</div>';
+    container.innerHTML = '<div class="empty-card-hint">' + esc(t('linkDetail.noClickData')) + '</div>';
     return;
   }
 
+  var buckets = data.buckets;
+  var n = buckets.length;
   var maxVal = 0;
-  for (var i = 0; i < data.buckets.length; i++) {
-    if (data.buckets[i].count > maxVal) maxVal = data.buckets[i].count;
+  for (var i = 0; i < n; i++) {
+    if (buckets[i].count > maxVal) maxVal = buckets[i].count;
   }
   if (maxVal === 0) maxVal = 1;
 
-  // Compute y-axis gridlines (4 steps)
   var step = niceStep(maxVal);
   var gridMax = Math.ceil(maxVal / step) * step;
   if (gridMax === 0) gridMax = step;
 
-  var html = '<div class="tl-y-axis">';
-  for (var g = gridMax; g >= 0; g -= step) {
-    html += '<span class="tl-y-label">' + fmtNum(g) + '</span>';
-  }
-  html += '</div>';
+  var w = 800, h = 220;
+  var pad = { l: 36, r: 8, t: 10, b: 24 };
+  var innerW = w - pad.l - pad.r;
+  var innerH = h - pad.t - pad.b;
+  var stepX = n > 1 ? innerW / (n - 1) : 0;
 
-  html += '<div class="tl-plot">';
-  // Grid lines
-  var gridSteps = gridMax / step;
-  for (var g = 0; g <= gridSteps; g++) {
-    var pct = (g / gridSteps * 100).toFixed(1);
-    html += '<div class="tl-grid-line" style="bottom:' + pct + '%"></div>';
-  }
-
-  // Determine which labels to show (avoid crowding)
-  var labelInterval = 1;
-  var n = data.buckets.length;
-  if (n > 60) labelInterval = Math.ceil(n / 12);
-  else if (n > 30) labelInterval = Math.ceil(n / 10);
-  else if (n > 14) labelInterval = Math.ceil(n / 7);
-
-  // Bars
-  html += '<div class="tl-bars">';
+  var pts = new Array(n);
   for (var i = 0; i < n; i++) {
-    var b = data.buckets[i];
-    var pct = (b.count / gridMax * 100).toFixed(1);
-    var label = fmtLabel(b.label, data.range);
-    var showLabel = (i % labelInterval === 0) || i === n - 1;
-    html += '<div class="tl-bar-group">';
-    html += '<div class="tl-bar-wrap"><div class="tl-bar" style="height:' + pct + '%" data-tooltip="' + esc(b.label) + ': ' + b.count + ' click' + (b.count !== 1 ? 's' : '') + '"></div></div>';
-    html += '<span class="tl-x-label' + (showLabel ? '' : ' tl-x-hidden') + '">' + esc(label) + '</span>';
-    html += '</div>';
+    var x = n > 1 ? pad.l + i * stepX : pad.l + innerW / 2;
+    var y = pad.t + innerH - (buckets[i].count / gridMax) * innerH;
+    pts[i] = [x, y];
   }
-  html += '</div></div>';
 
-  container.innerHTML = html;
+  var line = '';
+  for (var i = 0; i < n; i++) {
+    line += (i === 0 ? 'M' : 'L') + pts[i][0].toFixed(1) + ',' + pts[i][1].toFixed(1) + ' ';
+  }
+  var lastX = n > 1 ? pad.l + innerW : pts[0][0];
+  var baseY = pad.t + innerH;
+  var area = line + 'L' + lastX.toFixed(1) + ',' + baseY + ' L' + pad.l + ',' + baseY + ' Z';
+
+  var grid = [0, 0.25, 0.5, 0.75, 1];
+  var parts = [];
+  parts.push('<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">');
+  parts.push('<defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">');
+  parts.push('<stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.45"/>');
+  parts.push('<stop offset="100%" stop-color="var(--color-accent)" stop-opacity="0"/>');
+  parts.push('</linearGradient></defs>');
+
+  for (var gi = 0; gi < grid.length; gi++) {
+    var gy = pad.t + innerH * grid[gi];
+    var val = Math.round(gridMax * (1 - grid[gi]));
+    parts.push('<line x1="' + pad.l + '" x2="' + (w - pad.r) + '" y1="' + gy + '" y2="' + gy + '" stroke="var(--color-border)" stroke-opacity="0.35" stroke-width="1" vector-effect="non-scaling-stroke"/>');
+    parts.push('<text x="' + (pad.l - 6) + '" y="' + (gy + 3) + '" font-size="9" fill="var(--color-text-subtle)" text-anchor="end" font-family="var(--font-family-mono)">' + fmtNum(val) + '</text>');
+  }
+
+  parts.push('<path d="' + area + '" fill="url(#chartGrad)"/>');
+  parts.push('<path d="' + line + '" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>');
+
+  var dotInterval = n > 60 ? Math.ceil(n / 10) : (n > 30 ? 5 : (n > 14 ? 3 : 1));
+  for (var i = 0; i < n; i++) {
+    if (i % dotInterval === 0 || i === n - 1) {
+      parts.push('<circle cx="' + pts[i][0].toFixed(1) + '" cy="' + pts[i][1].toFixed(1) + '" r="2.5" fill="var(--color-accent)" stroke="var(--color-surface-raised)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>');
+    }
+  }
+
+  for (var i = 0; i < n; i++) {
+    if (i % dotInterval === 0 || i === n - 1) {
+      var label = i === n - 1 ? t('linkDetail.today') : fmtLabel(buckets[i].label, data.range);
+      parts.push('<text x="' + pts[i][0].toFixed(1) + '" y="' + (h - 6) + '" font-size="9" fill="var(--color-text-subtle)" text-anchor="middle" font-family="var(--font-family-mono)">' + esc(label) + '</text>');
+    }
+  }
+
+  parts.push('</svg>');
+  container.innerHTML = parts.join('');
 }
 
 function niceStep(max) {

@@ -394,7 +394,15 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
       <div class="detail-analytics">
         <div class="detail-analytics-left">
           <div class="bento-card timeline-card">
-            <div class="bento-label">{t("linkDetail.clicksOverTime")}</div>
+            <div class="timeline-head">
+              <div class="timeline-head-main">
+                <div class="bento-label">{t("linkDetail.clicksOverTime")}</div>
+                <div class="timeline-total-row">
+                  <span class="timeline-total" id="timeline-total">{analytics.total_clicks}</span>
+                  <span class="timeline-total-label">{t("linkDetail.clicksInRange")}</span>
+                </div>
+              </div>
+            </div>
             <div class="timeline-chart" id="timeline-chart">
               <div class="empty-card-hint">{t("linkDetail.noClickData")}</div>
             </div>
