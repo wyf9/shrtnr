@@ -205,4 +205,27 @@ describe("getDashboardStats range-filtered breakdowns", () => {
     expect(statsAll.top_links[0].id).toBe(linkA.id);
     expect(statsAll.top_links[0].total_clicks).toBe(102);
   });
+
+  it("counts total_links within the range window, lifetime when range is all", async () => {
+    const now = Math.floor(Date.now() / 1000);
+
+    for (let i = 0; i < 2; i++) {
+      await env.DB
+        .prepare("INSERT INTO links (url, created_at) VALUES (?, ?)")
+        .bind(`https://recent${i}.example.com`, now - i * 3600)
+        .run();
+    }
+    for (let i = 0; i < 3; i++) {
+      await env.DB
+        .prepare("INSERT INTO links (url, created_at) VALUES (?, ?)")
+        .bind(`https://old${i}.example.com`, now - (30 + i) * 86400)
+        .run();
+    }
+
+    const stats7d = await ClickRepository.getDashboardStats(env.DB, "7d", now);
+    expect(stats7d.total_links).toBe(2);
+
+    const statsAll = await ClickRepository.getDashboardStats(env.DB, "all", now);
+    expect(statsAll.total_links).toBe(5);
+  });
 });

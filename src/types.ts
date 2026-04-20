@@ -100,9 +100,8 @@ export interface TimelineData {
 
 export interface DashboardStats {
   range: TimelineRange;
+  /** Links created in the current period; lifetime when range is "all". */
   total_links: number;
-  /** Links created in the current period. */
-  new_links_in_range: number;
   total_clicks: number;
   /** Clicks in the immediately previous equivalent period. */
   total_clicks_previous: number;

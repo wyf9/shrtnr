@@ -663,8 +663,7 @@ export class ClickRepository {
 
     return {
       range,
-      total_links: linkPeriods.total,
-      new_links_in_range: linkPeriods.current,
+      total_links: linkPeriods.current,
       total_clicks: clicks.current,
       total_clicks_previous: clicks.previous,
       total_clicks_delta: computeDelta(clicks.current, clicks.previous),

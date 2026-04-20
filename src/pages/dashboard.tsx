@@ -92,7 +92,6 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range }) => {
           valueId="dash-total-links"
           deltaPct={d.new_links_delta}
           deltaId="dash-links-delta"
-          hint={`+${d.new_links_in_range} ${range === "all" ? "" : range}`.trim()}
         />
         <KpiCard
           id="dash-kpi-clicks"

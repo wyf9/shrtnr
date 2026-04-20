@@ -174,7 +174,6 @@ app.get("/_/admin/dashboard", async (c) => {
     : {
         range,
         total_links: 0,
-        new_links_in_range: 0,
         total_clicks: 0,
         total_clicks_previous: 0,
         total_clicks_delta: 0,
