@@ -117,16 +117,16 @@ export const LinksPage: FC<Props> = ({
       </div>
 
       {searchQuery && (
-        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
-          <span style="font-size:0.85rem;color:var(--color-text-muted)">{t("links.searchResults", { count: filtered.length })}</span>
-          <a href="/_/admin/links" class="btn btn-ghost btn-sm" style="font-size:0.8rem">
-            <span class="icon" style="font-size:14px">close</span> {t("links.clearSearch")}
+        <div class="search-results-bar">
+          <span class="count">{t("links.searchResults", { count: filtered.length })}</span>
+          <a href="/_/admin/links" class="btn btn-ghost btn-sm">
+            <span class="icon icon-xs">close</span> {t("links.clearSearch")}
           </a>
         </div>
       )}
 
       <div class="toolbar">
-        <div style="display:flex;align-items:center;gap:1rem">
+        <div class="toolbar-group">
           <div class="toolbar-count">
             {t(countKey as any, { count: filtered.length })}
           </div>
@@ -135,18 +135,14 @@ export const LinksPage: FC<Props> = ({
               class={`sort-btn${sort === "recent" ? " active" : ""}`}
               href={sortUrl("recent")}
             >
-              <span class="icon" style="font-size:16px">
-                schedule
-              </span>{" "}
+              <span class="icon icon-sm">schedule</span>{" "}
               {t("links.recent")}
             </a>
             <a
               class={`sort-btn${sort === "popular" ? " active" : ""}`}
               href={sortUrl("popular")}
             >
-              <span class="icon" style="font-size:16px">
-                trending_up
-              </span>{" "}
+              <span class="icon icon-sm">trending_up</span>{" "}
               {t("links.popular")}
             </a>
           </div>
@@ -154,9 +150,7 @@ export const LinksPage: FC<Props> = ({
             class={`sort-btn${showDisabled ? " active" : ""}`}
             href={disabledUrl()}
           >
-            <span class="icon" style="font-size:16px">
-              block
-            </span>{" "}
+            <span class="icon icon-sm">block</span>{" "}
             {t("links.showDisabled")}
           </a>
         </div>
@@ -193,16 +187,13 @@ export const LinksPage: FC<Props> = ({
                         class={`slug-chip${(mainSlug.disabled_at || disabled) ? " slug-chip-disabled" : ""}`}
                         onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(mainSlug.slug)}')`}
                         title={t("links.clickToCopy")}
-                        style={(mainSlug.disabled_at || disabled) ? "opacity:0.4" : undefined}
                       >
                         {mainSlug.slug} <span class="icon">content_copy</span>
                       </span>
                     )}
                     {disabled && (
                       <span class="disabled-badge">
-                        <span class="icon" style="font-size:14px">
-                          block
-                        </span>{" "}
+                        <span class="icon icon-xs">block</span>{" "}
                         {t("links.disabled")}
                       </span>
                     )}
@@ -211,7 +202,7 @@ export const LinksPage: FC<Props> = ({
                   <div class="link-date">{formatDate(link.created_at, lang)}</div>
                 </div>
                 <div class="link-meta">
-                  <div style="text-align:center">
+                  <div class="link-clicks-cell">
                     <div class="link-clicks">{link.total_clicks}</div>
                     <div class="link-clicks-label">{t("links.clicks")}</div>
                   </div>
@@ -227,9 +218,7 @@ export const LinksPage: FC<Props> = ({
                   class={`page-btn${currentPage <= 1 ? " disabled" : ""}`}
                   href={currentPage > 1 ? pageUrl(currentPage - 1) : "#"}
                 >
-                  <span class="icon" style="font-size:16px">
-                    chevron_left
-                  </span>
+                  <span class="icon icon-sm">chevron_left</span>
                 </a>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                   (p) => (
@@ -249,9 +238,7 @@ export const LinksPage: FC<Props> = ({
                       : "#"
                   }
                 >
-                  <span class="icon" style="font-size:16px">
-                    chevron_right
-                  </span>
+                  <span class="icon icon-sm">chevron_right</span>
                 </a>
               </div>
               <div class="per-page">

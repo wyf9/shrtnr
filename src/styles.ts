@@ -538,6 +538,23 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 /* Muted hint inside a card */
 .muted-hint { color: var(--color-text-muted); font-size: 0.875rem; }
 
+/* Icon size utilities (replace inline style="font-size:..." on .icon spans) */
+.icon-xs { font-size: 14px !important; }
+.icon-sm { font-size: 16px !important; }
+.icon-md { font-size: 18px !important; }
+
+/* Links page: search-results bar + inline toolbar group */
+.search-results-bar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.search-results-bar .count { font-size: 0.85rem; color: var(--color-text-muted); }
+.search-results-bar .btn { font-size: 0.8rem; }
+.toolbar-group { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+
+/* Slug chip disabled modifier */
+.slug-chip.slug-chip-disabled { opacity: 0.4; }
+
+/* Link clicks cell centered */
+.link-clicks-cell { text-align: center; }
+
 /* Top-link row: label+slug stat bar with url caption under it */
 .top-link-row { display: block; text-decoration: none; color: inherit; overflow: hidden; }
 .top-link-row .stat-name-mono { font-family: var(--font-family-mono); }
