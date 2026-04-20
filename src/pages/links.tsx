@@ -222,10 +222,10 @@ export const LinksPage: FC<Props> = ({
                         </td>
                         <td data-label={t("links.colClicks")} class="col-clicks">
                           <span class="col-clicks-cell">
-                            <span>{link.total_clicks}</span>
                             {typeof link.delta_pct === "number" && link.total_clicks > 0 && (
                               <Delta pct={link.delta_pct} />
                             )}
+                            <span>{link.total_clicks}</span>
                           </span>
                         </td>
                         <td data-label={t("links.colCreated")} class="col-date">
