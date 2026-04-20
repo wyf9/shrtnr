@@ -539,9 +539,50 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 .muted-hint { color: var(--color-text-muted); font-size: 0.875rem; }
 
 /* Icon size utilities (replace inline style="font-size:..." on .icon spans) */
+.icon-xxs { font-size: 12px !important; vertical-align: -1px; }
 .icon-xs { font-size: 14px !important; }
 .icon-sm { font-size: 16px !important; }
 .icon-md { font-size: 18px !important; }
+.icon-lg { font-size: 24px !important; }
+.icon-baseline { vertical-align: text-bottom; }
+
+/* Spacing utilities */
+.mb-lg { margin-bottom: 1.4rem; }
+.mt-sm { margin-top: 0.75rem; }
+
+/* Dimmed (for expired/disabled entries) */
+.dimmed { opacity: 0.4; }
+
+/* Empty hint centered inside a card */
+.empty-card-hint { color: var(--color-text-muted); font-size: 0.875rem; padding: 2rem 0; text-align: center; }
+
+/* Stat-row inline mono font (for slug name, etc.) */
+.stat-row .stat-name.mono { font-family: var(--font-family-mono); }
+
+/* Stat-row subtitle (used by link-detail referrers) */
+.stat-row-subtitle { font-size: 0.75rem; color: var(--color-text-muted); margin: -0.15rem 0 0.5rem 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-family-mono); }
+
+/* Detail actions row */
+.detail-actions { margin-top: 0.75rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+/* Meta row (inline created_by + badges) */
+.meta-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.meta-value { font-size: 0.85rem; color: var(--color-text); }
+.meta-value.muted { color: var(--color-text-muted); }
+.meta-value.mono { font-family: var(--font-family-mono); }
+
+/* Detail expiry form tweaks */
+.expiry-form input[type="datetime-local"] { width: auto; }
+.expiry-form .btn-ghost { font-size: 0.75rem; }
+
+/* Slug row text */
+.slug-row-text { font-family: var(--font-family-mono); font-size: 0.875rem; }
+
+/* Disabled badge inline in hero (already have .disabled-badge; add positioning modifier) */
+.disabled-badge.mb-sm { margin-bottom: 0.5rem; }
+
+/* Detail-menu anchor positioning wrapper */
+.detail-menu-anchor { position: relative; }
 
 /* Links page: search-results bar + inline toolbar group */
 .search-results-bar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }

@@ -27,15 +27,8 @@ const StatBar: FC<{
   return (
     <div>
       <div class="stat-row">
-        <span
-          class="stat-name"
-          style={mono ? "font-family:var(--font-family-mono)" : undefined}
-        >
-          {icon && (
-            <span class="icon" style="font-size:16px;vertical-align:text-bottom">
-              {icon}
-            </span>
-          )}{" "}
+        <span class={`stat-name${mono ? " mono" : ""}`}>
+          {icon && <span class="icon icon-sm icon-baseline">{icon}</span>}{" "}
           {name}
         </span>
         <div class="stat-bar">
@@ -43,11 +36,7 @@ const StatBar: FC<{
         </div>
         <span class="stat-count">{count}</span>
       </div>
-      {subtitle && (
-        <div style="font-size:0.75rem;color:var(--color-text-muted);margin:-0.15rem 0 0.5rem 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-family-mono)">
-          {subtitle}
-        </div>
-      )}
+      {subtitle && <div class="stat-row-subtitle">{subtitle}</div>}
     </div>
   );
 };
@@ -112,9 +101,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
     <>
       <div class="detail-header">
         <a href="/_/admin/links" class="detail-back">
-          <span class="icon" style="font-size:24px">
-            arrow_back
-          </span>
+          <span class="icon icon-lg">arrow_back</span>
         </a>
         <div class="page-title">{t("linkDetail.title")}</div>
         <div class="timeline-range-selector" id="timeline-range" data-link-id={link.id}>
@@ -128,13 +115,13 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
             </button>
           ))}
         </div>
-        <div style="position:relative">
+        <div class="detail-menu-anchor">
           <button
             class="btn btn-ghost btn-sm"
             onclick="toggleDetailMenu()"
             aria-label={t("linkDetail.moreActions")}
           >
-            <span class="icon" style="font-size:24px">more_vert</span>
+            <span class="icon icon-lg">more_vert</span>
           </button>
           <div class="detail-menu" id="detail-menu" style="display:none">
             <button class="detail-menu-item" onclick={`showAddSlugModal(${link.id})`}>
@@ -197,18 +184,13 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
               </button>
             </div>
             {isExpired && (
-              <div style="display:inline-block;background:var(--color-danger);color:var(--color-danger-foreground);font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:var(--radius-md);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em">
-                {t("linkDetail.disabled")}
-              </div>
+              <div class="disabled-badge mb-sm">{t("linkDetail.disabled")}</div>
             )}
-            <div
-              class="detail-short-url"
-              style={isExpired ? "opacity:0.4" : undefined}
-            >
+            <div class={`detail-short-url${isExpired ? " dimmed" : ""}`}>
               {displaySlug}
             </div>
             <div class="detail-dest">{link.url}</div>
-            <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center">
+            <div class="detail-actions">
               <button
                 class="btn btn-secondary btn-sm"
                 onclick={`copyUrl('${escHtml(displaySlug)}')`}
@@ -232,11 +214,11 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
             <div class="detail-info-grid">
               <div class="detail-info-item">
                 <label class="form-label">{t("linkDetail.createdBy")}</label>
-                <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap">
+                <div class="meta-row">
                   {link.created_by && link.created_by !== "anonymous" ? (
-                    <span style="font-size:0.85rem;color:var(--color-text);font-family:var(--font-family-mono)">{link.created_by}</span>
+                    <span class="meta-value mono">{link.created_by}</span>
                   ) : (
-                    <span style="font-size:0.85rem;color:var(--color-text-muted)">&mdash;</span>
+                    <span class="meta-value muted">&mdash;</span>
                   )}
                   {link.created_via && (
                     <span class="slug-badge-auto">{link.created_via}</span>
@@ -257,13 +239,12 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   )}
                   <span class="icon inline-edit-icon">edit</span>
                 </div>
-                <div class="inline-edit-form" id="expiry-form" style="display:none">
+                <div class="inline-edit-form expiry-form" id="expiry-form" style="display:none">
                   <input
                     class="form-input form-input-sm"
                     id="detail-expires"
                     type="datetime-local"
                     value={expVal}
-                    style="width:auto"
                   />
                   <button class="inline-edit-btn confirm" onclick={`saveDetailExpiry(${link.id})`}>
                     <span class="icon">check</span>
@@ -271,7 +252,6 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   {link.expires_at && (
                     <button
                       class="btn btn-ghost btn-sm"
-                      style="font-size:0.75rem"
                       onclick={`clearDetailExpiry(${link.id})`}
                     >
                       {t("linkDetail.clear")}
@@ -288,7 +268,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
       </div>
 
       {/* Slugs management section */}
-      <div class="bento-card" style="margin-bottom:1.4rem">
+      <div class="bento-card mb-lg">
         <div class="bento-label">{t("linkDetail.slugs")}</div>
         <div class="slugs-table">
           {[...link.slugs].sort((a, b) => a.is_custom - b.is_custom).map((s) => {
@@ -311,24 +291,24 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                         onclick={`copyUrl('${escHtml(s.slug)}')`}
                         title={t("linkDetail.copy")}
                       >
-                        <span class="icon" style="font-size:18px">content_copy</span>
+                        <span class="icon icon-md">content_copy</span>
                       </button>
                       <button
                         class="btn-icon"
                         onclick={`showQRModal(${link.id}, '${escHtml(s.slug)}')`}
                         title={t("linkDetail.qr")}
                       >
-                        <span class="icon" style="font-size:18px">qr_code_2</span>
+                        <span class="icon icon-md">qr_code_2</span>
                       </button>
                     </>
                   )}
                 </div>
 
                 <div class="slugs-row-slug">
-                  <span style="font-family:var(--font-family-mono);font-size:0.875rem">{s.slug}</span>
+                  <span class="slug-row-text">{s.slug}</span>
                   {isPrimary && (
                     <span class="slug-badge-primary" title={t("linkDetail.primarySlug")}>
-                      <span class="icon" style="font-size:12px;vertical-align:-1px">star</span>
+                      <span class="icon icon-xxs">star</span>
                     </span>
                   )}
                   {!isCustom && (
@@ -355,7 +335,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                       onclick={`confirmDeleteSlug(${link.id}, '${escHtml(s.slug)}')`}
                       title={t("linkDetail.deleteSlug")}
                     >
-                      <span class="icon" style="font-size:18px">delete</span>
+                      <span class="icon icon-md">delete</span>
                     </button>
                   )}
                   {canDisable && (
@@ -364,7 +344,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                       onclick={`confirmDisableSlug(${link.id}, '${escHtml(s.slug)}')`}
                       title={t("linkDetail.disableSlug")}
                     >
-                      <span class="icon" style="font-size:18px">block</span>
+                      <span class="icon icon-md">block</span>
                     </button>
                   )}
                   {canEnable && (
@@ -373,7 +353,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                       onclick={`confirmEnableSlug(${link.id}, '${escHtml(s.slug)}')`}
                       title={t("linkDetail.enableSlug")}
                     >
-                      <span class="icon" style="font-size:18px">check_circle</span>
+                      <span class="icon icon-md">check_circle</span>
                     </button>
                   )}
                 </div>
@@ -388,9 +368,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
           <div class="bento-card timeline-card">
             <div class="bento-label">{t("linkDetail.clicksOverTime")}</div>
             <div class="timeline-chart" id="timeline-chart">
-              <div style="color:var(--color-text-muted);font-size:0.875rem;padding:2rem 0;text-align:center">
-                {t("linkDetail.noClickData")}
-              </div>
+              <div class="empty-card-hint">{t("linkDetail.noClickData")}</div>
             </div>
           </div>
 
@@ -407,9 +385,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   />
                 ))
               ) : (
-                <div style="color:var(--color-text-muted);font-size:0.875rem">
-                  {t("linkDetail.noData")}
-                </div>
+                <div class="muted-hint">{t("linkDetail.noData")}</div>
               )}
             </div>
           </div>
@@ -428,9 +404,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   />
                 ))
               ) : (
-                <div style="color:var(--color-text-muted);font-size:0.875rem">
-                  {t("linkDetail.noData")}
-                </div>
+                <div class="muted-hint">{t("linkDetail.noData")}</div>
               )}
             </div>
           </div>
@@ -450,9 +424,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   />
                 ))
               ) : (
-                <div style="color:var(--color-text-muted);font-size:0.875rem">
-                  {t("linkDetail.noData")}
-                </div>
+                <div class="muted-hint">{t("linkDetail.noData")}</div>
               )}
             </div>
           </div>
@@ -473,9 +445,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   />
                 ))
               ) : (
-                <div style="color:var(--color-text-muted);font-size:0.875rem">
-                  {t("linkDetail.noData")}
-                </div>
+                <div class="muted-hint">{t("linkDetail.noData")}</div>
               )}
             </div>
           </div>
@@ -494,9 +464,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   />
                 ))
               ) : (
-                <div style="color:var(--color-text-muted);font-size:0.875rem">
-                  {t("linkDetail.noData")}
-                </div>
+                <div class="muted-hint">{t("linkDetail.noData")}</div>
               )}
             </div>
           </div>
@@ -515,9 +483,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   />
                 ))
               ) : (
-                <div style="color:var(--color-text-muted);font-size:0.875rem">
-                  {t("linkDetail.noData")}
-                </div>
+                <div class="muted-hint">{t("linkDetail.noData")}</div>
               )}
             </div>
           </div>
@@ -535,9 +501,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity }
                   />
                 ))
               ) : (
-                <div style="color:var(--color-text-muted);font-size:0.875rem">
-                  {t("linkDetail.noData")}
-                </div>
+                <div class="muted-hint">{t("linkDetail.noData")}</div>
               )}
             </div>
           </div>
