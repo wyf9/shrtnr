@@ -58,9 +58,8 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
   server = new McpServer({ name: "shrtnr", version: pkg.version });
 
   private get identity(): string {
-    // OAuth populates props before any tool handler runs.
     if (!this.props) throw new Error("MCP agent invoked without identity props");
-    return this.identity;
+    return this.props.email;
   }
 
   async init() {
@@ -100,7 +99,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
 
     this.server.tool(
       "create_link",
-      "Shorten a URL and create a new short link",
+      "Shorten a URL and create a short link. If the destination URL already exists, the existing link is returned with `duplicate: true`, so there is no need to search for the URL first. Optional custom slugs are attached after creation; slugs already in use are reported in `slug_rejections` rather than failing the call.",
       {
         url: z.string().url().describe("Destination URL to shorten"),
         label: z.string().optional().describe("Human-readable label for the link"),
@@ -130,7 +129,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
           : result;
         if (!link.ok) return fail(link.error);
 
-        const response: Record<string, unknown> = { ...link.data };
+        const response: Record<string, unknown> = { ...link.data, ...(result.meta ?? {}) };
         if (rejections.length > 0) response.slug_rejections = rejections;
         return ok(response);
       },

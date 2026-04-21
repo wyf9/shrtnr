@@ -14,6 +14,7 @@ import {
   getLinkAnalytics,
   searchLinks,
 } from "../services/link-management";
+import { ShrtnrMCP } from "../mcp/server";
 
 beforeAll(applyMigrations);
 beforeEach(resetData);
@@ -334,5 +335,52 @@ describe("MCP tool behavior (service layer)", () => {
     if (result.ok) {
       expect(result.data).toHaveLength(0);
     }
+  });
+});
+
+// ---- MCP identity resolution ----
+// Regression: the identity getter once returned `this.identity`, which
+// caused every write tool (create/disable/enable/delete) to stack-overflow.
+
+describe("ShrtnrMCP identity getter", () => {
+  it("returns the authenticated email from props without recursing", () => {
+    const agent = Object.create(ShrtnrMCP.prototype) as { props: { email: string }; identity: string };
+    agent.props = { email: "dennis@oddbit.id" };
+    expect(agent.identity).toBe("dennis@oddbit.id");
+  });
+
+  it("throws when invoked without props", () => {
+    const agent = Object.create(ShrtnrMCP.prototype) as { identity: string };
+    expect(() => agent.identity).toThrow(/without identity props/);
+  });
+});
+
+// ---- create_link duplicate semantics ----
+// The UI and API return the existing link (with `duplicate: true`) instead of
+// failing when the URL already exists. The MCP tool must expose the same
+// contract so callers don't pre-search defensively.
+
+describe("create_link duplicate semantics", () => {
+  it("second call with the same URL returns the existing link with duplicate meta", async () => {
+    const first = await createLink(env as never, { url: "https://duplicate.example/test", created_by: "dennis@oddbit.id" });
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+
+    const second = await createLink(env as never, { url: "https://duplicate.example/test", created_by: "dennis@oddbit.id" });
+    expect(second.ok).toBe(true);
+    if (!second.ok) return;
+
+    expect(second.data.id).toBe(first.data.id);
+    expect(second.status).toBe(200);
+    expect(second.meta?.duplicate).toBe(true);
+    expect(second.meta?.duplicate_count).toBe(1);
+  });
+
+  it("first call returns 201 with no duplicate meta", async () => {
+    const result = await createLink(env as never, { url: "https://fresh.example/test", created_by: "dennis@oddbit.id" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.status).toBe(201);
+    expect(result.meta).toBeUndefined();
   });
 });
