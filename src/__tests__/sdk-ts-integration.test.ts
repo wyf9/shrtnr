@@ -10,7 +10,7 @@
 // backed by a real D1 database. If a server route the SDK calls goes missing,
 // these tests fail with the status the SDK actually observed.
 
-import { describe, it, expect, beforeAll, beforeEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { SELF } from "cloudflare:test";
 import { ShrtnrClient, ShrtnrError } from "../../sdk/typescript/src";
 import { applyMigrations, resetData } from "./setup";
@@ -27,7 +27,9 @@ function makeJwt(email: string): string {
 // the real routing, auth middleware, and D1 state instead of hitting the
 // network. Restored in afterAll.
 const ORIGINAL_FETCH = globalThis.fetch;
+let workerFetchInstalled = false;
 function installWorkerFetch(): void {
+  if (workerFetchInstalled) return;
   globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const req = input instanceof Request ? input : new Request(input, init);
     if (req.url.startsWith(BASE_URL)) {
@@ -35,6 +37,12 @@ function installWorkerFetch(): void {
     }
     return ORIGINAL_FETCH(input, init);
   }) as typeof fetch;
+  workerFetchInstalled = true;
+}
+function restoreOriginalFetch(): void {
+  if (!workerFetchInstalled) return;
+  globalThis.fetch = ORIGINAL_FETCH;
+  workerFetchInstalled = false;
 }
 
 async function mintApiKey(email: string, scope: string): Promise<string> {
@@ -57,6 +65,10 @@ async function mintApiKey(email: string, scope: string): Promise<string> {
 beforeAll(async () => {
   await applyMigrations();
   installWorkerFetch();
+});
+
+afterAll(() => {
+  restoreOriginalFetch();
 });
 
 beforeEach(resetData);
