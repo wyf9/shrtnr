@@ -2,6 +2,31 @@
 
 All notable changes to the SDK are documented in this file.
 
+## 0.7.0
+
+### New feature: Bundles
+
+Bundles group related links so you can read combined engagement across the whole group. A link can belong to zero or many bundles.
+
+### New methods
+
+- `createBundle(options)` — create a new bundle (name, description, icon, accent).
+- `listBundles(options?)` — list bundles with summary stats (total clicks, sparkline, top links).
+- `getBundle(id)` — fetch a bundle's metadata.
+- `updateBundle(id, patch)` — rename, re-style, or edit a bundle.
+- `deleteBundle(id)` — delete a bundle (member links are preserved).
+- `getBundleAnalytics(id, range?)` — combined analytics across all links in the bundle.
+- `listBundleLinks(id)` — list every link in a bundle.
+- `addLinkToBundle(bundleId, linkId)` — attach a link. Idempotent.
+- `removeLinkFromBundle(bundleId, linkId)` — detach a link from a bundle.
+- `listBundlesForLink(linkId)` — list every bundle a link belongs to.
+
+### Type additions
+
+- `Bundle`, `BundleAccent`, `BundleWithSummary`, `BundleStats`, `BundleStatsPerLink`.
+- `CreateBundleOptions`, `UpdateBundleOptions`, `ListBundlesOptions`.
+- `TimelineRange`, `TimelineBucket`, `TimelineData` now exported.
+
 ## 0.6.2
 
 - Updating documentation.

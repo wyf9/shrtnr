@@ -36,6 +36,7 @@ This package wraps the public link-management API:
 - List, read, update, disable, enable, and delete links
 - List links by owner identity
 - Read click analytics (referrer, country, device, browser)
+- Group links into bundles and read combined engagement stats
 - Check service health
 
 Administrative operations (API key management, settings, dashboard stats) are not part of this package. Those are accessible through the admin UI.

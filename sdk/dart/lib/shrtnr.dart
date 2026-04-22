@@ -22,7 +22,14 @@ export 'src/client.dart' show ShrtnrClient;
 export 'src/errors.dart' show ShrtnrException;
 export 'src/models.dart'
     show
+        Bundle,
+        BundleAccent,
+        BundleLinkStats,
+        BundleStats,
+        BundleTopLink,
+        BundleWithSummary,
         ClickStats,
+        CreateBundleOptions,
         CreateLinkOptions,
         DateCount,
         HealthStatus,
@@ -30,4 +37,5 @@ export 'src/models.dart'
         NameCount,
         Slug,
         SlugCount,
+        UpdateBundleOptions,
         UpdateLinkOptions;

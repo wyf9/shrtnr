@@ -169,6 +169,104 @@ class ShrtnrClient extends ShrtnrBaseClient {
     final qs = slug == null ? '' : '?slug=${Uri.encodeComponent(slug)}';
     return requestText('GET', '/_/api/links/$linkId/qr$qs');
   }
+
+  // ---- Bundles ----
+
+  /// Creates a new bundle.
+  Future<Bundle> createBundle(CreateBundleOptions options) async {
+    final json = await requestJson(
+      'POST',
+      '/_/api/bundles',
+      body: options.toJson(),
+    );
+    return Bundle.fromJson(json! as Map<String, dynamic>);
+  }
+
+  /// Lists bundles owned by the caller with summary stats. Returns lifetime
+  /// click totals plus a fixed 30d-vs-prev-30d trend and 30-day sparkline.
+  ///
+  /// - [archived]: when true, includes archived bundles; omit to hide them.
+  Future<List<BundleWithSummary>> listBundles({bool? archived}) async {
+    final params = <String>[];
+    if (archived != null) {
+      params.add('archived=${archived ? 'all' : 'false'}');
+    }
+    final qs = params.isEmpty ? '' : '?${params.join('&')}';
+    final json = await requestJson('GET', '/_/api/bundles$qs');
+    return (json! as List<dynamic>)
+        .map((dynamic e) =>
+            BundleWithSummary.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  /// Returns a single bundle's metadata.
+  Future<Bundle> getBundle(int id) async {
+    final json = await requestJson('GET', '/_/api/bundles/$id');
+    return Bundle.fromJson(json! as Map<String, dynamic>);
+  }
+
+  /// Updates a bundle's name, description, icon, or accent.
+  Future<Bundle> updateBundle(int id, UpdateBundleOptions options) async {
+    final json = await requestJson(
+      'PUT',
+      '/_/api/bundles/$id',
+      body: options.toJson(),
+    );
+    return Bundle.fromJson(json! as Map<String, dynamic>);
+  }
+
+  /// Permanently deletes a bundle. Member links are preserved.
+  Future<bool> deleteBundle(int id) async {
+    final json = await requestJson('DELETE', '/_/api/bundles/$id');
+    if (json is Map && json['deleted'] is bool) return json['deleted'] as bool;
+    return true;
+  }
+
+  /// Reads combined analytics across every link in the bundle.
+  Future<BundleStats> getBundleAnalytics(int id, {String range = '30d'}) async {
+    final json = await requestJson(
+      'GET',
+      '/_/api/bundles/$id/analytics?range=${Uri.encodeComponent(range)}',
+    );
+    return BundleStats.fromJson(json! as Map<String, dynamic>);
+  }
+
+  /// Lists every link currently in the bundle.
+  Future<List<Link>> listBundleLinks(int id) async {
+    final json = await requestJson('GET', '/_/api/bundles/$id/links');
+    return (json! as List<dynamic>)
+        .map((dynamic e) => Link.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  /// Adds a link to a bundle. Idempotent.
+  Future<bool> addLinkToBundle(int bundleId, int linkId) async {
+    final json = await requestJson(
+      'POST',
+      '/_/api/bundles/$bundleId/links',
+      body: <String, dynamic>{'link_id': linkId},
+    );
+    if (json is Map && json['added'] is bool) return json['added'] as bool;
+    return true;
+  }
+
+  /// Removes a link from a bundle. The link itself is not deleted.
+  Future<bool> removeLinkFromBundle(int bundleId, int linkId) async {
+    final json = await requestJson(
+      'DELETE',
+      '/_/api/bundles/$bundleId/links/$linkId',
+    );
+    if (json is Map && json['removed'] is bool) return json['removed'] as bool;
+    return true;
+  }
+
+  /// Lists every bundle the given link belongs to.
+  Future<List<Bundle>> listBundlesForLink(int linkId) async {
+    final json = await requestJson('GET', '/_/api/links/$linkId/bundles');
+    return (json! as List<dynamic>)
+        .map((dynamic e) => Bundle.fromJson(e as Map<String, dynamic>))
+        .toList(growable: false);
+  }
 }
 
 /// Re-export so consumers can construct clients without importing the http

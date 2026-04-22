@@ -107,3 +107,75 @@ export interface UpdateLinkOptions {
   expires_at?: number | null;
 }
 
+// ---- Bundles ----
+
+export type BundleAccent = "orange" | "red" | "green" | "blue" | "purple";
+
+export interface Bundle {
+  id: number;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  accent: BundleAccent;
+  archived_at: number | null;
+  created_via: string | null;
+  created_by: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface BundleWithSummary extends Bundle {
+  link_count: number;
+  total_clicks: number;
+  delta_pct?: number;
+  sparkline: number[];
+  top_links: { slug: string; click_count: number }[];
+}
+
+export interface BundleStatsPerLink {
+  link_id: number;
+  label: string | null;
+  primary_slug: string;
+  url: string;
+  click_count: number;
+  pct_of_bundle: number;
+  delta_pct?: number;
+}
+
+export interface BundleStats {
+  bundle: Bundle;
+  link_count: number;
+  total_clicks: number;
+  delta_pct?: number;
+  clicked_links: number;
+  top_performer?: { slug: string; label: string | null; click_count: number; pct_of_bundle: number };
+  countries_reached: number;
+  top_country?: { name: string; pct: number };
+  timeline: TimelineData;
+  countries: NameCount[];
+  devices: NameCount[];
+  os: NameCount[];
+  browsers: NameCount[];
+  referrers: NameCount[];
+  link_modes: NameCount[];
+  per_link: BundleStatsPerLink[];
+}
+
+export interface CreateBundleOptions {
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  accent?: BundleAccent;
+}
+
+export interface UpdateBundleOptions {
+  name?: string;
+  description?: string | null;
+  icon?: string | null;
+  accent?: BundleAccent;
+}
+
+export interface ListBundlesOptions {
+  archived?: boolean;
+}
+

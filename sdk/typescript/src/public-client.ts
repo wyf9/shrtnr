@@ -2,12 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  Bundle,
+  BundleStats,
+  BundleWithSummary,
+  ClickStats,
+  CreateBundleOptions,
   CreateLinkOptions,
   HealthStatus,
   Link,
+  ListBundlesOptions,
   Slug,
-  ClickStats,
   ShrtnrConfig,
+  TimelineRange,
+  UpdateBundleOptions,
   UpdateLinkOptions,
 } from "./types";
 import { ShrtnrBaseClient } from "./base-client";
@@ -80,5 +87,50 @@ export class ShrtnrClient extends ShrtnrBaseClient {
   async getLinkQR(linkId: number, slug?: string): Promise<string> {
     const qs = slug ? `?slug=${encodeURIComponent(slug)}` : "";
     return this.requestText("GET", `/_/api/links/${linkId}/qr${qs}`);
+  }
+
+  // ---- Bundles ----
+
+  async createBundle(options: CreateBundleOptions): Promise<Bundle> {
+    return this.request("POST", "/_/api/bundles", options);
+  }
+
+  async listBundles(options: ListBundlesOptions = {}): Promise<BundleWithSummary[]> {
+    const params = new URLSearchParams();
+    if (options.archived !== undefined) params.set("archived", options.archived ? "all" : "false");
+    const qs = params.toString();
+    return this.request("GET", `/_/api/bundles${qs ? "?" + qs : ""}`);
+  }
+
+  async getBundle(id: number): Promise<Bundle> {
+    return this.request("GET", `/_/api/bundles/${id}`);
+  }
+
+  async updateBundle(id: number, options: UpdateBundleOptions): Promise<Bundle> {
+    return this.request("PUT", `/_/api/bundles/${id}`, options);
+  }
+
+  async deleteBundle(id: number): Promise<{ deleted: boolean }> {
+    return this.request("DELETE", `/_/api/bundles/${id}`);
+  }
+
+  async getBundleAnalytics(id: number, range: TimelineRange = "30d"): Promise<BundleStats> {
+    return this.request("GET", `/_/api/bundles/${id}/analytics?range=${range}`);
+  }
+
+  async listBundleLinks(id: number): Promise<Link[]> {
+    return this.request("GET", `/_/api/bundles/${id}/links`);
+  }
+
+  async addLinkToBundle(bundleId: number, linkId: number): Promise<{ added: boolean }> {
+    return this.request("POST", `/_/api/bundles/${bundleId}/links`, { link_id: linkId });
+  }
+
+  async removeLinkFromBundle(bundleId: number, linkId: number): Promise<{ removed: boolean }> {
+    return this.request("DELETE", `/_/api/bundles/${bundleId}/links/${linkId}`);
+  }
+
+  async listBundlesForLink(linkId: number): Promise<Bundle[]> {
+    return this.request("GET", `/_/api/links/${linkId}/bundles`);
   }
 }
