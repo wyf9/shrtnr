@@ -107,7 +107,9 @@ run_sdk() {
   echo "==> e2e: $sdk"
   case "$sdk" in
     ts|typescript|npm)
-      (cd sdk/typescript && yarn install --frozen-lockfile --silent >/dev/null && yarn vitest run tests/e2e --passWithNoTests) || status=$?
+      # No --passWithNoTests: a zero-test outcome means tests/e2e got
+      # excluded by config drift. Fail loudly rather than report green.
+      (cd sdk/typescript && yarn install --frozen-lockfile --silent >/dev/null && yarn vitest run tests/e2e) || status=$?
       ;;
     python|py)
       if [ ! -x sdk/python/.venv/bin/pytest ]; then
