@@ -19,6 +19,7 @@ Read more on our [website](https://oddbit.id).
 - **Short slugs** starting at 3 characters (32,768 unique combinations at that length)
 - **Custom slugs** like `/my-campaign` alongside random slugs
 - **Click analytics** with referrer, country, device, and browser tracking
+- **Bundles** group related links (for example a project's blog post, GitHub repo, npm page, and docs) so you can track their combined engagement. A link can belong to more than one bundle.
 - **Admin dashboard** for link management, analytics charts, and QR code generation
 - **Multi-language admin UI** with English, Indonesian, and Swedish built in
 - **API key authentication** with scoped Bearer tokens for programmatic access
