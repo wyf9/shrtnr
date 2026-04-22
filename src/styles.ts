@@ -1098,16 +1098,13 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
 }
 
 .bundle-link-count {
-  font-family: var(--font-family-display);
-  font-weight: 600;
-  text-align: right;
-  min-width: 3.5rem;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.1rem;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-family: var(--font-family-display);
 }
-.bundle-link-count .count { font-size: 0.95rem; }
+.bundle-link-count .count { font-size: 1rem; font-weight: 700; color: var(--color-text); }
+.bundle-link-count .pct { font-size: 0.8rem; color: var(--color-text-subtle); }
 
 .bundle-link-actions { display: flex; gap: 0.25rem; }
 

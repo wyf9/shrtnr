@@ -6,7 +6,6 @@ import type { BundleStats, TimelineRange } from "../types";
 import type { TranslateFn } from "../i18n";
 import { countryName } from "../country";
 import { BigChart } from "../components/big-chart";
-import { Delta } from "../components/delta";
 import { RangePicker } from "../components/range-picker";
 import { escHtml } from "../escape";
 
@@ -230,17 +229,10 @@ export const BundleDetailPage: FC<Props> = ({ stats, identity, t, lang, range })
                     </span>
                     <div class="bundle-link-count">
                       <span class="count">{row.click_count.toLocaleString()}</span>
-                      {row.delta_pct !== undefined && <Delta pct={row.delta_pct} />}
+                      <span class="pct">{row.pct_of_bundle}%</span>
                     </div>
-                    <div class="bundle-link-actions">
-                      <button
-                        class="btn-icon"
-                        onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(row.primary_slug)}')`}
-                        title={t("linkDetail.copy")}
-                      >
-                        <span class="icon">content_copy</span>
-                      </button>
-                      {isOwner && (
+                    {isOwner && (
+                      <div class="bundle-link-actions">
                         <button
                           class="btn-icon btn-icon-danger"
                           onclick={`event.preventDefault();event.stopPropagation();removeLinkFromBundle(${b.id}, ${row.link_id})`}
@@ -248,8 +240,8 @@ export const BundleDetailPage: FC<Props> = ({ stats, identity, t, lang, range })
                         >
                           <span class="icon">close</span>
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                   <div class="bundle-link-bar">
                     <div class="bundle-link-bar-fill" style={`width:${pct}%`} />
