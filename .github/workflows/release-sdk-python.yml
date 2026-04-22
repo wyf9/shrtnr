@@ -1,10 +1,13 @@
 name: Release Python SDK
 
-# Thin caller over release-sdk.yml. Publishes the Python SDK to PyPI on
-# every push to main that changes the SDK manifest or changelog. Uses
-# PyPI trusted publishing (OIDC, no token). The PyPI project needs a
-# one-time configuration pointing at this workflow — see
-# docs/release-automation.md.
+# Thin caller over release-sdk.yml. Triggered on any push to main that
+# touches sdk/python/** (or this workflow / the reusable one / helper
+# scripts), but the reusable workflow only publishes when the version
+# string in sdk/python/pyproject.toml actually changed in the push
+# range — a changelog-only or test-only edit runs the workflow and
+# exits cleanly without publishing. Uses PyPI trusted publishing
+# (OIDC, no token). The PyPI project needs a one-time configuration
+# pointing at this workflow — see docs/release-automation.md.
 
 on:
   push:
