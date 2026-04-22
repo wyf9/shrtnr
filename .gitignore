@@ -4,6 +4,7 @@ dist/
 .dev.vars
 .DS_Store
 ignore/
+.claude/
 
 # Dart / Flutter SDK
 .dart_tool/
