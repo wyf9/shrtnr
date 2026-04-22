@@ -114,6 +114,14 @@ export class ShrtnrClient extends ShrtnrBaseClient {
     return this.request("DELETE", `/_/api/bundles/${id}`);
   }
 
+  async archiveBundle(id: number): Promise<Bundle> {
+    return this.request("POST", `/_/api/bundles/${id}/archive`);
+  }
+
+  async unarchiveBundle(id: number): Promise<Bundle> {
+    return this.request("POST", `/_/api/bundles/${id}/unarchive`);
+  }
+
   async getBundleAnalytics(id: number, range: TimelineRange = "30d"): Promise<BundleStats> {
     return this.request("GET", `/_/api/bundles/${id}/analytics?range=${range}`);
   }

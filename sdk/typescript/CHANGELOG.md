@@ -15,6 +15,8 @@ Bundles group related links so you can read combined engagement across the whole
 - `getBundle(id)`: fetch a bundle's metadata.
 - `updateBundle(id, patch)`: rename, re-style, or edit a bundle.
 - `deleteBundle(id)`: delete a bundle (member links are preserved).
+- `archiveBundle(id)`: archive a bundle so it hides from the default list.
+- `unarchiveBundle(id)`: restore a previously archived bundle.
 - `getBundleAnalytics(id, range?)`: combined analytics across all links in the bundle.
 - `listBundleLinks(id)`: list every link in a bundle.
 - `addLinkToBundle(bundleId, linkId)`: attach a link. Idempotent.

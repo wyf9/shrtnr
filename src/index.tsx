@@ -602,6 +602,18 @@ app.delete("/_/api/bundles/:id", (c) => {
   if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
   return handleDeleteBundle(c.env, id, c.var.auth.identity);
 });
+app.post("/_/api/bundles/:id/archive", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
+  return handleArchiveBundle(c.env, id, c.var.auth.identity);
+});
+app.post("/_/api/bundles/:id/unarchive", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
+  return handleUnarchiveBundle(c.env, id, c.var.auth.identity);
+});
 app.get("/_/api/bundles/:id/analytics", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);

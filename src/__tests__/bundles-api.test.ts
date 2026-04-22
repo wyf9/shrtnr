@@ -165,6 +165,21 @@ describe("Admin API: bundles", () => {
     expect(getRes.status).toBe(404);
   });
 
+  it("POST /_/admin/api/bundles/:id/unarchive restores an archived bundle", async () => {
+    const createRes = await SELF.fetch(authed("owner@x", "/_/admin/api/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "OSS" }),
+    }));
+    const bundle = await createRes.json() as { id: number };
+    await SELF.fetch(authed("owner@x", `/_/admin/api/bundles/${bundle.id}/archive`, { method: "POST" }));
+
+    const res = await SELF.fetch(authed("owner@x", `/_/admin/api/bundles/${bundle.id}/unarchive`, { method: "POST" }));
+    expect(res.status).toBe(200);
+    const body = await res.json() as { archived_at: number | null };
+    expect(body.archived_at).toBeNull();
+  });
+
   it("GET /_/admin/api/links/:id/bundles returns bundles the link belongs to", async () => {
     const linkId = await createLinkFor("owner@x", "https://a.com", "aaa");
     const createRes = await SELF.fetch(authed("owner@x", "/_/admin/api/bundles", {
@@ -184,5 +199,74 @@ describe("Admin API: bundles", () => {
     const body = await res.json() as { id: number; name: string }[];
     expect(body).toHaveLength(1);
     expect(body[0].id).toBe(bundle.id);
+  });
+});
+
+describe("Public API: bundles archive/unarchive", () => {
+  async function apiKey(email: string, scope: string): Promise<string> {
+    const res = await SELF.fetch(authed(email, "/_/admin/api/keys", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: `${scope} key`, scope }),
+    }));
+    const body = await res.json() as { raw_key: string };
+    return body.raw_key;
+  }
+
+  it("POST /_/api/bundles/:id/archive archives the bundle", async () => {
+    const createKey = await apiKey("owner@x", "create,read");
+    const createRes = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${createKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "OSS" }),
+    }));
+    const bundle = await createRes.json() as { id: number };
+
+    const archRes = await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${bundle.id}/archive`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${createKey}` },
+    }));
+    expect(archRes.status).toBe(200);
+    const archived = await archRes.json() as { archived_at: number | null };
+    expect(archived.archived_at).not.toBeNull();
+  });
+
+  it("POST /_/api/bundles/:id/unarchive restores the bundle", async () => {
+    const createKey = await apiKey("owner@x", "create,read");
+    const createRes = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${createKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "OSS" }),
+    }));
+    const bundle = await createRes.json() as { id: number };
+    await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${bundle.id}/archive`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${createKey}` },
+    }));
+
+    const res = await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${bundle.id}/unarchive`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${createKey}` },
+    }));
+    expect(res.status).toBe(200);
+    const body = await res.json() as { archived_at: number | null };
+    expect(body.archived_at).toBeNull();
+  });
+
+  it("POST /_/api/bundles/:id/archive requires the create scope", async () => {
+    const createKey = await apiKey("owner@x", "create,read");
+    const createRes = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${createKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "OSS" }),
+    }));
+    const bundle = await createRes.json() as { id: number };
+
+    const readKey = await apiKey("owner@x", "read");
+    const res = await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${bundle.id}/archive`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${readKey}` },
+    }));
+    expect(res.status).toBe(403);
   });
 });

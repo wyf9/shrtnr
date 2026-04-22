@@ -222,6 +222,19 @@ class ShrtnrClient extends ShrtnrBaseClient {
     return true;
   }
 
+  /// Archives a bundle. It stays in the database but is hidden from the
+  /// default list.
+  Future<Bundle> archiveBundle(int id) async {
+    final json = await requestJson('POST', '/_/api/bundles/$id/archive');
+    return Bundle.fromJson(json! as Map<String, dynamic>);
+  }
+
+  /// Restores a previously archived bundle.
+  Future<Bundle> unarchiveBundle(int id) async {
+    final json = await requestJson('POST', '/_/api/bundles/$id/unarchive');
+    return Bundle.fromJson(json! as Map<String, dynamic>);
+  }
+
   /// Reads combined analytics across every link in the bundle.
   Future<BundleStats> getBundleAnalytics(int id, {String range = '30d'}) async {
     final json = await requestJson(
