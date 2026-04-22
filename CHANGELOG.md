@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.31.1 (2026-04-22)
+
+- Bundle detail "Add a link to this bundle" picker now hides links that are already in the bundle, so the choices shown are only the ones you can actually add. When every link is already attached, the picker shows an empty-state hint instead of a blank list.
+
 ## 0.31.0 (2026-04-22)
 
 - Introduced Bundles: a new admin section that groups related links so you can read combined engagement across a project or campaign. The listing shows lifetime clicks, a 30-day sparkline, and a trend reading; the detail page mirrors link-detail's analytics grid but aggregates across every link in the bundle. A link can belong to zero or many bundles, and link-detail shows bundle membership as accent chips. Accents (orange/red/green/blue/purple) and Material Symbol icons let you visually distinguish bundles.
