@@ -3,8 +3,6 @@ name: Release npm SDK
 on:
   push:
     branches: [main]
-    paths:
-      - sdk/typescript/package.json
   workflow_dispatch:
 
 permissions:
@@ -55,6 +53,10 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
+      - name: Upgrade npm for trusted publishing
+        if: steps.version.outputs.exists == 'false'
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         if: steps.version.outputs.exists == 'false'
         working-directory: sdk/typescript
@@ -73,8 +75,6 @@ jobs:
       - name: Publish to npm
         if: steps.version.outputs.exists == 'false'
         working-directory: sdk/typescript
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
         run: npm publish --access public
 
       - name: Create tag and release
