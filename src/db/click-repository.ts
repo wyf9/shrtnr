@@ -1277,7 +1277,7 @@ export class ClickRepository {
            FROM per_link
          )
          SELECT r.bundle_id as bundle_id, r.cnt as cnt,
-                (SELECT slug FROM slugs WHERE link_id = r.link_id AND is_primary = 1 LIMIT 1) as primary_slug
+                (SELECT slug FROM slugs WHERE link_id = r.link_id ORDER BY is_primary DESC, created_at ASC LIMIT 1) as primary_slug
          FROM ranked r
          WHERE r.rn <= 3
          ORDER BY r.bundle_id, r.cnt DESC`,
@@ -1287,7 +1287,9 @@ export class ClickRepository {
     for (const r of topRows.results ?? []) {
       const entry = out.get(r.bundle_id);
       if (!entry) continue;
-      entry.top_links.push({ slug: r.primary_slug ?? "", click_count: r.cnt });
+      // A link without any slug row cannot be represented on the card, skip it.
+      if (!r.primary_slug) continue;
+      entry.top_links.push({ slug: r.primary_slug, click_count: r.cnt });
     }
 
     return out;
