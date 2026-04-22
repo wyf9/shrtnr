@@ -34,6 +34,8 @@ const en = {
   "dashboard.recentLinks": "Recent Links",
   "dashboard.noLinks": "No links yet",
   "dashboard.topReferrers": "Top Referrers",
+  "dashboard.topDomains": "Top Domains",
+  "dashboard.topSources": "Top Sources",
   "dashboard.mostClicked": "Most Clicked",
   "dashboard.clickToCopy": "Click to copy",
 
@@ -101,6 +103,8 @@ const en = {
   "linkDetail.addSlug": "Add slug",
   "linkDetail.countries": "Countries",
   "linkDetail.referrers": "Referrers",
+  "linkDetail.domains": "Domains",
+  "linkDetail.sources": "Sources",
   "linkDetail.devices": "Devices",
   "linkDetail.os": "Operating Systems",
   "linkDetail.browsers": "Browsers",

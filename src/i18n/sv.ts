@@ -36,6 +36,8 @@ const sv: Translations = {
   "dashboard.recentLinks": "Senaste länkar",
   "dashboard.noLinks": "Inga länkar ännu",
   "dashboard.topReferrers": "Topphänvisningar",
+  "dashboard.topDomains": "Toppdomäner",
+  "dashboard.topSources": "Toppkällor",
   "dashboard.mostClicked": "Mest klickade",
   "dashboard.clickToCopy": "Klicka för att kopiera",
 
@@ -104,6 +106,8 @@ const sv: Translations = {
   "linkDetail.addSlug": "Lägg till slug",
   "linkDetail.countries": "Länder",
   "linkDetail.referrers": "Hänvisningar",
+  "linkDetail.domains": "Domäner",
+  "linkDetail.sources": "Källor",
   "linkDetail.devices": "Enheter",
   "linkDetail.os": "Operativsystem",
   "linkDetail.browsers": "Webbläsare",

@@ -36,6 +36,8 @@ const id: Translations = {
   "dashboard.recentLinks": "Tautan Terbaru",
   "dashboard.noLinks": "Belum ada tautan",
   "dashboard.topReferrers": "Perujuk Teratas",
+  "dashboard.topDomains": "Domain Teratas",
+  "dashboard.topSources": "Sumber Teratas",
   "dashboard.mostClicked": "Paling Banyak Diklik",
   "dashboard.clickToCopy": "Klik untuk menyalin",
 
@@ -104,6 +106,8 @@ const id: Translations = {
   "linkDetail.addSlug": "Tambah slug",
   "linkDetail.countries": "Negara",
   "linkDetail.referrers": "Perujuk",
+  "linkDetail.domains": "Domain",
+  "linkDetail.sources": "Sumber",
   "linkDetail.devices": "Perangkat",
   "linkDetail.os": "Sistem Operasi",
   "linkDetail.browsers": "Browser",
