@@ -105,54 +105,51 @@ export const themes = {
 
   light: {
     /* foundation */
-    "--brand-base": "#fcfdfc",
-    "--brand-surface": "#f3f7f5",
-    "--brand-surface-2": "#e7efeb",
-    "--brand-accent": "#f9733d",
-    "--brand-accent-soft": "#ff9a6f",
-    "--brand-positive": "#8fd39a",
-    "--brand-info": "#8ed4f2",
-    "--brand-neutral": "#12322f",
-    "--brand-danger": "#bf3a32",
+    "--brand-base": "#ffffff",
+    "--brand-surface": "#eff4f0",
+    "--brand-surface-2": "#e2ece5",
+    "--brand-accent": "#f26a30",
+    "--brand-accent-soft": "#ff8a5a",
+    "--brand-positive": "#2f7a4c",
+    "--brand-info": "#5fb2d4",
+    "--brand-neutral": "#0f2d2a",
+    "--brand-danger": "#c23a32",
 
     /* semantic */
-    "--color-canvas": "#eef4f1",
-    "--color-surface": "#f8fbf9",
+    "--color-canvas": "#f3f7f4",
+    "--color-surface": "#e7efe9",
     "--color-surface-raised": "#ffffff",
-    "--color-surface-interactive": "#e4eeea",
+    "--color-surface-interactive": "#dce7df",
 
-    "--color-text": "#173632",
-    "--color-text-muted": "#4d6864",
-    "--color-text-subtle": "#718783",
+    "--color-text": "#102c29",
+    "--color-text-muted": "#4b6561",
+    "--color-text-subtle": "#788e8a",
     "--color-text-inverse": "#ffffff",
 
-    "--color-section-label": "#12322f",
-    "--color-text-accent": "#2f5a52",
+    "--color-border": "#d4e0da",
+    "--color-border-strong": "#adc0b8",
 
-    "--color-border": "#cddbd6",
-    "--color-border-strong": "#b3c6bf",
-
-    "--color-accent": "#f9733d",
-    "--color-accent-hover": "#ff8657",
-    "--color-accent-active": "#e36531",
+    "--color-accent": "#f26a30",
+    "--color-accent-hover": "#ff7d46",
+    "--color-accent-active": "#d85418",
     "--color-accent-foreground": "#ffffff",
 
-    "--color-success": "#8fd39a",
-    "--color-success-foreground": "#173632",
+    "--color-success": "#2f7a4c",
+    "--color-success-foreground": "#ffffff",
 
-    "--color-danger": "#bf3a32",
+    "--color-danger": "#c23a32",
     "--color-danger-foreground": "#ffffff",
 
-    "--color-info": "#8ed4f2",
-    "--color-info-foreground": "#173632",
+    "--color-info": "#5fb2d4",
+    "--color-info-foreground": "#102c29",
 
-    "--color-focus-ring": "#59b8df",
-    "--color-selection": "rgba(249, 115, 61, 0.14)",
+    "--color-focus-ring": "#5fb2d4",
+    "--color-selection": "rgba(242, 106, 48, 0.14)",
 
-    "--color-disabled-bg": "#e8efec",
+    "--color-disabled-bg": "#e6ece8",
     "--color-disabled-text": "#8a9d98",
 
-    "--shadow-color": "rgba(18, 50, 47, 0.10)"
+    "--shadow-color": "rgba(15, 45, 42, 0.09)"
   },
 } as const;
 
@@ -234,14 +231,13 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 .sidebar-oddbit a { display: inline-block; opacity: 0.5; transition: opacity 0.2s; color: var(--color-text-muted); }
 .sidebar-oddbit a:hover { opacity: 0.8; }
 [data-theme="light"] .sidebar-oddbit a { color: #09322f; opacity: 1; }
-[data-theme="light"] .sidebar { background: #dce3dd; border-right: 1px solid var(--color-border); }
+[data-theme="light"] .sidebar { border-right: 1px solid var(--color-border); }
 [data-theme="light"] .bento-card { box-shadow: 0 1px 3px var(--shadow-color); border: 1px solid var(--color-border); }
 [data-theme="light"] .bento-card:hover { background: var(--color-surface); box-shadow: 0 2px 8px var(--shadow-color); }
-[data-theme="light"] .hero-input { background: var(--color-surface); border-color: var(--color-border); }
+[data-theme="light"] .hero-input { background: var(--color-surface-raised); border-color: var(--color-border); }
 [data-theme="light"] .modal-inner { box-shadow: 0 8px 32px var(--shadow-color); }
 [data-theme="light"] .slug-chip { border-color: var(--color-border); }
 [data-theme="light"] .stat-row .bar { background: var(--color-surface-interactive); }
-[data-theme="light"] .nav-item.active { color: #1b5e20; }
 [data-theme="oddbit"] .sidebar-oddbit a, :root .sidebar-oddbit a { color: var(--color-success); }
 .sidebar-oddbit img { width: 80px; height: auto; }
 .sidebar-brand img { height: 2rem; }
