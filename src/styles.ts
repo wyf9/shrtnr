@@ -753,6 +753,13 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
   .detail-header .page-title { flex: 1; min-width: 0; }
   .detail-header .timeline-range-selector { order: 10; width: 100%; margin-left: 0; justify-content: space-between; }
   .detail-header .timeline-range-btn { flex: 1; text-align: center; }
+  .detail-header .range-picker { order: 10; width: 100%; margin-left: 0; justify-content: space-between; display: flex; }
+  .detail-header .range-picker a, .detail-header .range-picker button { flex: 1; text-align: center; }
+  .detail-header .detail-menu-anchor { order: 5; margin-left: auto; }
+  .page-header.topbar { flex-wrap: wrap; gap: 0.5rem 1rem; }
+  .page-header.topbar .topbar-actions { order: 10; width: 100%; }
+  .page-header.topbar .range-picker { width: 100%; justify-content: space-between; display: flex; }
+  .page-header.topbar .range-picker a, .page-header.topbar .range-picker button { flex: 1; text-align: center; }
   .detail-hero { grid-template-columns: 1fr; min-width: 0; }
   .detail-hero .label { font-size: 1.5rem; }
   .detail-hero .right { border-left: none; border-top: 1px solid var(--color-border); padding-left: 0; padding-top: 1rem; }
