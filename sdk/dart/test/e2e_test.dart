@@ -22,9 +22,16 @@ void main() {
   final apiKey = Platform.environment['SHRTNR_TEST_API_KEY'];
 
   if (baseUrl == null || apiKey == null) {
-    test('SHRTNR_TEST_URL + SHRTNR_TEST_API_KEY not set', () {
-      // Skip the whole group.
-    }, skip: 'e2e env vars missing');
+    // Fail hard rather than skip. This file is excluded from default
+    // `dart test` via --exclude-tags e2e; when it runs we are inside the
+    // scripts/test-sdks-e2e.sh harness, which must export both env vars.
+    // A silent skip would hide a broken harness behind a green CI check.
+    test('e2e env vars must be set', () {
+      fail(
+        'SHRTNR_TEST_URL and SHRTNR_TEST_API_KEY must be set. '
+        'Run e2e tests via scripts/test-sdks-e2e.sh from the repo root, not directly.',
+      );
+    });
     return;
   }
 

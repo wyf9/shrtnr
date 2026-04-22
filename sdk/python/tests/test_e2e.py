@@ -27,7 +27,16 @@ def client() -> Shrtnr:
     url = os.environ.get("SHRTNR_TEST_URL")
     api_key = os.environ.get("SHRTNR_TEST_API_KEY")
     if not url or not api_key:
-        pytest.skip("SHRTNR_TEST_URL + SHRTNR_TEST_API_KEY not set")
+        # Fail hard rather than skip. Missing env vars only happens when the
+        # e2e marker is explicitly selected (pytest -m e2e) — i.e. inside the
+        # scripts/test-sdks-e2e.sh harness or a CI workflow that's supposed
+        # to have set them. If we reach here, the harness is misconfigured
+        # and a silent skip would hide it behind a green check.
+        pytest.fail(
+            "SHRTNR_TEST_URL and SHRTNR_TEST_API_KEY must be set. "
+            "Run e2e tests via scripts/test-sdks-e2e.sh from the repo root, "
+            "not directly.",
+        )
     return Shrtnr(url, api_key=api_key)
 
 

@@ -98,4 +98,6 @@ jobs:
         run: dart analyze --fatal-infos
       - name: Test
         working-directory: sdk/dart
-        run: dart test
+        # Unit tier only. E2e tests have `@Tags(['e2e'])` and run separately
+        # via scripts/test-sdks-e2e.sh against a live wrangler dev.
+        run: dart test --exclude-tags e2e

@@ -14,15 +14,23 @@ import { ShrtnrClient } from "../../src";
 const BASE_URL = process.env.SHRTNR_TEST_URL;
 const API_KEY = process.env.SHRTNR_TEST_API_KEY;
 
-const describeE2E = BASE_URL && API_KEY ? describe : describe.skip;
-
-describeE2E("TS SDK e2e — live wrangler dev", () => {
+describe("TS SDK e2e — live wrangler dev", () => {
   let client: ShrtnrClient;
 
   beforeAll(() => {
+    // Fail hard rather than skip. These tests only run via the explicit
+    // tests/e2e/ path (default `yarn test` excludes this folder), so missing
+    // env vars at this point means the harness is misconfigured. A silent
+    // skip would hide it behind a green CI check.
+    if (!BASE_URL || !API_KEY) {
+      throw new Error(
+        "SHRTNR_TEST_URL and SHRTNR_TEST_API_KEY must be set. " +
+          "Run e2e tests via scripts/test-sdks-e2e.sh from the repo root, not directly.",
+      );
+    }
     client = new ShrtnrClient({
-      baseUrl: BASE_URL as string,
-      auth: { apiKey: API_KEY as string },
+      baseUrl: BASE_URL,
+      auth: { apiKey: API_KEY },
     });
   });
 
