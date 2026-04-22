@@ -1100,11 +1100,23 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
 .bundle-link-count {
   display: flex;
   align-items: baseline;
-  gap: 0.4rem;
+  gap: 0.6rem;
   font-family: var(--font-family-display);
+  font-variant-numeric: tabular-nums;
 }
-.bundle-link-count .count { font-size: 1rem; font-weight: 700; color: var(--color-text); }
-.bundle-link-count .pct { font-size: 0.8rem; color: var(--color-text-subtle); }
+.bundle-link-count .count {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  min-width: 2.5rem;
+  text-align: right;
+}
+.bundle-link-count .pct {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  min-width: 2.5rem;
+  text-align: right;
+}
 
 .bundle-link-actions { display: flex; gap: 0.25rem; }
 
