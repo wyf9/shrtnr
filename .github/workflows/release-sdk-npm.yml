@@ -1,0 +1,32 @@
+name: Release npm SDK
+
+# Thin caller over release-sdk.yml. Publishes the TypeScript SDK to npm
+# on every push to main that changes the SDK manifest or changelog. The
+# reusable workflow handles idempotency (skips when the version is
+# unchanged or the tag already exists).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sdk/typescript/**'
+      - '.github/workflows/release-sdk.yml'
+      - '.github/workflows/release-sdk-npm.yml'
+      - 'scripts/extract-changelog.sh'
+      - 'scripts/read-version.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-sdk.yml
+    with:
+      sdk_path: sdk/typescript
+      manifest_file: sdk/typescript/package.json
+      tag_prefix: npm-v
+      registry: npm
+      changelog_file: sdk/typescript/CHANGELOG.md
+      mode: main-push
