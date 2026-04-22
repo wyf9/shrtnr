@@ -83,13 +83,27 @@ jobs:
           else
             CURRENT=$(bash scripts/read-version.sh "${{ inputs.manifest_file }}")
             TAG="${{ inputs.tag_prefix }}$CURRENT"
-            # Skip when the manifest wasn't touched in the triggering push.
-            PREV=""
-            if git show HEAD~1:"${{ inputs.manifest_file }}" >/tmp/prev-manifest 2>/dev/null; then
-              PREV=$(bash scripts/read-version.sh /tmp/prev-manifest 2>/dev/null || echo "")
+            # Decide whether to publish. Two idempotency layers, in order:
+            #   1. Manifest-change-in-push: skip when the triggering push did
+            #      not touch the SDK manifest. Range-based so multi-commit
+            #      pushes work (HEAD~1 is wrong when the version bump is the
+            #      first of several commits in the push).
+            #   2. Tag-exists: skip when the target tag already exists on
+            #      origin. Catches reruns of a successful release.
+            # Manual workflow_dispatch runs have no push range; fall through
+            # to the tag check so the tag acts as the only gate.
+            BEFORE="${{ github.event.before }}"
+            AFTER="${{ github.sha }}"
+            MANIFEST_CHANGED="unknown"
+            if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+              if git diff --name-only "$BEFORE" "$AFTER" -- "${{ inputs.manifest_file }}" | grep -Fxq "${{ inputs.manifest_file }}"; then
+                MANIFEST_CHANGED="true"
+              else
+                MANIFEST_CHANGED="false"
+              fi
             fi
-            if [ "$PREV" = "$CURRENT" ]; then
-              echo "version unchanged ($CURRENT); skipping release" >&2
+            if [ "$MANIFEST_CHANGED" = "false" ]; then
+              echo "manifest ${{ inputs.manifest_file }} not touched in push $BEFORE..$AFTER; skipping" >&2
               echo "should_run=false" >> "$GITHUB_OUTPUT"
             elif git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
               echo "tag $TAG already exists on origin; skipping" >&2
