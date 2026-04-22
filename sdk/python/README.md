@@ -60,6 +60,8 @@ Every method below exists on both `Shrtnr` (sync) and `AsyncShrtnr` (async). Asy
 Shorten a URL. Returns a `Link` with a random slug.
 
 ```python
+import time
+
 link = client.create_link(CreateLinkOptions(
     url="https://example.com",
     label="My link to the example page",
