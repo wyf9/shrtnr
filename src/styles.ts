@@ -61,32 +61,32 @@ export const themes = {
     "--brand-surface-2": "#1c2530",
     "--brand-accent": "#ff7637",
     "--brand-accent-soft": "#ff9061",
-    "--brand-positive": "#79c98f",
+    "--brand-positive": "#6ee7b7",
     "--brand-info": "#7dcfff",
     "--brand-neutral": "#ffffff",
     "--brand-danger": "#ef4444",
 
     /* semantic */
-    "--color-canvas": "#0b0f14",
-    "--color-surface": "#151b23",
-    "--color-surface-raised": "#1b2430",
-    "--color-surface-interactive": "#243142",
+    "--color-canvas": "#0a0d13",
+    "--color-surface": "#141922",
+    "--color-surface-raised": "#1b2330",
+    "--color-surface-interactive": "#253041",
 
-    "--color-text": "#f3f7fb",
+    "--color-text": "#f3f6fb",
     "--color-text-muted": "#a3b1c2",
     "--color-text-subtle": "#7b8a9c",
-    "--color-text-inverse": "#0b0f14",
+    "--color-text-inverse": "#0a0d13",
 
-    "--color-border": "#293241",
-    "--color-border-strong": "#3a4658",
+    "--color-border": "#2a3342",
+    "--color-border-strong": "#3f4a5d",
 
     "--color-accent": "#ff7637",
     "--color-accent-hover": "#ff9061",
     "--color-accent-active": "#e76328",
     "--color-accent-foreground": "#ffffff",
 
-    "--color-success": "#79c98f",
-    "--color-success-foreground": "#08110c",
+    "--color-success": "#6ee7b7",
+    "--color-success-foreground": "#042a20",
 
     "--color-danger": "#ef4444",
     "--color-danger-foreground": "#ffffff",
@@ -97,10 +97,10 @@ export const themes = {
     "--color-focus-ring": "#7dcfff",
     "--color-selection": "rgba(255, 118, 55, 0.2)",
 
-    "--color-disabled-bg": "#1b2430",
+    "--color-disabled-bg": "#1b2330",
     "--color-disabled-text": "#647487",
 
-    "--shadow-color": "rgba(0, 0, 0, 0.4)",
+    "--shadow-color": "rgba(0, 0, 0, 0.45)",
   },
 
   light: {
