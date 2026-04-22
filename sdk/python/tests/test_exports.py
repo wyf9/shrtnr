@@ -33,8 +33,13 @@ def test_models_exported() -> None:
 
 
 def test_version_declared() -> None:
+    # __version__ is derived from installed package metadata in __init__.py,
+    # so assert it matches what importlib.metadata reports rather than
+    # hardcoding a literal that every release bump would have to touch.
+    from importlib.metadata import version as _pkg_version
+
     assert isinstance(shrtnr.__version__, str)
-    assert shrtnr.__version__ == "0.1.0"
+    assert shrtnr.__version__ == _pkg_version("shrtnr")
 
 
 def test_all_matches_module_contents() -> None:
