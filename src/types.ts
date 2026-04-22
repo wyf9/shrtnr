@@ -75,7 +75,9 @@ export interface ClickData {
 export interface ClickStats {
   total_clicks: number;
   countries: { name: string; count: number }[];
+  /** Referrers as full URLs (unique per exact URL). Shown as "Sources". */
   referrers: { name: string; count: number }[];
+  /** Referrers grouped by hostname. Shown as "Domains". */
   referrer_hosts: { name: string; count: number }[];
   devices: { name: string; count: number }[];
   os: { name: string; count: number }[];
@@ -84,6 +86,12 @@ export interface ClickStats {
   channels: { name: string; count: number }[];
   clicks_over_time: { date: string; count: number }[];
   slug_clicks: { slug: string; count: number }[];
+  /** Distinct count totals for dimensions that may exceed the list LIMIT. */
+  num_countries: number;
+  num_referrers: number;
+  num_referrer_hosts: number;
+  num_os: number;
+  num_browsers: number;
 }
 
 export type TimelineRange = "24h" | "7d" | "30d" | "90d" | "1y" | "all";
@@ -152,9 +160,17 @@ export interface BundleStats {
   devices: { name: string; count: number }[];
   os: { name: string; count: number }[];
   browsers: { name: string; count: number }[];
+  /** Referrers as full URLs (unique per exact URL). Shown as "Sources". */
   referrers: { name: string; count: number }[];
+  /** Referrers grouped by hostname. Shown as "Domains". */
+  referrer_hosts: { name: string; count: number }[];
   link_modes: { name: string; count: number }[];
   per_link: BundleStatsPerLink[];
+  num_countries: number;
+  num_referrers: number;
+  num_referrer_hosts: number;
+  num_os: number;
+  num_browsers: number;
 }
 
 export interface DashboardStats {
@@ -189,5 +205,12 @@ export interface DashboardStats {
   recent_links: LinkWithSlugs[];
   top_links: LinkWithSlugs[];
   top_countries: { name: string; count: number }[];
+  /** Top referrer hostnames. Shown as "Top Domains". */
   top_referrers: { name: string; count: number }[];
+  /** Top referrers as full URLs. Shown as "Top Sources". */
+  top_sources: { name: string; count: number }[];
+  /** Distinct count of referrer hostnames in the current period. */
+  num_referrers: number;
+  /** Distinct count of full-URL referrers in the current period. */
+  num_sources: number;
 }

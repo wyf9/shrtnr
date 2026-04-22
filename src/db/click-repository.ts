@@ -58,7 +58,12 @@ export class ClickRepository {
       .all<{ slug: string }>();
     const slugs = (slugRows.results ?? []).map((r) => r.slug);
 
-    const empty: ClickStats = { total_clicks: 0, countries: [], referrers: [], referrer_hosts: [], devices: [], os: [], browsers: [], link_modes: [], channels: [], clicks_over_time: [], slug_clicks: [] };
+    const empty: ClickStats = {
+      total_clicks: 0,
+      countries: [], referrers: [], referrer_hosts: [], devices: [], os: [], browsers: [],
+      link_modes: [], channels: [], clicks_over_time: [], slug_clicks: [],
+      num_countries: 0, num_referrers: 0, num_referrer_hosts: 0, num_os: 0, num_browsers: 0,
+    };
     if (slugs.length === 0) return empty;
 
     const placeholders = slugs.map(() => "?").join(",");
@@ -73,7 +78,11 @@ export class ClickRepository {
       binds.push(sinceTs);
     }
 
-    const [totalRow, countries, referrers, referrerHosts, devices, osList, browsers, linkModes, channels, timeline, slugClicks] = await Promise.all([
+    const [
+      totalRow, countries, referrers, referrerHosts, devices, osList, browsers,
+      linkModes, channels, timeline, slugClicks,
+      numCountriesRow, numReferrersRow, numHostsRow, numOsRow, numBrowsersRow,
+    ] = await Promise.all([
       db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where}`).bind(...binds).first<{ cnt: number }>(),
       db.prepare(`SELECT country as name, COUNT(*) as count FROM clicks WHERE ${where} AND country IS NOT NULL GROUP BY country ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
       db.prepare(`SELECT referrer as name, COUNT(*) as count FROM clicks WHERE ${where} AND referrer IS NOT NULL GROUP BY referrer ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
@@ -85,6 +94,11 @@ export class ClickRepository {
       db.prepare(`SELECT channel as name, COUNT(*) as count FROM clicks WHERE ${where} AND channel IS NOT NULL GROUP BY channel ORDER BY count DESC`).bind(...binds).all<{ name: string; count: number }>(),
       db.prepare(`SELECT date(clicked_at, 'unixepoch') as date, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY date ORDER BY date DESC LIMIT 30`).bind(...binds).all<{ date: string; count: number }>(),
       db.prepare(`SELECT slug, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY slug`).bind(...binds).all<{ slug: string; count: number }>(),
+      db.prepare(`SELECT COUNT(DISTINCT country) as cnt FROM clicks WHERE ${where} AND country IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(DISTINCT referrer) as cnt FROM clicks WHERE ${where} AND referrer IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE ${where} AND referrer_host IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(DISTINCT os) as cnt FROM clicks WHERE ${where} AND os IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(DISTINCT browser) as cnt FROM clicks WHERE ${where} AND browser IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
     ]);
 
     return {
@@ -99,6 +113,11 @@ export class ClickRepository {
       channels: channels.results ?? [],
       clicks_over_time: (timeline.results ?? []).reverse(),
       slug_clicks: slugClicks.results ?? [],
+      num_countries: numCountriesRow?.cnt ?? 0,
+      num_referrers: numReferrersRow?.cnt ?? 0,
+      num_referrer_hosts: numHostsRow?.cnt ?? 0,
+      num_os: numOsRow?.cnt ?? 0,
+      num_browsers: numBrowsersRow?.cnt ?? 0,
     };
   }
 
@@ -626,6 +645,18 @@ export class ClickRepository {
       ? db.prepare("SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE referrer_host IS NOT NULL AND clicked_at >= ? GROUP BY referrer_host ORDER BY count DESC LIMIT 5").bind(since)
       : db.prepare("SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE referrer_host IS NOT NULL GROUP BY referrer_host ORDER BY count DESC LIMIT 5");
 
+    const sourceQuery = since !== null
+      ? db.prepare("SELECT referrer as name, COUNT(*) as count FROM clicks WHERE referrer IS NOT NULL AND clicked_at >= ? GROUP BY referrer ORDER BY count DESC LIMIT 5").bind(since)
+      : db.prepare("SELECT referrer as name, COUNT(*) as count FROM clicks WHERE referrer IS NOT NULL GROUP BY referrer ORDER BY count DESC LIMIT 5");
+
+    const numReferrersQuery = since !== null
+      ? db.prepare("SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE referrer_host IS NOT NULL AND clicked_at >= ?").bind(since)
+      : db.prepare("SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE referrer_host IS NOT NULL");
+
+    const numSourcesQuery = since !== null
+      ? db.prepare("SELECT COUNT(DISTINCT referrer) as cnt FROM clicks WHERE referrer IS NOT NULL AND clicked_at >= ?").bind(since)
+      : db.prepare("SELECT COUNT(DISTINCT referrer) as cnt FROM clicks WHERE referrer IS NOT NULL");
+
     const topLinksQuery = since !== null
       ? db.prepare("SELECT s.link_id as link_id, COUNT(*) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug WHERE c.clicked_at >= ? GROUP BY s.link_id ORDER BY cnt DESC LIMIT 5").bind(since)
       : db.prepare("SELECT s.link_id as link_id, COUNT(*) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug GROUP BY s.link_id ORDER BY cnt DESC LIMIT 5");
@@ -636,6 +667,9 @@ export class ClickRepository {
       recentLinks,
       topCountries,
       topReferrers,
+      topSources,
+      numReferrersRow,
+      numSourcesRow,
       topLinkRows,
       spark,
       sparkLinks,
@@ -649,6 +683,9 @@ export class ClickRepository {
       LinkRepository.list(db),
       countryQuery.all<{ name: string; count: number }>(),
       referrerQuery.all<{ name: string; count: number }>(),
+      sourceQuery.all<{ name: string; count: number }>(),
+      numReferrersQuery.first<{ cnt: number }>(),
+      numSourcesQuery.first<{ cnt: number }>(),
       topLinksQuery.all<{ link_id: number; cnt: number }>(),
       this.getSparkline(db, range, ts),
       this.getLinksCreatedSparkline(db, range, ts),
@@ -693,6 +730,9 @@ export class ClickRepository {
       top_links: topLinks,
       top_countries: topCountries.results ?? [],
       top_referrers: topReferrers.results ?? [],
+      top_sources: topSources.results ?? [],
+      num_referrers: numReferrersRow?.cnt ?? 0,
+      num_sources: numSourcesRow?.cnt ?? 0,
     };
   }
 
@@ -858,8 +898,14 @@ export class ClickRepository {
       os: [],
       browsers: [],
       referrers: [],
+      referrer_hosts: [],
       link_modes: [],
       per_link: [],
+      num_countries: 0,
+      num_referrers: 0,
+      num_referrer_hosts: 0,
+      num_os: 0,
+      num_browsers: 0,
     };
 
     if (slugs.length === 0) return empty;
@@ -878,6 +924,7 @@ export class ClickRepository {
       countries,
       countriesReachedRow,
       referrerHosts,
+      referrers,
       devices,
       osList,
       browsers,
@@ -885,11 +932,16 @@ export class ClickRepository {
       perLinkRows,
       timeline,
       period,
+      numReferrersRow,
+      numHostsRow,
+      numOsRow,
+      numBrowsersRow,
     ] = await Promise.all([
       db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where}`).bind(...binds).first<{ cnt: number }>(),
       db.prepare(`SELECT country as name, COUNT(*) as count FROM clicks WHERE ${where} AND country IS NOT NULL GROUP BY country ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
       db.prepare(`SELECT COUNT(DISTINCT country) as cnt FROM clicks WHERE ${where} AND country IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
       db.prepare(`SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE ${where} AND referrer_host IS NOT NULL GROUP BY referrer_host ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
+      db.prepare(`SELECT referrer as name, COUNT(*) as count FROM clicks WHERE ${where} AND referrer IS NOT NULL GROUP BY referrer ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
       db.prepare(`SELECT device_type as name, COUNT(*) as count FROM clicks WHERE ${where} AND device_type IS NOT NULL GROUP BY device_type ORDER BY count DESC`).bind(...binds).all<{ name: string; count: number }>(),
       db.prepare(`SELECT os as name, COUNT(*) as count FROM clicks WHERE ${where} AND os IS NOT NULL GROUP BY os ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
       db.prepare(`SELECT browser as name, COUNT(*) as count FROM clicks WHERE ${where} AND browser IS NOT NULL GROUP BY browser ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
@@ -907,6 +959,10 @@ export class ClickRepository {
       })(),
       this.getBundleTimeline(db, slugs, range, ts),
       this.getBundlePeriodClicks(db, slugs, range, ts),
+      db.prepare(`SELECT COUNT(DISTINCT referrer) as cnt FROM clicks WHERE ${where} AND referrer IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE ${where} AND referrer_host IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(DISTINCT os) as cnt FROM clicks WHERE ${where} AND os IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
+      db.prepare(`SELECT COUNT(DISTINCT browser) as cnt FROM clicks WHERE ${where} AND browser IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
     ]);
 
     const totalClicks = totalRow?.cnt ?? 0;
@@ -974,9 +1030,15 @@ export class ClickRepository {
       devices: devices.results ?? [],
       os: osList.results ?? [],
       browsers: browsers.results ?? [],
-      referrers: referrerHosts.results ?? [],
+      referrers: referrers.results ?? [],
+      referrer_hosts: referrerHosts.results ?? [],
       link_modes: linkModes.results ?? [],
       per_link: perLink,
+      num_countries: countriesReachedRow?.cnt ?? 0,
+      num_referrers: numReferrersRow?.cnt ?? 0,
+      num_referrer_hosts: numHostsRow?.cnt ?? 0,
+      num_os: numOsRow?.cnt ?? 0,
+      num_browsers: numBrowsersRow?.cnt ?? 0,
     };
   }
 
