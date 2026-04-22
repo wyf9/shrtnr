@@ -5,8 +5,10 @@
 // `wrangler dev` instance. Requires:
 //   SHRTNR_TEST_URL        base URL of the running dev server
 //   SHRTNR_TEST_API_KEY    a create+read API key minted by the harness
-// If either is missing the suite is skipped — these tests are not part
-// of the in-process unit run.
+// Default `yarn test` excludes this path via vitest.config.ts, so this
+// suite only runs via the dedicated vitest.e2e.config.ts used by the
+// harness. If either env var is missing at runtime, beforeAll throws so
+// a misconfigured harness can't pass silently.
 
 import { describe, it, expect, beforeAll } from "vitest";
 import { ShrtnrClient } from "../../src";

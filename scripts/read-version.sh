@@ -7,7 +7,7 @@
 # Usage: read-version.sh <manifest-file>
 #
 # Auto-detects format from the file's basename:
-#   package.json   -> jq -r .version
+#   package.json   -> node JSON.parse(...).version
 #   pubspec.yaml   -> grep ^version:
 #   pyproject.toml -> grep ^version =
 #
