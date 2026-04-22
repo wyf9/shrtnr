@@ -151,6 +151,7 @@ const sv: Translations = {
   "bundles.filterAll": "Alla",
   "bundles.totalClicks": "Totalt klick",
   "bundles.vsPrev": "mot föregående",
+  "bundles.noBaseline": "ingen baslinje",
   "bundles.links": "Länkar",
   "bundles.linksCount": "{count} länk",
   "bundles.linksCountPlural": "{count} länkar",

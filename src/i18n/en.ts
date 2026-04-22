@@ -148,6 +148,7 @@ const en = {
   "bundles.filterAll": "All",
   "bundles.totalClicks": "Total clicks",
   "bundles.vsPrev": "vs. prev.",
+  "bundles.noBaseline": "no baseline",
   "bundles.links": "Links",
   "bundles.linksCount": "{count} link",
   "bundles.linksCountPlural": "{count} links",

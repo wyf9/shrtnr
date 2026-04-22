@@ -151,6 +151,7 @@ const id: Translations = {
   "bundles.filterAll": "Semua",
   "bundles.totalClicks": "Total klik",
   "bundles.vsPrev": "vs. sebelumnya",
+  "bundles.noBaseline": "belum ada patokan",
   "bundles.links": "Tautan",
   "bundles.linksCount": "{count} tautan",
   "bundles.linksCountPlural": "{count} tautan",

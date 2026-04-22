@@ -207,7 +207,7 @@ export const BundleDetailPage: FC<Props> = ({ stats, identity, t, lang, range })
         </div>
       </div>
 
-      {/* Links in this bundle — parallel to the slugs card on link detail. */}
+      {/* Links in this bundle, parallel to the slugs card on link detail. */}
       <div class="bento-card bundle-links-card mb-lg">
         <div class="bundle-links-card-head">
           <div class="bento-label">
@@ -274,7 +274,7 @@ export const BundleDetailPage: FC<Props> = ({ stats, identity, t, lang, range })
         )}
       </div>
 
-      {/* Analytics grid — mirrors link-detail's layout exactly. */}
+      {/* Analytics grid. Mirrors link-detail's layout exactly. */}
       <div class="detail-analytics">
         <div class="detail-analytics-left">
           <div class="bento-card timeline-card">

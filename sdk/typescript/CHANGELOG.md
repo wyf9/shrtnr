@@ -10,16 +10,16 @@ Bundles group related links so you can read combined engagement across the whole
 
 ### New methods
 
-- `createBundle(options)` — create a new bundle (name, description, icon, accent).
-- `listBundles(options?)` — list bundles with summary stats (total clicks, sparkline, top links).
-- `getBundle(id)` — fetch a bundle's metadata.
-- `updateBundle(id, patch)` — rename, re-style, or edit a bundle.
-- `deleteBundle(id)` — delete a bundle (member links are preserved).
-- `getBundleAnalytics(id, range?)` — combined analytics across all links in the bundle.
-- `listBundleLinks(id)` — list every link in a bundle.
-- `addLinkToBundle(bundleId, linkId)` — attach a link. Idempotent.
-- `removeLinkFromBundle(bundleId, linkId)` — detach a link from a bundle.
-- `listBundlesForLink(linkId)` — list every bundle a link belongs to.
+- `createBundle(options)`: create a new bundle (name, description, icon, accent).
+- `listBundles(options?)`: list bundles with summary stats (total clicks, sparkline, top links).
+- `getBundle(id)`: fetch a bundle's metadata.
+- `updateBundle(id, patch)`: rename, re-style, or edit a bundle.
+- `deleteBundle(id)`: delete a bundle (member links are preserved).
+- `getBundleAnalytics(id, range?)`: combined analytics across all links in the bundle.
+- `listBundleLinks(id)`: list every link in a bundle.
+- `addLinkToBundle(bundleId, linkId)`: attach a link. Idempotent.
+- `removeLinkFromBundle(bundleId, linkId)`: detach a link from a bundle.
+- `listBundlesForLink(linkId)`: list every bundle a link belongs to.
 
 ### Type additions
 
