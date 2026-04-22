@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.31.0 (2026-04-22)
+
+- Introduced Bundles: a new admin section that groups related links so you can read combined engagement across a project or campaign. The listing shows lifetime clicks, a 30-day sparkline, and a trend reading; the detail page mirrors link-detail's analytics grid but aggregates across every link in the bundle. A link can belong to zero or many bundles, and link-detail shows bundle membership as accent chips. Accents (orange/red/green/blue/purple) and Material Symbol icons let you visually distinguish bundles.
+- Exposed the bundle surface on the admin API, the public API, and MCP. Public endpoints cover create, list, read, update, delete, archive, unarchive, add/remove links, per-link bundles, and per-bundle analytics. Both SDKs (`@oddbit/shrtnr` 0.7.0 and the Dart `shrtnr` 0.2.0) carry matching methods.
+- Started recording a silent per-visitor fingerprint on the redirect path: SHA-256 of IP + User-Agent + a daily-rotated HMAC salt. No raw IP is persisted, the daily rotation means fingerprints cannot be correlated across days, and nothing surfaces in the UI yet. Set `FP_SALT` in production for unpredictability; a deterministic per-day fallback keeps local dev working.
+- Unified referrer terminology on the dashboard and link detail: one "Referrers" breakdown backed by `referrer_host`, replacing the earlier "Sources"/"Referrer Hosts" split. The dashboard swaps the "Top Domains" panel for "Top Referrers".
+- Hardened the bundle-detail archive/delete buttons against bundle names containing a single quote. The buttons now read the name from `data-*` attributes via a delegated click handler instead of interpolating it into an inline onclick literal.
+- Fixed `countries_reached` on bundle analytics under-reporting once a bundle saw traffic from more than ten distinct countries. Replaced a correlated subquery in the bundles list summary with a straight slug join. Bundle "top links" now falls back to any slug when no primary exists and never emits an empty chip.
+- Bundle detail polish: link rows mirror the dashboard "Most clicked" stack (slug chip on top of a full-width progress bar, full URL underneath), count and percentage columns use tabular-nums so numbers line up across rows, and the card placeholder renders at a readable size instead of wrapping "no baseline" onto two oversized lines.
+- Extracted the duplicated `escHtml` helper into `src/escape.ts` and dropped the dead `userEmail` plumbing through the admin layout.
+
 ## 0.30.1 (2026-04-21)
 
 - Fixed stack overflow on every MCP write call (`create_link`, `disable_link`, `enable_link`, `delete_link`). The `identity` getter was returning `this.identity` and recursing indefinitely; it now returns the authenticated email from the Cloudflare Access props.
