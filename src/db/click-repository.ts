@@ -645,17 +645,9 @@ export class ClickRepository {
       ? db.prepare("SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE referrer_host IS NOT NULL AND clicked_at >= ? GROUP BY referrer_host ORDER BY count DESC LIMIT 5").bind(since)
       : db.prepare("SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE referrer_host IS NOT NULL GROUP BY referrer_host ORDER BY count DESC LIMIT 5");
 
-    const sourceQuery = since !== null
-      ? db.prepare("SELECT referrer as name, COUNT(*) as count FROM clicks WHERE referrer IS NOT NULL AND clicked_at >= ? GROUP BY referrer ORDER BY count DESC LIMIT 5").bind(since)
-      : db.prepare("SELECT referrer as name, COUNT(*) as count FROM clicks WHERE referrer IS NOT NULL GROUP BY referrer ORDER BY count DESC LIMIT 5");
-
     const numReferrersQuery = since !== null
       ? db.prepare("SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE referrer_host IS NOT NULL AND clicked_at >= ?").bind(since)
       : db.prepare("SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE referrer_host IS NOT NULL");
-
-    const numSourcesQuery = since !== null
-      ? db.prepare("SELECT COUNT(DISTINCT referrer) as cnt FROM clicks WHERE referrer IS NOT NULL AND clicked_at >= ?").bind(since)
-      : db.prepare("SELECT COUNT(DISTINCT referrer) as cnt FROM clicks WHERE referrer IS NOT NULL");
 
     const topLinksQuery = since !== null
       ? db.prepare("SELECT s.link_id as link_id, COUNT(*) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug WHERE c.clicked_at >= ? GROUP BY s.link_id ORDER BY cnt DESC LIMIT 5").bind(since)
@@ -667,9 +659,7 @@ export class ClickRepository {
       recentLinks,
       topCountries,
       topReferrers,
-      topSources,
       numReferrersRow,
-      numSourcesRow,
       topLinkRows,
       spark,
       sparkLinks,
@@ -683,9 +673,7 @@ export class ClickRepository {
       LinkRepository.list(db),
       countryQuery.all<{ name: string; count: number }>(),
       referrerQuery.all<{ name: string; count: number }>(),
-      sourceQuery.all<{ name: string; count: number }>(),
       numReferrersQuery.first<{ cnt: number }>(),
-      numSourcesQuery.first<{ cnt: number }>(),
       topLinksQuery.all<{ link_id: number; cnt: number }>(),
       this.getSparkline(db, range, ts),
       this.getLinksCreatedSparkline(db, range, ts),
@@ -730,9 +718,7 @@ export class ClickRepository {
       top_links: topLinks,
       top_countries: topCountries.results ?? [],
       top_referrers: topReferrers.results ?? [],
-      top_sources: topSources.results ?? [],
       num_referrers: numReferrersRow?.cnt ?? 0,
-      num_sources: numSourcesRow?.cnt ?? 0,
     };
   }
 

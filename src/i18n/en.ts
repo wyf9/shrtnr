@@ -35,7 +35,6 @@ const en = {
   "dashboard.noLinks": "No links yet",
   "dashboard.topReferrers": "Top Referrers",
   "dashboard.topDomains": "Top Domains",
-  "dashboard.topSources": "Top Sources",
   "dashboard.mostClicked": "Most Clicked",
   "dashboard.clickToCopy": "Click to copy",
 

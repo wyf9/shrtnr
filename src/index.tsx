@@ -212,9 +212,7 @@ app.get("/_/admin/dashboard", async (c) => {
         top_links: [],
         top_countries: [],
         top_referrers: [],
-        top_sources: [],
         num_referrers: 0,
-        num_sources: 0,
       };
   return c.html(
     <Layout active="dashboard" theme={theme} t={t} lang={lang} translations={translations}>

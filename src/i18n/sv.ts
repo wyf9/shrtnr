@@ -37,7 +37,6 @@ const sv: Translations = {
   "dashboard.noLinks": "Inga länkar ännu",
   "dashboard.topReferrers": "Topphänvisningar",
   "dashboard.topDomains": "Toppdomäner",
-  "dashboard.topSources": "Toppkällor",
   "dashboard.mostClicked": "Mest klickade",
   "dashboard.clickToCopy": "Klicka för att kopiera",
 

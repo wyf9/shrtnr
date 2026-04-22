@@ -207,10 +207,6 @@ export interface DashboardStats {
   top_countries: { name: string; count: number }[];
   /** Top referrer hostnames. Shown as "Top Domains". */
   top_referrers: { name: string; count: number }[];
-  /** Top referrers as full URLs. Shown as "Top Sources". */
-  top_sources: { name: string; count: number }[];
   /** Distinct count of referrer hostnames in the current period. */
   num_referrers: number;
-  /** Distinct count of full-URL referrers in the current period. */
-  num_sources: number;
 }

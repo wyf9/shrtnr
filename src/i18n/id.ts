@@ -37,7 +37,6 @@ const id: Translations = {
   "dashboard.noLinks": "Belum ada tautan",
   "dashboard.topReferrers": "Perujuk Teratas",
   "dashboard.topDomains": "Domain Teratas",
-  "dashboard.topSources": "Sumber Teratas",
   "dashboard.mostClicked": "Paling Banyak Diklik",
   "dashboard.clickToCopy": "Klik untuk menyalin",
 
