@@ -1212,7 +1212,10 @@ function selectAccent(a) {
   if (input) input.value = a;
 }
 
-function showCreateBundleModal() {
+function showCreateBundleModal(onCreated) {
+  // Stash the optional callback so doCreateBundle can pick it up without us
+  // having to rewrite the button's onclick attribute after render.
+  window.__bundleOnCreated = typeof onCreated === 'function' ? onCreated : null;
   var html = '<div class="modal-title">' + esc(t('bundles.newBundle')) + '</div>';
   html += '<div class="form-group"><label class="form-label">' + esc(t('bundles.formName')) + ' *</label>';
   html += '<input class="form-input" id="bundle-name" placeholder="' + esc(t('bundles.formNameHint')) + '"></div>';
@@ -1228,7 +1231,7 @@ function showCreateBundleModal() {
   setTimeout(function() { var el = document.getElementById('bundle-name'); if (el) el.focus(); }, 100);
 }
 
-function doCreateBundle(onCreatedCallback) {
+function doCreateBundle() {
   var name = document.getElementById('bundle-name').value.trim();
   if (!name) { toast(t('client.urlRequired'), 'error'); return; }
   var body = {
@@ -1237,13 +1240,15 @@ function doCreateBundle(onCreatedCallback) {
     icon: document.getElementById('bundle-icon').value.trim() || null,
     accent: document.getElementById('bundle-accent').value || 'orange',
   };
+  var onCreated = window.__bundleOnCreated;
+  window.__bundleOnCreated = null;
   api('/bundles', { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
     if (res.ok) {
       res.json().then(function(bundle) {
         closeModal();
         toast(t('client.bundles.created'));
-        if (typeof onCreatedCallback === 'function') {
-          onCreatedCallback(bundle);
+        if (typeof onCreated === 'function') {
+          onCreated(bundle);
         } else {
           window.location.reload();
         }
@@ -1368,18 +1373,10 @@ function showAddToBundleModal(linkId) {
 }
 
 function showCreateBundleForLink(linkId) {
-  // Swap in the create form; on success, attach the link to the new bundle.
-  showCreateBundleModal();
-  var actions = document.querySelector('.modal-actions');
-  if (!actions) return;
-  var primary = actions.querySelector('.btn-primary');
-  if (primary) {
-    primary.setAttribute('onclick', 'doCreateBundleAndAddLink(' + linkId + ')');
-  }
-}
-
-function doCreateBundleAndAddLink(linkId) {
-  doCreateBundle(function(bundle) {
+  // On create, attach the link to the new bundle. The callback is threaded
+  // through the modal rather than spliced into the primary button's onclick
+  // attribute, so renames to the modal markup do not silently break this.
+  showCreateBundleModal(function(bundle) {
     api('/bundles/' + bundle.id + '/links', {
       method: 'POST',
       body: JSON.stringify({ link_id: linkId }),
@@ -1478,5 +1475,20 @@ function doAddLinkToBundle(bundleId, linkId) {
     else res.json().then(function(data) { toast(data.error || t('client.bundles.saveError'), 'error'); });
   });
 }
+
+// Delegated click handler for bundle-detail menu buttons. Reading bundle id
+// and name from data-* attributes avoids interpolating user-controlled text
+// into an inline onclick handler.
+document.addEventListener('click', function(ev) {
+  var btn = ev.target && ev.target.closest ? ev.target.closest('[data-bundle-action]') : null;
+  if (!btn) return;
+  var action = btn.getAttribute('data-bundle-action');
+  var id = parseInt(btn.getAttribute('data-bundle-id'), 10);
+  var name = btn.getAttribute('data-bundle-name') || '';
+  if (!id) return;
+  if (action === 'archive') archiveBundle(id, name);
+  else if (action === 'unarchive') unarchiveBundle(id);
+  else if (action === 'delete') deleteBundleAction(id, name);
+});
 `;
 }

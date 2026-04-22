@@ -8,14 +8,7 @@ import { countryName } from "../country";
 import { BigChart } from "../components/big-chart";
 import { Delta } from "../components/delta";
 import { RangePicker } from "../components/range-picker";
-
-function escHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+import { escHtml } from "../escape";
 
 function avgPerDay(totalClicks: number, createdAt: number, now: number): string {
   const seconds = Math.max(1, now - createdAt);
@@ -119,16 +112,30 @@ export const BundleDetailPage: FC<Props> = ({ stats, identity, t, lang, range })
                 <span class="icon">edit</span> {t("bundles.editBundle")}
               </button>
               {isArchived ? (
-                <button class="detail-menu-item" onclick={`unarchiveBundle(${b.id})`}>
+                <button
+                  class="detail-menu-item"
+                  data-bundle-action="unarchive"
+                  data-bundle-id={b.id}
+                >
                   <span class="icon">unarchive</span> {t("bundles.unarchive")}
                 </button>
               ) : (
-                <button class="detail-menu-item" onclick={`archiveBundle(${b.id}, '${escHtml(b.name)}')`}>
+                <button
+                  class="detail-menu-item"
+                  data-bundle-action="archive"
+                  data-bundle-id={b.id}
+                  data-bundle-name={b.name}
+                >
                   <span class="icon">archive</span> {t("bundles.archive")}
                 </button>
               )}
               <div class="detail-menu-divider" />
-              <button class="detail-menu-item detail-menu-danger" onclick={`deleteBundleAction(${b.id}, '${escHtml(b.name)}')`}>
+              <button
+                class="detail-menu-item detail-menu-danger"
+                data-bundle-action="delete"
+                data-bundle-id={b.id}
+                data-bundle-name={b.name}
+              >
                 <span class="icon">delete</span> {t("bundles.delete")}
               </button>
             </div>

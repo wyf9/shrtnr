@@ -3,14 +3,7 @@
 
 import type { FC } from "hono/jsx";
 import type { TranslateFn } from "../i18n";
-
-function escHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+import { escHtml } from "../escape";
 
 function formatDate(ts: number, lang: string): string {
   const d = new Date(ts * 1000);

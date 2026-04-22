@@ -8,14 +8,7 @@ import { countryName } from "../country";
 import { KpiCard } from "../components/kpi-card";
 import { RangePicker } from "../components/range-picker";
 import { BigChart } from "../components/big-chart";
-
-function escHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+import { escHtml } from "../escape";
 
 const StatBar: FC<{
   name: string;

@@ -5,14 +5,7 @@ import type { FC } from "hono/jsx";
 import type { Bundle, LinkWithSlugs, ClickStats, TimelineRange } from "../types";
 import type { TranslateFn } from "../i18n";
 import { countryName } from "../country";
-
-function escHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+import { escHtml } from "../escape";
 
 const StatBar: FC<{
   name: string;
