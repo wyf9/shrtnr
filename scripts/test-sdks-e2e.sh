@@ -107,9 +107,11 @@ run_sdk() {
   echo "==> e2e: $sdk"
   case "$sdk" in
     ts|typescript|npm)
-      # No --passWithNoTests: a zero-test outcome means tests/e2e got
-      # excluded by config drift. Fail loudly rather than report green.
-      (cd sdk/typescript && yarn install --frozen-lockfile --silent >/dev/null && yarn vitest run tests/e2e) || status=$?
+      # Uses the dedicated e2e config (include tests/e2e, no exclude) so
+      # it doesn't collide with the default config that hides tests/e2e
+      # from `yarn test`. No --passWithNoTests: a zero-test outcome
+      # means tests/e2e got excluded by config drift — fail loudly.
+      (cd sdk/typescript && yarn install --frozen-lockfile --silent >/dev/null && yarn vitest run --config vitest.e2e.config.ts) || status=$?
       ;;
     python|py)
       if [ ! -x sdk/python/.venv/bin/pytest ]; then
