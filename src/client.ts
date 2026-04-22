@@ -774,6 +774,11 @@ function loadAnalytics(linkId, range) {
     if (heroTotal) heroTotal.textContent = fmtNum(stats.total_clicks);
     var timelineTotal = document.getElementById('timeline-total');
     if (timelineTotal) timelineTotal.textContent = fmtNum(stats.total_clicks);
+    var heroAvg = document.getElementById('hero-avg-per-day');
+    if (heroAvg) {
+      var createdAt = parseInt(heroAvg.getAttribute('data-created-at'), 10);
+      heroAvg.textContent = fmtAvgPerDay(stats.total_clicks, range, createdAt);
+    }
 
     // Update per-slug click counts and bars
     var slugCounts = {};
@@ -816,6 +821,23 @@ function fmtNum(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
   if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
   return String(n);
+}
+
+var RANGE_SECONDS = { '24h': 86400, '7d': 7*86400, '30d': 30*86400, '90d': 90*86400, '1y': 365*86400 };
+function fmtAvgPerDay(totalClicks, range, createdAt) {
+  var days;
+  if (range !== 'all') {
+    days = RANGE_SECONDS[range] / 86400;
+  } else {
+    var nowSec = Math.floor(Date.now() / 1000);
+    var seconds = Math.max(1, nowSec - createdAt);
+    days = Math.max(1, seconds / 86400);
+  }
+  var avg = totalClicks / days;
+  if (avg === 0) return '0';
+  if (avg < 1) return avg.toFixed(2);
+  if (avg < 10) return avg.toFixed(1);
+  return String(Math.round(avg));
 }
 
 var MONTH_KEYS = ['month.jan','month.feb','month.mar','month.apr','month.may','month.jun','month.jul','month.aug','month.sep','month.oct','month.nov','month.dec'];

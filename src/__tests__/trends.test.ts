@@ -2,7 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { env } from "cloudflare:test";
 import { applyMigrations, resetData } from "./setup";
 import { LinkRepository, ClickRepository } from "../db";
-import { computeDelta } from "../services/trends";
+import { computeDelta, formatAvgPerDay } from "../services/trends";
 
 beforeAll(applyMigrations);
 beforeEach(resetData);
@@ -28,6 +28,53 @@ describe("computeDelta", () => {
   it("rounds to nearest integer", () => {
     expect(computeDelta(107, 100)).toBe(7);
     expect(computeDelta(93, 100)).toBe(-7);
+  });
+});
+
+describe("formatAvgPerDay", () => {
+  const now = 1_800_000_000;
+  // A lifetime that is much longer than any finite range, so finite ranges
+  // are not capped by lifetime in these cases.
+  const longLivedCreatedAt = now - 2 * 365 * 86400;
+
+  it("divides range-scoped clicks by the range window, not lifetime", () => {
+    // A young entity with clicks in the 7d window should average total/7,
+    // not total/lifetime. Regression: used to divide by days since creation,
+    // which made avg/day equal total for entities created the same day.
+    const createdToday = now - 3600; // 1 hour old
+    expect(formatAvgPerDay(90, "7d", createdToday, now)).toBe("13");
+    expect(formatAvgPerDay(185, "30d", createdToday, now)).toBe("6.2");
+  });
+
+  it("formats 24h range as total/1 with one decimal under 10", () => {
+    expect(formatAvgPerDay(7, "24h", longLivedCreatedAt, now)).toBe("7.0");
+  });
+
+  it("rounds to integer when average is 10 or greater", () => {
+    expect(formatAvgPerDay(90, "7d", longLivedCreatedAt, now)).toBe("13");
+    expect(formatAvgPerDay(300, "30d", longLivedCreatedAt, now)).toBe("10");
+  });
+
+  it("shows one decimal when average is between 1 and 10", () => {
+    expect(formatAvgPerDay(185, "30d", longLivedCreatedAt, now)).toBe("6.2");
+  });
+
+  it("shows two decimals when average is below 1", () => {
+    expect(formatAvgPerDay(5, "30d", longLivedCreatedAt, now)).toBe("0.17");
+  });
+
+  it("returns 0 when there are no clicks", () => {
+    expect(formatAvgPerDay(0, "7d", longLivedCreatedAt, now)).toBe("0");
+  });
+
+  it("uses lifetime days for range=all", () => {
+    const tenDaysAgo = now - 10 * 86400;
+    expect(formatAvgPerDay(50, "all", tenDaysAgo, now)).toBe("5.0");
+  });
+
+  it("floors lifetime at one day so very young entities do not divide by zero", () => {
+    const oneHourAgo = now - 3600;
+    expect(formatAvgPerDay(12, "all", oneHourAgo, now)).toBe("12");
   });
 });
 

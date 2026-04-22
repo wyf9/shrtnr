@@ -6,6 +6,7 @@ import type { Bundle, LinkWithSlugs, ClickStats, TimelineRange } from "../types"
 import type { TranslateFn } from "../i18n";
 import { countryName } from "../country";
 import { escHtml } from "../escape";
+import { formatAvgPerDay } from "../services/trends";
 
 const StatBar: FC<{
   name: string;
@@ -36,16 +37,6 @@ const StatBar: FC<{
     </div>
   );
 };
-
-function avgPerDay(totalClicks: number, createdAt: number, now: number): string {
-  const seconds = Math.max(1, now - createdAt);
-  const days = Math.max(1, seconds / 86400);
-  const avg = totalClicks / days;
-  if (avg === 0) return "0";
-  if (avg < 1) return avg.toFixed(2);
-  if (avg < 10) return avg.toFixed(1);
-  return Math.round(avg).toString();
-}
 
 function referrerHost(url: string): string {
   try {
@@ -297,7 +288,9 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, bundles = [], t, la
             <div class="l">{t("linkDetail.totalClicks")}</div>
           </div>
           <div class="hero-metric">
-            <div class="n">{avgPerDay(analytics.total_clicks, link.created_at, now)}</div>
+            <div class="n" id="hero-avg-per-day" data-created-at={link.created_at}>
+              {formatAvgPerDay(analytics.total_clicks, initialRange, link.created_at, now)}
+            </div>
             <div class="l">{t("linkDetail.avgPerDay")}</div>
           </div>
           <div class="hero-metric">

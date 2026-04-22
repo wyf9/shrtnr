@@ -8,16 +8,7 @@ import { countryName } from "../country";
 import { BigChart } from "../components/big-chart";
 import { RangePicker } from "../components/range-picker";
 import { escHtml } from "../escape";
-
-function avgPerDay(totalClicks: number, createdAt: number, now: number): string {
-  const seconds = Math.max(1, now - createdAt);
-  const days = Math.max(1, seconds / 86400);
-  const avg = totalClicks / days;
-  if (avg === 0) return "0";
-  if (avg < 1) return avg.toFixed(2);
-  if (avg < 10) return avg.toFixed(1);
-  return Math.round(avg).toString();
-}
+import { formatAvgPerDay } from "../services/trends";
 
 function deviceIcon(name: string): string {
   if (name === "mobile") return "phone_android";
@@ -192,7 +183,7 @@ export const BundleDetailPage: FC<Props> = ({ stats, identity, t, lang, range })
             <div class="l">{t("linkDetail.totalClicks")}</div>
           </div>
           <div class="hero-metric">
-            <div class="n">{avgPerDay(stats.total_clicks, b.created_at, now)}</div>
+            <div class="n">{formatAvgPerDay(stats.total_clicks, range, b.created_at, now)}</div>
             <div class="l">{t("linkDetail.avgPerDay")}</div>
           </div>
           <div class="hero-metric">
