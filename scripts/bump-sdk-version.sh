@@ -80,16 +80,24 @@ echo "bumping $SDK: $CURRENT_VERSION -> $NEW_VERSION"
 # on jq/yq being present or reformat the file.
 case "$(basename "$MANIFEST")" in
   package.json)
-    # Match the existing "version": "X.Y.Z" line.
-    python3 -c "
-import json, sys
-with open('$MANIFEST', 'r+') as f:
-    data = json.load(f)
-    data['version'] = '$NEW_VERSION'
-    f.seek(0); f.truncate()
-    json.dump(data, f, indent=2)
-    f.write('\n')
-"
+    # Targeted replacement on the first top-level "version": "..." entry only.
+    # Keeps whatever indentation / key order / trailing newline the file
+    # already has, matching how the yaml and toml branches work below.
+    # Arguments go in via argv to avoid shell-interpolation into Python.
+    python3 - "$MANIFEST" "$NEW_VERSION" <<'PY'
+import pathlib, re, sys
+path, new_version = pathlib.Path(sys.argv[1]), sys.argv[2]
+src = path.read_text()
+updated, count = re.subn(
+    r'("version"\s*:\s*")[^"]*(")',
+    lambda m: m.group(1) + new_version + m.group(2),
+    src,
+    count=1,
+)
+if count != 1:
+    sys.exit(f"failed to update version in {path} (matched {count} times)")
+path.write_text(updated)
+PY
     ;;
   pubspec.yaml)
     sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" "$MANIFEST"
