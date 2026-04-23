@@ -1,0 +1,35 @@
+name: Release npm SDK
+
+# Thin caller over release-sdk.yml. Triggered on any push to main that
+# touches sdk/typescript/** (or this workflow / the reusable one /
+# helper scripts), but the reusable workflow only publishes when the
+# version string in sdk/typescript/package.json actually changed in the
+# push range — a changelog-only edit runs the workflow and exits
+# cleanly without publishing. The tag-exists check is a second
+# idempotency layer that makes reruns of a successful release a no-op.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sdk/typescript/**'
+      - '.github/workflows/release-sdk.yml'
+      - '.github/workflows/release-sdk-npm.yml'
+      - 'scripts/extract-changelog.sh'
+      - 'scripts/read-version.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-sdk.yml
+    with:
+      sdk_path: sdk/typescript
+      manifest_file: sdk/typescript/package.json
+      tag_prefix: npm-v
+      registry: npm
+      changelog_file: sdk/typescript/CHANGELOG.md
+      mode: main-push

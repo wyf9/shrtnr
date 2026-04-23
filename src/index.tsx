@@ -563,6 +563,24 @@ app.post("/_/api/links/:id/slugs", (c) => {
   if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
   return handleAddCustomSlug(c.req.raw, c.env, id);
 });
+app.post("/_/api/links/:id/slugs/:slug/disable", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
+  return handleDisableSlug(c.env, id, c.req.param("slug"), c.var.auth.identity);
+});
+app.post("/_/api/links/:id/slugs/:slug/enable", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
+  return handleEnableSlug(c.env, id, c.req.param("slug"), c.var.auth.identity);
+});
+app.delete("/_/api/links/:id/slugs/:slug", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
+  return handleRemoveSlug(c.env, id, c.req.param("slug"), c.var.auth.identity);
+});
 app.get("/_/api/links/:id/qr", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);

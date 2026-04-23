@@ -1,0 +1,27 @@
+name: Release pub.dev SDK
+
+# Tag-triggered caller over release-sdk.yml. Unlike npm and PyPI, pub.dev
+# cannot run in main-push mode because its trusted-publishing config
+# requires the OIDC token to carry the tag's ref. The developer bumps
+# the version and changelog locally, creates the tag, and pushes main +
+# tag together. This workflow fires on the tag push and publishes.
+
+on:
+  push:
+    tags:
+      - 'pub-v*'
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-sdk.yml
+    with:
+      sdk_path: sdk/dart
+      manifest_file: sdk/dart/pubspec.yaml
+      tag_prefix: pub-v
+      registry: pub.dev
+      changelog_file: sdk/dart/CHANGELOG.md
+      mode: tag-push

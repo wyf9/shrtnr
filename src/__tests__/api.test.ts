@@ -592,6 +592,199 @@ describe("Custom Slugs API", () => {
 
 });
 
+describe("Public slug-mutation API (/_/api/*)", () => {
+  async function setupLinkWithCustomSlug(): Promise<{ linkId: number; slug: string; rawKey: string }> {
+    const linkRes = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com" }),
+      })
+    );
+    const link = await linkRes.json() as any;
+    await SELF.fetch(
+      authed(`/_/admin/api/links/${link.id}/slugs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: "custom" }),
+      })
+    );
+    const keyRes = await SELF.fetch(
+      authed("/_/admin/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Mutator", scope: "create,read" }),
+      })
+    );
+    const { raw_key } = await keyRes.json() as any;
+    return { linkId: link.id, slug: "custom", rawKey: raw_key };
+  }
+
+  it("owner's key can disable their own custom slug", async () => {
+    const { linkId, slug, rawKey } = await setupLinkWithCustomSlug();
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}/disable`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${rawKey}` },
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    expect(body.slug).toBe(slug);
+    expect(body.disabled_at).not.toBeNull();
+  });
+
+  it("owner's key can re-enable their previously-disabled slug", async () => {
+    const { linkId, slug, rawKey } = await setupLinkWithCustomSlug();
+    await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}/disable`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${rawKey}` },
+      })
+    );
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}/enable`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${rawKey}` },
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    expect(body.disabled_at).toBeNull();
+  });
+
+  it("owner's key can remove a custom slug with zero clicks", async () => {
+    const { linkId, slug, rawKey } = await setupLinkWithCustomSlug();
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${rawKey}` },
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    expect(body.removed).toBe(true);
+  });
+
+  it("cannot disable the auto slug (400)", async () => {
+    const { linkId, rawKey } = await setupLinkWithCustomSlug();
+    const linkInfo = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${linkId}`, {
+        headers: { "Authorization": `Bearer ${rawKey}` },
+      })
+    );
+    const info = await linkInfo.json() as any;
+    const autoSlug = info.slugs.find((s: any) => !s.is_custom).slug;
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${autoSlug}/disable`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${rawKey}` },
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 404 for unknown slug on an owned link", async () => {
+    const { linkId, rawKey } = await setupLinkWithCustomSlug();
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/nope/disable`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${rawKey}` },
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 404 for unknown link id", async () => {
+    const keyRes = await SELF.fetch(
+      authed("/_/admin/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Mutator", scope: "create" }),
+      })
+    );
+    const { raw_key } = await keyRes.json() as any;
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/99999/slugs/x/disable`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${raw_key}` },
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("forbids a different identity's key from mutating another user's slug", async () => {
+    // Link + custom slug owned by test@example.com (the default AUTH_HEADER identity).
+    const linkRes = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com" }),
+      })
+    );
+    const link = await linkRes.json() as any;
+    await SELF.fetch(
+      authed(`/_/admin/api/links/${link.id}/slugs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: "owned" }),
+      })
+    );
+
+    // Create an API key as a different identity (other@example.com).
+    const otherAuth = { "Cf-Access-Jwt-Assertion": makeJwt("other@example.com") };
+    const keyRes = await SELF.fetch(
+      new Request("https://shrtnr.test/_/admin/api/keys", {
+        method: "POST",
+        headers: { ...otherAuth, "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Intruder", scope: "create" }),
+      })
+    );
+    const { raw_key } = await keyRes.json() as any;
+
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${link.id}/slugs/owned/disable`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${raw_key}` },
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("read-only key is rejected with 403 from the scope gate", async () => {
+    const linkRes = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com" }),
+      })
+    );
+    const link = await linkRes.json() as any;
+    await SELF.fetch(
+      authed(`/_/admin/api/links/${link.id}/slugs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: "readable" }),
+      })
+    );
+    const keyRes = await SELF.fetch(
+      authed("/_/admin/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Reader", scope: "read" }),
+      })
+    );
+    const { raw_key } = await keyRes.json() as any;
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${link.id}/slugs/readable/disable`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${raw_key}` },
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+});
+
 // ---- Redirect ----
 
 describe("Redirect", () => {
