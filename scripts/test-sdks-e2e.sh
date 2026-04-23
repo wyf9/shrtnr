@@ -72,7 +72,11 @@ echo "==> seeding API key in local D1 (identity=$IDENTITY, scope=create,read)"
 npx --no-install wrangler d1 execute DB --local --command "DELETE FROM api_keys WHERE identity = '$IDENTITY'; INSERT INTO api_keys (identity, title, key_prefix, key_hash, scope, created_at) VALUES ('$IDENTITY', 'e2e', '$PREFIX', '$HASH', 'create,read', $NOW);" >/dev/null
 
 echo "==> starting wrangler dev on :${PORT}"
-yarn dev --port "$PORT" >"$WRANGLER_LOG" 2>&1 &
+# Spawn wrangler directly (not via `yarn dev`) so $! is the real server
+# PID. Going through yarn makes $! yarn's PID; the trap on EXIT then
+# signals yarn, which may or may not forward to wrangler on hard kills,
+# leaving wrangler orphaned on port $PORT + holding the D1 lock.
+npx --no-install wrangler dev --port "$PORT" >"$WRANGLER_LOG" 2>&1 &
 WRANGLER_PID=$!
 
 echo "==> waiting for /_/health"
