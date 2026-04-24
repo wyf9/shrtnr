@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.31.6 (2026-04-24)
+
+- Settings page reorder: "Default Slug Length" now sits directly under "Theme", grouping it with the other setup-phase control. "Default Time Range" and "Analytics Filters" follow below as viewing preferences.
+
 ## 0.31.5 (2026-04-24)
 
 - Two new per-user settings toggles, both on by default: "Filter out bot traffic" and "Filter out self-referrers". When enabled, matching clicks drop out of every analytics surface: dashboard KPIs and sparklines, link-detail stats, bundle analytics, top countries, referrers, access-method counters, and the MCP analytics tools. Turn one off to see raw numbers.
