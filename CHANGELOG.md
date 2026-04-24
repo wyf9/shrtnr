@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.31.5 (2026-04-24)
+
+- Two new per-user settings toggles, both on by default: "Filter out bot traffic" and "Filter out self-referrers". When enabled, matching clicks drop out of every analytics surface: dashboard KPIs and sparklines, link-detail stats, bundle analytics, top countries, referrers, access-method counters, and the MCP analytics tools. Turn one off to see raw numbers.
+- Bot classification was already recorded at ingest but previously filtered nowhere. The self-referrer flag previously only hid referrers from the breakdown panel. With the new toggles these flags now drive the full analytics stack and totals honor the setting too.
+- Ingest path continues to stamp `is_bot` via the User-Agent heuristic and `is_self_referrer` via bare-origin same-host detection; nothing about ingestion changed.
+
 ## 0.31.4 (2026-04-23)
 
 - Settings → Integrations sidebar now shows a single "SDKs" card listing TypeScript, Python, and Dart side by side, each linking to its registry page. Python joins the list; the earlier layout of one full card per language did not scale past two and repeated the same description each time. MCP Server stays its own card.
