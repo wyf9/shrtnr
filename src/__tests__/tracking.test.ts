@@ -600,7 +600,7 @@ describe("self-referrer flagging", () => {
     expect(row!.is_self_referrer).toBe(0);
   });
 
-  it("Sources breakdown excludes bare-origin self-referrers but total_clicks still counts them", async () => {
+  it("with excludeSelfReferrers, sources breakdown and total_clicks both drop bare-origin self-referrers", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "filt1" });
     const slug = link.slugs[0].slug;
     // One self-referrer, one meaningful same-host, one cross-origin.
@@ -620,16 +620,18 @@ describe("self-referrer flagging", () => {
       isSelfReferrer: 0,
     });
 
-    const stats = await ClickRepository.getStats(env.DB, link.id);
-    expect(stats.total_clicks).toBe(3);
+    const stats = await ClickRepository.getStats(env.DB, link.id, undefined, {
+      excludeSelfReferrers: true,
+    });
+    expect(stats.total_clicks).toBe(2);
     const sourceNames = stats.referrers.map((r) => r.name);
     expect(sourceNames).toContain("https://shrtnr.test/_/admin/settings");
     expect(sourceNames).toContain("https://pub.dev/");
     expect(sourceNames).not.toContain("https://shrtnr.test/");
   });
 
-  it("Domains breakdown excludes bare-origin self-referrers", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "filt2" });
+  it("without excludeSelfReferrers, every click is counted (self-referrers included)", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "filt1b" });
     const slug = link.slugs[0].slug;
     await ClickRepository.record(env.DB, slug, {
       referrer: "https://shrtnr.test/",
@@ -643,6 +645,27 @@ describe("self-referrer flagging", () => {
     });
 
     const stats = await ClickRepository.getStats(env.DB, link.id);
+    expect(stats.total_clicks).toBe(2);
+    expect(stats.referrers.map((r) => r.name)).toContain("https://shrtnr.test/");
+  });
+
+  it("with excludeSelfReferrers, domains breakdown drops bare-origin self-referrer hosts", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "filt2" });
+    const slug = link.slugs[0].slug;
+    await ClickRepository.record(env.DB, slug, {
+      referrer: "https://shrtnr.test/",
+      referrerHost: "shrtnr.test",
+      isSelfReferrer: 1,
+    });
+    await ClickRepository.record(env.DB, slug, {
+      referrer: "https://pub.dev/",
+      referrerHost: "pub.dev",
+      isSelfReferrer: 0,
+    });
+
+    const stats = await ClickRepository.getStats(env.DB, link.id, undefined, {
+      excludeSelfReferrers: true,
+    });
     const domainNames = stats.referrer_hosts.map((r) => r.name);
     expect(domainNames).toContain("pub.dev");
     expect(domainNames).not.toContain("shrtnr.test");
