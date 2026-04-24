@@ -27,6 +27,7 @@ export {
   authenticateApiKey,
   getAppSettings,
   updateAppSettings,
+  resolveClickFilters,
 } from "./admin-management";
 
 export {

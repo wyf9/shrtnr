@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ApiKeyRepository, SettingRepository } from "../db";
-import type { ApiKeyRow } from "../db";
+import type { ApiKeyRow, ClickFilters } from "../db";
 import { DEFAULT_SLUG_LENGTH } from "../constants";
 import { validateSlugLength } from "../slugs";
 import { Env, TimelineRange } from "../types";
@@ -82,30 +82,52 @@ export type AppSettings = {
   theme: string | null;
   lang: string | null;
   default_range: TimelineRange | null;
+  filter_bots: boolean;
+  filter_self_referrers: boolean;
 };
+
+// Stored as "true" / "false" strings in the key-value settings table; absent row
+// means default-on so fresh installs exclude bots and self-referrers everywhere.
+function parseBoolSetting(v: string | null, defaultValue: boolean): boolean {
+  if (v === null) return defaultValue;
+  if (v === "true") return true;
+  if (v === "false") return false;
+  return defaultValue;
+}
 
 export async function getAppSettings(
   env: Env,
   identity: string,
 ): Promise<ServiceResult<AppSettings>> {
-  const [slugLength, theme, lang, defaultRange] = await Promise.all([
+  const [slugLength, theme, lang, defaultRange, filterBots, filterSelfReferrers] = await Promise.all([
     SettingRepository.get(env.DB, identity, "slug_default_length"),
     SettingRepository.get(env.DB, identity, "theme"),
     SettingRepository.get(env.DB, identity, "lang"),
     SettingRepository.get(env.DB, identity, "default_range"),
+    SettingRepository.get(env.DB, identity, "filter_bots"),
+    SettingRepository.get(env.DB, identity, "filter_self_referrers"),
   ]);
   return ok({
     slug_default_length: parseInt(slugLength ?? String(DEFAULT_SLUG_LENGTH), 10),
     theme: theme ?? null,
     lang: lang ?? null,
     default_range: isValidRange(defaultRange) ? defaultRange : null,
+    filter_bots: parseBoolSetting(filterBots, true),
+    filter_self_referrers: parseBoolSetting(filterSelfReferrers, true),
   });
 }
 
 export async function updateAppSettings(
   env: Env,
   identity: string,
-  body: { slug_default_length?: number; theme?: string; lang?: string; default_range?: TimelineRange | null | "" },
+  body: {
+    slug_default_length?: number;
+    theme?: string;
+    lang?: string;
+    default_range?: TimelineRange | null | "";
+    filter_bots?: boolean;
+    filter_self_referrers?: boolean;
+  },
 ): Promise<ServiceResult<AppSettings>> {
   if (body.slug_default_length !== undefined) {
     const err = validateSlugLength(body.slug_default_length);
@@ -127,6 +149,31 @@ export async function updateAppSettings(
       return fail(400, `default_range must be one of: ${VALID_RANGES.join(", ")}`);
     }
   }
+  if (body.filter_bots !== undefined) {
+    if (typeof body.filter_bots !== "boolean") {
+      return fail(400, "filter_bots must be a boolean");
+    }
+    await SettingRepository.set(env.DB, identity, "filter_bots", String(body.filter_bots));
+  }
+  if (body.filter_self_referrers !== undefined) {
+    if (typeof body.filter_self_referrers !== "boolean") {
+      return fail(400, "filter_self_referrers must be a boolean");
+    }
+    await SettingRepository.set(env.DB, identity, "filter_self_referrers", String(body.filter_self_referrers));
+  }
 
   return getAppSettings(env, identity);
+}
+
+/**
+ * Resolve the viewer's analytics filter preferences into a ClickFilters object
+ * ready to pass to the repository layer.
+ */
+export async function resolveClickFilters(env: Env, identity: string): Promise<ClickFilters> {
+  const result = await getAppSettings(env, identity);
+  if (!result.ok) return { excludeBots: true, excludeSelfReferrers: true };
+  return {
+    excludeBots: result.data.filter_bots,
+    excludeSelfReferrers: result.data.filter_self_referrers,
+  };
 }

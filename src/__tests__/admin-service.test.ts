@@ -101,4 +101,55 @@ describe("admin-management service", () => {
       if (settings.ok) expect(settings.data.default_range).toBe(r);
     }
   });
+
+  it("returns filter_bots=true and filter_self_referrers=true by default", async () => {
+    const settings = await getAppSettings(env as any, TEST_IDENTITY);
+    expect(settings.ok).toBe(true);
+    if (settings.ok) {
+      expect(settings.data.filter_bots).toBe(true);
+      expect(settings.data.filter_self_referrers).toBe(true);
+    }
+  });
+
+  it("persists filter_bots when toggled off", async () => {
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { filter_bots: false });
+    expect(updated.ok).toBe(true);
+
+    const settings = await getAppSettings(env as any, TEST_IDENTITY);
+    expect(settings.ok).toBe(true);
+    if (settings.ok) expect(settings.data.filter_bots).toBe(false);
+  });
+
+  it("persists filter_self_referrers when toggled off", async () => {
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { filter_self_referrers: false });
+    expect(updated.ok).toBe(true);
+
+    const settings = await getAppSettings(env as any, TEST_IDENTITY);
+    expect(settings.ok).toBe(true);
+    if (settings.ok) expect(settings.data.filter_self_referrers).toBe(false);
+  });
+
+  it("round-trips filter_bots back to true after toggling off and on", async () => {
+    await updateAppSettings(env as any, TEST_IDENTITY, { filter_bots: false });
+    await updateAppSettings(env as any, TEST_IDENTITY, { filter_bots: true });
+
+    const settings = await getAppSettings(env as any, TEST_IDENTITY);
+    if (settings.ok) expect(settings.data.filter_bots).toBe(true);
+  });
+
+  it("scopes filter settings by identity", async () => {
+    await updateAppSettings(env as any, "user-a@example.com", { filter_bots: false });
+    await updateAppSettings(env as any, "user-b@example.com", { filter_bots: true });
+
+    const a = await getAppSettings(env as any, "user-a@example.com");
+    const b = await getAppSettings(env as any, "user-b@example.com");
+    if (a.ok) expect(a.data.filter_bots).toBe(false);
+    if (b.ok) expect(b.data.filter_bots).toBe(true);
+  });
+
+  it("rejects non-boolean filter_bots", async () => {
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, { filter_bots: "nope" as any });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(400);
+  });
 });

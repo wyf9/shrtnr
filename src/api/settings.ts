@@ -13,7 +13,14 @@ export async function handleGetSettings(env: Env, identity: string): Promise<Res
 }
 
 export async function handleUpdateSettings(request: Request, env: Env, identity: string): Promise<Response> {
-  let body: { slug_default_length?: number; theme?: string; lang?: string; default_range?: string | null };
+  let body: {
+    slug_default_length?: number;
+    theme?: string;
+    lang?: string;
+    default_range?: string | null;
+    filter_bots?: boolean;
+    filter_self_referrers?: boolean;
+  };
 
   try {
     body = await request.json();
