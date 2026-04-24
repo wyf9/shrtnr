@@ -94,6 +94,25 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
 
           <div class="bento-card">
             <div class="form-group">
+              <label class="form-label">{t("settings.slugLength")}</label>
+              <div class="slug-length-row">
+                <input
+                  class="form-input"
+                  type="number"
+                  id="slug-length-input"
+                  min={String(MIN_SLUG_LENGTH)}
+                  value={String(slugLength)}
+                />
+                <button class="btn btn-secondary btn-sm" onclick="saveSettings()">
+                  {t("settings.save")}
+                </button>
+              </div>
+              <div class="form-hint" id="slug-combo-hint">{comboHint}</div>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="form-group">
               <label class="form-label">{t("settings.defaultRange")}</label>
               <div class="form-select">
                 <select
@@ -150,25 +169,6 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   <span class="toggle-thumb"></span>
                 </label>
               </div>
-            </div>
-          </div>
-
-          <div class="bento-card">
-            <div class="form-group">
-              <label class="form-label">{t("settings.slugLength")}</label>
-              <div class="slug-length-row">
-                <input
-                  class="form-input"
-                  type="number"
-                  id="slug-length-input"
-                  min={String(MIN_SLUG_LENGTH)}
-                  value={String(slugLength)}
-                />
-                <button class="btn btn-secondary btn-sm" onclick="saveSettings()">
-                  {t("settings.save")}
-                </button>
-              </div>
-              <div class="form-hint" id="slug-combo-hint">{comboHint}</div>
             </div>
           </div>
 
