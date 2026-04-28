@@ -226,12 +226,15 @@ app.get("/_/admin/dashboard", async (c) => {
 
 app.get("/_/admin/links", async (c) => {
   const identity = c.var.identity;
-  const { theme, slugLength, t, lang, translations } = await getPageData(c, identity);
+  const { theme, slugLength, t, lang, translations, defaultRange } = await getPageData(c, identity);
   const searchQuery = c.req.query("search") || "";
   const filters = await resolveClickFilters(c.env, identity);
+  const validRanges = new Set<TimelineRange>(["24h", "7d", "30d", "90d", "1y", "all"]);
+  const rangeParam = c.req.query("range");
+  const range = (validRanges.has(rangeParam as TimelineRange) ? rangeParam : (defaultRange ?? "30d")) as TimelineRange;
   const linksResult = searchQuery
-    ? await searchLinks(c.env, searchQuery, { includeOwner: true, withDeltaRange: "30d", filters })
-    : await listLinks(c.env, { withDeltaRange: "30d", filters });
+    ? await searchLinks(c.env, searchQuery, { includeOwner: true, withDeltaRange: range, filters, range })
+    : await listLinks(c.env, { withDeltaRange: range, filters, range });
   const links = linksResult.ok ? linksResult.data : [];
   const sort = c.req.query("sort") || "recent";
   const page = parseInt(c.req.query("page") || "1", 10) || 1;
@@ -251,6 +254,7 @@ app.get("/_/admin/links", async (c) => {
         page={page}
         perPage={perPage}
         filter={filter}
+        range={range}
         searchQuery={searchQuery}
         t={t}
         lang={lang}

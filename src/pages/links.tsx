@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { FC } from "hono/jsx";
-import type { LinkWithSlugs } from "../types";
+import type { LinkWithSlugs, TimelineRange } from "../types";
 import type { TranslateFn } from "../i18n";
 import { Delta } from "../components/delta";
+import { RangePicker } from "../components/range-picker";
 import { escHtml } from "../escape";
 import { fmtNumber } from "../i18n/format";
 
@@ -25,6 +26,7 @@ type Props = {
   page: number;
   perPage: number;
   filter: LinksFilter;
+  range: TimelineRange;
   searchQuery?: string;
   t: TranslateFn;
   lang: string;
@@ -36,6 +38,7 @@ export const LinksPage: FC<Props> = ({
   page,
   perPage,
   filter,
+  range,
   searchQuery,
   t,
   lang,
@@ -71,6 +74,7 @@ export const LinksPage: FC<Props> = ({
       page: String(currentPage),
       per_page: String(perPage),
       filter,
+      range,
       ...overrides,
     };
     for (const [k, v] of Object.entries(next)) {
@@ -92,11 +96,25 @@ export const LinksPage: FC<Props> = ({
     { key: "all", labelKey: "links.filterAll", icon: "all_inclusive" },
   ];
 
+  const rangeLabel = range === "all" ? t("range.long.all") : range;
+  const preserveParams: Record<string, string | undefined> = {
+    sort,
+    filter,
+    page: String(currentPage),
+    per_page: String(perPage),
+  };
+  if (searchQuery) preserveParams.search = searchQuery;
+
   return (
     <>
-      <div class="page-header">
-        <div class="page-title">{t("links.title")}</div>
-        <div class="page-subtitle">{t("links.subtitle")}</div>
+      <div class="page-header topbar">
+        <div>
+          <div class="page-title">{t("links.title")}</div>
+          <div class="page-subtitle">{t("links.subtitle")}</div>
+        </div>
+        <div class="topbar-actions">
+          <RangePicker current={range} basePath="/_/admin/links" preserveParams={preserveParams} />
+        </div>
       </div>
 
       <div class="hero-input-wrap">
@@ -174,7 +192,7 @@ export const LinksPage: FC<Props> = ({
                   <tr>
                     <th>{t("links.colLink")}</th>
                     <th>{t("links.colShort")}</th>
-                    <th class="num">{t("links.colClicksRange", { range: "30d" })}</th>
+                    <th class="num">{t("links.colClicksRange", { range: rangeLabel })}</th>
                     <th>{t("links.colCreated")}</th>
                   </tr>
                 </thead>
@@ -220,7 +238,7 @@ export const LinksPage: FC<Props> = ({
                             </span>
                           )}
                         </td>
-                        <td data-label={t("links.colClicksRange", { range: "30d" })} class="col-clicks">
+                        <td data-label={t("links.colClicksRange", { range: rangeLabel })} class="col-clicks">
                           <span class="col-clicks-cell">
                             <span class="col-clicks-value">{fmtNumber(link.total_clicks, lang)}</span>
                           </span>

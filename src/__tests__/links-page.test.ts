@@ -60,6 +60,57 @@ describe("Links listing page", () => {
     expect(html).toMatch(/Clicks\s*\(30d\)/i);
   });
 
+  it("renders a range picker linking to the same path", async () => {
+    const res = await SELF.fetch(req("/_/admin/links"));
+    const html = await res.text();
+    expect(html).toMatch(/class="range-picker"/);
+    expect(html).toMatch(/href="\/_\/admin\/links\?[^"]*range=7d/);
+    expect(html).toMatch(/href="\/_\/admin\/links\?[^"]*range=all/);
+  });
+
+  it("the range query param overrides the default and updates the column header", async () => {
+    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const res = await SELF.fetch(req("/_/admin/links?range=7d"));
+    const html = await res.text();
+    expect(html).toMatch(/Clicks\s*\(7d\)/i);
+  });
+
+  it("the displayed click total reflects the selected range", async () => {
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
+    const slug = link.slugs[0].slug;
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
+    ).bind(slug, now - 60).run();
+    await env.DB.prepare(
+      "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
+    ).bind(slug, now - 60 * 86400).run();
+
+    const all = await SELF.fetch(req("/_/admin/links?range=all"));
+    const allHtml = await all.text();
+    const allMatch = allHtml.match(/class="col-clicks-value">([^<]+)</);
+    expect(allMatch?.[1]).toBe("2");
+
+    const last7 = await SELF.fetch(req("/_/admin/links?range=7d"));
+    const last7Html = await last7.text();
+    const last7Match = last7Html.match(/class="col-clicks-value">([^<]+)</);
+    expect(last7Match?.[1]).toBe("1");
+  });
+
+  it("changing filter or sort preserves the active range in URLs", async () => {
+    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const res = await SELF.fetch(req("/_/admin/links?range=7d"));
+    const html = await res.text();
+    // Param order is implementation-defined; assert that range=7d co-occurs with each navigation link.
+    const sortHrefs = [...html.matchAll(/href="(\/_\/admin\/links\?[^"]*sort=popular[^"]*)"/g)].map((m) => m[1]);
+    const filterHrefs = [...html.matchAll(/href="(\/_\/admin\/links\?[^"]*filter=disabled[^"]*)"/g)].map((m) => m[1]);
+    expect(sortHrefs.some((h) => h.includes("range=7d"))).toBe(true);
+    expect(filterHrefs.some((h) => h.includes("range=7d"))).toBe(true);
+  });
+
   it("delta pct renders inside the created column, not the clicks column", async () => {
     const link = await LinkRepository.create(env.DB, {
       url: "https://example.com",
