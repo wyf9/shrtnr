@@ -58,6 +58,29 @@ describe("LinkRepository.create", () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     expect(link.created_via).toBe("app");
   });
+
+  it("rolls back the link insert when the slug insert fails", async () => {
+    // Pre-create a link so the slug "taken" already exists.
+    await LinkRepository.create(env.DB, { url: "https://existing.com", slug: "taken" });
+
+    const before = await env.DB.prepare("SELECT COUNT(*) as c FROM links").first<{ c: number }>();
+
+    // Second create with a colliding slug must fail (UNIQUE on slugs.slug)
+    // AND must not commit the link row, otherwise we get an orphan link
+    // with no auto-generated slug.
+    await expect(
+      LinkRepository.create(env.DB, { url: "https://other.com", slug: "taken" }),
+    ).rejects.toThrow();
+
+    const after = await env.DB.prepare("SELECT COUNT(*) as c FROM links").first<{ c: number }>();
+    expect(after!.c).toBe(before!.c);
+
+    const orphan = await env.DB
+      .prepare("SELECT id FROM links WHERE url = ?")
+      .bind("https://other.com")
+      .first();
+    expect(orphan).toBeNull();
+  });
 });
 
 describe("LinkRepository.list", () => {

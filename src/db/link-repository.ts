@@ -71,17 +71,19 @@ export class LinkRepository {
   ): Promise<LinkWithSlugs> {
     const now = Math.floor(Date.now() / 1000);
 
-    const linkResult = await db
-      .prepare("INSERT INTO links (url, label, created_at, expires_at, created_via, created_by) VALUES (?, ?, ?, ?, ?, ?)")
-      .bind(data.url, data.label ?? null, now, data.expiresAt ?? null, data.createdVia ?? "app", data.createdBy ?? "anonymous")
-      .run();
+    // Both inserts run inside a single D1 batch so a failed slug insert
+    // (e.g. UNIQUE collision from a concurrent create) rolls back the link
+    // row instead of leaving an orphan with no auto-generated slug.
+    const [linkResult] = await db.batch([
+      db
+        .prepare("INSERT INTO links (url, label, created_at, expires_at, created_via, created_by) VALUES (?, ?, ?, ?, ?, ?)")
+        .bind(data.url, data.label ?? null, now, data.expiresAt ?? null, data.createdVia ?? "app", data.createdBy ?? "anonymous"),
+      db
+        .prepare("INSERT INTO slugs (link_id, slug, is_custom, is_primary, created_at) VALUES (last_insert_rowid(), ?, 0, 1, ?)")
+        .bind(data.slug, now),
+    ]);
 
     const linkId = linkResult.meta.last_row_id as number;
-
-    await db
-      .prepare("INSERT INTO slugs (link_id, slug, is_custom, is_primary, created_at) VALUES (?, ?, 0, 1, ?)")
-      .bind(linkId, data.slug, now)
-      .run();
 
     return (await LinkRepository.getById(db, linkId))!;
   }
