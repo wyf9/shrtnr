@@ -264,11 +264,12 @@ app.get("/_/admin/links/:id", async (c) => {
   if (isNaN(id)) return notFoundResponse();
   const identity = c.var.identity;
   const { theme, t, lang, translations, defaultRange } = await getPageData(c, identity);
-  const linkResult = await getLink(c.env, id);
-  if (!linkResult.ok) return notFoundResponse();
   const initialRange: TimelineRange = defaultRange ?? "all";
+  const filters = await resolveClickFilters(c.env, identity);
+  const linkResult = await getLink(c.env, id, { filters, range: initialRange });
+  if (!linkResult.ok) return notFoundResponse();
   const [analyticsResult, bundlesResult] = await Promise.all([
-    getLinkAnalytics(c.env, id, undefined, identity),
+    getLinkAnalytics(c.env, id, initialRange, identity),
     listBundlesForLink(c.env, id, identity),
   ]);
   const analytics = analyticsResult.ok ? analyticsResult.data : {
