@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.32.0 (2026-04-28)
+
+- Analytics filters and time range now apply consistently across every UI surface. Previously the dashboard's "Recent Links" card showed unfiltered lifetime totals while the rest of the dashboard honored the user's bot-filter and self-referrer settings, so the same link could read 9 there and 3 on its detail page. Click counts everywhere (recent links, links list, link detail slug rows, bundle list cards, bundle detail) now resolve through a single shared filter+range subquery.
+- The links list page (`/_/admin/links`) and bundles list page (`/_/admin/bundles`) gain a time-range selector matching the dashboard. The selected range scopes the displayed click totals, sparklines, and trend deltas, and is preserved across filter and sort navigation. Both pages fall back to the user's `default_range` setting when no `?range=` is given.
+- Link detail server render now matches the client-side hydration. Before, the page first painted with all-time unfiltered numbers and then flickered to the filtered/range-bounded numbers a tick later. The route now resolves the user's filters and `default_range` once and passes them into both the analytics call and the slug breakdown so the first paint is correct.
+- Public API time-range contract: `GET /_/api/links/:id/analytics` and `GET /_/api/bundles/:id/analytics` now default to all-time when no `?range=` is provided and accept the optional override. The previous bundle endpoint defaulted to 30d. The public API also returns raw click counts and ignores the API key owner's filter preferences, so SDK consumers get unfiltered data unless they post-process. Admin-side analytics are unchanged.
+- MCP analytics tools mirror the admin UI defaults. When a tool is called without a range, it falls back to the user's `default_range` setting (then 30d). Every analytics tool response now carries a `range_used` field so the requesting AI can tell which window the numbers cover.
+
 ## 0.31.6 (2026-04-24)
 
 - Settings page reorder: "Default Slug Length" now sits directly under "Theme", grouping it with the other setup-phase control. "Default Time Range" and "Analytics Filters" follow below as viewing preferences.
