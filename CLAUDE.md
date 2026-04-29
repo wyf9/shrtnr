@@ -39,7 +39,7 @@ Each SDK records the SHA-256 of the OpenAPI spec it was last regenerated against
 |---|---|---|
 | TypeScript | `sdk/typescript/package.json` | top-level `x-spec-hash` |
 | Python | `sdk/python/pyproject.toml` | `[tool.shrtnr]` `spec_hash` |
-| Dart | `sdk/dart/pubspec.yaml` | top-level `x-spec-hash` |
+| Dart | `sdk/dart/pubspec.yaml` | leading comment `# x-spec-hash:` (top-level keys would draw a pana warning) |
 
 Spec changes (edits to `src/api/router.ts`, `src/api/schemas.ts`, or any resource sub-app affecting the generated doc) stale all three hashes. CI enforces via `.github/workflows/sdk-spec-drift.yml`.
 

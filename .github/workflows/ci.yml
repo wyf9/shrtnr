@@ -148,7 +148,8 @@ jobs:
         env:
           CURRENT: ${{ steps.current.outputs.hash }}
         run: |
-          recorded=$(grep '^x-spec-hash:' sdk/dart/pubspec.yaml | awk '{print $2}' | sed 's/^sha256://')
+          # Hash is stored as a leading comment to avoid a pana score deduction for unknown top-level keys.
+          recorded=$(grep '^# x-spec-hash:' sdk/dart/pubspec.yaml | awk '{print $3}' | sed 's/^sha256://')
           if [ "$recorded" != "$CURRENT" ]; then
             echo "::error file=sdk/dart/pubspec.yaml::Dart SDK x-spec-hash is stale"
             echo "  recorded: sha256:$recorded"
