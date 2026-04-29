@@ -6,6 +6,7 @@ import pkg from "../../package.json";
 import { formatZodError } from "./response";
 import { scalarResponse } from "./scalar";
 import type { HonoEnv } from "./hono-env";
+import { linksApp } from "./links";
 
 export const apiRouter = new OpenAPIHono<HonoEnv>({
   defaultHook: (result, c) => {
@@ -39,3 +40,5 @@ apiRouter.doc31("/openapi.json", {
 });
 
 apiRouter.get("/docs", (_c) => scalarResponse());
+
+apiRouter.route("/links", linksApp);

@@ -44,6 +44,7 @@ import { DEFAULT_SLUG_LENGTH } from "./constants";
 import { createTranslateFn, getTranslations } from "./i18n";
 import { handleHealth } from "./api/health";
 import {
+  handleGetLinkBySlug,
   handleListLinks,
   handleGetLink,
   handleCreateLink,
@@ -51,7 +52,6 @@ import {
   handleDisableLink,
   handleEnableLink,
   handleDeleteLink,
-  handleGetLinkBySlug,
 } from "./api/links";
 import {
   handleAddCustomSlug,
@@ -512,27 +512,6 @@ app.use("/_/api/*", async (c, next) => {
 
 // ---- Public API routes (link management only) ----
 
-app.post("/_/api/links", (c) => {
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  const via = c.req.header("X-Client") === "sdk" ? "sdk" : "api";
-  return handleCreateLink(c.req.raw, c.env, via, c.var.auth.identity, c.executionCtx);
-});
-app.get("/_/api/links", (c) => {
-  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
-  return handleListLinks(c.env, c.req.query("owner") || undefined);
-});
-app.get("/_/api/links/:id", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
-  return handleGetLink(c.env, id);
-});
-app.put("/_/api/links/:id", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleUpdateLink(c.req.raw, c.env, id);
-});
 app.get("/_/api/links/:id/analytics", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
@@ -544,48 +523,6 @@ app.get("/_/api/links/:id/timeline", (c) => {
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
   return handlePublicLinkTimeline(c.env, id, c.req.query("range"));
-});
-app.post("/_/api/links/:id/disable", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleDisableLink(c.env, id, c.var.auth.identity);
-});
-app.post("/_/api/links/:id/enable", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleEnableLink(c.env, id, c.var.auth.identity);
-});
-app.delete("/_/api/links/:id", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleDeleteLink(c.env, id, c.var.auth.identity);
-});
-app.post("/_/api/links/:id/slugs", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleAddCustomSlug(c.req.raw, c.env, id);
-});
-app.post("/_/api/links/:id/slugs/:slug/disable", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleDisableSlug(c.env, id, c.req.param("slug"), c.var.auth.identity);
-});
-app.post("/_/api/links/:id/slugs/:slug/enable", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleEnableSlug(c.env, id, c.req.param("slug"), c.var.auth.identity);
-});
-app.delete("/_/api/links/:id/slugs/:slug", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleRemoveSlug(c.env, id, c.req.param("slug"), c.var.auth.identity);
 });
 app.get("/_/api/links/:id/qr", (c) => {
   const id = parseInt(c.req.param("id"), 10);

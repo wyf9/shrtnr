@@ -1,7 +1,7 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-import { Env } from "../types";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import {
   autoLabelLink,
   createLink,
@@ -13,9 +13,323 @@ import {
   listLinks,
   listLinksByOwner,
   updateLink,
+  addCustomSlugToLink,
+  disableSlug,
+  enableSlug,
+  removeSlug,
 } from "../services/link-management";
 import { fetchPageTitle } from "../title-fetch";
-import { json, fromServiceResult } from "./response";
+import { fromServiceResult, json } from "./response";
+import { requireScope } from "./scope";
+import type { Env } from "../types";
+import {
+  AddSlugBodySchema,
+  CreateLinkBodySchema,
+  ErrorResponseSchema,
+  IdParamSchema,
+  LinkSchema,
+  SlugParamSchema,
+  SlugSchema,
+  UpdateLinkBodySchema,
+  paramHook,
+} from "./schemas";
+import type { HonoEnv } from "./hono-env";
+
+export const linksApp = new OpenAPIHono<HonoEnv>();
+
+const errorResponses = {
+  400: { description: "Validation error.", content: { "application/json": { schema: ErrorResponseSchema } } },
+  401: { description: "Missing or invalid bearer token.", content: { "application/json": { schema: ErrorResponseSchema } } },
+  403: { description: "Scope insufficient.", content: { "application/json": { schema: ErrorResponseSchema } } },
+  404: { description: "Not found.", content: { "application/json": { schema: ErrorResponseSchema } } },
+  409: { description: "Conflict.", content: { "application/json": { schema: ErrorResponseSchema } } },
+  500: { description: "Server error.", content: { "application/json": { schema: ErrorResponseSchema } } },
+};
+
+// ---- POST / (create link) ----
+
+const createLinkRoute = createRoute({
+  method: "post",
+  path: "/",
+  tags: ["links"],
+  summary: "Create a short link",
+  middleware: [requireScope("create")] as const,
+  request: {
+    body: { content: { "application/json": { schema: CreateLinkBodySchema } } },
+  },
+  responses: {
+    200: { description: "Existing link returned (duplicate URL).", content: { "application/json": { schema: LinkSchema } } },
+    201: { description: "Created.", content: { "application/json": { schema: LinkSchema } } },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+    409: errorResponses[409],
+    500: errorResponses[500],
+  },
+});
+
+linksApp.openapi(createLinkRoute, async (c) => {
+  const body = c.req.valid("json") as { url: string; label?: string; slug_length?: number; expires_at?: number; allow_duplicate?: boolean };
+  const via = c.req.header("X-Client") === "sdk" ? "sdk" : "api";
+  const result = await createLink(c.env, { ...body, created_via: via, created_by: c.var.auth.identity });
+  if (result.ok && result.status === 201 && !body.label) {
+    c.executionCtx.waitUntil(autoLabelLink(c.env.DB, result.data.id, result.data.url, fetchPageTitle));
+  }
+  return fromServiceResult(result) as never;
+});
+
+// ---- GET / (list links) ----
+
+const listLinksRoute = createRoute({
+  method: "get",
+  path: "/",
+  tags: ["links"],
+  summary: "List all short links",
+  middleware: [requireScope("read")] as const,
+  request: {
+    query: z.object({
+      owner: z.string().optional().openapi({ description: "Filter to links created by this owner identity." }),
+    }),
+  },
+  responses: {
+    200: { description: "OK.", content: { "application/json": { schema: z.array(LinkSchema) } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    500: errorResponses[500],
+  },
+});
+
+linksApp.openapi(listLinksRoute, async (c) => {
+  const { owner } = c.req.valid("query") as { owner?: string };
+  const result = owner ? await listLinksByOwner(c.env, owner) : await listLinks(c.env);
+  return fromServiceResult(result) as never;
+});
+
+// ---- GET /:id (get link) ----
+
+const getLinkRoute = createRoute({
+  method: "get",
+  path: "/{id}",
+  tags: ["links"],
+  summary: "Get a link with click stats",
+  middleware: [requireScope("read")] as const,
+  request: { params: IdParamSchema },
+  responses: {
+    200: { description: "OK.", content: { "application/json": { schema: LinkSchema } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+    500: errorResponses[500],
+  },
+});
+
+linksApp.openapi(getLinkRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  return fromServiceResult(await getLink(c.env, id)) as never;
+}, paramHook);
+
+// ---- PUT /:id (update link) ----
+
+const updateLinkRoute = createRoute({
+  method: "put",
+  path: "/{id}",
+  tags: ["links"],
+  summary: "Update a link's URL, label, or expiry",
+  middleware: [requireScope("create")] as const,
+  request: {
+    params: IdParamSchema,
+    body: { content: { "application/json": { schema: UpdateLinkBodySchema } } },
+  },
+  responses: {
+    200: { description: "Updated.", content: { "application/json": { schema: LinkSchema } } },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+linksApp.openapi(updateLinkRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  const body = c.req.valid("json") as { url?: string; label?: string | null; expires_at?: number | null };
+  return fromServiceResult(await updateLink(c.env, id, body)) as never;
+}, paramHook);
+
+// ---- POST /:id/disable ----
+
+const disableLinkRoute = createRoute({
+  method: "post",
+  path: "/{id}/disable",
+  tags: ["links"],
+  summary: "Disable a link",
+  middleware: [requireScope("create")] as const,
+  request: { params: IdParamSchema },
+  responses: {
+    200: { description: "Disabled.", content: { "application/json": { schema: LinkSchema } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+linksApp.openapi(disableLinkRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  return fromServiceResult(await disableLink(c.env, id, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- POST /:id/enable ----
+
+const enableLinkRoute = createRoute({
+  method: "post",
+  path: "/{id}/enable",
+  tags: ["links"],
+  summary: "Re-enable a disabled link",
+  middleware: [requireScope("create")] as const,
+  request: { params: IdParamSchema },
+  responses: {
+    200: { description: "Enabled.", content: { "application/json": { schema: LinkSchema } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+linksApp.openapi(enableLinkRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  return fromServiceResult(await enableLink(c.env, id, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- DELETE /:id ----
+
+const deleteLinkRoute = createRoute({
+  method: "delete",
+  path: "/{id}",
+  tags: ["links"],
+  summary: "Delete a link permanently",
+  middleware: [requireScope("create")] as const,
+  request: { params: IdParamSchema },
+  responses: {
+    200: { description: "Deleted.", content: { "application/json": { schema: z.object({ deleted: z.boolean() }) } } },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+linksApp.openapi(deleteLinkRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  return fromServiceResult(await deleteLink(c.env, id, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- POST /:id/slugs (add custom slug) ----
+
+const addSlugRoute = createRoute({
+  method: "post",
+  path: "/{id}/slugs",
+  tags: ["slugs"],
+  summary: "Add a custom slug to a link",
+  middleware: [requireScope("create")] as const,
+  request: {
+    params: IdParamSchema,
+    body: { content: { "application/json": { schema: AddSlugBodySchema } } },
+  },
+  responses: {
+    201: { description: "Slug added.", content: { "application/json": { schema: SlugSchema } } },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+    409: errorResponses[409],
+  },
+});
+
+linksApp.openapi(addSlugRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  const { slug } = c.req.valid("json") as { slug: string };
+  return fromServiceResult(await addCustomSlugToLink(c.env, id, { slug })) as never;
+}, paramHook);
+
+// ---- Slug-scoped param schema ----
+
+const LinkSlugParamsSchema = IdParamSchema
+  .extend({ slug: SlugParamSchema.shape.slug })
+  .openapi("LinkSlugParams");
+
+// ---- POST /:id/slugs/:slug/disable ----
+
+const disableSlugRoute = createRoute({
+  method: "post",
+  path: "/{id}/slugs/{slug}/disable",
+  tags: ["slugs"],
+  summary: "Disable a specific slug on a link",
+  middleware: [requireScope("create")] as const,
+  request: { params: LinkSlugParamsSchema },
+  responses: {
+    200: { description: "Disabled.", content: { "application/json": { schema: SlugSchema } } },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+linksApp.openapi(disableSlugRoute, async (c) => {
+  const { id, slug } = c.req.valid("param") as { id: number; slug: string };
+  return fromServiceResult(await disableSlug(c.env, id, slug, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- POST /:id/slugs/:slug/enable ----
+
+const enableSlugRoute = createRoute({
+  method: "post",
+  path: "/{id}/slugs/{slug}/enable",
+  tags: ["slugs"],
+  summary: "Re-enable a disabled slug on a link",
+  middleware: [requireScope("create")] as const,
+  request: { params: LinkSlugParamsSchema },
+  responses: {
+    200: { description: "Enabled.", content: { "application/json": { schema: SlugSchema } } },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+linksApp.openapi(enableSlugRoute, async (c) => {
+  const { id, slug } = c.req.valid("param") as { id: number; slug: string };
+  return fromServiceResult(await enableSlug(c.env, id, slug, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- DELETE /:id/slugs/:slug ----
+
+const removeSlugRoute = createRoute({
+  method: "delete",
+  path: "/{id}/slugs/{slug}",
+  tags: ["slugs"],
+  summary: "Remove a custom slug from a link",
+  middleware: [requireScope("create")] as const,
+  request: { params: LinkSlugParamsSchema },
+  responses: {
+    200: { description: "Removed.", content: { "application/json": { schema: z.object({ removed: z.boolean() }) } } },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+linksApp.openapi(removeSlugRoute, async (c) => {
+  const { id, slug } = c.req.valid("param") as { id: number; slug: string };
+  return fromServiceResult(await removeSlug(c.env, id, slug, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- Named exports consumed by admin routes in index.tsx (pending migration in later tasks) ----
+
+export async function handleGetLinkBySlug(env: Env, slug: string): Promise<Response> {
+  return fromServiceResult(await getLinkBySlug(env, slug.toLowerCase()));
+}
 
 export async function handleListLinks(env: Env, owner?: string): Promise<Response> {
   if (owner) return fromServiceResult(await listLinksByOwner(env, owner));
@@ -24,10 +338,6 @@ export async function handleListLinks(env: Env, owner?: string): Promise<Respons
 
 export async function handleGetLink(env: Env, id: number): Promise<Response> {
   return fromServiceResult(await getLink(env, id));
-}
-
-export async function handleGetLinkBySlug(env: Env, slug: string): Promise<Response> {
-  return fromServiceResult(await getLinkBySlug(env, slug.toLowerCase()));
 }
 
 export async function handleCreateLink(request: Request, env: Env, createdVia?: string, createdBy?: string, ctx?: ExecutionContext): Promise<Response> {
