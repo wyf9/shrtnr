@@ -44,7 +44,6 @@ import { DEFAULT_SLUG_LENGTH } from "./constants";
 import { createTranslateFn, getTranslations } from "./i18n";
 import { handleHealth } from "./api/health";
 import {
-  handleGetLinkBySlug,
   handleListLinks,
   handleGetLink,
   handleCreateLink,
@@ -530,11 +529,6 @@ app.get("/_/api/links/:id/qr", (c) => {
   if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
   return handleLinkQr(c.req.raw, c.env, id);
 });
-app.get("/_/api/slugs/:slug", (c) => {
-  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
-  return handleGetLinkBySlug(c.env, c.req.param("slug"));
-});
-
 // Public API: bundles
 app.get("/_/api/bundles", (c) => {
   if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
