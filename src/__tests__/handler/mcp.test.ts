@@ -72,6 +72,27 @@ describe("MCP landing page", () => {
     const body = await res.text();
     expect(body).toContain("shrtnr");
   });
+
+  it("returns text/html content type", async () => {
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/mcp", {
+        headers: { Accept: "text/html" },
+      }),
+    );
+    expect(res.headers.get("Content-Type")).toBe("text/html;charset=UTF-8");
+  });
+
+  it("sets a no-cache Cache-Control header so inline styles refresh on each deploy", async () => {
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/mcp", {
+        headers: { Accept: "text/html" },
+      }),
+    );
+    const cacheControl = res.headers.get("Cache-Control");
+    expect(cacheControl).toBeTruthy();
+    expect(cacheControl).toContain("no-cache");
+    expect(cacheControl).toContain("must-revalidate");
+  });
 });
 
 // ---- MCP transport in dev mode ----
