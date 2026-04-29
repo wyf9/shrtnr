@@ -59,7 +59,7 @@ the wire format exactly and removes the timezone handling from the SDK.
 **`ClickStats` expanded.** New fields from the spec: `referrerHosts`, `linkModes`, `channels`,
 `numCountries`, `numReferrers`, `numReferrerHosts`, `numOs`, `numBrowsers`.
 
-**`Link` gains `deltaPct?`** — click count change percentage versus the previous period.
+**`Link` gains `deltaPct?`:** click count change percentage versus the previous period.
 
 **`BundleWithSummary` is flat.** Fields are directly on the object (it extends `Bundle`) instead
 of nested under a `bundle` attribute.

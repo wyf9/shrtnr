@@ -43,7 +43,7 @@ from the JSON response). The `str()` representation formats as
 **`ClickStats` expanded.** New fields from the spec: `referrer_hosts`, `link_modes`, `channels`,
 `num_countries`, `num_referrers`, `num_referrer_hosts`, `num_os`, `num_browsers`.
 
-**`Link` gains `delta_pct?`** — click count change percentage versus the previous period.
+**`Link` gains `delta_pct?`:** click count change percentage versus the previous period.
 
 **`BundleWithSummary` is flat.** Fields are directly on the object instead of nested under a
 `bundle` attribute.

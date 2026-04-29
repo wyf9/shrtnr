@@ -1,7 +1,7 @@
 # Copyright 2026 Oddbit (https://oddbit.id)
 # SPDX-License-Identifier: Apache-2.0
 
-"""Links resource — sync and async implementations."""
+"""Links resource: sync and async implementations."""
 
 from __future__ import annotations
 

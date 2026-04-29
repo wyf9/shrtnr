@@ -38,7 +38,7 @@ new ShrtnrClient({ baseUrl: "...", apiKey: "sk_..." })
 
 **`TimelineData.summary` keys renamed.** `last_24h` → `last24h`, `last_7d` → `last7d`, etc.
 
-**`Link` gains `deltaPct?`** — click count change percentage versus the previous period.
+**`Link` gains `deltaPct?`:** click count change percentage versus the previous period.
 
 **`BundleWithSummary.topLinks[].clickCount`** (was `click_count`).
 
