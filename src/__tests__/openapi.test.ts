@@ -81,6 +81,40 @@ describe("OpenAPI strict validation", () => {
   });
 });
 
+describe("paramHook handles body and query failures", () => {
+  it("PUT /_/api/links/:id with an unknown body field returns 400 + {error: string}", async () => {
+    const key = await createApiKey("create");
+    const createRes = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ url: "https://example.com" }),
+    }));
+    const created = await createRes.json() as { id: number };
+    const id = created.id;
+
+    const res = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}`, {
+      method: "PUT",
+      headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ url: "https://example.com/new", banana: "yellow" }),
+    }));
+    expect(res.status).toBe(400);
+    const body = await res.json() as { error?: string };
+    expect(typeof body.error).toBe("string");
+    expect(body.error).toMatch(/banana/i);
+  });
+
+  it("GET /_/api/bundles/:id?range=invalid returns 400 + {error: string}", async () => {
+    const key = await createApiKey("read");
+    const res = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles/1?range=99d", {
+      headers: { "Authorization": `Bearer ${key}` },
+    }));
+    expect(res.status).toBe(400);
+    const body = await res.json() as { error?: string };
+    expect(typeof body.error).toBe("string");
+    expect(body.error).toMatch(/range/i);
+  });
+});
+
 describe("OpenAPI spec coverage", () => {
   it("the spec documents every migrated public-API path", async () => {
     const res = await SELF.fetch("https://shrtnr.test/_/api/openapi.json");
