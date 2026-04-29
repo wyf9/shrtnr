@@ -40,21 +40,16 @@ const config = {
 };
 
 const doc = apiRouter.getOpenAPI31Document(config);
-process.stdout.write((canonicalize(doc) ?? "{}") + "\n");
+process.stdout.write(canonicalize(doc) + "\n");
 
-function canonicalize(value: unknown): string | undefined {
-  if (value === undefined) return undefined;
+function canonicalize(value: unknown): string {
+  if (value === undefined) {
+    throw new Error("canonicalize encountered undefined; this would corrupt the spec hash silently");
+  }
   if (value === null || typeof value !== "object") return JSON.stringify(value);
   if (Array.isArray(value)) return "[" + value.map(canonicalize).join(",") + "]";
-  const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj)
-    .filter((k) => obj[k] !== undefined)
-    .sort();
-  return (
-    "{" +
-    keys
-      .map((k) => JSON.stringify(k) + ":" + canonicalize(obj[k]))
-      .join(",") +
-    "}"
-  );
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([, v]) => v !== undefined)
+    .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+  return "{" + entries.map(([k, v]) => JSON.stringify(k) + ":" + canonicalize(v)).join(",") + "}";
 }
