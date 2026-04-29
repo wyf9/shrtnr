@@ -23,10 +23,9 @@ import { listBundlesForLink } from "../services/bundle-management";
 import { handleLinkQr } from "./qr";
 import { handlePublicLinkAnalytics, handlePublicLinkTimeline } from "./analytics";
 import { fetchPageTitle } from "../title-fetch";
-import { formatZodError, fromServiceResult, json } from "./response";
+import { fromServiceResult, json } from "./response";
 import { requireScope } from "./scope";
 import type { Env, TimelineRange } from "../types";
-import type { Hook } from "@hono/zod-openapi";
 import {
   AddSlugBodySchema,
   BundleSchema,
@@ -43,15 +42,6 @@ import {
   paramHook,
 } from "./schemas";
 export const linksApp = createApiSubApp();
-
-// Hook for routes that have both path params and query params.
-// Path param failures return 404; query/body failures return 400 with a human-readable message.
-const paramAndQueryHook: Hook<any, any, any, any> = (result, c) => {
-  if (!result.success) {
-    if (result.target === "param") return c.json({ error: "Not Found" }, 404);
-    return c.json({ error: formatZodError(result.error) }, 400);
-  }
-};
 
 const errorResponses = {
   400: { description: "Validation error.", content: { "application/json": { schema: ErrorResponseSchema } } },
@@ -146,7 +136,7 @@ linksApp.openapi(getLinkRoute, async (c) => {
   const { id } = c.req.valid("param") as { id: number };
   const { range } = c.req.valid("query") as { range?: TimelineRange };
   return fromServiceResult(await getLink(c.env, id, range ? { range } : undefined)) as never;
-}, paramAndQueryHook);
+}, paramHook);
 
 // ---- PUT /:id (update link) ----
 

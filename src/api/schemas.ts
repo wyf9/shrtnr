@@ -3,6 +3,7 @@
 
 import { z } from "@hono/zod-openapi";
 import type { Hook } from "@hono/zod-openapi";
+import { formatZodError } from "./response";
 
 // ---- Common ----
 
@@ -202,11 +203,11 @@ export const TimelineDataSchema = z
   .openapi("TimelineData", { description: "Click timeline with bucketed counts and period summaries." });
 
 // ---- Param hook for routes with path params ----
-// Converts path-param validation failures to 404 (preserving the existing 404-on-NaN contract).
-// Default hook on the OpenAPIHono instance handles body/query failures with 400.
+// Path-param failures return 404 (preserving the 404-on-NaN contract).
+// Body and query failures return 400 with a human-readable message.
 // Use as the third argument to `app.openapi(route, handler, paramHook)`.
 export const paramHook: Hook<any, any, any, any> = (result, c) => {
-  if (!result.success && result.target === "param") {
-    return c.json({ error: "Not Found" }, 404);
-  }
+  if (result.success) return;
+  if (result.target === "param") return c.json({ error: "Not Found" }, 404);
+  return c.json({ error: formatZodError(result.error) }, 400);
 };
