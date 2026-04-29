@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // Canonical SDK unit test layout. Structurally mirrors
-// sdk/typescript/src/__tests__/client.test.ts and
+// sdk/typescript/tests/client.test.ts and
 // sdk/python/tests/test_client.py: same describe/group blocks,
 // same order, same test count, same intent. When adding a public
 // method, add a matching test here AND in the other two SDKs.
