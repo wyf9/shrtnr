@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.33.0 (2026-04-29)
+
+- MCP server tools migrate to the spec's `registerTool` API. Every tool now declares standard annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) so MCP clients see intent declared rather than inferred from prose.
+- Analytics MCP responses front-load `range_used`, a human-readable `range_label`, and a `range_note` ("scoped to the last N days, clicks outside this window are NOT included" / "covers all clicks ever recorded") at the top of the JSON the LLM reads. Tool descriptions now repeat the scoping rule so follow-up calls stay on the same window instead of mixing 7d and 30d numbers in one analysis.
+- Removed the "use last selection" choice from the default time-range setting. It never persisted a real last selection: each page fell back to its own window (30d on dashboard, links, and bundle detail; all-time on link detail and bundles), so the option behaved inconsistently. `getAppSettings` now returns a real `TimelineRange` for every user, defaulting to 30d, and every route reads it directly.
+- Bundle detail's first paint now honors the viewer's "filter bots" and "filter self-referrers" toggles. Previously the SSR handler skipped filter resolution, so totals, breakdowns, timeline, and per-link rows showed unfiltered numbers until the client hydrated.
+
 ## 0.32.0 (2026-04-28)
 
 - Analytics filters and time range now apply consistently across every UI surface. Previously the dashboard's "Recent Links" card showed unfiltered lifetime totals while the rest of the dashboard honored the user's bot-filter and self-referrer settings, so the same link could read 9 there and 3 on its detail page. Click counts everywhere (recent links, links list, link detail slug rows, bundle list cards, bundle detail) now resolve through a single shared filter+range subquery.
