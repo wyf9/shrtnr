@@ -4,66 +4,53 @@
 """Python SDK for the shrtnr URL shortener API.
 
 Exposes a synchronous :class:`Shrtnr` and asynchronous :class:`AsyncShrtnr`
-client with identical method surfaces. See README.md for usage.
+client. Each provides resource-grouped access via ``client.links``,
+``client.slugs``, and ``client.bundles``. See README.md for usage.
 """
 
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _pkg_version
 
-from .async_client import AsyncShrtnr
-from .client import Shrtnr
+from .client import AsyncShrtnr, Shrtnr
 from .errors import ShrtnrError
 from .models import (
-    Bundle,
+    AddedResult,
     BundleAccent,
-    BundleStats,
-    BundleStatsPerLink,
-    BundleTopCountry,
     BundleTopLink,
-    BundleTopPerformer,
     BundleWithSummary,
+    Bundle,
     ClickStats,
-    CreateBundleOptions,
-    CreateLinkOptions,
     DateCount,
-    HealthStatus,
+    DeletedResult,
     Link,
     NameCount,
+    RemovedResult,
     Slug,
     SlugCount,
     TimelineBucket,
     TimelineData,
     TimelineRange,
     TimelineSummary,
-    UpdateBundleOptions,
-    UpdateLinkOptions,
 )
 
-# Derive __version__ from installed package metadata so pyproject.toml is
-# the single source of truth. Falls back when running from a source tree
-# that has not been installed (e.g. scratch checkouts).
 try:
     __version__ = _pkg_version("shrtnr")
 except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 
 __all__ = [
+    "AddedResult",
     "AsyncShrtnr",
     "Bundle",
     "BundleAccent",
-    "BundleStats",
-    "BundleStatsPerLink",
-    "BundleTopCountry",
     "BundleTopLink",
-    "BundleTopPerformer",
     "BundleWithSummary",
     "ClickStats",
-    "CreateBundleOptions",
-    "CreateLinkOptions",
     "DateCount",
-    "HealthStatus",
+    "DeletedResult",
     "Link",
     "NameCount",
+    "RemovedResult",
     "Shrtnr",
     "ShrtnrError",
     "Slug",
@@ -72,7 +59,5 @@ __all__ = [
     "TimelineData",
     "TimelineRange",
     "TimelineSummary",
-    "UpdateBundleOptions",
-    "UpdateLinkOptions",
     "__version__",
 ]

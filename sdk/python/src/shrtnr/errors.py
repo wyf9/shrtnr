@@ -3,29 +3,18 @@
 
 """Error surface for the shrtnr SDK.
 
-Mirrors :class:`ShrtnrError` in the TypeScript SDK: every non-2xx response
-raises :class:`ShrtnrError` carrying the HTTP status and the parsed response
-body. When the body contains an ``"error"`` key its value is used as the
-exception message, otherwise it falls back to ``"HTTP <status>"``.
+Every non-2xx response raises :class:`ShrtnrError` carrying the HTTP status
+and the parsed server message. Network failures are wrapped in
+``ShrtnrError(status=0, ...)``.
 """
 
 from __future__ import annotations
 
-from typing import Any
-
 
 class ShrtnrError(Exception):
-    """Raised when the shrtnr API returns a non-2xx response."""
+    """Raised when the shrtnr API returns a non-2xx response or a network error occurs."""
 
-    status: int
-    body: Any
-
-    def __init__(self, status: int, body: Any) -> None:
+    def __init__(self, status: int, server_message: str) -> None:
         self.status = status
-        self.body = body
-        message: str
-        if isinstance(body, dict) and isinstance(body.get("error"), str):
-            message = body["error"]
-        else:
-            message = f"HTTP {status}"
-        super().__init__(message)
+        self.server_message = server_message
+        super().__init__(f"shrtnr API error (HTTP {status}): {server_message}")
