@@ -211,12 +211,11 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
             .describe(
               "Custom slug(s), e.g. 'my-blog-post' or ['slug-a', 'slug-b']. Added after creation; collisions are reported, not fatal.",
             ),
-          vanity_slug: CustomSlugStringSchema.optional().describe("Alias for custom_slug (single string)"),
           expires_at: z.number().int().nonnegative().optional().describe("Unix timestamp when the link expires"),
         },
         annotations: { title: "Create link", ...WRITE_NEW },
       },
-      async ({ custom_slug, vanity_slug, ...opts }) => {
+      async ({ custom_slug, ...opts }) => {
         const result = await createLink(this.env, { ...opts, created_via: "mcp", created_by: this.identity });
         if (!result.ok) return fail(result.error);
 
@@ -224,9 +223,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
           ? Array.isArray(custom_slug)
             ? custom_slug
             : [custom_slug]
-          : vanity_slug
-            ? [vanity_slug]
-            : [];
+          : [];
 
         const rejections: { slug: string; reason: string }[] = [];
         for (const slug of requestedSlugs) {
@@ -309,24 +306,6 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
           slug: CustomSlugStringSchema.describe("Custom slug to add, e.g. 'my-post'"),
         },
         annotations: { title: "Add custom slug", ...WRITE_NEW },
-      },
-      async ({ link_id, slug }) => {
-        const result = await addCustomSlugToLink(this.env, link_id, { slug });
-        if (!result.ok) return fail(result.error);
-        return ok(result.data);
-      },
-    );
-
-    this.server.registerTool(
-      "add_vanity_slug",
-      {
-        title: "Add vanity slug",
-        description: "Add a custom slug (vanity URL) to an existing link. Alias for add_custom_slug.",
-        inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link"),
-          slug: CustomSlugStringSchema.describe("Custom slug to add, e.g. 'my-post'"),
-        },
-        annotations: { title: "Add vanity slug", ...WRITE_NEW },
       },
       async ({ link_id, slug }) => {
         const result = await addCustomSlugToLink(this.env, link_id, { slug });
