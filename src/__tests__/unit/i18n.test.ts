@@ -7,6 +7,18 @@ import {
   SUPPORTED_LANGUAGES,
 } from "../../i18n";
 import en from "../../i18n/en";
+import id from "../../i18n/id";
+import sv from "../../i18n/sv";
+
+function flattenKeys(obj: unknown, prefix = ""): string[] {
+  if (obj === null || typeof obj !== "object") return [prefix];
+  const out: string[] = [];
+  for (const [k, v] of Object.entries(obj)) {
+    const next = prefix ? `${prefix}.${k}` : k;
+    out.push(...flattenKeys(v, next));
+  }
+  return out;
+}
 
 describe("i18n", () => {
   describe("isSupportedLanguage", () => {
@@ -105,6 +117,20 @@ describe("i18n", () => {
       expect(SUPPORTED_LANGUAGES).toContain("en");
       expect(SUPPORTED_LANGUAGES).toContain("id");
       expect(SUPPORTED_LANGUAGES).toContain("sv");
+    });
+  });
+
+  describe("key parity across locales", () => {
+    const enKeys = new Set(flattenKeys(en));
+
+    it.each([
+      ["id", id],
+      ["sv", sv],
+    ])("locale %s has the same key set as en", (_name, locale) => {
+      const localeKeys = new Set(flattenKeys(locale));
+      const missing = [...enKeys].filter((k) => !localeKeys.has(k));
+      const extra = [...localeKeys].filter((k) => !enKeys.has(k));
+      expect({ missing, extra }).toEqual({ missing: [], extra: [] });
     });
   });
 
