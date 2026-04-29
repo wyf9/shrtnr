@@ -206,7 +206,8 @@ const id: Translations = {
   // API Keys
   "keys.title": "Kunci API",
   "keys.subtitle": "Kelola akses programatik ke API pemerpendek",
-  "keys.sdkNote": "Gunakan kunci API bersama TypeScript SDK untuk membuat dan mengelola tautan dari kode Anda:",
+  "keys.docsNote": "Gunakan kunci API untuk mengautentikasi permintaan API:",
+  "keys.docsLink": "Dokumentasi API",
   "keys.count": "{count} kunci",
   "keys.countPlural": "{count} kunci",
   "keys.newKey": "Kunci Baru",

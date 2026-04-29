@@ -40,9 +40,9 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
           {t("keys.subtitle")}
         </div>
         <div class="page-note">
-          {t("keys.sdkNote")}{" "}
-          <a href="https://oddb.it/shrtnr-npm-app" target="_blank" rel="noopener">
-            @oddbit/shrtnr
+          {t("keys.docsNote")}{" "}
+          <a href="/_/api/docs">
+            {t("keys.docsLink")}
           </a>
         </div>
       </div>

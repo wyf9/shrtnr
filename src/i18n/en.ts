@@ -203,7 +203,8 @@ const en = {
   // API Keys
   "keys.title": "API Keys",
   "keys.subtitle": "Manage programmatic access to the shortener API",
-  "keys.sdkNote": "Use API keys with the TypeScript SDK to create and manage links from your own code:",
+  "keys.docsNote": "Use API keys to authenticate API requests:",
+  "keys.docsLink": "API documentation",
   "keys.count": "{count} key",
   "keys.countPlural": "{count} keys",
   "keys.newKey": "New Key",
