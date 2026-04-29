@@ -23,6 +23,8 @@ export 'src/models.dart'
     show
         AddedResult,
         Bundle,
+        BundleAccent,
+        BundleArchivedFilter,
         BundleTopLink,
         BundleWithSummary,
         ClickStats,
@@ -35,4 +37,5 @@ export 'src/models.dart'
         SlugClickCount,
         TimelineBucket,
         TimelineData,
+        TimelineRange,
         TimelineSummary;

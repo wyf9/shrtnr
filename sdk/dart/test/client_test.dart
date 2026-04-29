@@ -231,7 +231,7 @@ void main() {
 
     test('appends range param when given', () async {
       final m = _mock(status: 200, body: _linkJson());
-      await m.client.links.get(1, range: '7d');
+      await m.client.links.get(1, range: TimelineRange.last7d);
       expect(
         m.capture.request!.url.toString(),
         '$_base/_/api/links/1?range=7d',
@@ -265,7 +265,7 @@ void main() {
 
     test('appends range query param when given', () async {
       final m = _mock(status: 200, body: <dynamic>[]);
-      await m.client.links.list(range: '30d');
+      await m.client.links.list(range: TimelineRange.last30d);
       expect(
         m.capture.request!.url.toString(),
         '$_base/_/api/links?range=30d',
@@ -368,7 +368,7 @@ void main() {
 
     test('appends range param when given', () async {
       final m = _mock(status: 200, body: _clickStatsJson());
-      await m.client.links.analytics(5, range: '30d');
+      await m.client.links.analytics(5, range: TimelineRange.last30d);
       expect(
         m.capture.request!.url.toString(),
         '$_base/_/api/links/5/analytics?range=30d',
@@ -401,7 +401,7 @@ void main() {
     test('GETs /_/api/links/:id/timeline and parses TimelineData', () async {
       final m = _mock(status: 200, body: _timelineJson());
       final td = await m.client.links.timeline(5);
-      expect(td.range, '7d');
+      expect(td.range, TimelineRange.last7d);
       expect(td.buckets.length, 1);
       expect(td.buckets[0].label, 'Mon');
       expect(td.buckets[0].count, 10);
@@ -415,7 +415,7 @@ void main() {
 
     test('appends range param when given', () async {
       final m = _mock(status: 200, body: _timelineJson());
-      await m.client.links.timeline(5, range: '90d');
+      await m.client.links.timeline(5, range: TimelineRange.last90d);
       expect(
         m.capture.request!.url.toString(),
         '$_base/_/api/links/5/timeline?range=90d',
@@ -566,7 +566,7 @@ void main() {
 
     test('appends range param when given', () async {
       final m = _mock(status: 200, body: _bundleWithSummaryJson());
-      await m.client.bundles.get(42, range: '7d');
+      await m.client.bundles.get(42, range: TimelineRange.last7d);
       expect(
         m.capture.request!.url.toString(),
         '$_base/_/api/bundles/42?range=7d',
@@ -591,7 +591,7 @@ void main() {
 
     test('appends archived param when given', () async {
       final m = _mock(status: 200, body: <dynamic>[]);
-      await m.client.bundles.list(archived: 'all');
+      await m.client.bundles.list(archived: BundleArchivedFilter.all);
       expect(
         m.capture.request!.url.toString(),
         '$_base/_/api/bundles?archived=all',
@@ -600,7 +600,7 @@ void main() {
 
     test('appends range param when given', () async {
       final m = _mock(status: 200, body: <dynamic>[]);
-      await m.client.bundles.list(range: '30d');
+      await m.client.bundles.list(range: TimelineRange.last30d);
       expect(
         m.capture.request!.url.toString(),
         '$_base/_/api/bundles?range=30d',
@@ -613,8 +613,11 @@ void main() {
   group('bundles.create', () {
     test('POSTs /_/api/bundles with required and optional fields', () async {
       final m = _mock(status: 201, body: _bundleJson(name: 'B', accent: 'blue'));
-      await m.client.bundles
-          .create(name: 'B', description: 'desc', icon: 'star', accent: 'blue');
+      await m.client.bundles.create(
+          name: 'B',
+          description: 'desc',
+          icon: 'star',
+          accent: BundleAccent.blue);
       final req = m.capture.request!;
       expect(req.url.toString(), '$_base/_/api/bundles');
       expect(req.method, 'POST');
@@ -705,7 +708,7 @@ void main() {
 
     test('appends range param when given', () async {
       final m = _mock(status: 200, body: _clickStatsJson());
-      await m.client.bundles.analytics(42, range: '7d');
+      await m.client.bundles.analytics(42, range: TimelineRange.last7d);
       expect(
         m.capture.request!.url.toString(),
         '$_base/_/api/bundles/42/analytics?range=7d',
@@ -850,6 +853,89 @@ void main() {
       expect(td.summary.last30d, 30);
       expect(td.summary.last90d, 90);
       expect(td.summary.last1y, 365);
+    });
+  });
+
+  // ---- 32. BundleAccent enum ----
+
+  group('BundleAccent enum', () {
+    test('wireValue round-trips for every member', () {
+      expect(BundleAccent.orange.wireValue, 'orange');
+      expect(BundleAccent.red.wireValue, 'red');
+      expect(BundleAccent.green.wireValue, 'green');
+      expect(BundleAccent.blue.wireValue, 'blue');
+      expect(BundleAccent.purple.wireValue, 'purple');
+    });
+
+    test('fromWire parses known values', () {
+      expect(BundleAccent.fromWire('orange'), BundleAccent.orange);
+      expect(BundleAccent.fromWire('blue'), BundleAccent.blue);
+    });
+
+    test('fromWire throws ArgumentError for unknown value', () {
+      expect(() => BundleAccent.fromWire('neon'), throwsA(isA<ArgumentError>()));
+    });
+
+    test('Bundle.fromJson throws when accent is absent', () {
+      final json = <String, Object?>{
+        'id': 1,
+        'name': 'test',
+        'description': null,
+        'icon': null,
+        'archived_at': null,
+        'created_via': null,
+        'created_by': 'user@example.com',
+        'created_at': 1000000,
+        'updated_at': 1000000,
+      };
+      expect(() => Bundle.fromJson(json), throwsA(isA<TypeError>()));
+    });
+  });
+
+  // ---- 33. TimelineRange enum ----
+
+  group('TimelineRange enum', () {
+    test('wireValue round-trips for every member', () {
+      expect(TimelineRange.last24h.wireValue, '24h');
+      expect(TimelineRange.last7d.wireValue, '7d');
+      expect(TimelineRange.last30d.wireValue, '30d');
+      expect(TimelineRange.last90d.wireValue, '90d');
+      expect(TimelineRange.last1y.wireValue, '1y');
+      expect(TimelineRange.all.wireValue, 'all');
+    });
+
+    test('fromWire parses known values', () {
+      expect(TimelineRange.fromWire('7d'), TimelineRange.last7d);
+      expect(TimelineRange.fromWire('all'), TimelineRange.all);
+    });
+
+    test('fromWire throws ArgumentError for unknown value', () {
+      expect(
+        () => TimelineRange.fromWire('forever'),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+  });
+
+  // ---- 34. BundleArchivedFilter enum ----
+
+  group('BundleArchivedFilter enum', () {
+    test('wireValue maps to correct strings', () {
+      expect(BundleArchivedFilter.trueValue.wireValue, 'true');
+      expect(BundleArchivedFilter.activeOnly.wireValue, 'only');
+      expect(BundleArchivedFilter.all.wireValue, 'all');
+    });
+
+    test('fromWire parses known values', () {
+      expect(BundleArchivedFilter.fromWire('only'), BundleArchivedFilter.activeOnly);
+      expect(BundleArchivedFilter.fromWire('all'), BundleArchivedFilter.all);
+    });
+
+    test('fromWire throws ArgumentError for unknown value', () {
+      expect(
+        () => BundleArchivedFilter.fromWire('1'),
+        throwsA(isA<ArgumentError>()),
+      );
     });
   });
 }

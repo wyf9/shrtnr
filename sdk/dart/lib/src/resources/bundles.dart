@@ -13,22 +13,23 @@ class BundlesResource {
 
   /// Get a bundle by ID with aggregated click summary.
   /// Optional [range] scopes the click window.
-  Future<BundleWithSummary> get(int id, {String? range}) async {
+  Future<BundleWithSummary> get(int id, {TimelineRange? range}) async {
     final json = await _http.requestJson(
       'GET',
       '/_/api/bundles/$id',
-      query: {'range': range},
+      query: {'range': range?.wireValue},
     );
     return BundleWithSummary.fromJson(json! as Map<String, dynamic>);
   }
 
-  /// List bundles. Use [archived] to filter archived status
-  /// (`'1'`, `'true'`, `'only'`, `'all'`). Optional [range] scopes click counts.
-  Future<List<BundleWithSummary>> list({String? archived, String? range}) async {
+  /// List bundles. Use [archived] to filter archived status.
+  /// Optional [range] scopes click counts.
+  Future<List<BundleWithSummary>> list(
+      {BundleArchivedFilter? archived, TimelineRange? range}) async {
     final json = await _http.requestJson(
       'GET',
       '/_/api/bundles',
-      query: {'archived': archived, 'range': range},
+      query: {'archived': archived?.wireValue, 'range': range?.wireValue},
     );
     return (json! as List<dynamic>)
         .map((dynamic e) =>
@@ -41,12 +42,12 @@ class BundlesResource {
     required String name,
     String? description,
     String? icon,
-    String? accent,
+    BundleAccent? accent,
   }) async {
     final body = <String, dynamic>{'name': name};
     if (description != null) body['description'] = description;
     if (icon != null) body['icon'] = icon;
-    if (accent != null) body['accent'] = accent;
+    if (accent != null) body['accent'] = accent.wireValue;
     final json = await _http.requestJson('POST', '/_/api/bundles', body: body);
     return Bundle.fromJson(json! as Map<String, dynamic>);
   }
@@ -57,13 +58,13 @@ class BundlesResource {
     String? name,
     String? description,
     String? icon,
-    String? accent,
+    BundleAccent? accent,
   }) async {
     final body = <String, dynamic>{};
     if (name != null) body['name'] = name;
     if (description != null) body['description'] = description;
     if (icon != null) body['icon'] = icon;
-    if (accent != null) body['accent'] = accent;
+    if (accent != null) body['accent'] = accent.wireValue;
     final json =
         await _http.requestJson('PUT', '/_/api/bundles/$id', body: body);
     return Bundle.fromJson(json! as Map<String, dynamic>);
@@ -90,11 +91,11 @@ class BundlesResource {
   }
 
   /// Get combined click analytics for a bundle. Optional [range] scopes the window.
-  Future<ClickStats> analytics(int id, {String? range}) async {
+  Future<ClickStats> analytics(int id, {TimelineRange? range}) async {
     final json = await _http.requestJson(
       'GET',
       '/_/api/bundles/$id/analytics',
-      query: {'range': range},
+      query: {'range': range?.wireValue},
     );
     return ClickStats.fromJson(json! as Map<String, dynamic>);
   }

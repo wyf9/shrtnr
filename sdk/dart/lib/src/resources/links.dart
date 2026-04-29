@@ -11,23 +11,22 @@ class LinksResource {
 
   final ShrtnrBaseClient _http;
 
-  /// Get a link by ID. Optional [range] scopes the click count to a time window
-  /// (`'24h'`, `'7d'`, `'30d'`, `'90d'`, `'1y'`, `'all'`).
-  Future<Link> get(int id, {String? range}) async {
+  /// Get a link by ID. Optional [range] scopes the click count to a time window.
+  Future<Link> get(int id, {TimelineRange? range}) async {
     final json = await _http.requestJson(
       'GET',
       '/_/api/links/$id',
-      query: {'range': range},
+      query: {'range': range?.wireValue},
     );
     return Link.fromJson(json! as Map<String, dynamic>);
   }
 
   /// List all links. Filter by [owner] identity or click-count [range].
-  Future<List<Link>> list({String? owner, String? range}) async {
+  Future<List<Link>> list({String? owner, TimelineRange? range}) async {
     final json = await _http.requestJson(
       'GET',
       '/_/api/links',
-      query: {'owner': owner, 'range': range},
+      query: {'owner': owner, 'range': range?.wireValue},
     );
     return (json! as List<dynamic>)
         .map((dynamic e) => Link.fromJson(e as Map<String, dynamic>))
@@ -85,21 +84,21 @@ class LinksResource {
   }
 
   /// Get click analytics for a link. Optional [range] scopes the window.
-  Future<ClickStats> analytics(int id, {String? range}) async {
+  Future<ClickStats> analytics(int id, {TimelineRange? range}) async {
     final json = await _http.requestJson(
       'GET',
       '/_/api/links/$id/analytics',
-      query: {'range': range},
+      query: {'range': range?.wireValue},
     );
     return ClickStats.fromJson(json! as Map<String, dynamic>);
   }
 
   /// Get click timeline for a link. Optional [range] scopes the window.
-  Future<TimelineData> timeline(int id, {String? range}) async {
+  Future<TimelineData> timeline(int id, {TimelineRange? range}) async {
     final json = await _http.requestJson(
       'GET',
       '/_/api/links/$id/timeline',
-      query: {'range': range},
+      query: {'range': range?.wireValue},
     );
     return TimelineData.fromJson(json! as Map<String, dynamic>);
   }

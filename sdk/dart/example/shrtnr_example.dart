@@ -43,14 +43,14 @@ Future<void> main() async {
   print('Added custom slug /${custom.slug}');
 
   // Read analytics for the last 7 days.
-  final stats = await client.links.analytics(link.id, range: '7d');
+  final stats = await client.links.analytics(link.id, range: TimelineRange.last7d);
   print('Clicks (last 7d): ${stats.totalClicks}');
 
   // Create a bundle and attach the link.
   final bundle = await client.bundles.create(
     name: 'Dart SDK demo bundle',
     description: 'Grouping the example link for combined analytics.',
-    accent: 'purple',
+    accent: BundleAccent.purple,
   );
   print('Created bundle ${bundle.id} (${bundle.name})');
 

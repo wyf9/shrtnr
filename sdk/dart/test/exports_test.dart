@@ -13,6 +13,8 @@ void main() {
       expect(Link, isNotNull);
       expect(Slug, isNotNull);
       expect(Bundle, isNotNull);
+      expect(BundleAccent, isNotNull);
+      expect(BundleArchivedFilter, isNotNull);
       expect(BundleWithSummary, isNotNull);
       expect(BundleTopLink, isNotNull);
       expect(ClickStats, isNotNull);
@@ -21,6 +23,7 @@ void main() {
       expect(SlugClickCount, isNotNull);
       expect(TimelineData, isNotNull);
       expect(TimelineBucket, isNotNull);
+      expect(TimelineRange, isNotNull);
       expect(TimelineSummary, isNotNull);
       expect(DeletedResult, isNotNull);
       expect(AddedResult, isNotNull);

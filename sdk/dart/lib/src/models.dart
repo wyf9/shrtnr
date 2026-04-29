@@ -3,6 +3,124 @@
 
 import 'package:meta/meta.dart';
 
+// ---- Enum types ----
+
+/// Accent color applied to a bundle.
+///
+/// The [wireValue] getter returns the string sent over the wire.
+/// Use [fromWire] to parse a server response value.
+enum BundleAccent {
+  /// Orange accent.
+  orange,
+
+  /// Red accent.
+  red,
+
+  /// Green accent.
+  green,
+
+  /// Blue accent.
+  blue,
+
+  /// Purple accent.
+  purple;
+
+  /// The wire-format string for this accent.
+  String get wireValue => name;
+
+  /// Parses a wire-format string into a [BundleAccent].
+  ///
+  /// Throws [ArgumentError] if [value] is not a recognized accent.
+  static BundleAccent fromWire(String value) {
+    for (final v in BundleAccent.values) {
+      if (v.wireValue == value) return v;
+    }
+    throw ArgumentError.value(value, 'value', 'Unknown BundleAccent');
+  }
+}
+
+/// Time-range filter accepted by analytics and timeline endpoints.
+///
+/// Dart identifiers cannot start with digits or contain hyphens, so each
+/// member maps to a distinct [wireValue].
+enum TimelineRange {
+  /// Last 24 hours (wire: `"24h"`).
+  last24h,
+
+  /// Last 7 days (wire: `"7d"`).
+  last7d,
+
+  /// Last 30 days (wire: `"30d"`).
+  last30d,
+
+  /// Last 90 days (wire: `"90d"`).
+  last90d,
+
+  /// Last year (wire: `"1y"`).
+  last1y,
+
+  /// All time (wire: `"all"`).
+  all;
+
+  static const _wireValues = {
+    TimelineRange.last24h: '24h',
+    TimelineRange.last7d: '7d',
+    TimelineRange.last30d: '30d',
+    TimelineRange.last90d: '90d',
+    TimelineRange.last1y: '1y',
+    TimelineRange.all: 'all',
+  };
+
+  /// The wire-format string for this range.
+  String get wireValue => _wireValues[this]!;
+
+  /// Parses a wire-format string into a [TimelineRange].
+  ///
+  /// Throws [ArgumentError] if [value] is not a recognized range.
+  static TimelineRange fromWire(String value) {
+    for (final entry in _wireValues.entries) {
+      if (entry.value == value) return entry.key;
+    }
+    throw ArgumentError.value(value, 'value', 'Unknown TimelineRange');
+  }
+}
+
+/// Filter for archived-bundle visibility in [BundlesResource.list].
+///
+/// Dart identifiers cannot be the bare keywords `true` or `1`, so the enum
+/// uses [trueValue] and [activeOnly]. The wire value `"1"` is omitted because
+/// it is a semantic alias for `"true"`; use [trueValue] for both.
+enum BundleArchivedFilter {
+  /// Include archived bundles alongside active ones (wire: `"true"`). Also
+  /// covers the `"1"` alias from the spec; prefer this member for both.
+  trueValue,
+
+  /// Return only archived bundles (wire: `"only"`).
+  activeOnly,
+
+  /// Return all bundles regardless of archived status (wire: `"all"`).
+  all;
+
+  static const _wireValues = {
+    BundleArchivedFilter.trueValue: 'true',
+    BundleArchivedFilter.activeOnly: 'only',
+    BundleArchivedFilter.all: 'all',
+  };
+
+  /// The wire-format string for this filter.
+  String get wireValue => _wireValues[this]!;
+
+  /// Parses a wire-format string into a [BundleArchivedFilter].
+  ///
+  /// Throws [ArgumentError] if [value] is not a recognized filter.
+  static BundleArchivedFilter fromWire(String value) {
+    for (final entry in _wireValues.entries) {
+      if (entry.value == value) return entry.key;
+    }
+    throw ArgumentError.value(value, 'value', 'Unknown BundleArchivedFilter');
+  }
+}
+
 // ---- Helpers ----
 
 List<NameCount> _nameCountList(Object? raw) =>
@@ -147,7 +265,7 @@ class Bundle {
         name: json['name'] as String,
         description: json['description'] as String?,
         icon: json['icon'] as String?,
-        accent: (json['accent'] as String?) ?? 'orange',
+        accent: BundleAccent.fromWire(json['accent'] as String),
         archivedAt: (json['archived_at'] as num?)?.toInt(),
         createdVia: json['created_via'] as String?,
         createdBy: (json['created_by'] as String?) ?? '',
@@ -167,8 +285,8 @@ class Bundle {
   /// Optional Material Symbol icon name.
   final String? icon;
 
-  /// Accent color string (`orange`, `red`, `green`, `blue`, `purple`).
-  final String accent;
+  /// Accent color applied to this bundle.
+  final BundleAccent accent;
 
   /// Unix seconds when the bundle was archived, or null if active.
   final int? archivedAt;
@@ -215,7 +333,7 @@ class BundleWithSummary extends Bundle {
         name: json['name'] as String,
         description: json['description'] as String?,
         icon: json['icon'] as String?,
-        accent: (json['accent'] as String?) ?? 'orange',
+        accent: BundleAccent.fromWire(json['accent'] as String),
         archivedAt: (json['archived_at'] as num?)?.toInt(),
         createdVia: json['created_via'] as String?,
         createdBy: (json['created_by'] as String?) ?? '',
@@ -497,7 +615,7 @@ class TimelineData {
 
   /// Parses a timeline data response from JSON.
   factory TimelineData.fromJson(Map<String, dynamic> json) => TimelineData(
-        range: (json['range'] as String?) ?? 'all',
+        range: TimelineRange.fromWire((json['range'] as String?) ?? 'all'),
         buckets: ((json['buckets'] as List<dynamic>?) ?? const <dynamic>[])
             .map((dynamic e) =>
                 TimelineBucket.fromJson(e as Map<String, dynamic>))
@@ -507,7 +625,7 @@ class TimelineData {
       );
 
   /// The time range this data covers.
-  final String range;
+  final TimelineRange range;
 
   /// Click counts bucketed over the range.
   final List<TimelineBucket> buckets;
