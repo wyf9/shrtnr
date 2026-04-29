@@ -1,7 +1,7 @@
 # Copyright 2026 Oddbit (https://oddbit.id)
 # SPDX-License-Identifier: Apache-2.0
 
-"""Shared fixtures for the shrtnr SDK test suite."""
+"""Shared fixtures and factory helpers for the shrtnr SDK 1.0 test suite."""
 
 from __future__ import annotations
 
@@ -45,8 +45,9 @@ def make_link_dict(
     created_by: str = "owner@example.com",
     slugs: list[dict[str, Any]] | None = None,
     total_clicks: int = 0,
+    delta_pct: float | None = None,
 ) -> dict[str, Any]:
-    return {
+    d: dict[str, Any] = {
         "id": link_id,
         "url": url,
         "label": label,
@@ -57,6 +58,9 @@ def make_link_dict(
         "slugs": slugs if slugs is not None else [make_slug_dict(link_id=link_id, slug="auto")],
         "total_clicks": total_clicks,
     }
+    if delta_pct is not None:
+        d["delta_pct"] = delta_pct
+    return d
 
 
 def make_bundle_dict(
@@ -83,6 +87,52 @@ def make_bundle_dict(
         "created_by": created_by,
         "created_at": created_at,
         "updated_at": updated_at,
+    }
+
+
+def make_bundle_with_summary_dict(**kwargs: Any) -> dict[str, Any]:
+    d = make_bundle_dict(**kwargs)
+    d.update({
+        "link_count": 0,
+        "total_clicks": 0,
+        "sparkline": [],
+        "top_links": [],
+    })
+    return d
+
+
+def make_click_stats_dict(*, total_clicks: int = 0) -> dict[str, Any]:
+    return {
+        "total_clicks": total_clicks,
+        "countries": [],
+        "referrers": [],
+        "referrer_hosts": [],
+        "devices": [],
+        "os": [],
+        "browsers": [],
+        "link_modes": [],
+        "channels": [],
+        "clicks_over_time": [],
+        "slug_clicks": [],
+        "num_countries": 0,
+        "num_referrers": 0,
+        "num_referrer_hosts": 0,
+        "num_os": 0,
+        "num_browsers": 0,
+    }
+
+
+def make_timeline_dict(*, range: str = "7d") -> dict[str, Any]:
+    return {
+        "range": range,
+        "buckets": [],
+        "summary": {
+            "last_24h": 0,
+            "last_7d": 0,
+            "last_30d": 0,
+            "last_90d": 0,
+            "last_1y": 0,
+        },
     }
 
 
