@@ -1,0 +1,80 @@
+// Copyright 2026 Oddbit (https://oddbit.id)
+// SPDX-License-Identifier: Apache-2.0
+
+import { HttpClient } from "../internal/http";
+import {
+  Bundle,
+  BundleWithSummary,
+  ClickStats,
+  CreateBundleBody,
+  Link,
+  TimelineRange,
+  UpdateBundleBody,
+} from "../models";
+
+export class BundlesResource {
+  constructor(private readonly http: HttpClient) {}
+
+  /** Get a bundle by ID with aggregated click summary. */
+  get(id: number, options: { range?: TimelineRange } = {}): Promise<BundleWithSummary> {
+    return this.http.request("GET", `/api/bundles/${id}`, {
+      query: { range: options.range },
+    });
+  }
+
+  /** List bundles. Filter by archived status and click-count range. */
+  list(
+    options: { archived?: "1" | "true" | "only" | "all"; range?: TimelineRange } = {},
+  ): Promise<BundleWithSummary[]> {
+    return this.http.request("GET", "/api/bundles", {
+      query: { archived: options.archived, range: options.range },
+    });
+  }
+
+  /** Create a new bundle. */
+  create(body: CreateBundleBody): Promise<Bundle> {
+    return this.http.request("POST", "/api/bundles", { body });
+  }
+
+  /** Update a bundle's name, description, icon, or accent. */
+  update(id: number, body: UpdateBundleBody): Promise<Bundle> {
+    return this.http.request("PUT", `/api/bundles/${id}`, { body });
+  }
+
+  /** Permanently delete a bundle. */
+  delete(id: number): Promise<{ deleted: boolean }> {
+    return this.http.request("DELETE", `/api/bundles/${id}`);
+  }
+
+  /** Archive a bundle. */
+  archive(id: number): Promise<Bundle> {
+    return this.http.request("POST", `/api/bundles/${id}/archive`);
+  }
+
+  /** Unarchive a bundle. */
+  unarchive(id: number): Promise<Bundle> {
+    return this.http.request("POST", `/api/bundles/${id}/unarchive`);
+  }
+
+  /** Get click analytics for a bundle. */
+  analytics(id: number, options: { range?: TimelineRange } = {}): Promise<ClickStats> {
+    return this.http.request("GET", `/api/bundles/${id}/analytics`, {
+      query: { range: options.range },
+    });
+  }
+
+  /** List links in a bundle. */
+  links(id: number): Promise<Link[]> {
+    return this.http.request("GET", `/api/bundles/${id}/links`);
+  }
+
+  /** Add a link to a bundle. */
+  addLink(id: number, linkId: number): Promise<{ added: boolean }> {
+    return this.http.request("POST", `/api/bundles/${id}/links`, { body: { linkId } });
+  }
+
+  /** Remove a link from a bundle. */
+  removeLink(id: number, linkId: number): Promise<{ removed: boolean }> {
+    return this.http.request("DELETE", `/api/bundles/${id}/links/${linkId}`);
+  }
+}
