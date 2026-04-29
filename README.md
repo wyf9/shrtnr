@@ -22,13 +22,13 @@ It takes one click to deploy. You get a full admin UI, click analytics, SDKs for
 <table>
 <tr>
 <td width="33%"><a href="https://oddb.it/shrtnr-info"><img src="https://oddbit.id/images/shrtnr/dashboard-30d.png" alt="Admin dashboard with 30-day analytics"></a></td>
-<td width="33%"><a href="https://oddb.it/shrtnr-info"><img src="https://oddbit.id/images/shrtnr/links.png" alt="Links management"></a></td>
+<td width="33%"><a href="https://oddb.it/shrtnr-info"><img src="https://oddbit.id/images/shrtnr/links-30d.png" alt="Links management"></a></td>
 <td width="33%"><a href="https://oddb.it/shrtnr-info"><img src="https://oddbit.id/images/shrtnr/link-details-30d.png" alt="Per-link analytics"></a></td>
 </tr>
 <tr>
-<td width="33%"><a href="https://oddb.it/shrtnr-info"><img src="https://oddbit.id/images/shrtnr/bundles.png" alt="Bundles overview"></a></td>
+<td width="33%"><a href="https://oddb.it/shrtnr-info"><img src="https://oddbit.id/images/shrtnr/bundles-30d.png" alt="Bundles overview"></a></td>
 <td width="33%"><a href="https://oddb.it/shrtnr-info"><img src="https://oddbit.id/images/shrtnr/bundle-details-30d.png" alt="Bundle analytics"></a></td>
-<td width="33%"><a href="https://oddb.it/shrtnr-info"><img src="https://oddbit.id/images/shrtnr/claude.gif" alt="Claude MCP integration"></a></td>
+<td width="33%"><a href="https://oddb.it/shrtnr-info"><img src="https://oddbit.id/images/shrtnr/settings.png" alt="Claude MCP integration"></a></td>
 </tr>
 </table>
 
@@ -158,13 +158,16 @@ Shorten URLs, manage links, and read analytics from your own code.
 - Python: [`shrtnr`](https://oddb.it/shrtnr-pypi-readme). Sync and async clients on httpx. Details in [sdk/python/README.md](sdk/python/README.md).
 - Dart/Flutter: [`shrtnr`](https://oddb.it/shrtnr-pub-readme). Details in [sdk/dart/README.md](sdk/dart/README.md).
 
-All three SDKs wrap the same public HTTP API and stay feature-aligned per the SDK parity rule in [CLAUDE.md](CLAUDE.md). Releases are automated via OIDC trusted publishing; details in [docs/release-automation.md](docs/release-automation.md).
 
 ### MCP Server (AI Integration)
+
+<a href="https://oddb.it/shrtnr-info"><img align="right" width="40%" src="https://oddbit.id/images/shrtnr/claude.gif" alt="Claude using shrtnr MCP to shorten a URL"></a>
 
 Every shrtnr deployment includes a built-in [MCP](https://modelcontextprotocol.io/) endpoint. Claude, GitHub Copilot, Cursor, and any MCP-compatible client can connect to it over Streamable HTTP transport to create and manage short links.
 
 The MCP endpoint authenticates through [Cloudflare Access Managed OAuth](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/). CF Access acts as the OAuth Authorization Server: it handles client registration, token issuance, and validation at the edge. The Worker receives authenticated requests with identity headers and does not implement any OAuth endpoints itself.
+
+<br clear="all">
 
 #### MCP setup
 
