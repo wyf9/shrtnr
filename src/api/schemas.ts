@@ -12,9 +12,11 @@ export const ErrorResponseSchema = z
   .strict()
   .openapi("ErrorResponse", { description: "Error response with a single human-readable message." });
 
+export const TIMELINE_RANGES = ["24h", "7d", "30d", "90d", "1y", "all"] as const;
+
 export const RangeQuerySchema = z
   .object({
-    range: z.enum(["24h", "7d", "30d", "90d", "1y", "all"]).optional()
+    range: z.enum(TIMELINE_RANGES).optional()
       .openapi({ description: "Time range for analytics. Defaults are documented per endpoint." }),
   })
   .openapi("RangeQuery");
@@ -102,7 +104,8 @@ export const SlugParamSchema = z
 
 // ---- Bundle ----
 
-const BundleAccentSchema = z.enum(["orange", "red", "green", "blue", "purple"]);
+export const BUNDLE_ACCENTS = ["orange", "red", "green", "blue", "purple"] as const;
+export const BundleAccentSchema = z.enum(BUNDLE_ACCENTS);
 
 export const BundleSchema = z
   .object({

@@ -54,6 +54,11 @@ import {
 } from "../services/analytics";
 import type { TimelineRange } from "../types";
 import { renderQrSvg } from "../qr";
+import {
+  BUNDLE_ACCENTS,
+  CustomSlugStringSchema,
+  TIMELINE_RANGES,
+} from "../api/schemas";
 import pkg from "../../package.json";
 
 type ToolResult = {
@@ -102,9 +107,8 @@ export function okWithRange(range: TimelineRange, payload: unknown): ToolResult 
   return ok(body);
 }
 
-const RANGE_VALUES = ["24h", "7d", "30d", "90d", "1y", "all"] as const;
 const optionalRangeSchema = z
-  .enum(RANGE_VALUES)
+  .enum(TIMELINE_RANGES)
   .optional()
   .describe(
     "Time window for the query. Omit to use the user's `default_range` setting (fallback: 30d). Results are scoped to this window unless `all` is given. The response always echoes the resolved value as `range_used`.",
@@ -200,15 +204,15 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         inputSchema: {
           url: z.string().url().describe("Destination URL to shorten"),
           label: z.string().optional().describe("Human-readable label for the link"),
-          slug_length: z.number().int().min(3).optional().describe("Length of the random slug (default: 3)"),
+          slug_length: z.number().int().min(3).max(16).optional().describe("Length of the random slug (default: 3)"),
           custom_slug: z
-            .union([z.string(), z.array(z.string())])
+            .union([CustomSlugStringSchema, z.array(CustomSlugStringSchema)])
             .optional()
             .describe(
               "Custom slug(s), e.g. 'my-blog-post' or ['slug-a', 'slug-b']. Added after creation; collisions are reported, not fatal.",
             ),
-          vanity_slug: z.string().optional().describe("Alias for custom_slug (single string)"),
-          expires_at: z.number().int().optional().describe("Unix timestamp when the link expires"),
+          vanity_slug: CustomSlugStringSchema.optional().describe("Alias for custom_slug (single string)"),
+          expires_at: z.number().int().nonnegative().optional().describe("Unix timestamp when the link expires"),
         },
         annotations: { title: "Create link", ...WRITE_NEW },
       },
@@ -250,7 +254,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
           link_id: z.number().int().positive().describe("Numeric ID of the link to update"),
           url: z.string().url().optional().describe("New destination URL"),
           label: z.string().nullable().optional().describe("New label (null removes it)"),
-          expires_at: z.number().int().nullable().optional().describe("New expiry Unix timestamp (null removes it)"),
+          expires_at: z.number().int().nonnegative().nullable().optional().describe("New expiry Unix timestamp (null removes it)"),
         },
         annotations: { title: "Update link", ...WRITE_IDEMPOTENT },
       },
@@ -302,7 +306,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description: "Add a custom slug to an existing link.",
         inputSchema: {
           link_id: z.number().int().positive().describe("Numeric ID of the link"),
-          slug: z.string().min(1).describe("Custom slug to add, e.g. 'my-post'"),
+          slug: CustomSlugStringSchema.describe("Custom slug to add, e.g. 'my-post'"),
         },
         annotations: { title: "Add custom slug", ...WRITE_NEW },
       },
@@ -320,7 +324,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description: "Add a custom slug (vanity URL) to an existing link. Alias for add_custom_slug.",
         inputSchema: {
           link_id: z.number().int().positive().describe("Numeric ID of the link"),
-          slug: z.string().min(1).describe("Custom slug to add, e.g. 'my-post'"),
+          slug: CustomSlugStringSchema.describe("Custom slug to add, e.g. 'my-post'"),
         },
         annotations: { title: "Add vanity slug", ...WRITE_NEW },
       },
@@ -695,7 +699,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
           name: z.string().min(1).max(120).describe("Display name"),
           description: z.string().nullable().optional().describe("Optional short description"),
           icon: z.string().nullable().optional().describe("Material Symbol icon name, e.g. inventory_2"),
-          accent: z.enum(["orange", "red", "green", "blue", "purple"]).optional().describe("Accent color"),
+          accent: z.enum(BUNDLE_ACCENTS).optional().describe("Accent color"),
         },
         annotations: { title: "Create bundle", ...WRITE_NEW },
       },
@@ -721,7 +725,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
           name: z.string().min(1).max(120).optional(),
           description: z.string().nullable().optional(),
           icon: z.string().nullable().optional(),
-          accent: z.enum(["orange", "red", "green", "blue", "purple"]).optional(),
+          accent: z.enum(BUNDLE_ACCENTS).optional(),
         },
         annotations: { title: "Update bundle", ...WRITE_IDEMPOTENT },
       },
