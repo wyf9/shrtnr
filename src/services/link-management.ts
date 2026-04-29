@@ -258,7 +258,7 @@ export async function disableSlug(
 
   const slugObj = link.slugs.find((s) => s.slug === slug);
   if (!slugObj) return fail(404, "Slug not found on this link");
-  if (!slugObj.is_custom) return fail(400, "Cannot disable the random slug");
+  if (!slugObj.is_custom) return fail(400, "Cannot disable the system-generated slug; only custom slugs can be disabled. Disable the whole link instead.");
 
   const disabled = await SlugRepository.disable(env.DB, slug);
 
@@ -307,7 +307,7 @@ export async function removeSlug(
 
   const slugObj = link.slugs.find((s) => s.slug === slug);
   if (!slugObj) return fail(404, "Slug not found on this link");
-  if (!slugObj.is_custom) return fail(400, "Cannot remove the random slug");
+  if (!slugObj.is_custom) return fail(400, "Cannot remove the system-generated slug; only custom slugs can be removed.");
   if (slugObj.click_count > 0) return fail(400, "Cannot remove a slug with clicks, disable it instead");
 
   await SlugRepository.remove(env.DB, slug);
