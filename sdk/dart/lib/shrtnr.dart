@@ -8,34 +8,31 @@
 ///
 /// final client = ShrtnrClient(
 ///   baseUrl: 'https://your-shrtnr.example.com',
-///   auth: const ApiKeyAuth(apiKey: 'sk_...'),
+///   apiKey: 'sk_...',
 /// );
 ///
-/// final link = await client.createLink(
-///   const CreateLinkOptions(url: 'https://example.com'),
-/// );
+/// final link = await client.links.create(url: 'https://example.com');
+/// await client.bundles.archive(7);
+/// client.close();
 /// ```
-library;
+library shrtnr;
 
-export 'src/auth.dart' show ApiKeyAuth, ShrtnrAuth;
-export 'src/client.dart' show ShrtnrClient;
-export 'src/errors.dart' show ShrtnrException;
+export 'src/client.dart' show ShrtnrClient, LinksResource, SlugsResource, BundlesResource;
+export 'src/errors.dart' show ShrtnrError;
 export 'src/models.dart'
     show
+        AddedResult,
         Bundle,
-        BundleAccent,
-        BundleLinkStats,
-        BundleStats,
         BundleTopLink,
         BundleWithSummary,
         ClickStats,
-        CreateBundleOptions,
-        CreateLinkOptions,
-        DateCount,
-        HealthStatus,
+        DateClickCount,
+        DeletedResult,
         Link,
         NameCount,
+        RemovedResult,
         Slug,
-        SlugCount,
-        UpdateBundleOptions,
-        UpdateLinkOptions;
+        SlugClickCount,
+        TimelineBucket,
+        TimelineData,
+        TimelineSummary;
