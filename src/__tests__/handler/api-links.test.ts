@@ -8,6 +8,24 @@ function makeJwt(email: string): string {
   return `${header}.${body}.fakesig`;
 }
 
+// Seeds an api_keys row directly in the DB so tests can mint a Bearer key with
+// an arbitrary scope or identity without round-tripping through the admin UI.
+async function seedApiKey(
+  db: D1Database,
+  scope: string | null,
+  identity = "test@shrtnr.test",
+): Promise<string> {
+  const raw = `sk_${crypto.randomUUID().replace(/-/g, "")}`;
+  const prefix = raw.slice(0, 7);
+  const hashBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+  const hash = Array.from(new Uint8Array(hashBuf))
+    .map((b) => b.toString(16).padStart(2, "0")).join("");
+  await db.prepare(
+    "INSERT INTO api_keys (identity, title, key_prefix, key_hash, scope, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).bind(identity, "test", prefix, hash, scope, Math.floor(Date.now() / 1000)).run();
+  return raw;
+}
+
 const AUTH_HEADER = { "Cf-Access-Jwt-Assertion": makeJwt("test@example.com") };
 
 function authed(path: string, init?: RequestInit): Request {
@@ -819,5 +837,58 @@ describe("Delete Link API", () => {
       authed("/_/admin/api/links/99999", { method: "DELETE" })
     );
     expect(res.status).toBe(404);
+  });
+});
+
+// ---- Idempotent link creation on the public API ----
+//
+// Mirrors the existing rule already covered for POST /_/admin/api/links: a
+// second POST with the same URL returns the same link with `duplicate: true`,
+// while `allow_duplicate: true` forces a fresh row. Locks the public-API
+// surface so that contract is regression-tested at the bearer-token path too.
+
+describe("POST /_/api/links idempotent on URL", () => {
+  it("returns 200 + duplicate:true on second call with same URL", async () => {
+    const apiKey = await seedApiKey(env.DB, "create");
+
+    const first = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ url: "https://example.com/dup-test" }),
+    }));
+    expect(first.status).toBe(201);
+    const firstBody = await first.json() as { id: number; duplicate?: boolean };
+    expect(firstBody.duplicate).toBeUndefined();
+
+    const second = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ url: "https://example.com/dup-test" }),
+    }));
+    expect(second.status).toBe(200);
+    const secondBody = await second.json() as { id: number; duplicate?: boolean };
+    expect(secondBody.id).toBe(firstBody.id);
+    expect(secondBody.duplicate).toBe(true);
+  });
+
+  it("returns 201 + new link when allow_duplicate is true", async () => {
+    const apiKey = await seedApiKey(env.DB, "create");
+
+    const first = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ url: "https://example.com/allow-dup" }),
+    }));
+    expect(first.status).toBe(201);
+    const firstBody = await first.json() as { id: number };
+
+    const second = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ url: "https://example.com/allow-dup", allow_duplicate: true }),
+    }));
+    expect(second.status).toBe(201);
+    const secondBody = await second.json() as { id: number };
+    expect(secondBody.id).not.toBe(firstBody.id);
   });
 });
