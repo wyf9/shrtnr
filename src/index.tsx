@@ -22,7 +22,8 @@ import { Hono } from "hono";
 import type { Env, TimelineRange } from "./types";
 import { verifyAccessJwt, extractIdentity, isSignedIn, type AccessUser } from "./access";
 import { handleRedirect } from "./redirect";
-import { unauthorizedResponse } from "./auth";
+import { unauthorizedResponse, hasScope, forbiddenResponse } from "./auth";
+import { apiRouter } from "./api/router";
 import {
   authenticateApiKey,
   getAppSettings,
@@ -501,6 +502,8 @@ app.get("/_/admin/api/links/:id/bundles", (c) => {
 // ---- Public API auth middleware ----
 
 app.use("/_/api/*", async (c, next) => {
+  const path = new URL(c.req.url).pathname;
+  if (path === "/_/api/openapi.json" || path === "/_/api/docs") return next();
   const auth = await resolveAuth(c.req.raw, c.env);
   if (!auth) return unauthorizedResponse();
   c.set("auth", auth);
@@ -667,6 +670,10 @@ app.get("/_/api/links/:id/bundles", (c) => {
   return handleListBundlesForLink(c.env, id, c.var.auth.identity);
 });
 
+// Mount the OpenAPI sub-app. Resource routes are added to apiRouter in subsequent commits.
+// For now this serves /_/api/openapi.json and /_/api/docs.
+app.route("/_/api", apiRouter);
+
 // ---- Root landing page ----
 
 app.get("/", async (c) => {
@@ -806,14 +813,3 @@ async function resolveAuth(
   return null;
 }
 
-function hasScope(auth: AuthContext, required: string): boolean {
-  if (auth.scope === null) return true;
-  return auth.scope.split(",").includes(required);
-}
-
-function forbiddenResponse(): Response {
-  return new Response(JSON.stringify({ error: "Forbidden" }), {
-    status: 403,
-    headers: { "Content-Type": "application/json" },
-  });
-}
