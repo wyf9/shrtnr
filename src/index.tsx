@@ -322,7 +322,8 @@ app.get("/_/admin/bundles/:id", async (c) => {
   const rangeParam = c.req.query("range");
   const validRanges = new Set(["24h", "7d", "30d", "90d", "1y", "all"]);
   const range = (validRanges.has(rangeParam || "") ? rangeParam : (defaultRange ?? "30d")) as TimelineRange;
-  const statsResult = await getBundleAnalytics(c.env, id, range, identity);
+  const filters = await resolveClickFilters(c.env, identity);
+  const statsResult = await getBundleAnalytics(c.env, id, range, identity, { filters });
   if (!statsResult.ok) return notFoundResponse();
   return c.html(
     <Layout active="bundles" theme={theme} t={t} lang={lang} translations={translations}>
