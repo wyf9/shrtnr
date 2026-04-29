@@ -23,9 +23,10 @@ import { listBundlesForLink } from "../services/bundle-management";
 import { handleLinkQr } from "./qr";
 import { handlePublicLinkAnalytics, handlePublicLinkTimeline } from "./analytics";
 import { fetchPageTitle } from "../title-fetch";
-import { fromServiceResult, json } from "./response";
+import { formatZodError, fromServiceResult, json } from "./response";
 import { requireScope } from "./scope";
-import type { Env } from "../types";
+import type { Env, TimelineRange } from "../types";
+import type { Hook } from "@hono/zod-openapi";
 import {
   AddSlugBodySchema,
   BundleSchema,
@@ -42,6 +43,15 @@ import {
   paramHook,
 } from "./schemas";
 export const linksApp = createApiSubApp();
+
+// Hook for routes that have both path params and query params.
+// Path param failures return 404; query/body failures return 400 with a human-readable message.
+const paramAndQueryHook: Hook<any, any, any, any> = (result, c) => {
+  if (!result.success) {
+    if (result.target === "param") return c.json({ error: "Not Found" }, 404);
+    return c.json({ error: formatZodError(result.error) }, 400);
+  }
+};
 
 const errorResponses = {
   400: { description: "Validation error.", content: { "application/json": { schema: ErrorResponseSchema } } },
@@ -86,19 +96,20 @@ linksApp.openapi(createLinkRoute, async (c) => {
 
 // ---- GET / (list links) ----
 
+const listLinksQuery = z.object({
+  owner: z.string().optional().openapi({ description: "Filter to links created by this owner identity." }),
+}).merge(RangeQuerySchema);
+
 const listLinksRoute = createRoute({
   method: "get",
   path: "/",
   tags: ["links"],
   summary: "List all short links",
   middleware: [requireScope("read")] as const,
-  request: {
-    query: z.object({
-      owner: z.string().optional().openapi({ description: "Filter to links created by this owner identity." }),
-    }),
-  },
+  request: { query: listLinksQuery },
   responses: {
     200: { description: "OK.", content: { "application/json": { schema: z.array(LinkSchema) } } },
+    400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
     500: errorResponses[500],
@@ -106,8 +117,9 @@ const listLinksRoute = createRoute({
 });
 
 linksApp.openapi(listLinksRoute, async (c) => {
-  const { owner } = c.req.valid("query") as { owner?: string };
-  const result = owner ? await listLinksByOwner(c.env, owner) : await listLinks(c.env);
+  const { owner, range } = c.req.valid("query") as { owner?: string; range?: TimelineRange };
+  const opts = range ? { range, withDeltaRange: range } : undefined;
+  const result = owner ? await listLinksByOwner(c.env, owner, opts) : await listLinks(c.env, opts);
   return fromServiceResult(result) as never;
 });
 
@@ -119,9 +131,10 @@ const getLinkRoute = createRoute({
   tags: ["links"],
   summary: "Get a link with click stats",
   middleware: [requireScope("read")] as const,
-  request: { params: IdParamSchema },
+  request: { params: IdParamSchema, query: RangeQuerySchema },
   responses: {
     200: { description: "OK.", content: { "application/json": { schema: LinkSchema } } },
+    400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
     404: errorResponses[404],
@@ -131,8 +144,9 @@ const getLinkRoute = createRoute({
 
 linksApp.openapi(getLinkRoute, async (c) => {
   const { id } = c.req.valid("param") as { id: number };
-  return fromServiceResult(await getLink(c.env, id)) as never;
-}, paramHook);
+  const { range } = c.req.valid("query") as { range?: TimelineRange };
+  return fromServiceResult(await getLink(c.env, id, range ? { range } : undefined)) as never;
+}, paramAndQueryHook);
 
 // ---- PUT /:id (update link) ----
 

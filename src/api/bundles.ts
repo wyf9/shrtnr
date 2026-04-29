@@ -1,7 +1,7 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-import { Env, TimelineRange } from "../types";
+import { Env, TimelineRange, BundleWithSummary } from "../types";
 import {
   addLinkToBundle,
   archiveBundle,
@@ -144,23 +144,27 @@ const errorResponses = {
 
 // ---- GET / (list bundles) ----
 
+const listBundlesQuery = ArchivedQuerySchema.merge(RangeQuerySchema);
+
 const listBundlesRoute = createRoute({
   method: "get",
   path: "/",
   tags: ["bundles"],
   summary: "List bundles",
   middleware: [requireScope("read")] as const,
-  request: { query: ArchivedQuerySchema },
+  request: { query: listBundlesQuery },
   responses: {
     200: { description: "OK.", content: { "application/json": { schema: z.array(BundleWithSummarySchema) } } },
+    400: { description: "Validation error.", content: { "application/json": { schema: ErrorResponseSchema } } },
     401: errorResponses[401],
     403: errorResponses[403],
   },
 });
 
 bundlesApp.openapi(listBundlesRoute, async (c) => {
-  const { archived } = c.req.valid("query") as { archived?: "true" | "1" | "only" | "all" };
-  return fromServiceResult(await listBundles(c.env, c.var.auth.identity, parseArchivedFilter(archived))) as never;
+  const { archived, range } = c.req.valid("query") as { archived?: "true" | "1" | "only" | "all"; range?: TimelineRange };
+  const filter = parseArchivedFilter(archived);
+  return fromServiceResult(await listBundles(c.env, c.var.auth.identity, { ...filter, range })) as never;
 });
 
 // ---- POST / (create bundle) ----
@@ -194,9 +198,10 @@ const getBundleRoute = createRoute({
   tags: ["bundles"],
   summary: "Get a bundle",
   middleware: [requireScope("read")] as const,
-  request: { params: IdParamSchema },
+  request: { params: IdParamSchema, query: RangeQuerySchema },
   responses: {
-    200: { description: "OK.", content: { "application/json": { schema: BundleSchema } } },
+    200: { description: "OK.", content: { "application/json": { schema: BundleWithSummarySchema } } },
+    400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
     404: errorResponses[404],
@@ -205,7 +210,8 @@ const getBundleRoute = createRoute({
 
 bundlesApp.openapi(getBundleRoute, async (c) => {
   const { id } = c.req.valid("param") as { id: number };
-  return fromServiceResult(await getBundle(c.env, id, c.var.auth.identity)) as never;
+  const { range } = c.req.valid("query") as { range?: TimelineRange };
+  return fromServiceResult(await getBundle(c.env, id, c.var.auth.identity, { range: range ?? "all" })) as never;
 }, paramHook);
 
 // ---- PUT /:id (update bundle) ----

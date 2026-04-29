@@ -102,14 +102,35 @@ export async function listBundles(
   return ok(enriched);
 }
 
+export interface GetBundleOpts {
+  range?: TimelineRange;
+}
+
 export async function getBundle(
   env: Env,
   id: number,
   identity: string,
-): Promise<ServiceResult<Bundle>> {
+  opts?: GetBundleOpts,
+): Promise<ServiceResult<Bundle | BundleWithSummary>> {
   const bundle = await BundleRepository.getById(env.DB, id);
   if (!bundle || bundle.created_by !== identity) return fail(404, "Bundle not found");
-  return ok(bundle);
+  if (!opts?.range) return ok(bundle);
+
+  const summaries = await ClickRepository.getBundleSummariesBulk(env.DB, [id], undefined, undefined, opts.range);
+  const s = summaries.get(id);
+  const linkCount = await env.DB
+    .prepare("SELECT COUNT(*) as cnt FROM bundle_links WHERE bundle_id = ?")
+    .bind(id)
+    .first<{ cnt: number }>();
+  const result: BundleWithSummary = {
+    ...bundle,
+    link_count: linkCount?.cnt ?? 0,
+    total_clicks: s?.total_clicks ?? 0,
+    delta_pct: s?.delta_pct,
+    sparkline: s?.sparkline ?? [],
+    top_links: s?.top_links ?? [],
+  };
+  return ok(result);
 }
 
 export async function updateBundle(

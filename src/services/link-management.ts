@@ -40,7 +40,9 @@ export async function getLink(env: Env, id: number, opts?: GetLinkOptions): Prom
   const sinceTs = rangeToSinceTs(opts?.range);
   const link = await LinkRepository.getById(env.DB, id, { filters: opts?.filters, sinceTs });
   if (!link) return fail(404, "Link not found");
-  return ok(link);
+  if (!opts?.range || opts.range === "all") return ok(link);
+  const [enriched] = await ClickRepository.attachLinkDeltasBulk(env.DB, [link], opts.range, undefined, opts.filters);
+  return ok(enriched);
 }
 
 export async function getLinkBySlug(env: Env, slug: string, opts?: GetLinkOptions): Promise<ServiceResult<LinkWithSlugs>> {
@@ -362,9 +364,12 @@ export async function searchLinks(
   return ok(enriched);
 }
 
-export async function listLinksByOwner(env: Env, owner: string, opts?: GetLinkOptions): Promise<ServiceResult<LinkWithSlugs[]>> {
+export async function listLinksByOwner(env: Env, owner: string, opts?: ListLinksOptions): Promise<ServiceResult<LinkWithSlugs[]>> {
   const sinceTs = rangeToSinceTs(opts?.range);
-  return ok(await LinkRepository.findByOwner(env.DB, owner, { filters: opts?.filters, sinceTs }));
+  const links = await LinkRepository.findByOwner(env.DB, owner, { filters: opts?.filters, sinceTs });
+  if (!opts?.withDeltaRange) return ok(links);
+  const enriched = await ClickRepository.attachLinkDeltasBulk(env.DB, links, opts.withDeltaRange, undefined, opts.filters);
+  return ok(enriched);
 }
 
 export async function autoLabelLink(
