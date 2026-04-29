@@ -283,7 +283,7 @@ Authentication is determined by route prefix:
 | `/_/admin/*` | None built in | Admin UI and admin-only API. Protect externally (see [Access Control](#access-control)). Not callable with API keys. |
 | `/_/health` | Public | Health check. |
 
-For full endpoint and payload details, use the SDKs ([TypeScript](sdk/typescript/README.md), [Python](sdk/python/README.md), [Dart](sdk/dart/README.md)) or the MCP tool list above. They stay in lockstep with the server per the SDK parity rule in [CLAUDE.md](CLAUDE.md).
+For full endpoint shapes, parameters, and example payloads, see the live API reference at **`/_/api/docs`** on your deployment, or fetch the OpenAPI 3.1 spec directly at **`/_/api/openapi.json`**. The spec is the source of truth: SDKs ([TypeScript](sdk/typescript/README.md), [Python](sdk/python/README.md), [Dart](sdk/dart/README.md)) regenerate from it when the API changes.
 
 ## Development
 
