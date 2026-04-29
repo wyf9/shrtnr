@@ -50,7 +50,7 @@ describe("OpenAPI surface", () => {
 });
 
 describe("OpenAPI strict validation", () => {
-  it("POST /_/api/links with an unknown field returns 400 + {error}", async () => {
+  it("POST /_/api/links with an unknown field returns 400 + {error: string}", async () => {
     const key = await createApiKey("create");
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/_/api/links", {
@@ -63,11 +63,9 @@ describe("OpenAPI strict validation", () => {
       }),
     );
     expect(res.status).toBe(400);
-    // @hono/zod-openapi routes without a defaultHook return the library's default
-    // validation envelope: { success: false, error: { name: "ZodError", message: "..." } }
-    const body = (await res.json()) as { success?: boolean; error?: { name?: string; message?: string } };
-    expect(body.success).toBe(false);
-    expect(body.error?.message).toMatch(/banana/i);
+    const body = await res.json() as { error?: string };
+    expect(typeof body.error).toBe("string");
+    expect(body.error).toMatch(/banana/i);
   });
 
   it("GET /_/api/links/abc returns 404 (NaN-id contract preserved via paramHook)", async () => {

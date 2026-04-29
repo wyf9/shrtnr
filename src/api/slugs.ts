@@ -1,7 +1,8 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { createRoute } from "@hono/zod-openapi";
+import { createApiSubApp } from "./sub-app";
 import { Env } from "../types";
 import {
   addCustomSlugToLink,
@@ -14,8 +15,6 @@ import {
 import { json, fromServiceResult } from "./response";
 import { requireScope } from "./scope";
 import { ErrorResponseSchema, LinkSchema, SlugParamSchema, paramHook } from "./schemas";
-import type { HonoEnv } from "./hono-env";
-
 // ---- Legacy admin handlers (still consumed by admin routes in src/index.tsx) ----
 
 export async function handleAddCustomSlug(
@@ -78,7 +77,7 @@ export async function handleRemoveSlug(
 
 // ---- OpenAPI sub-app ----
 
-export const slugsApp = new OpenAPIHono<HonoEnv>();
+export const slugsApp = createApiSubApp();
 
 const errorResponses = {
   401: { description: "Missing or invalid bearer token.", content: { "application/json": { schema: ErrorResponseSchema } } },

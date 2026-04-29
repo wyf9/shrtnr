@@ -1,22 +1,14 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-import { OpenAPIHono } from "@hono/zod-openapi";
 import pkg from "../../package.json";
-import { formatZodError } from "./response";
 import { scalarResponse } from "./scalar";
-import type { HonoEnv } from "./hono-env";
+import { createApiSubApp } from "./sub-app";
 import { linksApp } from "./links";
 import { slugsApp } from "./slugs";
 import { bundlesApp } from "./bundles";
 
-export const apiRouter = new OpenAPIHono<HonoEnv>({
-  defaultHook: (result, c) => {
-    if (!result.success) {
-      return c.json({ error: formatZodError(result.error) }, 400);
-    }
-  },
-});
+export const apiRouter = createApiSubApp();
 
 apiRouter.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
   type: "http",

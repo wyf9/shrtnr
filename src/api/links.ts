@@ -1,7 +1,8 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { createRoute, z } from "@hono/zod-openapi";
+import { createApiSubApp } from "./sub-app";
 import {
   autoLabelLink,
   createLink,
@@ -40,9 +41,7 @@ import {
   UpdateLinkBodySchema,
   paramHook,
 } from "./schemas";
-import type { HonoEnv } from "./hono-env";
-
-export const linksApp = new OpenAPIHono<HonoEnv>();
+export const linksApp = createApiSubApp();
 
 const errorResponses = {
   400: { description: "Validation error.", content: { "application/json": { schema: ErrorResponseSchema } } },

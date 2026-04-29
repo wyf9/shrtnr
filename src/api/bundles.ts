@@ -18,7 +18,8 @@ import {
 } from "../services/bundle-management";
 import { resolveClickFilters } from "../services/admin-management";
 import { fromServiceResult, json } from "./response";
-import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { createRoute, z } from "@hono/zod-openapi";
+import { createApiSubApp } from "./sub-app";
 import { requireScope } from "./scope";
 import {
   AddBundleLinkBodySchema,
@@ -34,8 +35,6 @@ import {
   UpdateBundleBodySchema,
   paramHook,
 } from "./schemas";
-import type { HonoEnv } from "./hono-env";
-
 const VALID_RANGES = new Set<TimelineRange>(["24h", "7d", "30d", "90d", "1y", "all"]);
 
 function parseRange(raw: string | undefined, fallback: TimelineRange = "30d"): TimelineRange {
@@ -134,7 +133,7 @@ export async function handleListBundlesForLink(env: Env, linkId: number, identit
 
 // ---- OpenAPI sub-app for /_/api/bundles/* ----
 
-export const bundlesApp = new OpenAPIHono<HonoEnv>();
+export const bundlesApp = createApiSubApp();
 
 const errorResponses = {
   400: { description: "Validation error.", content: { "application/json": { schema: ErrorResponseSchema } } },
