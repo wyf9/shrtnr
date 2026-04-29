@@ -1,7 +1,11 @@
 ![SHRTNR. logotype](./public/logotype-white.svg)
 # Open-Source URL Shortener on Cloudflare Workers
 
-> A free, self-hosted URL shortener with click analytics, an admin dashboard, and AI integration. Runs on Cloudflare's free tier. Zero servers, zero monthly cost.
+[![npm](https://img.shields.io/npm/v/%40oddbit%2Fshrtnr?label=npm&color=cb3837&logo=npm)](https://oddb.it/shrtnr-npm-readme)
+[![PyPI](https://img.shields.io/pypi/v/shrtnr?label=pypi&color=3775a9&logo=pypi&logoColor=white)](https://oddb.it/shrtnr-pypi-readme)
+[![pub.dev](https://img.shields.io/pub/v/shrtnr?label=pub.dev&color=0175c2&logo=dart&logoColor=white)](https://oddb.it/shrtnr-pub-readme)
+
+> A free, self-hosted URL shortener with built-in AI integration, click analytics, an admin dashboard. Runs on Cloudflare's free tier. Zero servers, zero monthly cost.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://oddb.it/shrtnr-deploy-top)
 
@@ -11,7 +15,7 @@ Most URL shorteners either lock you into a SaaS with per-click pricing or requir
 
 It takes one click to deploy. You get a full admin UI, click analytics, SDKs for TypeScript, Python, and Dart, and an MCP server for AI assistants: all from a single Cloudflare Worker.
 
-Read more on our [website](https://oddbit.id).
+[**shrtnr**](https://oddb.it/shrtnr-info) is built by [**Oddbit**](https://oddb.it/website), a senior-led studio shipping Cloudflare, Firebase, Flutter, and AI integrations for funded startups and scale-ups. See what else we build at [oddbit.id](https://oddb.it/website).
 
 ## Preview
 
@@ -44,12 +48,17 @@ Read more on our [website](https://oddbit.id).
 - **Built-in MCP server** at `/_/mcp` with OAuth via Cloudflare Access, so Claude, Copilot, and other AI assistants can shorten URLs
 - **One-click deploy** with automatic database provisioning and migrations
 
-## Deploy
+## Need help shipping it?
+
+[**shrtnr**](https://oddb.it/shrtnr-info) is open source and free to self-host. If you want it deployed, customised, or integrated into your stack, [Oddbit](https://oddb.it/website) does that.
+
+We're an Indonesian-based studio with roots in Sweden. [**shrtnr**](https://oddb.it/shrtnr-info) is one of the open-source tools we built for our own use and released.
+
+[Talk to us at oddbit.id →](https://oddb.it/website)
 
 ![Oddbit logotype](https://oddbit.id/logo/oddbit-primary-logo-mint-green.png)
-**👉 Running into issues or prefer someone else handle this? 👈** 
 
-[Oddbit](https://oddbit.id) built shrtnr and helps teams deploy, configure, and integrate it. Just [reach out](https://oddbit.id) and we'll get you sorted 🤓🚀
+## Deploy
 
 ### One-click
 
@@ -145,9 +154,9 @@ When `ACCESS_AUD` is set, the worker validates the JWT signature and audience cl
 
 Shorten URLs, manage links, and read analytics from your own code.
 
-- TypeScript/JavaScript: [`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm-readme) — see [sdk/typescript/README.md](sdk/typescript/README.md).
-- Python: [`shrtnr`](https://oddb.it/shrtnr-pypi-readme) — see [sdk/python/README.md](sdk/python/README.md). Sync and async clients on httpx.
-- Dart/Flutter: [`shrtnr`](https://oddb.it/shrtnr-pub-readme) — see [sdk/dart/README.md](sdk/dart/README.md).
+- TypeScript/JavaScript: [`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm-readme). Details in [sdk/typescript/README.md](sdk/typescript/README.md).
+- Python: [`shrtnr`](https://oddb.it/shrtnr-pypi-readme). Sync and async clients on httpx. Details in [sdk/python/README.md](sdk/python/README.md).
+- Dart/Flutter: [`shrtnr`](https://oddb.it/shrtnr-pub-readme). Details in [sdk/dart/README.md](sdk/dart/README.md).
 
 All three SDKs wrap the same public HTTP API and stay feature-aligned per the SDK parity rule in [CLAUDE.md](CLAUDE.md). Releases are automated via OIDC trusted publishing; details in [docs/release-automation.md](docs/release-automation.md).
 
@@ -161,7 +170,7 @@ The MCP endpoint authenticates through [Cloudflare Access Managed OAuth](https:/
 
 **1. Create a self-hosted Access application** for the MCP endpoint in Cloudflare Zero Trust:
 
-CF Access MCP-type applications cannot be scoped to a path — they must own a full subdomain. The Worker detects requests on any host starting with `mcp.` and routes them to the MCP handler, so the subdomain **must** use the `mcp.` prefix (e.g., `mcp.your-domain.com`).
+CF Access MCP-type applications cannot be scoped to a path: they must own a full subdomain. The Worker detects requests on any host starting with `mcp.` and routes them to the MCP handler, so the subdomain **must** use the `mcp.` prefix (e.g., `mcp.your-domain.com`).
 
 1. Go to **Access > Applications > Add an application > Self-hosted**
 2. Set the domain to your MCP subdomain (e.g., `mcp.your-domain.com`) with no path
@@ -169,9 +178,9 @@ CF Access MCP-type applications cannot be scoped to a path — they must own a f
 4. Go to **Advanced settings**, expand **Managed OAuth (Beta)** and toggle it **on**
 5. Enable **Allow localhost clients** and **Allow loopback clients**
 6. Under **Allowed redirect URIs**, add one entry per integration:
-   - `https://claude.ai/api/mcp/auth_callback` — for Claude.ai (legacy domain) and Claude Desktop
-   - `https://claude.com/api/mcp/auth_callback` — for Claude.ai (current domain)
-   - `https://dash.cloudflare.com/*` — for the CF Access AI Controls portal to authenticate and sync tools
+   - `https://claude.ai/api/mcp/auth_callback`: for Claude.ai (legacy domain) and Claude Desktop
+   - `https://claude.com/api/mcp/auth_callback`: for Claude.ai (current domain)
+   - `https://dash.cloudflare.com/*`: for the CF Access AI Controls portal to authenticate and sync tools
    - Add equivalents for other platforms (ChatGPT, etc.) as needed. To find a client's exact callback URI: attempt to connect, let the flow fail, and read the `redirect_uri` from the error URL in the browser.
 7. CF Access changes can take 30–60 seconds to propagate after saving.
 
@@ -308,9 +317,13 @@ yarn build
 - [Cloudflare Access Managed OAuth](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/): MCP server protection with Access
 - [Cloudflare MCP Portals](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/mcp-portals/): AI Controls portal for managing MCP servers in Zero Trust
 
-## Attribution
+## Built by Oddbit
 
-shrtnr is built and maintained by **[Oddbit](https://oddbit.id)**. 
+shrtnr is one of several open-source tools maintained by **[Oddbit](https://oddb.it/website)**, a senior-led software studio in Sweden. We build custom web apps, mobile apps, and API integrations for funded startups: Cloudflare, Firebase, Flutter, and AI/Genkit work.
+
+If shrtnr is useful, the same team is available to build the rest of your stack. [oddbit.id](https://oddb.it/website).
+
+### License & attribution
 
 If you fork or build on this project, keep the license, notice, and attribution files intact. Apache 2.0 requires this, and it's good open-source etiquette.
 
