@@ -408,17 +408,28 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
       "search_links",
       {
         title: "Search links",
-        description: "Search for short links by label, slug, URL, or creator email. Returns all links matching the query string.",
+        description:
+          "Search for short links by label, slug, URL, or creator email. Click counts and `delta_pct` are scoped to the requested range; reuse the same range across follow-ups to keep numbers comparable. Defaults to the user's `default_range` setting (or 30d). Response includes `range_used`.",
         inputSchema: {
           query: z.string().describe("Search term to match against link labels, slugs, URLs, and creator emails"),
+          range: optionalRangeSchema,
         },
         annotations: { title: "Search links", ...READ_ONLY },
       },
-      async ({ query }) => {
-        const result = await searchLinks(this.env, query);
+      async ({ query, range }) => {
+        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
+        const filters = await resolveClickFilters(this.env, this.identity);
+        const result = await searchLinks(this.env, query, {
+          includeOwner: true,
+          range: resolved,
+          withDeltaRange: resolved,
+          filters,
+        });
         if (!result.ok) return fail(result.error);
-        if (result.data.length === 0) return ok({ results: [], message: "No links found matching that query." });
-        return ok({ results: result.data, count: result.data.length });
+        if (result.data.length === 0) {
+          return okWithRange(resolved, { results: [], message: "No links found matching that query." });
+        }
+        return okWithRange(resolved, { results: result.data, count: result.data.length });
       },
     );
 
@@ -427,17 +438,26 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
       {
         title: "List links by owner",
         description:
-          "List all short links created by a specific user. Use this to find all links belonging to a particular team member.",
+          "List all short links created by a specific user. Click counts and `delta_pct` are scoped to the requested range. Defaults to the user's `default_range` setting (or 30d). Response includes `range_used`.",
         inputSchema: {
           owner: z.string().describe("Email address of the link owner"),
+          range: optionalRangeSchema,
         },
         annotations: { title: "List links by owner", ...READ_ONLY },
       },
-      async ({ owner }) => {
-        const result = await listLinksByOwner(this.env, owner);
+      async ({ owner, range }) => {
+        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
+        const filters = await resolveClickFilters(this.env, this.identity);
+        const result = await listLinksByOwner(this.env, owner, {
+          range: resolved,
+          withDeltaRange: resolved,
+          filters,
+        });
         if (!result.ok) return fail(result.error);
-        if (result.data.length === 0) return ok({ results: [], message: `No links found for ${owner}.` });
-        return ok({ results: result.data, count: result.data.length });
+        if (result.data.length === 0) {
+          return okWithRange(resolved, { results: [], message: `No links found for ${owner}.` });
+        }
+        return okWithRange(resolved, { results: result.data, count: result.data.length });
       },
     );
 
