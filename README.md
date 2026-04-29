@@ -212,16 +212,7 @@ Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) > your zone > **Secur
 
 #### Available tools
 
-| Tool | Description |
-|---|---|
-| `health` | Check server health and version |
-| `list_links` | List all short links with slugs and click counts |
-| `get_link` | Get details for a link by ID |
-| `create_link` | Shorten a URL (supports labels, custom slugs, expiry) |
-| `update_link` | Update a link's URL, label, or expiry |
-| `disable_link` | Disable a link so it stops redirecting |
-| `add_custom_slug` | Add a custom slug to an existing link |
-| `get_link_analytics` | Get click stats by country, referrer, device, and browser |
+The MCP server registers tools for managing links, custom slugs, bundles, QR codes, and analytics (lifetime, time-ranged, and dimensional breakdowns). Connected clients discover the full list via the standard MCP `tools/list` call: any AI assistant or inspector that speaks Streamable HTTP MCP will enumerate it on connect. The authoritative source is [`src/mcp/server.ts`](src/mcp/server.ts).
 
 #### Connecting MCP clients
 
