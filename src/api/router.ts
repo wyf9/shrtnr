@@ -8,6 +8,7 @@ import { scalarResponse } from "./scalar";
 import type { HonoEnv } from "./hono-env";
 import { linksApp } from "./links";
 import { slugsApp } from "./slugs";
+import { bundlesApp } from "./bundles";
 
 export const apiRouter = new OpenAPIHono<HonoEnv>({
   defaultHook: (result, c) => {
@@ -44,3 +45,4 @@ apiRouter.get("/docs", (_c) => scalarResponse());
 
 apiRouter.route("/links", linksApp);
 apiRouter.route("/slugs", slugsApp);
+apiRouter.route("/bundles", bundlesApp);

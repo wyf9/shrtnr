@@ -18,6 +18,23 @@ import {
 } from "../services/bundle-management";
 import { resolveClickFilters } from "../services/admin-management";
 import { fromServiceResult, json } from "./response";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { requireScope } from "./scope";
+import {
+  AddBundleLinkBodySchema,
+  ArchivedQuerySchema,
+  BundleSchema,
+  BundleWithSummarySchema,
+  ClickStatsSchema,
+  CreateBundleBodySchema,
+  ErrorResponseSchema,
+  IdParamSchema,
+  LinkSchema,
+  RangeQuerySchema,
+  UpdateBundleBodySchema,
+  paramHook,
+} from "./schemas";
+import type { HonoEnv } from "./hono-env";
 
 const VALID_RANGES = new Set<TimelineRange>(["24h", "7d", "30d", "90d", "1y", "all"]);
 
@@ -114,3 +131,272 @@ export async function handleRemoveLinkFromBundle(env: Env, bundleId: number, lin
 export async function handleListBundlesForLink(env: Env, linkId: number, identity: string): Promise<Response> {
   return fromServiceResult(await listBundlesForLink(env, linkId, identity));
 }
+
+// ---- OpenAPI sub-app for /_/api/bundles/* ----
+
+export const bundlesApp = new OpenAPIHono<HonoEnv>();
+
+const errorResponses = {
+  400: { description: "Validation error.", content: { "application/json": { schema: ErrorResponseSchema } } },
+  401: { description: "Missing or invalid bearer token.", content: { "application/json": { schema: ErrorResponseSchema } } },
+  403: { description: "Scope insufficient.", content: { "application/json": { schema: ErrorResponseSchema } } },
+  404: { description: "Not found.", content: { "application/json": { schema: ErrorResponseSchema } } },
+};
+
+// ---- GET / (list bundles) ----
+
+const listBundlesRoute = createRoute({
+  method: "get",
+  path: "/",
+  tags: ["bundles"],
+  summary: "List bundles",
+  middleware: [requireScope("read")] as const,
+  request: { query: ArchivedQuerySchema },
+  responses: {
+    200: { description: "OK.", content: { "application/json": { schema: z.array(BundleWithSummarySchema) } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+  },
+});
+
+bundlesApp.openapi(listBundlesRoute, async (c) => {
+  const { archived } = c.req.valid("query") as { archived?: "true" | "1" | "only" | "all" };
+  return fromServiceResult(await listBundles(c.env, c.var.auth.identity, parseArchivedFilter(archived))) as never;
+});
+
+// ---- POST / (create bundle) ----
+
+const createBundleRoute = createRoute({
+  method: "post",
+  path: "/",
+  tags: ["bundles"],
+  summary: "Create a bundle",
+  middleware: [requireScope("create")] as const,
+  request: { body: { content: { "application/json": { schema: CreateBundleBodySchema } } } },
+  responses: {
+    201: { description: "Created.", content: { "application/json": { schema: BundleSchema } } },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+  },
+});
+
+bundlesApp.openapi(createBundleRoute, async (c) => {
+  const body = c.req.valid("json") as { name: string; description?: string | null; icon?: string | null; accent?: "orange" | "red" | "green" | "blue" | "purple" };
+  const via = c.req.header("X-Client") === "sdk" ? "sdk" : "api";
+  return fromServiceResult(await createBundle(c.env, body, c.var.auth.identity, via)) as never;
+});
+
+// ---- GET /:id (get bundle) ----
+
+const getBundleRoute = createRoute({
+  method: "get",
+  path: "/{id}",
+  tags: ["bundles"],
+  summary: "Get a bundle",
+  middleware: [requireScope("read")] as const,
+  request: { params: IdParamSchema },
+  responses: {
+    200: { description: "OK.", content: { "application/json": { schema: BundleSchema } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+bundlesApp.openapi(getBundleRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  return fromServiceResult(await getBundle(c.env, id, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- PUT /:id (update bundle) ----
+
+const updateBundleRoute = createRoute({
+  method: "put",
+  path: "/{id}",
+  tags: ["bundles"],
+  summary: "Update a bundle",
+  middleware: [requireScope("create")] as const,
+  request: {
+    params: IdParamSchema,
+    body: { content: { "application/json": { schema: UpdateBundleBodySchema } } },
+  },
+  responses: {
+    200: { description: "Updated.", content: { "application/json": { schema: BundleSchema } } },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+bundlesApp.openapi(updateBundleRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  const body = c.req.valid("json") as { name?: string; description?: string | null; icon?: string | null; accent?: "orange" | "red" | "green" | "blue" | "purple" };
+  return fromServiceResult(await updateBundle(c.env, id, body, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- DELETE /:id ----
+
+const deleteBundleRoute = createRoute({
+  method: "delete",
+  path: "/{id}",
+  tags: ["bundles"],
+  summary: "Delete a bundle permanently",
+  middleware: [requireScope("create")] as const,
+  request: { params: IdParamSchema },
+  responses: {
+    200: { description: "Deleted.", content: { "application/json": { schema: z.object({ deleted: z.boolean() }) } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+bundlesApp.openapi(deleteBundleRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  return fromServiceResult(await deleteBundle(c.env, id, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- POST /:id/archive ----
+
+const archiveBundleRoute = createRoute({
+  method: "post",
+  path: "/{id}/archive",
+  tags: ["bundles"],
+  summary: "Archive a bundle",
+  middleware: [requireScope("create")] as const,
+  request: { params: IdParamSchema },
+  responses: {
+    200: { description: "Archived.", content: { "application/json": { schema: BundleSchema } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+bundlesApp.openapi(archiveBundleRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  return fromServiceResult(await archiveBundle(c.env, id, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- POST /:id/unarchive ----
+
+const unarchiveBundleRoute = createRoute({
+  method: "post",
+  path: "/{id}/unarchive",
+  tags: ["bundles"],
+  summary: "Unarchive a bundle",
+  middleware: [requireScope("create")] as const,
+  request: { params: IdParamSchema },
+  responses: {
+    200: { description: "Unarchived.", content: { "application/json": { schema: BundleSchema } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+bundlesApp.openapi(unarchiveBundleRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  return fromServiceResult(await unarchiveBundle(c.env, id, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- GET /:id/analytics (public defaults to all-time) ----
+
+const bundleAnalyticsRoute = createRoute({
+  method: "get",
+  path: "/{id}/analytics",
+  tags: ["bundles"],
+  summary: "Get bundle analytics. Defaults to all-time if no range given.",
+  middleware: [requireScope("read")] as const,
+  request: { params: IdParamSchema, query: RangeQuerySchema },
+  responses: {
+    200: { description: "OK.", content: { "application/json": { schema: ClickStatsSchema } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+bundlesApp.openapi(bundleAnalyticsRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  const { range: rawRange } = c.req.valid("query") as { range?: TimelineRange };
+  const range = parseRange(rawRange, "all");
+  return fromServiceResult(await getBundleAnalytics(c.env, id, range, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- GET /:id/links (list links in bundle) ----
+
+const listBundleLinksRoute = createRoute({
+  method: "get",
+  path: "/{id}/links",
+  tags: ["bundles"],
+  summary: "List links in a bundle",
+  middleware: [requireScope("read")] as const,
+  request: { params: IdParamSchema },
+  responses: {
+    200: { description: "OK.", content: { "application/json": { schema: z.array(LinkSchema) } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+bundlesApp.openapi(listBundleLinksRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  return fromServiceResult(await listBundleLinks(c.env, id, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- POST /:id/links (add link to bundle) ----
+
+const addLinkToBundleRoute = createRoute({
+  method: "post",
+  path: "/{id}/links",
+  tags: ["bundles"],
+  summary: "Add a link to a bundle",
+  middleware: [requireScope("create")] as const,
+  request: {
+    params: IdParamSchema,
+    body: { content: { "application/json": { schema: AddBundleLinkBodySchema } } },
+  },
+  responses: {
+    200: { description: "Added.", content: { "application/json": { schema: z.object({ added: z.boolean() }) } } },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+bundlesApp.openapi(addLinkToBundleRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  const { link_id } = c.req.valid("json") as { link_id: number };
+  return fromServiceResult(await addLinkToBundle(c.env, id, link_id, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- DELETE /:id/links/:linkId ----
+
+const BundleLinkParamsSchema = IdParamSchema
+  .extend({ linkId: z.coerce.number().int().positive().openapi({ param: { name: "linkId", in: "path" }, example: 17 }) })
+  .openapi("BundleLinkParams");
+
+const removeLinkFromBundleRoute = createRoute({
+  method: "delete",
+  path: "/{id}/links/{linkId}",
+  tags: ["bundles"],
+  summary: "Remove a link from a bundle",
+  middleware: [requireScope("create")] as const,
+  request: { params: BundleLinkParamsSchema },
+  responses: {
+    200: { description: "Removed.", content: { "application/json": { schema: z.object({ removed: z.boolean() }) } } },
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+bundlesApp.openapi(removeLinkFromBundleRoute, async (c) => {
+  const { id, linkId } = c.req.valid("param") as { id: number; linkId: number };
+  return fromServiceResult(await removeLinkFromBundle(c.env, id, linkId, c.var.auth.identity)) as never;
+}, paramHook);

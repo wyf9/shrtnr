@@ -72,7 +72,6 @@ import {
   handleAddLinkToBundle,
   handleArchiveBundle,
   handleAdminBundleAnalytics,
-  handlePublicBundleAnalytics,
   handleBundleLinks,
   handleCreateBundle,
   handleDeleteBundle,
@@ -522,77 +521,6 @@ app.get("/_/api/links/:id/timeline", (c) => {
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
   if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
   return handlePublicLinkTimeline(c.env, id, c.req.query("range"));
-});
-// Public API: bundles
-app.get("/_/api/bundles", (c) => {
-  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
-  return handleListBundles(c.env, c.var.auth.identity, { archived: c.req.query("archived") });
-});
-app.post("/_/api/bundles", (c) => {
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  const via = c.req.header("X-Client") === "sdk" ? "sdk" : "api";
-  return handleCreateBundle(c.req.raw, c.env, c.var.auth.identity, via);
-});
-app.get("/_/api/bundles/:id", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
-  return handleGetBundle(c.env, id, c.var.auth.identity);
-});
-app.put("/_/api/bundles/:id", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleUpdateBundle(c.req.raw, c.env, id, c.var.auth.identity);
-});
-app.delete("/_/api/bundles/:id", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleDeleteBundle(c.env, id, c.var.auth.identity);
-});
-app.post("/_/api/bundles/:id/archive", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleArchiveBundle(c.env, id, c.var.auth.identity);
-});
-app.post("/_/api/bundles/:id/unarchive", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleUnarchiveBundle(c.env, id, c.var.auth.identity);
-});
-app.get("/_/api/bundles/:id/analytics", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
-  return handlePublicBundleAnalytics(c.env, id, c.req.query("range"), c.var.auth.identity);
-});
-app.get("/_/api/bundles/:id/links", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
-  return handleBundleLinks(c.env, id, c.var.auth.identity);
-});
-app.post("/_/api/bundles/:id/links", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleAddLinkToBundle(c.req.raw, c.env, id, c.var.auth.identity);
-});
-app.delete("/_/api/bundles/:id/links/:linkId", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  const linkId = parseInt(c.req.param("linkId"), 10);
-  if (isNaN(id) || isNaN(linkId)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "create")) return forbiddenResponse();
-  return handleRemoveLinkFromBundle(c.env, id, linkId, c.var.auth.identity);
-});
-app.get("/_/api/links/:id/bundles", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
-  return handleListBundlesForLink(c.env, id, c.var.auth.identity);
 });
 
 // Mount the OpenAPI sub-app. Resource routes are added to apiRouter in subsequent commits.
