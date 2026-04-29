@@ -523,12 +523,6 @@ app.get("/_/api/links/:id/timeline", (c) => {
   if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
   return handlePublicLinkTimeline(c.env, id, c.req.query("range"));
 });
-app.get("/_/api/links/:id/qr", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  if (!hasScope(c.var.auth, "read")) return forbiddenResponse();
-  return handleLinkQr(c.req.raw, c.env, id);
-});
 // Public API: bundles
 app.get("/_/api/bundles", (c) => {
   if (!hasScope(c.var.auth, "read")) return forbiddenResponse();

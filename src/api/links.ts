@@ -18,6 +18,7 @@ import {
   enableSlug,
   removeSlug,
 } from "../services/link-management";
+import { handleLinkQr } from "./qr";
 import { fetchPageTitle } from "../title-fetch";
 import { fromServiceResult, json } from "./response";
 import { requireScope } from "./scope";
@@ -323,6 +324,40 @@ const removeSlugRoute = createRoute({
 linksApp.openapi(removeSlugRoute, async (c) => {
   const { id, slug } = c.req.valid("param") as { id: number; slug: string };
   return fromServiceResult(await removeSlug(c.env, id, slug, c.var.auth.identity)) as never;
+}, paramHook);
+
+// ---- GET /:id/qr ----
+
+const linkQrRoute = createRoute({
+  method: "get",
+  path: "/{id}/qr",
+  tags: ["qr"],
+  summary: "Get a QR code SVG for a link",
+  middleware: [requireScope("read")] as const,
+  request: {
+    params: IdParamSchema,
+    query: z.object({
+      slug: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional()
+        .openapi({ description: "Optional specific slug. Defaults to the link's primary slug." }),
+      size: z.string().regex(/^\d+$/).optional()
+        .openapi({ description: "PNG dimensions in pixels (square). Default per server config." }),
+    }),
+  },
+  responses: {
+    200: {
+      description: "SVG image",
+      content: { "image/svg+xml": { schema: z.string().openapi({ format: "binary" }) } },
+    },
+    400: errorResponses[400],
+    401: errorResponses[401],
+    403: errorResponses[403],
+    404: errorResponses[404],
+  },
+});
+
+linksApp.openapi(linkQrRoute, async (c) => {
+  const { id } = c.req.valid("param") as { id: number };
+  return (await handleLinkQr(c.req.raw, c.env, id)) as never;
 }, paramHook);
 
 // ---- Named exports consumed by admin routes in index.tsx (pending migration in later tasks) ----
