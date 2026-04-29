@@ -1113,11 +1113,11 @@ function pollDashboard() {
     if (recentCard) {
       var recentLinks = recentCard.querySelectorAll('a');
       for (var rl = 0; rl < recentLinks.length; rl++) recentLinks[rl].remove();
-      var recentNoData = recentCard.querySelector('div[style*="color:var(--color-text-muted)"]');
+      var recentNoData = recentCard.querySelector('.muted-hint');
       if (d.recent_links.length === 0) {
         if (!recentNoData) {
           var nd = document.createElement('div');
-          nd.style.cssText = 'color:var(--color-text-muted);font-size:0.875rem';
+          nd.className = 'muted-hint';
           nd.textContent = t('dashboard.noLinks');
           recentCard.appendChild(nd);
         }
@@ -1146,14 +1146,14 @@ function pollDashboard() {
     if (topLinksCard) {
       var oldTLinks = topLinksCard.querySelectorAll('a');
       for (var tl = 0; tl < oldTLinks.length; tl++) oldTLinks[tl].remove();
-      var tlNoData = topLinksCard.querySelector('div[style*="color:var(--color-text-muted)"]');
+      var tlNoData = topLinksCard.querySelector('.muted-hint');
       var tlMax = 0;
       for (var ti = 0; ti < d.top_links.length; ti++) tlMax += d.top_links[ti].total_clicks;
       if (tlMax === 0) tlMax = 1;
       if (d.top_links.length === 0) {
         if (!tlNoData) {
           var nd = document.createElement('div');
-          nd.style.cssText = 'color:var(--color-text-muted);font-size:0.875rem';
+          nd.className = 'muted-hint';
           nd.textContent = t('dashboard.noData');
           topLinksCard.appendChild(nd);
         }
