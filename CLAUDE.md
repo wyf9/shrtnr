@@ -21,8 +21,9 @@ On "update the version" / "bump version" / "create a release":
 
 1. Bump version in the correct manifest per semver. Confirm track if ambiguous.
 2. Add a concise section (paragraph or bullets, not a commit log) to the matching `CHANGELOG.md` (root, `sdk/typescript/`, `sdk/python/`, `sdk/dart/`).
-3. Commit. Do not push.
-4. Dart only: also create the tag locally, do not push: `git tag pub-v<version>`. pub.dev publishes on tag push. App/npm/Python tag from CI after publish.
+3. App track only: the OpenAPI spec embeds `info.version` from root `package.json`, so every app version bump stales all three SDK hashes. Before committing, run `./scripts/spec-hash.sh` and update `x-spec-hash` in `sdk/typescript/package.json`, `spec_hash` in `sdk/python/pyproject.toml`, and the `# x-spec-hash:` comment in `sdk/dart/pubspec.yaml` in the same commit. CI's `sdk-spec-drift` gate fails otherwise.
+4. Commit. Do not push.
+5. Dart only: also create the tag locally, do not push: `git tag pub-v<version>`. pub.dev publishes on tag push. App/npm/Python tag from CI after publish.
 
 Full details: [docs/release-automation.md](docs/release-automation.md).
 
@@ -41,7 +42,7 @@ Each SDK records the SHA-256 of the OpenAPI spec it was last regenerated against
 | Python | `sdk/python/pyproject.toml` | `[tool.shrtnr]` `spec_hash` |
 | Dart | `sdk/dart/pubspec.yaml` | leading comment `# x-spec-hash:` (top-level keys would draw a pana warning) |
 
-Spec changes (edits to `src/api/router.ts`, `src/api/schemas.ts`, or any resource sub-app affecting the generated doc) stale all three hashes. CI enforces via `.github/workflows/sdk-spec-drift.yml`.
+Spec changes (edits to `src/api/router.ts`, `src/api/schemas.ts`, or any resource sub-app affecting the generated doc) stale all three hashes. A root `package.json` version bump also drifts the hash because the spec embeds `info.version`. CI enforces via `.github/workflows/sdk-spec-drift.yml`.
 
 Workflow on API change:
 
