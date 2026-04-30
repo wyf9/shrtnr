@@ -102,6 +102,34 @@ jobs:
         # via scripts/test-sdks-e2e.sh against a live wrangler dev.
         run: dart test --exclude-tags e2e
 
+  browser-extension:
+    name: Browser extension
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Install dependencies
+        working-directory: browser-extensions
+        run: yarn install --frozen-lockfile
+      - name: Test
+        working-directory: browser-extensions
+        run: yarn test
+      - name: Build
+        working-directory: browser-extensions
+        run: yarn build
+      - name: Verify build artifacts
+        working-directory: browser-extensions
+        run: node scripts/verify-build.mjs
+      - name: Lint Firefox build (web-ext)
+        working-directory: browser-extensions
+        # web-ext lint emits warnings (notably for Preact's runtime use of
+        # innerHTML) without failing. We only fail on errors=0; warnings are
+        # surfaced in the log for review.
+        run: yarn lint:firefox
+
   sdk-spec-drift:
     name: SDK spec hash parity
     runs-on: ubuntu-latest
