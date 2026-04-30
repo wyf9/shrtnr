@@ -148,7 +148,8 @@ export async function updateBundle(
   identity: string,
 ): Promise<ServiceResult<Bundle>> {
   const bundle = await BundleRepository.getById(env.DB, id);
-  if (!bundle || bundle.created_by !== identity) return fail(404, "Bundle not found");
+  if (!bundle) return fail(404, "Bundle not found");
+  if (bundle.created_by !== identity) return fail(403, "Only the bundle owner can update this bundle");
 
   if (patch.name !== undefined) {
     const trimmed = patch.name.trim();
@@ -169,7 +170,8 @@ export async function archiveBundle(
   identity: string,
 ): Promise<ServiceResult<Bundle>> {
   const bundle = await BundleRepository.getById(env.DB, id);
-  if (!bundle || bundle.created_by !== identity) return fail(404, "Bundle not found");
+  if (!bundle) return fail(404, "Bundle not found");
+  if (bundle.created_by !== identity) return fail(403, "Only the bundle owner can archive this bundle");
   return ok((await BundleRepository.archive(env.DB, id))!);
 }
 
@@ -179,7 +181,8 @@ export async function unarchiveBundle(
   identity: string,
 ): Promise<ServiceResult<Bundle>> {
   const bundle = await BundleRepository.getById(env.DB, id);
-  if (!bundle || bundle.created_by !== identity) return fail(404, "Bundle not found");
+  if (!bundle) return fail(404, "Bundle not found");
+  if (bundle.created_by !== identity) return fail(403, "Only the bundle owner can unarchive this bundle");
   return ok((await BundleRepository.unarchive(env.DB, id))!);
 }
 
@@ -189,7 +192,8 @@ export async function deleteBundle(
   identity: string,
 ): Promise<ServiceResult<{ deleted: boolean }>> {
   const bundle = await BundleRepository.getById(env.DB, id);
-  if (!bundle || bundle.created_by !== identity) return fail(404, "Bundle not found");
+  if (!bundle) return fail(404, "Bundle not found");
+  if (bundle.created_by !== identity) return fail(403, "Only the bundle owner can delete this bundle");
   await BundleRepository.delete(env.DB, id);
   return ok({ deleted: true });
 }
@@ -219,7 +223,8 @@ export async function removeLinkFromBundle(
   identity: string,
 ): Promise<ServiceResult<{ removed: boolean }>> {
   const bundle = await BundleRepository.getById(env.DB, bundleId);
-  if (!bundle || bundle.created_by !== identity) return fail(404, "Bundle not found");
+  if (!bundle) return fail(404, "Bundle not found");
+  if (bundle.created_by !== identity) return fail(403, "Only the bundle owner can remove links from this bundle");
   const removed = await BundleRepository.removeLink(env.DB, bundleId, linkId);
   return ok({ removed });
 }

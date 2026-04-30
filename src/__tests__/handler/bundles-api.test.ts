@@ -297,11 +297,11 @@ describe("Public API: bundles archive/unarchive", () => {
 // Bundle reads are intentionally open across owners (see the "Bundle access
 // model (design)" describe below). Writes that mutate or destroy bundle state
 // are still owner-only: the ownership guard in src/services/bundle-management.ts
-// returns 404 for non-owners, conflating "not found" with "not yours" to avoid
-// leaking existence.
+// returns 403 for non-owners, mirroring link-side ownership semantics. Genuine
+// "id does not exist" still returns 404.
 
 describe("cross-owner bundle write isolation", () => {
-  it("owner A's API key cannot DELETE owner B's bundle (404)", async () => {
+  it("owner A's API key cannot DELETE owner B's bundle (403)", async () => {
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
@@ -316,7 +316,7 @@ describe("cross-owner bundle write isolation", () => {
       method: "DELETE",
       headers: { Authorization: `Bearer ${keyA}` },
     }));
-    expect(del.status).toBe(404);
+    expect(del.status).toBe(403);
   });
 });
 
@@ -410,7 +410,7 @@ describe("Bundle access model (design): mirrors link+slug", () => {
     expect(body.added).toBe(true);
   });
 
-  it("only the bundle owner can remove a link from the bundle (non-owner: 404)", async () => {
+  it("only the bundle owner can remove a link from the bundle (non-owner: 403)", async () => {
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
@@ -433,10 +433,10 @@ describe("Bundle access model (design): mirrors link+slug", () => {
       method: "DELETE",
       headers: { Authorization: `Bearer ${keyA}` },
     }));
-    expect(remove.status).toBe(404);
+    expect(remove.status).toBe(403);
   });
 
-  it("only the bundle owner can delete the bundle (non-owner: 404)", async () => {
+  it("only the bundle owner can delete the bundle (non-owner: 403)", async () => {
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
@@ -451,10 +451,10 @@ describe("Bundle access model (design): mirrors link+slug", () => {
       method: "DELETE",
       headers: { Authorization: `Bearer ${keyA}` },
     }));
-    expect(del.status).toBe(404);
+    expect(del.status).toBe(403);
   });
 
-  it("only the bundle owner can update bundle metadata (non-owner: 404)", async () => {
+  it("only the bundle owner can update bundle metadata (non-owner: 403)", async () => {
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
@@ -470,6 +470,29 @@ describe("Bundle access model (design): mirrors link+slug", () => {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyA}` },
       body: JSON.stringify({ name: "Hijacked", accent: "red" }),
     }));
+    expect(update.status).toBe(403);
+  });
+
+  it("genuinely-missing bundle ids still return 404 (distinct from 403)", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+
+    const del = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles/99999", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${keyA}` },
+    }));
+    expect(del.status).toBe(404);
+
+    const update = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles/99999", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyA}` },
+      body: JSON.stringify({ name: "Phantom" }),
+    }));
     expect(update.status).toBe(404);
+
+    const archive = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles/99999/archive", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${keyA}` },
+    }));
+    expect(archive.status).toBe(404);
   });
 });

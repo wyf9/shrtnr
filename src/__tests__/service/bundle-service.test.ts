@@ -108,6 +108,12 @@ describe("getBundle / updateBundle", () => {
     const b = await BundleRepository.create(env.DB, { name: "Mine", createdBy: "a@b" });
     const res = await svc.updateBundle(e, b.id, { name: "Stolen" }, "not-owner@x");
     expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.status).toBe(403);
+  });
+
+  it("returns 404 when updating a non-existent bundle", async () => {
+    const res = await svc.updateBundle(e, 99999, { name: "Stolen" }, "a@b");
+    expect(res.ok).toBe(false);
     if (!res.ok) expect(res.status).toBe(404);
   });
 });
@@ -161,8 +167,15 @@ describe("addLinkToBundle / removeLinkFromBundle", () => {
     await BundleRepository.addLink(env.DB, b.id, link.id);
     const res = await svc.removeLinkFromBundle(e, b.id, link.id, "intruder@x");
     expect(res.ok).toBe(false);
-    if (!res.ok) expect(res.status).toBe(404);
+    if (!res.ok) expect(res.status).toBe(403);
     expect(await BundleRepository.countLinks(env.DB, b.id)).toBe(1);
+  });
+
+  it("returns 404 when removing a link from a non-existent bundle", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://a.com", slug: "aaa", createdBy: "a@b" });
+    const res = await svc.removeLinkFromBundle(e, 99999, link.id, "a@b");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.status).toBe(404);
   });
 });
 
@@ -182,6 +195,27 @@ describe("archive / unarchive / delete", () => {
     const b = await BundleRepository.create(env.DB, { name: "B", createdBy: "a@b" });
     const res = await svc.archiveBundle(e, b.id, "x@x");
     expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.status).toBe(403);
+  });
+
+  it("returns 404 when archiving a non-existent bundle", async () => {
+    const res = await svc.archiveBundle(e, 99999, "a@b");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.status).toBe(404);
+  });
+
+  it("non-owner cannot unarchive", async () => {
+    const b = await BundleRepository.create(env.DB, { name: "B", createdBy: "a@b" });
+    await BundleRepository.archive(env.DB, b.id);
+    const res = await svc.unarchiveBundle(e, b.id, "x@x");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.status).toBe(403);
+  });
+
+  it("returns 404 when unarchiving a non-existent bundle", async () => {
+    const res = await svc.unarchiveBundle(e, 99999, "a@b");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.status).toBe(404);
   });
 
   it("deletes the bundle", async () => {
@@ -195,6 +229,13 @@ describe("archive / unarchive / delete", () => {
     const b = await BundleRepository.create(env.DB, { name: "B", createdBy: "a@b" });
     const res = await svc.deleteBundle(e, b.id, "x@x");
     expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.status).toBe(403);
+  });
+
+  it("returns 404 when deleting a non-existent bundle", async () => {
+    const res = await svc.deleteBundle(e, 99999, "a@b");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.status).toBe(404);
   });
 });
 
