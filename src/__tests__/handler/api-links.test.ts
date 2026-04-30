@@ -1054,3 +1054,129 @@ describe("Open read access (design): anyone can read anything", () => {
     }
   });
 });
+
+// ---- Link+slug access model (design): mirrors bundles ----
+//
+// The app is for internal team/organization use, not public sign-up. Links
+// and their slugs follow an open-read, open-append, owner-only-shrink model:
+//
+//   - anyone can read any link (covered by the "Open read access" describe)
+//   - anyone can add a custom slug to any link (open append): the
+//     `addCustomSlugToLink` service in src/services/link-management.ts does
+//     not check identity at all
+//   - only the link's owner can disable, enable, or remove a slug on the
+//     link: those service functions return 403 on identity mismatch
+//
+// This describe locks that contract so a future tightening cannot quietly
+// break it. Mirrors the "Bundle access model (design)" describe in
+// src/__tests__/handler/bundles-api.test.ts. Clarified by user on
+// 2026-04-30.
+
+describe("Link+slug access model (design): anyone reads, anyone adds slugs, only owner removes", () => {
+  it("any authenticated caller can add a custom slug to another owner's link (open append)", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
+
+    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ url: "https://example.com/owner-b-open-append" }),
+    }));
+    expect(create.status).toBe(201);
+    const { id } = await create.json() as { id: number };
+
+    const add = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyA}` },
+      body: JSON.stringify({ slug: "added-by-a" }),
+    }));
+    expect(add.status).toBe(201);
+    const body = await add.json() as { slug: string; is_custom: number };
+    expect(body.slug).toBe("added-by-a");
+    expect(body.is_custom).toBe(1);
+  });
+
+  it("only the link owner can remove a slug on the link (non-owner: 403)", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
+
+    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ url: "https://example.com/owner-b-remove-slug" }),
+    }));
+    const { id } = await create.json() as { id: number };
+
+    // Owner B adds the slug (proving the slug exists and belongs to owner B's link).
+    const add = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ slug: "owner-b-slug" }),
+    }));
+    expect(add.status).toBe(201);
+
+    // Owner A tries to remove it: must fail with 403, not 404.
+    const remove = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs/owner-b-slug`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${keyA}` },
+    }));
+    expect(remove.status).toBe(403);
+  });
+
+  it("only the link owner can disable a slug on the link (non-owner: 403)", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
+
+    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ url: "https://example.com/owner-b-disable-slug" }),
+    }));
+    const { id } = await create.json() as { id: number };
+
+    const add = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ slug: "to-disable" }),
+    }));
+    expect(add.status).toBe(201);
+
+    const disable = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs/to-disable/disable`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${keyA}` },
+    }));
+    expect(disable.status).toBe(403);
+  });
+
+  it("only the link owner can enable a slug on the link (non-owner: 403)", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
+
+    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ url: "https://example.com/owner-b-enable-slug" }),
+    }));
+    const { id } = await create.json() as { id: number };
+
+    const add = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ slug: "to-enable" }),
+    }));
+    expect(add.status).toBe(201);
+
+    // Owner B disables the slug first so enable has something to flip.
+    const disable = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs/to-enable/disable`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${keyB}` },
+    }));
+    expect(disable.status).toBe(200);
+
+    const enable = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs/to-enable/enable`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${keyA}` },
+    }));
+    expect(enable.status).toBe(403);
+  });
+});
