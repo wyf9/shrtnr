@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1 (2026-04-30)
+
+Packaging and documentation only. No public surface changes.
+
+- Ship `LICENSE`, `NOTICE`, and `TRADEMARK_POLICY.md` in the package alongside the source. The `LICENSE` file now carries the standard Apache-2.0 text, replacing an earlier shorter placeholder; `NOTICE` records third-party attributions and `TRADEMARK_POLICY.md` covers Oddbit's trademark policy.
+- README polish: dropped the "Migrating from 0.x" section and replaced "License" with an "Attribution" section that points at the same files.
+
 ## 1.0.0 (2026-04-29)
 
 Ground-up rewrite derived from the OpenAPI spec. This is a deliberate breaking release.
