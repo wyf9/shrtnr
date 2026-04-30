@@ -77,7 +77,7 @@ describe("Admin API: bundles", () => {
     expect(res.status).toBe(400);
   });
 
-  it("GET /_/admin/api/bundles lists the caller's bundles", async () => {
+  it("GET /_/admin/api/bundles lists every bundle regardless of creator (open read by design)", async () => {
     await SELF.fetch(authed("a@x", "/_/admin/api/bundles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -92,20 +92,22 @@ describe("Admin API: bundles", () => {
     const res = await SELF.fetch(authed("a@x", "/_/admin/api/bundles"));
     expect(res.status).toBe(200);
     const body = await res.json() as { name: string }[];
-    expect(body).toHaveLength(1);
-    expect(body[0].name).toBe("Mine");
+    expect(body.map((b) => b.name).sort()).toEqual(["Mine", "Theirs"]);
   });
 
-  it("GET /_/admin/api/bundles/:id 404s for non-owner", async () => {
+  it("GET /_/admin/api/bundles/:id returns the bundle to any caller (open read by design)", async () => {
     const createRes = await SELF.fetch(authed("owner@x", "/_/admin/api/bundles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Private" }),
+      body: JSON.stringify({ name: "Public" }),
     }));
     const created = await createRes.json() as { id: number };
 
-    const res = await SELF.fetch(authed("intruder@x", `/_/admin/api/bundles/${created.id}`));
-    expect(res.status).toBe(404);
+    const res = await SELF.fetch(authed("collab@x", `/_/admin/api/bundles/${created.id}`));
+    expect(res.status).toBe(200);
+    const body = await res.json() as { id: number; name: string; created_by: string };
+    expect(body.id).toBe(created.id);
+    expect(body.created_by).toBe("owner@x");
   });
 
   it("POST /_/admin/api/bundles/:id/links adds a link", async () => {
@@ -290,32 +292,15 @@ describe("Public API: bundles archive/unarchive", () => {
   });
 });
 
-// ---- Cross-owner bundle isolation at the live handler ----
+// ---- Cross-owner bundle write isolation at the live handler ----
 //
-// Asserts that a Bearer key bound to identity A cannot read or delete a bundle
-// owned by identity B via the public API. The ownership guard lives in
-// src/services/bundle-management.ts and conflates "not found" with "not yours"
-// (returns 404 in both cases) to avoid leaking existence.
+// Bundle reads are intentionally open across owners (see the "Bundle access
+// model (design)" describe below). Writes that mutate or destroy bundle state
+// are still owner-only: the ownership guard in src/services/bundle-management.ts
+// returns 404 for non-owners, conflating "not found" with "not yours" to avoid
+// leaking existence.
 
-describe("cross-owner bundle isolation", () => {
-  it("owner A's API key cannot GET owner B's bundle (404)", async () => {
-    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
-    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
-
-    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ name: "Owner B Only" }),
-    }));
-    expect(create.status).toBe(201);
-    const { id } = await create.json() as { id: number };
-
-    const get = await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${id}`, {
-      headers: { Authorization: `Bearer ${keyA}` },
-    }));
-    expect(get.status).toBe(404);
-  });
-
+describe("cross-owner bundle write isolation", () => {
   it("owner A's API key cannot DELETE owner B's bundle (404)", async () => {
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
@@ -332,5 +317,159 @@ describe("cross-owner bundle isolation", () => {
       headers: { Authorization: `Bearer ${keyA}` },
     }));
     expect(del.status).toBe(404);
+  });
+});
+
+// ---- Bundle access model (design): mirrors link+slug ----
+//
+// The app is for internal team/organization use, not public sign-up. Bundles
+// follow the same access model as links and their slugs:
+//
+//   - anyone can read any bundle (GET /:id, list)
+//   - anyone can add links to any bundle (POST /:id/links), mirroring how
+//     anyone can add a custom slug to anyone's link
+//   - only the bundle owner can remove links from a bundle (DELETE
+//     /:id/links/:linkId), mirroring slug removal on links
+//   - only the bundle owner can delete the bundle (DELETE /:id) or update
+//     its metadata (PUT /:id)
+//
+// This describe locks that contract so a future tightening cannot quietly
+// break it. Clarified by user on 2026-04-30.
+
+describe("Bundle access model (design): mirrors link+slug", () => {
+  it("anyone can GET another owner's bundle", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
+
+    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ name: "Owner B Public Read" }),
+    }));
+    expect(create.status).toBe(201);
+    const { id } = await create.json() as { id: number };
+
+    const get = await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${id}`, {
+      headers: { Authorization: `Bearer ${keyA}` },
+    }));
+    expect(get.status).toBe(200);
+    const body = await get.json() as { id: number; name: string; created_by: string };
+    expect(body.id).toBe(id);
+    expect(body.name).toBe("Owner B Public Read");
+    expect(body.created_by).toBe("ownerB@test");
+  });
+
+  it("anyone can list bundles and see other owners' bundles in the response", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
+
+    const createA = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyA}` },
+      body: JSON.stringify({ name: "By A" }),
+    }));
+    const { id: idA } = await createA.json() as { id: number };
+
+    const createB = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ name: "By B" }),
+    }));
+    const { id: idB } = await createB.json() as { id: number };
+
+    const list = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      headers: { Authorization: `Bearer ${keyA}` },
+    }));
+    expect(list.status).toBe(200);
+    const body = await list.json() as { id: number }[];
+    const ids = body.map((b) => b.id);
+    expect(ids).toContain(idA);
+    expect(ids).toContain(idB);
+  });
+
+  it("anyone can add a link to another owner's bundle", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
+
+    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ name: "Owner B Bundle" }),
+    }));
+    const { id: bundleId } = await create.json() as { id: number };
+
+    const linkId = await createLinkFor("ownerA@test", "https://example.com/by-a", "axx");
+
+    const add = await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${bundleId}/links`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyA}` },
+      body: JSON.stringify({ link_id: linkId }),
+    }));
+    expect(add.status).toBe(200);
+    const body = await add.json() as { added: boolean };
+    expect(body.added).toBe(true);
+  });
+
+  it("only the bundle owner can remove a link from the bundle (non-owner: 404)", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
+
+    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ name: "Owner B Bundle" }),
+    }));
+    const { id: bundleId } = await create.json() as { id: number };
+
+    const linkId = await createLinkFor("ownerB@test", "https://example.com/by-b", "bxx");
+    const add = await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${bundleId}/links`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ link_id: linkId }),
+    }));
+    expect(add.status).toBe(200);
+
+    const remove = await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${bundleId}/links/${linkId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${keyA}` },
+    }));
+    expect(remove.status).toBe(404);
+  });
+
+  it("only the bundle owner can delete the bundle (non-owner: 404)", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
+
+    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ name: "Owner B Bundle" }),
+    }));
+    const { id } = await create.json() as { id: number };
+
+    const del = await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${keyA}` },
+    }));
+    expect(del.status).toBe(404);
+  });
+
+  it("only the bundle owner can update bundle metadata (non-owner: 404)", async () => {
+    const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
+    const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
+
+    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
+      body: JSON.stringify({ name: "Owner B Bundle", accent: "blue" }),
+    }));
+    const { id } = await create.json() as { id: number };
+
+    const update = await SELF.fetch(new Request(`https://shrtnr.test/_/api/bundles/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyA}` },
+      body: JSON.stringify({ name: "Hijacked", accent: "red" }),
+    }));
+    expect(update.status).toBe(404);
   });
 });

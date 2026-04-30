@@ -39,14 +39,14 @@ describe("createBundle", () => {
 });
 
 describe("listBundles", () => {
-  it("returns only the caller's bundles", async () => {
+  it("returns every bundle regardless of creator (open read by design)", async () => {
     await BundleRepository.create(env.DB, { name: "Mine", createdBy: "a@b" });
     await BundleRepository.create(env.DB, { name: "Theirs", createdBy: "other@x" });
     const res = await svc.listBundles(e, "a@b", {});
     expect(res.ok).toBe(true);
     if (res.ok) {
-      expect(res.data).toHaveLength(1);
-      expect(res.data[0].name).toBe("Mine");
+      expect(res.data).toHaveLength(2);
+      expect(res.data.map((b) => b.name).sort()).toEqual(["Mine", "Theirs"]);
     }
   });
 
@@ -94,11 +94,14 @@ describe("getBundle / updateBundle", () => {
     if (!res.ok) expect(res.status).toBe(404);
   });
 
-  it("enforces ownership on read", async () => {
+  it("returns the bundle to any caller (open read by design)", async () => {
     const b = await BundleRepository.create(env.DB, { name: "Mine", createdBy: "a@b" });
     const res = await svc.getBundle(e, b.id, "not-owner@x");
-    expect(res.ok).toBe(false);
-    if (!res.ok) expect(res.status).toBe(404);
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.data.id).toBe(b.id);
+      expect(res.data.created_by).toBe("a@b");
+    }
   });
 
   it("enforces ownership on update", async () => {
@@ -119,12 +122,12 @@ describe("addLinkToBundle / removeLinkFromBundle", () => {
     expect(await BundleRepository.countLinks(env.DB, b.id)).toBe(1);
   });
 
-  it("rejects non-owner adding a link", async () => {
+  it("any authenticated caller can add a link to any bundle (open append by design)", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://a.com", slug: "aaa", createdBy: "a@b" });
     const b = await BundleRepository.create(env.DB, { name: "B", createdBy: "a@b" });
-    const res = await svc.addLinkToBundle(e, b.id, link.id, "hacker@x");
-    expect(res.ok).toBe(false);
-    if (!res.ok) expect(res.status).toBe(404);
+    const res = await svc.addLinkToBundle(e, b.id, link.id, "collaborator@x");
+    expect(res.ok).toBe(true);
+    expect(await BundleRepository.countLinks(env.DB, b.id)).toBe(1);
   });
 
   it("is idempotent on add", async () => {
@@ -150,6 +153,16 @@ describe("addLinkToBundle / removeLinkFromBundle", () => {
     const res = await svc.removeLinkFromBundle(e, b.id, link.id, "a@b");
     expect(res.ok).toBe(true);
     expect(await BundleRepository.countLinks(env.DB, b.id)).toBe(0);
+  });
+
+  it("only the bundle owner can remove a link from the bundle", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://a.com", slug: "aaa", createdBy: "a@b" });
+    const b = await BundleRepository.create(env.DB, { name: "B", createdBy: "a@b" });
+    await BundleRepository.addLink(env.DB, b.id, link.id);
+    const res = await svc.removeLinkFromBundle(e, b.id, link.id, "intruder@x");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.status).toBe(404);
+    expect(await BundleRepository.countLinks(env.DB, b.id)).toBe(1);
   });
 });
 
@@ -198,11 +211,11 @@ describe("getBundleAnalytics", () => {
     }
   });
 
-  it("404s for non-owner", async () => {
+  it("returns analytics to any caller (open read by design)", async () => {
     const bundle = await BundleRepository.create(env.DB, { name: "B", createdBy: "a@b" });
     const res = await svc.getBundleAnalytics(e, bundle.id, "30d", "x@x");
-    expect(res.ok).toBe(false);
-    if (!res.ok) expect(res.status).toBe(404);
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.data.bundle.id).toBe(bundle.id);
   });
 });
 
