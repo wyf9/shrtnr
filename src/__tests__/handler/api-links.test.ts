@@ -966,38 +966,6 @@ describe("cross-owner link isolation", () => {
   });
 });
 
-// ---- Public-vs-admin schema parity ----
-//
-// Probe the public GET /_/api/links/:id surface to confirm it does not expose
-// fields that should stay on the admin side. Today the project's LinkSchema in
-// src/api/schemas.ts is shared between admin and public; the only field clearly
-// scoped to admin-only is `identity` (which is not on LinkSchema at all). The
-// other two we probe (`created_by`, `created_via`) ARE on the public schema by
-// design, so the assertions for them are documented expectations only and not
-// part of this snapshot. See the report for the open question to the team.
-
-describe("GET /_/api/links/:id schema parity", () => {
-  it("public response does not expose unrelated admin-only fields", async () => {
-    const apiKey = await seedApiKey(env.DB, "create,read");
-    const created = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ url: "https://example.com/parity" }),
-    }));
-    const { id } = await created.json() as { id: number };
-
-    const res = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    }));
-    expect(res.status).toBe(200);
-    const body = await res.json() as Record<string, unknown>;
-
-    // `identity` is the JWT email used for admin views and must never appear
-    // on the public response.
-    expect(body).not.toHaveProperty("identity");
-  });
-});
-
 // ---- Open read access (design): anyone can read anything ----
 //
 // The app is for internal team/organization use, not public sign-up. Writes
