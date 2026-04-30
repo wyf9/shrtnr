@@ -155,7 +155,7 @@ try {
 
 ## Attribution
 
-`@oddbit/shrtnr` is developed and maintained by **[Oddbit](https://oddbit.id)**.
+`@oddbit/shrtnr` is developed and maintained by **[Oddbit](https://oddb.it/website)**.
 
 - Source repository: <https://github.com/oddbit/shrtnr>
 - License: [Apache License 2.0](LICENSE)

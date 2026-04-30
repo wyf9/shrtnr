@@ -170,7 +170,7 @@ except ShrtnrError as err:
 
 ## Attribution
 
-`shrtnr` is developed and maintained by **[Oddbit](https://oddbit.id)**.
+`shrtnr` is developed and maintained by **[Oddbit](https://oddb.it/website)**.
 
 - Source repository: <https://github.com/oddbit/shrtnr>
 - License: [Apache License 2.0](LICENSE)
