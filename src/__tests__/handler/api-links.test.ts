@@ -893,6 +893,31 @@ describe("POST /_/api/links idempotent on URL", () => {
   });
 });
 
+// ---- URL length cap on the public API ----
+//
+// CreateLinkBodySchema caps `url` at 2048 chars (in line with browser/CDN
+// limits). Confirms the cap rejects at the handler/zod boundary and surfaces
+// the standard {error: string} envelope on body-validation failure.
+
+describe("POST /_/api/links URL length cap", () => {
+  it("returns 400 for a URL longer than 2048 characters", async () => {
+    const apiKey = await seedApiKey(env.DB, "create");
+    const prefix = "https://example.com/";
+    const overCap = prefix + "a".repeat(2049 - prefix.length);
+    expect(overCap).toHaveLength(2049);
+
+    const res = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ url: overCap }),
+    }));
+    expect(res.status).toBe(400);
+    const body = await res.json() as { error: string };
+    expect(typeof body.error).toBe("string");
+    expect(body.error.length).toBeGreaterThan(0);
+  });
+});
+
 // ---- Cross-owner isolation at the live handler ----
 //
 // Asserts that owner A's API key cannot mutate owner B's link via the public

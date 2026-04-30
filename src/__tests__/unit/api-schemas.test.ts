@@ -79,3 +79,28 @@ describe("UpdateLinkBodySchema.expires_at", () => {
     expect(result.success).toBe(true);
   });
 });
+
+describe("CreateLinkBodySchema.url length cap", () => {
+  // Build a URL whose total length is exactly N characters. The "https://"
+  // prefix is 8 chars; the remainder is filled with a single-host-style path
+  // that the WHATWG URL parser accepts.
+  function urlOfLength(n: number): string {
+    const prefix = "https://example.com/";
+    const padLen = n - prefix.length;
+    return prefix + "a".repeat(padLen);
+  }
+
+  it("rejects a URL longer than 2048 characters", () => {
+    const url = urlOfLength(2049);
+    expect(url).toHaveLength(2049);
+    const result = CreateLinkBodySchema.safeParse({ url });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a URL at exactly 2048 characters (inclusive boundary)", () => {
+    const url = urlOfLength(2048);
+    expect(url).toHaveLength(2048);
+    const result = CreateLinkBodySchema.safeParse({ url });
+    expect(result.success).toBe(true);
+  });
+});
