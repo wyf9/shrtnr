@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.35.0 (2026-05-01)
+
+- Android (and iOS) in-app browser clicks now attribute to the originating brand in the Domains breakdown. The new `src/referrer.ts` module maps known package identifiers (`com.linkedin.android` → `linkedin.com`, `com.twitter.android` → `x.com`, Facebook, Instagram, TikTok, Reddit, Pinterest, Slack, Discord, Telegram, WhatsApp, YouTube, Gmail, Outlook) to their canonical domain, so a click from the LinkedIn Android app shows up under `linkedin.com` instead of as an opaque `android-app://com.linkedin.android/`. Uncurated packages fall through to "no referrer" rather than polluting the breakdown.
+- Sources panel (raw-URL referrer breakdown) now hides `android-app://` and `ios-app://` Referer values. The brand attribution lives in the Domains panel via `referrer_host`; the raw row stays in the database for forensics and future re-attribution. Distinct-referrer counts are scoped consistently in both the link-detail and bundle analytics paths.
+
 ## 0.34.0 (2026-04-30)
 
 - Bundle access model now matches links and slugs: anyone with a valid API key can read a bundle and append links to it, and only the bundle owner can remove links, archive, unarchive, update, or delete. Non-owner write attempts return `403 Forbidden` instead of the previous `404 Not Found`, so callers can tell "I don't have permission" apart from "this bundle does not exist". Read endpoints stay open across owners by design.
