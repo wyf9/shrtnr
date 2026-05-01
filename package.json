@@ -16,8 +16,7 @@
     "secret:put": "wrangler secret put",
     "test": "vitest run",
     "test:watch": "vitest",
-    "emit-spec": "tsx scripts/emit-spec.ts",
-    "backfill:app-referrers": "tsx scripts/backfill-app-referrers.ts"
+    "emit-spec": "tsx scripts/emit-spec.ts"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.15.1",
