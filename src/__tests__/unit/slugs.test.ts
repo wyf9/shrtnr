@@ -84,15 +84,18 @@ describe("validateCustomSlug", () => {
     expect(validateCustomSlug("a-b-c")).toBeNull();
   });
 
-  it("should reject slugs starting with a hyphen", () => {
-    expect(validateCustomSlug("-slug")).toBe(
-      "Custom slug must not start or end with a hyphen"
-    );
+  it("should accept safe URL symbols in the middle", () => {
+    expect(validateCustomSlug("my.slug")).toBeNull();
+    expect(validateCustomSlug("my_slug")).toBeNull();
+    expect(validateCustomSlug("my~slug")).toBeNull();
   });
 
-  it("should reject slugs ending with a hyphen", () => {
-    expect(validateCustomSlug("slug-")).toBe(
-      "Custom slug must not start or end with a hyphen"
+  it("should reject slugs that do not start with alphanumeric", () => {
+    expect(validateCustomSlug("-slug")).toBe(
+      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -"
+    );
+    expect(validateCustomSlug(".slug")).toBe(
+      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -"
     );
   });
 
@@ -102,6 +105,15 @@ describe("validateCustomSlug", () => {
 
   it("should reject empty slugs", () => {
     expect(validateCustomSlug("")).toBe("Custom slug must not be empty");
+  });
+
+  it("should reject slugs that do not end with alphanumeric", () => {
+    expect(validateCustomSlug("slug-")).toBe(
+      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -"
+    );
+    expect(validateCustomSlug("slug.")).toBe(
+      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -"
+    );
   });
 });
 

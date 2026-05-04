@@ -134,9 +134,10 @@ describe("slug body validation matches service-layer rules", () => {
   }
 
   it.each([
-    ["under_score", "underscore disallowed"],
     ["-leading", "leading hyphen disallowed"],
     ["trailing-", "trailing hyphen disallowed"],
+    [".leading", "leading dot disallowed"],
+    ["trailing.", "trailing dot disallowed"],
     ["has space", "whitespace disallowed"],
     ["sl/ash", "slash disallowed"],
   ])("rejects %s at the schema boundary (%s)", async (slug, _why) => {
@@ -153,6 +154,15 @@ describe("slug body validation matches service-layer rules", () => {
     const id = await createLink(key);
     const res = await postSlug(key, id, "Marketing-Page");
     expect(res.status).toBe(201);
+  });
+
+  it("accepts dot and underscore in custom slugs", async () => {
+    const key = await createApiKey("create");
+    const id = await createLink(key);
+    const dotRes = await postSlug(key, id, "marketing.page");
+    expect(dotRes.status).toBe(201);
+    const underscoreRes = await postSlug(key, id, "marketing_page");
+    expect(underscoreRes.status).toBe(201);
   });
 });
 

@@ -230,6 +230,19 @@ describe("Links API", () => {
     expect(autoSlug.is_primary).toBe(0);
   });
 
+  it("POST /_/admin/api/links should accept dot in custom_slug", async () => {
+    const res = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com/custom-dot", custom_slug: "my.page" }),
+      })
+    );
+    expect(res.status).toBe(201);
+    const body = await res.json() as any;
+    expect(body.slugs.some((s: any) => s.slug === "my.page" && s.is_custom === 1)).toBe(true);
+  });
+
   it("POST /_/admin/api/links with label and expires_at should store them", async () => {
     const future = Math.floor(Date.now() / 1000) + 3600;
     const res = await SELF.fetch(

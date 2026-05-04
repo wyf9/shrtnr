@@ -59,13 +59,13 @@ export const LinkSchema = z
   .openapi("Link", { description: "A short link with its slugs, total click count, and metadata." });
 
 // Mirrors validateCustomSlug() in src/slugs.ts after server-side lowercase
-// normalization: must start and end with alphanumeric, hyphens allowed in the
-// middle, no underscores, no leading/trailing hyphens.
+// normalization: must start and end with alphanumeric. The middle may include
+// ".", "_", "~", and "-".
 export const CustomSlugStringSchema = z
   .string()
   .min(1)
   .max(64)
-  .regex(/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i);
+  .regex(/^[a-z0-9](?:[a-z0-9._~-]*[a-z0-9])?$/i);
 
 export const CreateLinkBodySchema = z
   .object({
@@ -99,7 +99,7 @@ export const AddSlugBodySchema = z
 
 export const SlugParamSchema = z
   .object({
-    slug: z.string().regex(/^[a-zA-Z0-9_-]+$/).openapi({ param: { name: "slug", in: "path" } }),
+    slug: z.string().regex(/^[a-zA-Z0-9._~-]+$/).openapi({ param: { name: "slug", in: "path" } }),
   })
   .openapi("SlugParam");
 

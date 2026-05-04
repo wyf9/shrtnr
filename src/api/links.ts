@@ -346,7 +346,7 @@ const linkQrRoute = createRoute({
   request: {
     params: IdParamSchema,
     query: z.object({
-      slug: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional()
+      slug: z.string().regex(/^[a-zA-Z0-9._~-]+$/).optional()
         .openapi({ description: "Optional specific slug. Defaults to the link's primary slug." }),
       size: z.string().regex(/^\d+$/).optional()
         .openapi({ description: "PNG dimensions in pixels (square). Default per server config." }),
