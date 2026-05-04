@@ -54,7 +54,7 @@ export async function getLinkBySlug(env: Env, slug: string, opts?: GetLinkOption
 
 export async function createLink(
   env: Env,
-  body: { url?: string; label?: string; slug_length?: number; expires_at?: number; created_via?: string; created_by?: string; allow_duplicate?: boolean },
+  body: { url?: string; label?: string; slug_length?: number; custom_slug?: string; expires_at?: number; created_via?: string; created_by?: string; allow_duplicate?: boolean },
 ): Promise<ServiceResult<LinkWithSlugs>> {
   if (!body.url || typeof body.url !== "string") {
     return fail(400, "url is required");
@@ -75,6 +75,15 @@ export async function createLink(
     const existing = await LinkRepository.findByUrl(env.DB, body.url);
     if (existing.length > 0) {
       return ok(existing[0], 200, { duplicate: true, duplicate_count: existing.length });
+    }
+  }
+
+  const normalizedCustomSlug = body.custom_slug?.toLowerCase();
+  if (normalizedCustomSlug) {
+    const slugErr = validateCustomSlug(normalizedCustomSlug);
+    if (slugErr) return fail(400, slugErr);
+    if (await SlugRepository.exists(env.DB, normalizedCustomSlug)) {
+      return fail(409, "Slug already exists");
     }
   }
 
@@ -111,6 +120,29 @@ export async function createLink(
     disabled_at: null,
     expires_at: body.expires_at ?? null,
   });
+
+  if (normalizedCustomSlug) {
+    try {
+      await SlugRepository.addCustom(env.DB, link.id, normalizedCustomSlug);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.toLowerCase().includes("unique")) {
+        await LinkRepository.delete(env.DB, link.id);
+        await SlugCache.delete(env.SLUG_KV, slug);
+        return fail(409, "Slug already exists");
+      }
+      return fail(500, message);
+    }
+
+    await SlugCache.put(env.SLUG_KV, normalizedCustomSlug, {
+      url: body.url,
+      disabled_at: null,
+      expires_at: body.expires_at ?? null,
+    });
+
+    const linkWithCustom = await LinkRepository.getById(env.DB, link.id);
+    return ok(linkWithCustom ?? link, 201);
+  }
 
   return ok(link, 201);
 }
@@ -307,7 +339,7 @@ export async function removeSlug(
 
   const slugObj = link.slugs.find((s) => s.slug === slug);
   if (!slugObj) return fail(404, "Slug not found on this link");
-  if (!slugObj.is_custom) return fail(400, "Cannot remove the system-generated slug; only custom slugs can be removed.");
+  if (link.slugs.length <= 1) return fail(400, "Cannot remove the last remaining slug on a link");
   if (slugObj.click_count > 0) return fail(400, "Cannot remove a slug with clicks, disable it instead");
 
   await SlugRepository.remove(env.DB, slug);

@@ -183,11 +183,12 @@ describe("SlugRepository.remove", () => {
     expect(removed).toBe(false);
   });
 
-  it("refuses to delete a random (non-custom) slug", async () => {
+  it("allows deleting a random (non-custom) slug when it has no clicks", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     const random = link.slugs.find((s) => !s.is_custom)!;
     const removed = await SlugRepository.remove(env.DB, random.slug);
-    expect(removed).toBe(false);
+    expect(removed).toBe(true);
   });
 
   it("falls back primary to random slug when removing the primary", async () => {

@@ -100,15 +100,23 @@ export class SlugRepository {
     const row = await db.prepare(`SELECT ${slugSelect()} FROM slugs s WHERE slug = ?`).bind(slug).first<Slug>();
     if (!row) return false;
 
-    if (!row.is_custom) return false;
-
     if (row.click_count > 0) return false;
 
     if (row.is_primary) {
-      await db
-        .prepare("UPDATE slugs SET is_primary = 1 WHERE link_id = ? AND is_custom = 0")
-        .bind(row.link_id)
-        .run();
+      const nextPrimary = await db
+        .prepare("SELECT slug FROM slugs WHERE link_id = ? AND slug != ? ORDER BY is_custom DESC, created_at ASC LIMIT 1")
+        .bind(row.link_id, slug)
+        .first<{ slug: string }>();
+      if (nextPrimary) {
+        await db
+          .prepare("UPDATE slugs SET is_primary = 0 WHERE link_id = ?")
+          .bind(row.link_id)
+          .run();
+        await db
+          .prepare("UPDATE slugs SET is_primary = 1 WHERE slug = ?")
+          .bind(nextPrimary.slug)
+          .run();
+      }
     }
 
     await db.prepare("DELETE FROM slugs WHERE slug = ?").bind(slug).run();

@@ -120,6 +120,7 @@ export interface CreateLinkBody {
   url: string;
   label?: string;
   slugLength?: number;
+  customSlug?: string;
   expiresAt?: number;
   allowDuplicate?: boolean;
 }

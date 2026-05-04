@@ -75,7 +75,7 @@ const createLinkRoute = createRoute({
 });
 
 linksApp.openapi(createLinkRoute, async (c) => {
-  const body = c.req.valid("json") as { url: string; label?: string; slug_length?: number; expires_at?: number; allow_duplicate?: boolean };
+  const body = c.req.valid("json") as { url: string; label?: string; slug_length?: number; custom_slug?: string; expires_at?: number; allow_duplicate?: boolean };
   const via = c.req.header("X-Client") === "sdk" ? "sdk" : "api";
   const result = await createLink(c.env, { ...body, created_via: via, created_by: c.var.auth.identity });
   if (result.ok && result.status === 201 && !body.label) {
@@ -461,6 +461,7 @@ export async function handleCreateLink(request: Request, env: Env, createdVia?: 
     url?: string;
     label?: string;
     slug_length?: number;
+    custom_slug?: string;
     expires_at?: number;
     allow_duplicate?: boolean;
   };

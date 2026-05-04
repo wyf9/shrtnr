@@ -42,6 +42,7 @@ const en = {
   "links.title": "Links",
   "links.subtitle": "Manage all your short links",
   "links.inputPlaceholder": "Paste URL or search links...",
+  "links.slugPlaceholder": "custom slug (optional)",
   "links.search": "Search",
   "links.count": "{count} link",
   "links.countPlural": "{count} links",

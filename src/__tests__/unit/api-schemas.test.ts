@@ -68,6 +68,24 @@ describe("CreateLinkBodySchema.expires_at", () => {
   });
 });
 
+describe("CreateLinkBodySchema.custom_slug", () => {
+  it("accepts a valid custom slug", () => {
+    const result = CreateLinkBodySchema.safeParse({
+      url: "https://example.com",
+      custom_slug: "my-brand",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid custom slug", () => {
+    const result = CreateLinkBodySchema.safeParse({
+      url: "https://example.com",
+      custom_slug: "bad slug",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
 describe("UpdateLinkBodySchema.expires_at", () => {
   it("rejects a negative timestamp", () => {
     const result = UpdateLinkBodySchema.safeParse({ expires_at: -1 });

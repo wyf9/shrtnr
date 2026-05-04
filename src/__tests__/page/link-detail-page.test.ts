@@ -4,16 +4,39 @@
 import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import { SELF, env } from "cloudflare:test";
 import { applyMigrations, resetData } from "../setup";
-import { LinkRepository, ClickRepository, SettingRepository } from "../../db";
+import { LinkRepository, ClickRepository, SettingRepository, SlugRepository } from "../../db";
 
 function req(path: string): Request {
   return new Request(`https://shrtnr.test${path}`);
+}
+
+function makeJwt(email: string): string {
+  const header = btoa(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const body = btoa(JSON.stringify({ email }));
+  return `${header}.${body}.fakesig`;
+}
+
+function authedReq(path: string): Request {
+  return new Request(`https://shrtnr.test${path}`, {
+    headers: { "Cf-Access-Jwt-Assertion": makeJwt("test@example.com") },
+  });
 }
 
 beforeAll(applyMigrations);
 beforeEach(resetData);
 
 describe("Link detail page server render", () => {
+  it("shows delete action for the auto slug when another slug exists", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdBy: "test@example.com" });
+    await SlugRepository.addCustom(env.DB, link.id, "brand");
+
+    const res = await SELF.fetch(authedReq(`/_/admin/links/${link.id}`));
+    expect(res.status).toBe(200);
+    const html = await res.text();
+
+    expect(html).toMatch(new RegExp(`confirmDeleteSlug\\(${link.id}, (?:'|&#39;)abc(?:'|&#39;)\\)`));
+  });
+
   it("hero total_clicks reflects the user's bot filter on first paint", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
     await ClickRepository.record(env.DB, link.slugs[0].slug, { isBot: 0, isSelfReferrer: 0 });

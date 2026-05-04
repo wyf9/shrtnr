@@ -14,6 +14,13 @@ beforeAll(applyMigrations);
 beforeEach(resetData);
 
 describe("Links listing page", () => {
+  it("renders a custom slug input next to quick create", async () => {
+    const res = await SELF.fetch(req("/_/admin/links"));
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('id="quick-slug"');
+  });
+
   it("shows only the primary slug, not other aliases", async () => {
     const link = await LinkRepository.create(env.DB, {
       url: "https://example.com",

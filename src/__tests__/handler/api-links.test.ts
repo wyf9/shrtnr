@@ -212,6 +212,24 @@ describe("Links API", () => {
     expect(body.slugs[0].is_custom).toBe(0);
   });
 
+  it("POST /_/admin/api/links with custom_slug should create custom as primary", async () => {
+    const res = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com/custom", custom_slug: "My-Custom" }),
+      })
+    );
+    expect(res.status).toBe(201);
+    const body = await res.json() as any;
+    expect(body.slugs).toHaveLength(2);
+    const customSlug = body.slugs.find((s: any) => s.is_custom === 1);
+    const autoSlug = body.slugs.find((s: any) => s.is_custom === 0);
+    expect(customSlug.slug).toBe("my-custom");
+    expect(customSlug.is_primary).toBe(1);
+    expect(autoSlug.is_primary).toBe(0);
+  });
+
   it("POST /_/admin/api/links with label and expires_at should store them", async () => {
     const future = Math.floor(Date.now() / 1000) + 3600;
     const res = await SELF.fetch(
@@ -574,6 +592,58 @@ describe("Public slug-mutation API (/_/api/*)", () => {
     expect(res.status).toBe(200);
     const body = await res.json() as any;
     expect(body.removed).toBe(true);
+  });
+
+  it("owner's key can remove the auto slug when at least one other slug exists", async () => {
+    const { linkId, rawKey } = await setupLinkWithCustomSlug();
+    const linkInfo = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${linkId}`, {
+        headers: { "Authorization": `Bearer ${rawKey}` },
+      })
+    );
+    const info = await linkInfo.json() as any;
+    const autoSlug = info.slugs.find((s: any) => !s.is_custom).slug;
+
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${autoSlug}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${rawKey}` },
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    expect(body.removed).toBe(true);
+  });
+
+  it("cannot remove the last remaining slug on a link", async () => {
+    const linkRes = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://example.com/only-slug" }),
+      })
+    );
+    const link = await linkRes.json() as any;
+    const autoSlug = link.slugs.find((s: any) => !s.is_custom).slug;
+
+    const keyRes = await SELF.fetch(
+      authed("/_/admin/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Remover", scope: "create" }),
+      })
+    );
+    const { raw_key } = await keyRes.json() as any;
+
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${link.id}/slugs/${autoSlug}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${raw_key}` },
+      })
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json() as any;
+    expect(body.error).toBe("Cannot remove the last remaining slug on a link");
   });
 
   it("cannot disable the auto slug (400)", async () => {

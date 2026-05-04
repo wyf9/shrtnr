@@ -77,9 +77,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, bundles = [], t, la
     || link.slugs.find((s) => s.is_custom)
     || link.slugs[0];
   const displaySlug = primarySlug?.slug || "";
-  const randomSlug = link.slugs.find((s) => !s.is_custom);
-  const custom = link.slugs.filter((s) => s.is_custom);
-  const hasMultipleSlugs = custom.length > 0;
+  const hasMultipleSlugs = link.slugs.length > 1;
 
   const expVal = link.expires_at
     ? new Date(link.expires_at * 1000).toISOString().slice(0, 16)
@@ -304,7 +302,7 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, bundles = [], t, la
             const effectivelyDisabled = slugDisabled || isExpired;
             const isPrimary = s.is_primary === 1;
             const isCustom = s.is_custom === 1;
-            const canDelete = isOwner && isCustom && s.click_count === 0 && !slugDisabled;
+            const canDelete = isOwner && link.slugs.length > 1 && s.click_count === 0 && !slugDisabled;
             const canDisable = isOwner && isCustom && !slugDisabled && s.click_count > 0;
             const canEnable = isOwner && isCustom && slugDisabled;
             const pct = maxSlugClicks > 0 ? ((s.click_count / maxSlugClicks) * 100).toFixed(0) : "0";

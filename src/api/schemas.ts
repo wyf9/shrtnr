@@ -58,11 +58,21 @@ export const LinkSchema = z
   })
   .openapi("Link", { description: "A short link with its slugs, total click count, and metadata." });
 
+// Mirrors validateCustomSlug() in src/slugs.ts after server-side lowercase
+// normalization: must start and end with alphanumeric, hyphens allowed in the
+// middle, no underscores, no leading/trailing hyphens.
+export const CustomSlugStringSchema = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i);
+
 export const CreateLinkBodySchema = z
   .object({
     url: z.string().url().max(2048),
     label: z.string().optional(),
     slug_length: z.number().int().min(3).max(16).optional(),
+    custom_slug: CustomSlugStringSchema.optional(),
     expires_at: z.number().int().nonnegative().optional(),
     allow_duplicate: z.boolean().optional(),
   })
@@ -79,15 +89,6 @@ export const UpdateLinkBodySchema = z
   .openapi("UpdateLinkBody");
 
 // ---- Slug (request) ----
-
-// Mirrors validateCustomSlug() in src/slugs.ts after server-side lowercase
-// normalization: must start and end with alphanumeric, hyphens allowed in the
-// middle, no underscores, no leading/trailing hyphens.
-export const CustomSlugStringSchema = z
-  .string()
-  .min(1)
-  .max(64)
-  .regex(/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i);
 
 export const AddSlugBodySchema = z
   .object({

@@ -134,12 +134,16 @@ function isUrl(value) {
 
 function quickShorten() {
   var value = document.getElementById('quick-url').value.trim();
+  var slugEl = document.getElementById('quick-slug');
+  var customSlug = slugEl ? slugEl.value.trim() : '';
   if (!value) { toast(t('client.pasteUrl'), 'error'); return; }
   if (!isUrl(value)) {
     window.location.href = '/_/admin/links?search=' + encodeURIComponent(value);
     return;
   }
-  api('/links', { method: 'POST', body: JSON.stringify({ url: value }) }).then(function(res) {
+  var body = { url: value };
+  if (customSlug) body.custom_slug = customSlug;
+  api('/links', { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
     if (res.ok) {
       var isDuplicate = res.status === 200;
       return res.json().then(function(link) {
@@ -150,7 +154,9 @@ function quickShorten() {
             window.location.href = '/_/admin/links/' + link.id;
           }
         } else {
-          var primary = link.slugs.find(function(s) { return !s.is_custom; });
+          var primary = link.slugs.find(function(s) { return s.is_primary; })
+            || link.slugs.find(function(s) { return s.is_custom; })
+            || link.slugs[0];
           if (primary) copyUrl(primary.slug);
           toast(t('client.linkCreatedCopied'));
           window.location.href = '/_/admin/links/' + link.id;
@@ -721,6 +727,10 @@ if (quickUrlEl) {
   quickUrlEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') quickShorten(); });
   quickUrlEl.addEventListener('input', updateQuickActionButton);
   updateQuickActionButton();
+}
+var quickSlugEl = document.getElementById('quick-slug');
+if (quickSlugEl) {
+  quickSlugEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') quickShorten(); });
 }
 
 var slugLengthEl = document.getElementById('slug-length-input');

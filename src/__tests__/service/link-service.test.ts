@@ -6,6 +6,7 @@ import {
   createLink,
   getLink,
   getLinkBySlug,
+  removeSlug,
   updateLink,
 } from "../../services/link-management";
 import { SettingRepository } from "../../db";
@@ -65,6 +66,56 @@ describe("link-management service", () => {
     if (result.ok) {
       expect(result.data.slug).toBe("second-custom");
       expect(result.data.is_custom).toBe(1);
+    }
+  });
+
+  it("accepts custom_slug on create and promotes it to primary", async () => {
+    const result = await createLink(env as any, {
+      url: "https://example.com",
+      custom_slug: "My-Branded-Slug",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.slugs).toHaveLength(2);
+    const customSlug = result.data.slugs.find((s) => s.is_custom === 1);
+    const autoSlug = result.data.slugs.find((s) => s.is_custom === 0);
+    expect(customSlug?.slug).toBe("my-branded-slug");
+    expect(customSlug?.is_primary).toBe(1);
+    expect(autoSlug?.is_primary).toBe(0);
+  });
+
+  it("returns 409 when custom_slug already exists", async () => {
+    const first = await createLink(env as any, {
+      url: "https://example.com/first",
+      custom_slug: "taken-slug",
+    });
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+
+    const second = await createLink(env as any, {
+      url: "https://example.com/second",
+      custom_slug: "taken-slug",
+    });
+    expect(second.ok).toBe(false);
+    if (!second.ok) {
+      expect(second.status).toBe(409);
+      expect(second.error).toBe("Slug already exists");
+    }
+  });
+
+  it("prevents removing the last remaining slug", async () => {
+    const created = await createLink(env as any, { url: "https://example.com" });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+
+    const onlySlug = created.data.slugs[0].slug;
+    const result = await removeSlug(env as any, created.data.id, onlySlug, created.data.created_by);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(400);
+      expect(result.error).toBe("Cannot remove the last remaining slug on a link");
     }
   });
 

@@ -38,12 +38,14 @@ class LinksResource {
     required String url,
     String? label,
     int? slugLength,
+    String? customSlug,
     int? expiresAt,
     bool? allowDuplicate,
   }) async {
     final body = <String, dynamic>{'url': url};
     if (label != null) body['label'] = label;
     if (slugLength != null) body['slug_length'] = slugLength;
+    if (customSlug != null) body['custom_slug'] = customSlug;
     if (expiresAt != null) body['expires_at'] = expiresAt;
     if (allowDuplicate != null) body['allow_duplicate'] = allowDuplicate;
     final json = await _http.requestJson('POST', '/_/api/links', body: body);

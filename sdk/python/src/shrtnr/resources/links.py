@@ -79,6 +79,7 @@ class Links:
         url: str,
         label: str | None = None,
         slug_length: int | None = None,
+        custom_slug: str | None = None,
         expires_at: int | None = None,
         allow_duplicate: bool | None = None,
     ) -> Link:
@@ -88,6 +89,8 @@ class Links:
             body["label"] = label
         if slug_length is not None:
             body["slug_length"] = slug_length
+        if custom_slug is not None:
+            body["custom_slug"] = custom_slug
         if expires_at is not None:
             body["expires_at"] = expires_at
         if allow_duplicate is not None:
@@ -210,6 +213,7 @@ class AsyncLinks:
         url: str,
         label: str | None = None,
         slug_length: int | None = None,
+        custom_slug: str | None = None,
         expires_at: int | None = None,
         allow_duplicate: bool | None = None,
     ) -> Link:
@@ -219,6 +223,8 @@ class AsyncLinks:
             body["label"] = label
         if slug_length is not None:
             body["slug_length"] = slug_length
+        if custom_slug is not None:
+            body["custom_slug"] = custom_slug
         if expires_at is not None:
             body["expires_at"] = expires_at
         if allow_duplicate is not None:

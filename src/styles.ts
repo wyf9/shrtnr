@@ -319,6 +319,7 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 /* Hero input */
 .hero-input-wrap { display: flex; gap: 0.75rem; margin-bottom: 2rem; }
 .hero-input { flex: 1; padding: 0.75rem 1rem; background: var(--color-surface); border: 2px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text); font-family: var(--font-family-body); font-size: 1rem; }
+.hero-input-slug { flex: 0 0 10rem; min-width: 8rem; }
 .hero-input:focus { outline: none; border-color: var(--color-success); box-shadow: 0 0 0 3px var(--color-selection); }
 .hero-input::placeholder { color: var(--color-text-muted); }
 
