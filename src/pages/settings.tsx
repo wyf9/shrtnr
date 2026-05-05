@@ -18,12 +18,14 @@ type Props = {
   defaultRange: TimelineRange;
   filterBots: boolean;
   filterSelfReferrers: boolean;
+  rootRedirectUrl: string;
+  dynamicRedirectRules: string;
   t: TranslateFn;
   mcpConfigured: boolean;
   userEmail?: string | null;
 };
 
-export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, t, mcpConfigured, userEmail }) => {
+export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, dynamicRedirectRules, t, mcpConfigured, userEmail }) => {
   const combos = Math.pow(RANDOM_CHARSET.length, Math.max(slugLength, MIN_SLUG_LENGTH));
   const comboHint =
     slugLength >= 3
@@ -128,6 +130,43 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                 </select>
               </div>
               <div class="form-hint">{t("settings.defaultRangeHint")}</div>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="form-group">
+              <label class="form-label">{t("settings.rootRedirectUrl")}</label>
+              <div class="slug-length-row">
+                <input
+                  class="form-input"
+                  type="url"
+                  id="root-redirect-url-input"
+                  placeholder={t("settings.rootRedirectUrlPlaceholder")}
+                  value={rootRedirectUrl}
+                />
+                <button class="btn btn-secondary btn-sm" onclick="saveRootRedirectUrl()">
+                  {t("settings.save")}
+                </button>
+              </div>
+              <div class="form-hint">{t("settings.rootRedirectUrlHint")}</div>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="form-group">
+              <label class="form-label">{t("settings.dynamicRedirectRules")}</label>
+              <textarea
+                class="form-input settings-rule-editor"
+                id="dynamic-redirect-rules-input"
+                rows={8}
+                placeholder={t("settings.dynamicRedirectRulesPlaceholder")}
+              >{dynamicRedirectRules}</textarea>
+              <div class="slug-length-row">
+                <button class="btn btn-secondary btn-sm" onclick="saveDynamicRedirectRules()">
+                  {t("settings.save")}
+                </button>
+              </div>
+              <div class="form-hint">{t("settings.dynamicRedirectRulesHint")}</div>
             </div>
           </div>
 

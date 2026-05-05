@@ -39,6 +39,8 @@ It takes one click to deploy. You get a full admin UI, click analytics, SDKs for
 - **Free hosting** on Cloudflare Workers + D1 (no VPS, no containers, no monthly bill)
 - **Short slugs** starting at 3 characters (32,768 unique combinations at that length)
 - **Custom slugs** like `/my-campaign` alongside random slugs
+- **Configurable root redirect** so `/` can route visitors to a URL of your choice when they are not signed in
+- **Dynamic redirect rules** with `_redirects`-style placeholders (`:name`) and splat (`*` -> `:splat`) for legacy migration paths
 - **Click analytics** with referrer, country, device, and browser tracking
 - **Bundles** group related links (for example a project's blog post, GitHub repo, npm page, and docs) so you can track their combined engagement. A link can belong to more than one bundle.
 - **Admin dashboard** for link management, analytics charts, and QR code generation
@@ -146,6 +148,34 @@ npx wrangler secret put ACCESS_JWKS_URL
 
 When `ACCESS_AUD` is set, the worker validates the JWT signature and audience claim on every admin and MCP request. When absent (local dev), it skips verification and falls back to dev mode.
 
+
+## Dynamic redirect rules (`_redirects` migration)
+
+If you are migrating from Cloudflare Pages `_redirects`, open **Settings** in the admin UI and paste your rules into **Dynamic Redirect Rules**.
+
+Supported syntax:
+
+- One rule per line: `<source> <destination> [status]`
+- `:placeholder` in source and destination (for example `:name`, `:task`)
+- `*` splat in source (last segment only), available as `:splat` in destination
+- Optional status: `301`, `302`, `303`, `307`, `308` (default `302`)
+- Lines starting with `#` are comments
+
+Example:
+
+```txt
+# Email redirects
+/t/m/:name https://siiway.org/go/mail?name=:name
+/t/m/:name/:domain https://siiway.org/go/mail?name=:name&domain=:domain
+/mail/:email https://siiway.org/go/mail?email=:email
+/m64/:base64 https://siiway.org/go/mail?base64=:base64
+
+# Path aliases
+/a/* https://siiway.org/about/:splat
+/m/* https://siiway.org/zh/members/:splat
+```
+
+Rules run on unmatched public paths before the single-segment short-slug fallback, so existing short links continue to work.
 
 
 ## Integrations

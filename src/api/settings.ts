@@ -20,6 +20,8 @@ export async function handleUpdateSettings(request: Request, env: Env, identity:
     default_range?: string | null;
     filter_bots?: boolean;
     filter_self_referrers?: boolean;
+    root_redirect_url?: string | null;
+    dynamic_redirect_rules?: string | null;
   };
 
   try {

@@ -635,6 +635,44 @@ function setFilterSelfReferrers(checked) {
   });
 }
 
+function saveRootRedirectUrl() {
+  var input = document.getElementById('root-redirect-url-input');
+  if (!input) return;
+  var val = input.value.trim();
+  api('/settings', { method: 'PUT', body: JSON.stringify({ root_redirect_url: val || null }) }).then(function(res) {
+    if (res.ok) {
+      return res.json().then(function(body) {
+        input.value = body.root_redirect_url || '';
+        toast(t('client.settingsSaved'));
+      });
+    }
+    return res.json().then(function(data) {
+      toast(data.error || t('client.settingsError'), 'error');
+    }).catch(function() {
+      toast(t('client.settingsError'), 'error');
+    });
+  });
+}
+
+function saveDynamicRedirectRules() {
+  var input = document.getElementById('dynamic-redirect-rules-input');
+  if (!input) return;
+  var val = input.value;
+  api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: val || null }) }).then(function(res) {
+    if (res.ok) {
+      return res.json().then(function(body) {
+        input.value = body.dynamic_redirect_rules || '';
+        toast(t('client.settingsSaved'));
+      });
+    }
+    return res.json().then(function(data) {
+      toast(data.error || t('client.settingsError'), 'error');
+    }).catch(function() {
+      toast(t('client.settingsError'), 'error');
+    });
+  });
+}
+
 function updateComboHint() {
   var el = document.getElementById('slug-combo-hint');
   if (!el) return;

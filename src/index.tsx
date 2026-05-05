@@ -27,6 +27,8 @@ import { apiRouter } from "./api/router";
 import {
   authenticateApiKey,
   getAppSettings,
+  getDynamicRedirect,
+  getRootRedirectUrl,
   resolveClickFilters,
   getDashboardStats,
   getLinkAnalytics,
@@ -165,9 +167,11 @@ async function getPageData(c: { env: Env; req: { raw: Request } }, identity: str
   const defaultRange: TimelineRange = settings?.default_range ?? "30d";
   const filterBots = settings?.filter_bots ?? true;
   const filterSelfReferrers = settings?.filter_self_referrers ?? true;
+  const rootRedirectUrl = settings?.root_redirect_url ?? "";
+  const dynamicRedirectRules = settings?.dynamic_redirect_rules ?? "";
   const t = createTranslateFn(lang);
   const translations = getTranslations(lang);
-  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, t, translations };
+  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, dynamicRedirectRules, t, translations };
 }
 
 // ---- Admin pages ----
@@ -329,12 +333,12 @@ app.get("/_/admin/keys", async (c) => {
 
 app.get("/_/admin/settings", async (c) => {
   const identity = c.var.identity;
-  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers } = await getPageData(c, identity);
+  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, dynamicRedirectRules } = await getPageData(c, identity);
   const mcpConfigured = Boolean(c.env.MCP_ACCESS_AUD && c.env.ACCESS_JWKS_URL);
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="settings" theme={theme} t={t} lang={lang} translations={translations}>
-      <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
+      <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} rootRedirectUrl={rootRedirectUrl} dynamicRedirectRules={dynamicRedirectRules} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
     </Layout>,
   );
 });
@@ -513,6 +517,8 @@ app.route("/_/api", apiRouter);
 
 app.get("/", async (c) => {
   if (await isSignedIn(c.req.raw, c.env)) return c.redirect("/_/admin/dashboard", 302);
+  const rootRedirectUrl = await getRootRedirectUrl(c.env);
+  if (rootRedirectUrl) return c.redirect(rootRedirectUrl, 302);
   return landingResponse();
 });
 
@@ -521,11 +527,17 @@ app.get("/_", async (c) => {
   return c.redirect("/", 302);
 });
 
-// ---- Slug redirect (catch-all) ----
+// ---- Public redirect catch-all ----
 
-app.get("/:slug", (c) => {
-  const slug = c.req.param("slug");
-  if (!slug || slug.startsWith("_")) return notFoundResponse();
+app.get("/*", async (c) => {
+  const pathname = new URL(c.req.url).pathname;
+  if (!pathname || pathname === "/" || pathname.startsWith("/_")) return notFoundResponse();
+
+  const dynamicRedirect = await getDynamicRedirect(c.env, c.req.url);
+  if (dynamicRedirect) return c.redirect(dynamicRedirect.url, dynamicRedirect.status);
+
+  const slug = pathname.slice(1);
+  if (!slug || slug.includes("/")) return notFoundResponse();
   return handleRedirect(slug, c.req.raw, c.env, c.executionCtx);
 });
 
@@ -647,4 +659,3 @@ async function resolveAuth(
   }
   return null;
 }
-

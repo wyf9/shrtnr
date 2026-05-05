@@ -65,3 +65,17 @@ describe("Settings page analytics filter toggles", () => {
     expect(html).toMatch(/id="filter-self-referrers-toggle"[^>]*checked/);
   });
 });
+
+describe("Settings page root redirect control", () => {
+  it("renders root redirect URL input", async () => {
+    const res = await SELF.fetch(req("/_/admin/settings"));
+    const html = await res.text();
+    expect(html).toContain('id="root-redirect-url-input"');
+  });
+
+  it("renders dynamic redirect rules input", async () => {
+    const res = await SELF.fetch(req("/_/admin/settings"));
+    const html = await res.text();
+    expect(html).toContain('id="dynamic-redirect-rules-input"');
+  });
+});

@@ -5,6 +5,7 @@ import { ApiKeyRepository, SettingRepository } from "../db";
 import type { ApiKeyRow, ClickFilters } from "../db";
 import { DEFAULT_SLUG_LENGTH } from "../constants";
 import { validateSlugLength } from "../slugs";
+import { parseDynamicRedirectRules, matchDynamicRedirect } from "../redirect-rules";
 import { Env, TimelineRange } from "../types";
 import { ServiceResult, ok, fail } from "./result";
 
@@ -85,6 +86,8 @@ export type AppSettings = {
   default_range: TimelineRange;
   filter_bots: boolean;
   filter_self_referrers: boolean;
+  root_redirect_url: string | null;
+  dynamic_redirect_rules: string;
 };
 
 // Stored as "true" / "false" strings in the key-value settings table; absent row
@@ -96,17 +99,32 @@ function parseBoolSetting(v: string | null, defaultValue: boolean): boolean {
   return defaultValue;
 }
 
+function normalizeRootRedirectUrl(value: string | null): string | null {
+  if (value === null) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 export async function getAppSettings(
   env: Env,
   identity: string,
 ): Promise<ServiceResult<AppSettings>> {
-  const [slugLength, theme, lang, defaultRange, filterBots, filterSelfReferrers] = await Promise.all([
+  const [slugLength, theme, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, dynamicRules] = await Promise.all([
     SettingRepository.get(env.DB, identity, "slug_default_length"),
     SettingRepository.get(env.DB, identity, "theme"),
     SettingRepository.get(env.DB, identity, "lang"),
     SettingRepository.get(env.DB, identity, "default_range"),
     SettingRepository.get(env.DB, identity, "filter_bots"),
     SettingRepository.get(env.DB, identity, "filter_self_referrers"),
+    SettingRepository.get(env.DB, "anonymous", "root_redirect_url"),
+    SettingRepository.get(env.DB, "anonymous", "dynamic_redirect_rules"),
   ]);
   return ok({
     slug_default_length: parseInt(slugLength ?? String(DEFAULT_SLUG_LENGTH), 10),
@@ -115,6 +133,8 @@ export async function getAppSettings(
     default_range: isValidRange(defaultRange) ? defaultRange : DEFAULT_RANGE,
     filter_bots: parseBoolSetting(filterBots, true),
     filter_self_referrers: parseBoolSetting(filterSelfReferrers, true),
+    root_redirect_url: normalizeRootRedirectUrl(rootRedirectUrl),
+    dynamic_redirect_rules: dynamicRules ?? "",
   });
 }
 
@@ -128,6 +148,8 @@ export async function updateAppSettings(
     default_range?: TimelineRange | null | "";
     filter_bots?: boolean;
     filter_self_referrers?: boolean;
+    root_redirect_url?: string | null;
+    dynamic_redirect_rules?: string | null;
   },
 ): Promise<ServiceResult<AppSettings>> {
   if (body.slug_default_length !== undefined) {
@@ -162,8 +184,40 @@ export async function updateAppSettings(
     }
     await SettingRepository.set(env.DB, identity, "filter_self_referrers", String(body.filter_self_referrers));
   }
+  if (body.root_redirect_url !== undefined) {
+    if (body.root_redirect_url === null || body.root_redirect_url.trim() === "") {
+      await SettingRepository.set(env.DB, "anonymous", "root_redirect_url", "");
+    } else {
+      const normalized = normalizeRootRedirectUrl(body.root_redirect_url);
+      if (!normalized) {
+        return fail(400, "root_redirect_url must be a valid http or https URL");
+      }
+      await SettingRepository.set(env.DB, "anonymous", "root_redirect_url", normalized);
+    }
+  }
+  if (body.dynamic_redirect_rules !== undefined) {
+    const rawRules = body.dynamic_redirect_rules ?? "";
+    const parsed = parseDynamicRedirectRules(rawRules);
+    if (!parsed.ok) {
+      return fail(400, parsed.error);
+    }
+    await SettingRepository.set(env.DB, "anonymous", "dynamic_redirect_rules", rawRules.trim());
+  }
 
   return getAppSettings(env, identity);
+}
+
+export async function getRootRedirectUrl(env: Env): Promise<string | null> {
+  const stored = await SettingRepository.get(env.DB, "anonymous", "root_redirect_url");
+  return normalizeRootRedirectUrl(stored);
+}
+
+export async function getDynamicRedirect(env: Env, requestUrl: string): Promise<{ url: string; status: number } | null> {
+  const stored = await SettingRepository.get(env.DB, "anonymous", "dynamic_redirect_rules");
+  const parsed = parseDynamicRedirectRules(stored ?? "");
+  if (!parsed.ok || parsed.rules.length === 0) return null;
+  const pathname = new URL(requestUrl).pathname;
+  return matchDynamicRedirect(parsed.rules, pathname, requestUrl);
 }
 
 /**

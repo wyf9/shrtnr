@@ -46,6 +46,49 @@ describe("Routing", () => {
     expect(body).toMatch(/login/i);
   });
 
+  it("GET / should redirect to configured root_redirect_url", async () => {
+    await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ root_redirect_url: "https://example.com/welcome" }),
+      })
+    );
+    const res = await SELF.fetch(unauthed("/"), { redirect: "manual" });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toBe("https://example.com/welcome");
+  });
+
+  it("GET dynamic placeholder path should follow configured redirect rule", async () => {
+    await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dynamic_redirect_rules: "/mail/:email https://siiway.org/go/mail?email=:email",
+        }),
+      }),
+    );
+    const res = await SELF.fetch(unauthed("/mail/jane@example.com"), { redirect: "manual" });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toBe("https://siiway.org/go/mail?email=jane@example.com");
+  });
+
+  it("GET dynamic splat path should follow configured redirect rule", async () => {
+    await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dynamic_redirect_rules: "/a/* https://siiway.org/about/:splat 301",
+        }),
+      }),
+    );
+    const res = await SELF.fetch(unauthed("/a/team/core"), { redirect: "manual" });
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Location")).toBe("https://siiway.org/about/team/core");
+  });
+
   it("GET /_/health should return ok without auth", async () => {
     const res = await SELF.fetch(unauthed("/_/health"));
     expect(res.status).toBe(200);
@@ -301,6 +344,53 @@ describe("Settings API", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ default_range: "nope" }),
       })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("PUT /_/admin/api/settings should update root_redirect_url", async () => {
+    const res = await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ root_redirect_url: "https://example.com/root" }),
+      })
+    );
+    const body = await res.json() as any;
+    expect(body.root_redirect_url).toBe("https://example.com/root");
+  });
+
+  it("PUT /_/admin/api/settings with invalid root_redirect_url should return 400", async () => {
+    const res = await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ root_redirect_url: "javascript:alert(1)" }),
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("PUT /_/admin/api/settings should update dynamic_redirect_rules", async () => {
+    const rules = "/tasks/:task https://git.siiway.org/siiway/tasks/issues/:task";
+    const res = await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dynamic_redirect_rules: rules }),
+      }),
+    );
+    const body = await res.json() as any;
+    expect(body.dynamic_redirect_rules).toBe(rules);
+  });
+
+  it("PUT /_/admin/api/settings with invalid dynamic_redirect_rules should return 400", async () => {
+    const res = await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dynamic_redirect_rules: "/a/*/b https://example.com" }),
+      }),
     );
     expect(res.status).toBe(400);
   });

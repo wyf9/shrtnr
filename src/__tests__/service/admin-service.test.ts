@@ -130,7 +130,57 @@ describe("admin-management service", () => {
     if (settings.ok) {
       expect(settings.data.filter_bots).toBe(true);
       expect(settings.data.filter_self_referrers).toBe(true);
+      expect(settings.data.root_redirect_url).toBeNull();
     }
+  });
+
+  it("persists a valid root_redirect_url", async () => {
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { root_redirect_url: "https://example.com/root" });
+    expect(updated.ok).toBe(true);
+    if (!updated.ok) return;
+    expect(updated.data.root_redirect_url).toBe("https://example.com/root");
+  });
+
+  it("clears root_redirect_url when set to null", async () => {
+    await updateAppSettings(env as any, TEST_IDENTITY, { root_redirect_url: "https://example.com/root" });
+    const cleared = await updateAppSettings(env as any, TEST_IDENTITY, { root_redirect_url: null });
+    expect(cleared.ok).toBe(true);
+    if (cleared.ok) {
+      expect(cleared.data.root_redirect_url).toBeNull();
+    }
+  });
+
+  it("rejects invalid root_redirect_url protocol", async () => {
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, { root_redirect_url: "javascript:alert(1)" });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(400);
+  });
+
+  it("treats root_redirect_url as global across identities", async () => {
+    await updateAppSettings(env as any, "user-a@example.com", { root_redirect_url: "https://global.example.com" });
+    const b = await getAppSettings(env as any, "user-b@example.com");
+    expect(b.ok).toBe(true);
+    if (b.ok) expect(b.data.root_redirect_url).toBe("https://global.example.com/");
+  });
+
+  it("persists dynamic_redirect_rules globally", async () => {
+    const rules = "/mail/:email https://siiway.org/go/mail?email=:email\n/a/* https://siiway.org/about/:splat";
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { dynamic_redirect_rules: rules });
+    expect(updated.ok).toBe(true);
+    if (!updated.ok) return;
+    expect(updated.data.dynamic_redirect_rules).toBe(rules);
+
+    const other = await getAppSettings(env as any, "someone@example.com");
+    expect(other.ok).toBe(true);
+    if (other.ok) expect(other.data.dynamic_redirect_rules).toBe(rules);
+  });
+
+  it("rejects invalid dynamic_redirect_rules", async () => {
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      dynamic_redirect_rules: "/a/*/b https://example.com",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(400);
   });
 
   it("persists filter_bots when toggled off", async () => {

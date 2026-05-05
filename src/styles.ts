@@ -669,7 +669,8 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
 
 /* Slug length row (number input + save) */
 .slug-length-row { display: flex; gap: 0.75rem; align-items: center; }
-.slug-length-row .form-input { width: 80px; }
+#slug-length-input { width: 80px; }
+.settings-rule-editor { min-height: 9.5rem; resize: vertical; font-family: var(--font-family-mono); font-size: 0.8rem; line-height: 1.45; }
 .form-hint { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.4rem; }
 .form-group-flush { margin-bottom: 0; }
 

@@ -27,6 +27,8 @@ export {
   authenticateApiKey,
   getAppSettings,
   updateAppSettings,
+  getRootRedirectUrl,
+  getDynamicRedirect,
   resolveClickFilters,
 } from "./admin-management";
 
