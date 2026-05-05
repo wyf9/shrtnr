@@ -24,6 +24,7 @@ const id: Translations = {
   "dashboard.title": "Dasbor",
   "dashboard.subtitle": "Ringkasan tautan pendek Anda",
   "dashboard.urlPlaceholder": "Tempel URL panjang untuk diperpendek...",
+  "dashboard.labelPlaceholder": "deskripsi (opsional)",
   "dashboard.shorten": "Perpendek",
   "dashboard.totalLinks": "Total Tautan",
   "dashboard.totalClicks": "Total Klik",

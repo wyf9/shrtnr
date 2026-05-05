@@ -22,6 +22,7 @@ const en = {
   "dashboard.title": "Dashboard",
   "dashboard.subtitle": "Overview of your short links",
   "dashboard.urlPlaceholder": "Paste a long URL to shorten...",
+  "dashboard.labelPlaceholder": "description (optional)",
   "dashboard.shorten": "Shorten",
   "dashboard.totalLinks": "Total Links",
   "dashboard.totalClicks": "Total Clicks",

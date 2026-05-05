@@ -24,6 +24,7 @@ const sv: Translations = {
   "dashboard.title": "Översikt",
   "dashboard.subtitle": "Sammanfattning av dina kortlänkar",
   "dashboard.urlPlaceholder": "Klistra in en lång URL för att förkorta...",
+  "dashboard.labelPlaceholder": "beskrivning (valfritt)",
   "dashboard.shorten": "Förkorta",
   "dashboard.totalLinks": "Totalt antal länkar",
   "dashboard.totalClicks": "Totalt antal klick",

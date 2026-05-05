@@ -317,7 +317,9 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 .btn-lg { padding: 0.75rem 1.5rem; font-size: 1rem; }
 
 /* Hero input */
-.hero-input-wrap { display: flex; gap: 0.75rem; margin-bottom: 2rem; }
+.hero-input-wrap { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; }
+.hero-input-row { display: flex; gap: 0.75rem; }
+.hero-input-row-primary .hero-input { flex: 1; }
 .hero-input { flex: 1; padding: 0.75rem 1rem; background: var(--color-surface); border: 2px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text); font-family: var(--font-family-body); font-size: 1rem; }
 .hero-input-slug { flex: 0 0 14rem; min-width: 12rem; }
 .hero-input:focus { outline: none; border-color: var(--color-success); box-shadow: 0 0 0 3px var(--color-selection); }
@@ -777,7 +779,7 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
   .detail-hero { grid-template-columns: 1fr; min-width: 0; }
   .detail-hero .label { font-size: 1.5rem; }
   .detail-hero .right { border-left: none; border-top: 1px solid var(--color-border); padding-left: 0; padding-top: 1rem; }
-  .hero-input-wrap { flex-direction: column; }
+  .hero-input-row { flex-direction: column; }
   .form-row { flex-direction: column; }
   .toolbar { flex-wrap: wrap; gap: 0.5rem; }
   .toolbar > .btn { width: 100%; justify-content: center; }

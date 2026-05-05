@@ -134,6 +134,8 @@ function isUrl(value) {
 
 function quickShorten() {
   var value = document.getElementById('quick-url').value.trim();
+  var labelEl = document.getElementById('quick-label');
+  var label = labelEl ? labelEl.value.trim() : '';
   var slugEl = document.getElementById('quick-slug');
   var customSlug = slugEl ? slugEl.value.trim() : '';
   if (!value) { toast(t('client.pasteUrl'), 'error'); return; }
@@ -141,7 +143,11 @@ function quickShorten() {
     window.location.href = '/_/admin/links?search=' + encodeURIComponent(value);
     return;
   }
+  if (customSlug && customSlug.startsWith('/')) {
+    return upsertDynamicRedirectRule(customSlug, value);
+  }
   var body = { url: value };
+  if (label) body.label = label;
   if (customSlug) body.custom_slug = customSlug;
   api('/links', { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
     if (res.ok) {
@@ -167,6 +173,28 @@ function quickShorten() {
         toast(data.error || t('client.createLinkError'), 'error');
       });
     }
+  });
+}
+
+function upsertDynamicRedirectRule(sourcePattern, destinationUrl) {
+  api('/settings').then(function(getRes) {
+    if (!getRes.ok) throw new Error('Failed to read settings');
+    return getRes.json();
+  }).then(function(settings) {
+    var currentRules = (settings.dynamic_redirect_rules || '').trim();
+    var nextLine = sourcePattern.trim() + ' ' + destinationUrl.trim();
+    var nextRules = currentRules ? (currentRules + '\n' + nextLine) : nextLine;
+    return api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules }) });
+  }).then(function(putRes) {
+    if (!putRes.ok) {
+      return putRes.json().then(function(data) {
+        toast(data.error || t('client.createLinkError'), 'error');
+      });
+    }
+    toast(t('client.settingsSaved'));
+    window.location.href = '/_/admin/settings';
+  }).catch(function() {
+    toast(t('client.settingsError'), 'error');
   });
 }
 
