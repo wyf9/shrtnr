@@ -1673,5 +1673,18 @@ document.addEventListener('click', function(ev) {
   else if (action === 'unarchive') unarchiveBundle(id);
   else if (action === 'delete') deleteBundleAction(id, name);
 });
+
+// Expose functions to global scope for inline event handlers
+window.setTheme = setTheme;
+window.setLanguage = setLanguage;
+window.setDefaultRange = setDefaultRange;
+window.saveSettings = saveSettings;
+window.saveAnalyticsFilters = saveAnalyticsFilters;
+window.saveRootRedirectUrl = saveRootRedirectUrl;
+window.closeModal = closeModal;
+window.openModal = openModal;
+window.copyToClipboard = copyToClipboard;
+window.toggleSidebar = toggleSidebar;
+window.closeSidebar = closeSidebar;
 `;
 }
