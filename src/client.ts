@@ -1686,5 +1686,14 @@ window.openModal = openModal;
 window.copyToClipboard = copyToClipboard;
 window.toggleSidebar = toggleSidebar;
 window.closeSidebar = closeSidebar;
+window.addRedirectRule = addRedirectRule;
+window.deleteRedirectRule = deleteRedirectRule;
+window.showCreateKeyModal = showCreateKeyModal;
+window.deleteKey = deleteKey;
+window.toggleDetailMenu = toggleDetailMenu;
+window.cancelEditLabel = cancelEditLabel;
+window.cancelEditExpiry = cancelEditExpiry;
+window.quickShorten = quickShorten;
+window.showCreateBundleModal = showCreateBundleModal;
 `;
 }

@@ -77,7 +77,7 @@ export const RedirectsPage: FC<Props> = ({ rules, t, lang }) => {
 
       {rules.length === 0 ? (
         <div class="empty-state">
-          <span class="icon">routing</span>
+          <span class="icon">alt_route</span>
           <p>{t("redirects.empty")}</p>
         </div>
       ) : (

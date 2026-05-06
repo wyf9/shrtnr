@@ -36,11 +36,6 @@ import {
   getLink,
   searchLinks,
   listAllApiKeys,
-  listBundlesForLink,
-  listBundles,
-  getBundle,
-  listBundleLinks,
-  getBundleAnalytics,
 } from "./services";
 import { DEFAULT_SLUG_LENGTH } from "./constants";
 import { createTranslateFn, getTranslations } from "./i18n";
@@ -68,20 +63,6 @@ import {
   handleAdminLinkAnalytics,
   handleAdminLinkTimeline,
 } from "./api/analytics";
-import {
-  handleAddLinkToBundle,
-  handleArchiveBundle,
-  handleAdminBundleAnalytics,
-  handleBundleLinks,
-  handleCreateBundle,
-  handleDeleteBundle,
-  handleGetBundle,
-  handleListBundles,
-  handleListBundlesForLink,
-  handleRemoveLinkFromBundle,
-  handleUnarchiveBundle,
-  handleUpdateBundle,
-} from "./api/bundles";
 import { handleLinkQr } from "./api/qr";
 import type { HonoEnv, AuthContext } from "./api/hono-env";
 import { notFoundResponse } from "./404";
@@ -96,9 +77,6 @@ import { LinkDetailPage } from "./pages/link-detail";
 import { KeysPage } from "./pages/keys";
 import { SettingsPage } from "./pages/settings";
 import { RedirectsPage } from "./pages/redirects";
-import { BundlesPage } from "./pages/bundles";
-import { BundleDetailPage } from "./pages/bundle-detail";
-
 // ---- App ----
 
 const app = new Hono<HonoEnv>();
@@ -263,59 +241,16 @@ app.get("/_/admin/links/:id", async (c) => {
   const filters = await resolveClickFilters(c.env, identity);
   const linkResult = await getLink(c.env, id, { filters, range: initialRange });
   if (!linkResult.ok) return notFoundResponse();
-  const [analyticsResult, bundlesResult] = await Promise.all([
-    getLinkAnalytics(c.env, id, initialRange, filters),
-    listBundlesForLink(c.env, id, identity),
-  ]);
+  const analyticsResult = await getLinkAnalytics(c.env, id, initialRange, filters);
   const analytics = analyticsResult.ok ? analyticsResult.data : {
     total_clicks: 0,
     countries: [], referrers: [], referrer_hosts: [], devices: [], os: [], browsers: [],
     link_modes: [], channels: [], clicks_over_time: [], slug_clicks: [],
     num_countries: 0, num_referrers: 0, num_referrer_hosts: 0, num_os: 0, num_browsers: 0,
   };
-  const bundles = bundlesResult.ok ? bundlesResult.data : [];
   return c.html(
     <Layout active="links" theme={theme} t={t} lang={lang} translations={translations}>
-      <LinkDetailPage link={linkResult.data} analytics={analytics} bundles={bundles} t={t} lang={lang} identity={identity} initialRange={initialRange} />
-    </Layout>,
-  );
-});
-
-app.get("/_/admin/bundles", async (c) => {
-  const identity = c.var.identity;
-  const { theme, t, lang, translations, defaultRange } = await getPageData(c, identity);
-  const filterParam = c.req.query("filter");
-  const filter = filterParam === "archived" || filterParam === "all" ? filterParam : "active";
-  const validRanges = new Set<TimelineRange>(["24h", "7d", "30d", "90d", "1y", "all"]);
-  const rangeParam = c.req.query("range");
-  const range = (validRanges.has(rangeParam as TimelineRange) ? rangeParam : defaultRange) as TimelineRange;
-  const listResult = await listBundles(c.env, identity, {
-    includeArchived: filter === "all",
-    archivedOnly: filter === "archived",
-    range,
-  });
-  const bundles = listResult.ok ? listResult.data : [];
-  return c.html(
-    <Layout active="bundles" theme={theme} t={t} lang={lang} translations={translations}>
-      <BundlesPage bundles={bundles} t={t} lang={lang} filter={filter} range={range} />
-    </Layout>,
-  );
-});
-
-app.get("/_/admin/bundles/:id", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return notFoundResponse();
-  const identity = c.var.identity;
-  const { theme, t, lang, translations, defaultRange } = await getPageData(c, identity);
-  const rangeParam = c.req.query("range");
-  const validRanges = new Set(["24h", "7d", "30d", "90d", "1y", "all"]);
-  const range = (validRanges.has(rangeParam || "") ? rangeParam : defaultRange) as TimelineRange;
-  const filters = await resolveClickFilters(c.env, identity);
-  const statsResult = await getBundleAnalytics(c.env, id, range, identity, { filters });
-  if (!statsResult.ok) return notFoundResponse();
-  return c.html(
-    <Layout active="bundles" theme={theme} t={t} lang={lang} translations={translations}>
-      <BundleDetailPage stats={statsResult.data} identity={identity} t={t} lang={lang} range={range} />
+      <LinkDetailPage link={linkResult.data} analytics={analytics}  t={t} lang={lang} identity={identity} initialRange={initialRange} />
     </Layout>,
   );
 });
@@ -457,61 +392,6 @@ app.put("/_/admin/api/settings", (c) => handleUpdateSettings(c.req.raw, c.env, c
 
 // Dashboard stats
 app.get("/_/admin/api/dashboard", (c) => handleDashboardStatsApi(c.env, c.var.identity, c.req.query("range")));
-
-// Bundles
-app.get("/_/admin/api/bundles", (c) => handleListBundles(c.env, c.var.identity, { archived: c.req.query("archived") }));
-app.post("/_/admin/api/bundles", (c) => handleCreateBundle(c.req.raw, c.env, c.var.identity, "app"));
-app.get("/_/admin/api/bundles/:id", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleGetBundle(c.env, id, c.var.identity);
-});
-app.put("/_/admin/api/bundles/:id", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleUpdateBundle(c.req.raw, c.env, id, c.var.identity);
-});
-app.delete("/_/admin/api/bundles/:id", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleDeleteBundle(c.env, id, c.var.identity);
-});
-app.post("/_/admin/api/bundles/:id/archive", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleArchiveBundle(c.env, id, c.var.identity);
-});
-app.post("/_/admin/api/bundles/:id/unarchive", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleUnarchiveBundle(c.env, id, c.var.identity);
-});
-app.get("/_/admin/api/bundles/:id/analytics", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleAdminBundleAnalytics(c.env, id, c.req.query("range"), c.var.identity);
-});
-app.get("/_/admin/api/bundles/:id/links", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleBundleLinks(c.env, id, c.var.identity);
-});
-app.post("/_/admin/api/bundles/:id/links", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleAddLinkToBundle(c.req.raw, c.env, id, c.var.identity);
-});
-app.delete("/_/admin/api/bundles/:id/links/:linkId", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  const linkId = parseInt(c.req.param("linkId"), 10);
-  if (isNaN(id) || isNaN(linkId)) return c.json({ error: "Not Found" }, 404);
-  return handleRemoveLinkFromBundle(c.env, id, linkId, c.var.identity);
-});
-app.get("/_/admin/api/links/:id/bundles", (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleListBundlesForLink(c.env, id, c.var.identity);
-});
 
 // ---- Public API auth middleware ----
 
