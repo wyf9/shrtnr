@@ -118,22 +118,32 @@ export const LinksPage: FC<Props> = ({
       </div>
 
       <div class="hero-input-wrap">
-        <input
-          class="hero-input"
-          id="quick-url"
-          type="text"
-          placeholder={t("links.inputPlaceholder")}
-          value={searchQuery || ""}
-        />
-        <input
-          class="hero-input hero-input-slug"
-          id="quick-slug"
-          type="text"
-          placeholder={t("links.slugPlaceholder")}
-        />
-        <button class="btn btn-primary btn-lg" id="quick-action-btn" onclick="quickShorten()">
-          <span class="icon" id="quick-action-icon">bolt</span> <span id="quick-action-label">{t("dashboard.shorten")}</span>
-        </button>
+        <div class="hero-input-row-primary">
+          <input
+            class="hero-input"
+            id="quick-url"
+            type="text"
+            placeholder={t("links.inputPlaceholder")}
+            value={searchQuery || ""}
+          />
+          <button class="btn btn-primary btn-lg" id="quick-action-btn" onclick="quickShorten()">
+            <span class="icon" id="quick-action-icon">bolt</span> <span id="quick-action-label">{t("dashboard.shorten")}</span>
+          </button>
+        </div>
+        <div class="hero-input-row">
+          <input
+            class="hero-input"
+            id="quick-label"
+            type="text"
+            placeholder={t("dashboard.labelPlaceholder")}
+          />
+          <input
+            class="hero-input hero-input-slug"
+            id="quick-slug"
+            type="text"
+            placeholder={t("links.slugPlaceholder")}
+          />
+        </div>
       </div>
 
       {searchQuery && (

@@ -1,6 +1,8 @@
 ![SHRTNR. logotype](./public/logotype-white.svg)
 # Open-Source URL Shortener on Cloudflare Workers
 
+> **⚠️ Custom Fork**: This is an independently maintained fork with custom features and enhancements. While built on the same foundation, this branch diverges from upstream in design philosophy and includes functionality that may not align with the original project's goals. It is maintained as a separate project rather than a pull request.
+
 [![npm](https://img.shields.io/npm/v/%40oddbit%2Fshrtnr?label=npm&color=cb3837&logo=npm)](https://oddb.it/shrtnr-npm-readme)
 [![PyPI](https://img.shields.io/pypi/v/shrtnr?label=pypi&color=3775a9&logo=pypi&logoColor=white)](https://oddb.it/shrtnr-pypi-readme)
 [![pub.dev](https://img.shields.io/pub/v/shrtnr?label=pub.dev&color=0175c2&logo=dart&logoColor=white)](https://oddb.it/shrtnr-pub-readme)
