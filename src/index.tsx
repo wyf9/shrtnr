@@ -339,7 +339,7 @@ app.get("/_/admin/settings", async (c) => {
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="settings" theme={theme} t={t} lang={lang} translations={translations}>
-      <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} rootRedirectUrl={rootRedirectUrl} dynamicRedirectRules={dynamicRedirectRules} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
+      <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} rootRedirectUrl={rootRedirectUrl} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
     </Layout>,
   );
 });

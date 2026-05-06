@@ -43,7 +43,7 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({
   const navItems = [
     { id: "dashboard", href: "/_/admin/dashboard", icon: "dashboard", label: t("nav.dashboard") },
     { id: "links", href: "/_/admin/links", icon: "link", label: t("nav.links") },
-    { id: "redirects", href: "/_/admin/redirects", icon: "routing", label: t("nav.redirects") },
+    { id: "redirects", href: "/_/admin/redirects", icon: "alt_route", label: t("nav.redirects") },
     { id: "bundles", href: "/_/admin/bundles", icon: "inventory_2", label: t("nav.bundles") },
     { id: "keys", href: "/_/admin/keys", icon: "key", label: t("nav.apiKeys") },
     { id: "settings", href: "/_/admin/settings", icon: "settings", label: t("nav.settings") },

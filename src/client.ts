@@ -656,15 +656,54 @@ function saveSettings() {
 
 function setFilterBots(checked) {
   api('/settings', { method: 'PUT', body: JSON.stringify({ filter_bots: Boolean(checked) }) }).then(function(res) {
-    if (res.ok) toast(t('client.settingsSaved'));
-    else toast(t('client.settingsError'), 'error');
+    if (res.ok) {
+      toast(t('client.settingsSaved'));
+    } else {
+      return res.json().then(function(data) {
+        toast(data.error || t('client.settingsError'), 'error');
+      }).catch(function() {
+        toast(t('client.settingsError'), 'error');
+      });
+    }
+  }).catch(function(err) {
+    toast(t('client.settingsError'), 'error');
   });
 }
 
 function setFilterSelfReferrers(checked) {
   api('/settings', { method: 'PUT', body: JSON.stringify({ filter_self_referrers: Boolean(checked) }) }).then(function(res) {
-    if (res.ok) toast(t('client.settingsSaved'));
-    else toast(t('client.settingsError'), 'error');
+    if (res.ok) {
+      toast(t('client.settingsSaved'));
+    } else {
+      return res.json().then(function(data) {
+        toast(data.error || t('client.settingsError'), 'error');
+      }).catch(function() {
+        toast(t('client.settingsError'), 'error');
+      });
+    }
+  }).catch(function(err) {
+    toast(t('client.settingsError'), 'error');
+  });
+}
+
+function saveAnalyticsFilters() {
+  var filterBotsEl = document.getElementById('filter-bots-toggle');
+  var filterSelfReferrersEl = document.getElementById('filter-self-referrers-toggle');
+  if (!filterBotsEl || !filterSelfReferrersEl) return;
+  var filterBots = filterBotsEl.checked;
+  var filterSelfReferrers = filterSelfReferrersEl.checked;
+  api('/settings', { method: 'PUT', body: JSON.stringify({ filter_bots: filterBots, filter_self_referrers: filterSelfReferrers }) }).then(function(res) {
+    if (res.ok) {
+      toast(t('client.settingsSaved'));
+    } else {
+      return res.json().then(function(data) {
+        toast(data.error || t('client.settingsError'), 'error');
+      }).catch(function() {
+        toast(t('client.settingsError'), 'error');
+      });
+    }
+  }).catch(function(err) {
+    toast(t('client.settingsError'), 'error');
   });
 }
 
@@ -772,63 +811,6 @@ function deleteRedirectRule(idx) {
   });
 }
 
-// ---- Version check ----
-function compareVersions(a, b) {
-  var pa = a.split('.').map(Number);
-  var pb = b.split('.').map(Number);
-  for (var i = 0; i < 3; i++) {
-    if ((pa[i] || 0) < (pb[i] || 0)) return -1;
-    if ((pa[i] || 0) > (pb[i] || 0)) return 1;
-  }
-  return 0;
-}
-
-function checkForUpdates() {
-  var el = document.getElementById('version-status');
-  if (!el) return;
-  fetch('https://api.github.com/repos/oddbit/shrtnr/releases/latest', {
-    headers: { 'Accept': 'application/vnd.github.v3+json' }
-  }).then(function(res) {
-    if (!res.ok) throw new Error('GitHub API error');
-    return res.json();
-  }).then(function(release) {
-    var latest = (release.tag_name || '').replace(/^v/, '');
-    if (!latest) throw new Error('No version tag');
-    var releaseUrl = release.html_url || (REPO_URL + '/releases/tag/v' + latest);
-    if (compareVersions(APP_VERSION, latest) < 0) {
-      var html = '<div style="display:flex;flex-direction:column;gap:0.75rem">';
-      html += '<div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">';
-      html += '<div><span style="font-family:var(--font-family-mono)">' + esc(APP_VERSION) + '</span> <span style="color:var(--color-text-muted)">&rarr;</span> <span style="font-family:var(--font-family-mono);color:var(--color-success);font-weight:600">' + esc(latest) + '</span> <span style="color:var(--color-text-muted);font-size:0.8rem">' + esc(t('client.updateAvailable')) + '</span></div>';
-      html += '</div>';
-      html += '<div style="display:flex;gap:0.5rem;flex-wrap:wrap">';
-      html += '<a href="' + esc(releaseUrl) + '" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:0.4rem;text-decoration:none"><span class="icon" style="font-size:16px">open_in_new</span> ' + esc(t('client.releaseNotes')) + '</a>';
-      html += '<a href="' + REPO_URL + '" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:0.4rem;text-decoration:none"><span class="icon" style="font-size:16px">code</span> ' + esc(t('client.viewRepo')) + '</a>';
-      html += '<button id="install-app-btn" class="btn btn-secondary btn-sm" onclick="installApp()" style="display:none;align-items:center;gap:0.4rem"><span class="icon" style="font-size:16px">install_desktop</span> ' + esc(t('settings.installApp')) + '</button>';
-      html += '</div>';
-      html += '<div style="font-size:0.75rem;color:var(--color-text-muted);line-height:1.5">' + esc(t('client.updateHint')) + '</div>';
-      html += '</div>';
-      el.innerHTML = html;
-    } else {
-      el.innerHTML =
-        '<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">' +
-          '<div style="display:flex;align-items:center;gap:0.4rem">' +
-            '<span style="font-family:var(--font-family-mono);font-weight:600">' + esc(APP_VERSION) + '</span>' +
-            '<span style="color:var(--color-success);display:inline-flex;align-items:center;gap:0.2rem">' +
-              '<span class="icon" style="font-size:15px;vertical-align:text-bottom">check_circle</span> ' + esc(t('client.upToDate')) +
-            '</span>' +
-          '</div>' +
-          '<a href="' + esc(releaseUrl) + '" target="_blank" rel="noopener" ' +
-            'style="color:var(--color-text-muted);font-size:0.8rem;text-decoration:none;display:inline-flex;align-items:center;gap:0.2rem">' +
-            esc(t('client.whatsNew')) + ' <span class="icon" style="font-size:13px">open_in_new</span>' +
-          '</a>' +
-          '<button id="install-app-btn" class="btn btn-secondary btn-sm" onclick="installApp()" style="display:none;align-items:center;gap:0.4rem"><span class="icon" style="font-size:14px">install_desktop</span> ' + esc(t('settings.installApp')) + '</button>' +
-        '</div>';
-    }
-  }).catch(function() {
-    el.innerHTML = '<span style="font-family:var(--font-family-mono)">' + esc(APP_VERSION) + '</span> <span style="color:var(--color-text-muted)">&middot; ' + esc(t('client.updateCheckFailed')) + '</span>';
-  });
-}
-
 // ---- PWA install ----
 var _installPrompt = null;
 window.addEventListener('beforeinstallprompt', function(e) {
@@ -862,8 +844,6 @@ if (quickSlugEl) {
 
 var slugLengthEl = document.getElementById('slug-length-input');
 if (slugLengthEl) slugLengthEl.addEventListener('input', updateComboHint);
-
-if (document.getElementById('version-status')) checkForUpdates();
 
 // ---- Analytics + Timeline ----
 var _tlData = null;

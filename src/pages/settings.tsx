@@ -19,13 +19,12 @@ type Props = {
   filterBots: boolean;
   filterSelfReferrers: boolean;
   rootRedirectUrl: string;
-  dynamicRedirectRules: string;
   t: TranslateFn;
   mcpConfigured: boolean;
   userEmail?: string | null;
 };
 
-export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, dynamicRedirectRules, t, mcpConfigured, userEmail }) => {
+export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, t, mcpConfigured, userEmail }) => {
   const combos = Math.pow(RANDOM_CHARSET.length, Math.max(slugLength, MIN_SLUG_LENGTH));
   const comboHint =
     slugLength >= 3
@@ -153,24 +152,6 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
           </div>
 
           <div class="bento-card">
-            <div class="form-group">
-              <label class="form-label">{t("settings.dynamicRedirectRules")}</label>
-              <textarea
-                class="form-input settings-rule-editor"
-                id="dynamic-redirect-rules-input"
-                rows={8}
-                placeholder={t("settings.dynamicRedirectRulesPlaceholder")}
-              >{dynamicRedirectRules}</textarea>
-              <div class="slug-length-row">
-                <button class="btn btn-secondary btn-sm" onclick="saveDynamicRedirectRules()">
-                  {t("settings.save")}
-                </button>
-              </div>
-              <div class="form-hint">{t("settings.dynamicRedirectRulesHint")}</div>
-            </div>
-          </div>
-
-          <div class="bento-card">
             <div class="form-group form-group-flush">
               <label class="form-label">{t("settings.analyticsFilters")}</label>
               <div class="toggle-row">
@@ -183,7 +164,6 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                     type="checkbox"
                     id="filter-bots-toggle"
                     checked={filterBots}
-                    onchange="setFilterBots(this.checked)"
                   />
                   <span class="toggle-track"></span>
                   <span class="toggle-thumb"></span>
@@ -199,21 +179,15 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                     type="checkbox"
                     id="filter-self-referrers-toggle"
                     checked={filterSelfReferrers}
-                    onchange="setFilterSelfReferrers(this.checked)"
                   />
                   <span class="toggle-track"></span>
                   <span class="toggle-thumb"></span>
                 </label>
               </div>
-            </div>
-          </div>
-
-          <div class="bento-card">
-            <div class="form-group form-group-flush">
-              <label class="form-label">{t("settings.version")}</label>
-              <div id="version-status" class="version-status">
-                <span class="icon icon-spin">progress_activity</span>
-                <span>{t("settings.checkingUpdates")}</span>
+              <div class="slug-length-row" style="margin-top: 1rem;">
+                <button class="btn btn-secondary btn-sm" onclick="saveAnalyticsFilters()">
+                  {t("settings.save")}
+                </button>
               </div>
             </div>
           </div>
