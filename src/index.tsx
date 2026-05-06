@@ -95,6 +95,7 @@ import { LinksPage } from "./pages/links";
 import { LinkDetailPage } from "./pages/link-detail";
 import { KeysPage } from "./pages/keys";
 import { SettingsPage } from "./pages/settings";
+import { RedirectsPage } from "./pages/redirects";
 import { BundlesPage } from "./pages/bundles";
 import { BundleDetailPage } from "./pages/bundle-detail";
 
@@ -339,6 +340,19 @@ app.get("/_/admin/settings", async (c) => {
   return c.html(
     <Layout active="settings" theme={theme} t={t} lang={lang} translations={translations}>
       <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} rootRedirectUrl={rootRedirectUrl} dynamicRedirectRules={dynamicRedirectRules} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
+    </Layout>,
+  );
+});
+
+app.get("/_/admin/redirects", async (c) => {
+  const identity = c.var.identity;
+  const { theme, t, lang, translations, dynamicRedirectRules } = await getPageData(c, identity);
+  const { parseDynamicRedirectRules } = await import("./redirect-rules");
+  const parsed = parseDynamicRedirectRules(dynamicRedirectRules);
+  const rules = parsed.ok ? parsed.rules : [];
+  return c.html(
+    <Layout active="redirects" theme={theme} t={t} lang={lang} translations={translations}>
+      <RedirectsPage rules={rules} t={t} lang={lang} />
     </Layout>,
   );
 });

@@ -1,46 +1,66 @@
 {
-  "name": "shrtnr",
-  "main": "src/index.tsx",
-  "assets": { "directory": "public" },
-  "compatibility_date": "2026-04-01", // LOL
-  "compatibility_flags": ["nodejs_compat"],
-  "upload_source_maps": true,
-  "observability": {
-    "logs": {
-      "enabled": true,
-      "invocation_logs": true
-    },
-    "traces": {
-      "enabled": true
-    }
-  },
-  // KV namespace ID is resolved at deploy time by scripts/resolve-bindings.sh
-  "kv_namespaces": [
-    {
-      "binding": "SLUG_KV",
-      "id": "SLUG_KV"
-    }
-  ],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "shrtnr-db",
-      "migrations_dir": "migrations"
-    }
-  ],
-  // Durable Object for MCP agent sessions
-  "durable_objects": {
-    "bindings": [
-      {
-        "name": "MCP_OBJECT",
-        "class_name": "ShrtnrMCP"
-      }
-    ]
-  },
-  "migrations": [
-    {
-      "tag": "v1",
-      "new_sqlite_classes": ["ShrtnrMCP"]
-    }
-  ]
+	"name": "shrtnr",
+	"main": "src/index.tsx",
+	"assets": {
+		"directory": "public"
+	},
+	"compatibility_date": "2026-04-01", // LOL
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"upload_source_maps": true,
+//        "workers_dev": false,
+        "preview_urls": false,
+//        "routes": [
+//		{
+//			"pattern": "wss.moe",
+//			"custom_domain": true
+//		}
+//	],
+	"observability": {
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true
+		},
+		"traces": {
+			"enabled": true
+		}
+	},
+	// KV namespace ID is resolved at deploy time by scripts/resolve-bindings.sh
+	"kv_namespaces": [
+		{
+			"binding": "SLUG_KV",
+			"id": "7616a0afb87a4682b6021792cb403253"
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "shrtnr-db",
+			"migrations_dir": "migrations",
+			"database_id": "bf2b6a95-3ec4-494c-bd04-a19b10f5d979"
+		},
+		{
+			"binding": "shrtnr_db",
+			"database_name": "shrtnr-db",
+			"database_id": "bf2b6a95-3ec4-494c-bd04-a19b10f5d979"
+		}
+	],
+	// Durable Object for MCP agent sessions
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "MCP_OBJECT",
+				"class_name": "ShrtnrMCP"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+				"ShrtnrMCP"
+			]
+		}
+	]
 }

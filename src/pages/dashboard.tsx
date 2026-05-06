@@ -78,20 +78,6 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range }) => {
             <span class="icon" id="quick-action-icon">bolt</span> <span id="quick-action-label">{t("dashboard.shorten")}</span>
           </button>
         </div>
-        <div class="hero-input-row">
-          <input
-            class="hero-input"
-            id="quick-label"
-            type="text"
-            placeholder={t("dashboard.labelPlaceholder")}
-          />
-          <input
-            class="hero-input hero-input-slug"
-            id="quick-slug"
-            type="text"
-            placeholder={t("links.slugPlaceholder")}
-          />
-        </div>
       </div>
 
       <div class="kpi-strip" id="dashboard-kpi-strip">

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "bash scripts/resolve-bindings.sh && wrangler deploy",
+    "deploy": "wrangler deploy",
     "wrangler-login": "wrangler login",
     "db:create": "wrangler d1 create shrtnr-db",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
