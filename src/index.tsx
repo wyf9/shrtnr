@@ -138,6 +138,7 @@ function getCookie(request: Request, name: string): string | null {
 }
 
 async function getPageData(c: { env: Env; req: { raw: Request } }, identity: string) {
+  const { getDynamicRedirectRules } = await import("./services/admin-management");
   const settingsResult = await getAppSettings(c.env, identity);
   const settings = settingsResult.ok ? settingsResult.data : null;
   const theme = settings?.theme ?? getCookie(c.req.raw, "theme") ?? "oddbit";
@@ -147,7 +148,7 @@ async function getPageData(c: { env: Env; req: { raw: Request } }, identity: str
   const filterBots = settings?.filter_bots ?? true;
   const filterSelfReferrers = settings?.filter_self_referrers ?? true;
   const rootRedirectUrl = settings?.root_redirect_url ?? "";
-  const dynamicRedirectRules = settings?.dynamic_redirect_rules ?? "";
+  const dynamicRedirectRules = await getDynamicRedirectRules(c.env);
   const t = createTranslateFn(lang);
   const translations = getTranslations(lang);
   return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, dynamicRedirectRules, t, translations };
