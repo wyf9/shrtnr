@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Env } from "../types";
-import { SettingRepository } from "../repositories/setting-repository";
+import { SettingRepository } from "../db/setting-repository";
 import { json } from "./response";
 import { parseDynamicRedirectRules } from "../redirect-rules";
 
