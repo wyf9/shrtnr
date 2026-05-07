@@ -164,6 +164,7 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                     type="checkbox"
                     id="filter-bots-toggle"
                     checked={filterBots}
+                    onchange="AdminClient.setFilterBots(this.checked)"
                   />
                   <span class="toggle-track"></span>
                   <span class="toggle-thumb"></span>
@@ -179,15 +180,11 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                     type="checkbox"
                     id="filter-self-referrers-toggle"
                     checked={filterSelfReferrers}
+                    onchange="AdminClient.setFilterSelfReferrers(this.checked)"
                   />
                   <span class="toggle-track"></span>
                   <span class="toggle-thumb"></span>
                 </label>
-              </div>
-              <div class="slug-length-row" style="margin-top: 1rem;">
-                <button class="btn btn-secondary btn-sm" onclick="saveAnalyticsFilters()">
-                  {t("settings.save")}
-                </button>
               </div>
             </div>
           </div>

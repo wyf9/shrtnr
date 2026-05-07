@@ -777,11 +777,13 @@ AdminClient.saveSettings = function () {
   if (val < 3) { AdminClient.toast(AdminClient.t('client.minSlugLength'), 'error'); return; }
   AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ slug_default_length: val }) }).then(function(res) {
     if (res.ok) {
-      updateComboHint();
+      AdminClient.updateComboHint();
       AdminClient.toast(AdminClient.t('client.settingsSaved'));
     } else {
       AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
     }
+  }).catch(function() {
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
 }
 
@@ -854,6 +856,8 @@ AdminClient.saveRootRedirectUrl = function () {
     }).catch(function() {
       AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
     });
+  }).catch(function() {
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
 }
 
@@ -974,7 +978,7 @@ if (quickSlugEl) {
 }
 
 var slugLengthEl = document.getElementById('slug-length-input');
-if (slugLengthEl) slugLengthEl.addEventListener('input', updateComboHint);
+if (slugLengthEl) slugLengthEl.addEventListener('input', function() { AdminClient.updateComboHint(); });
 
 // ---- Analytics + Timeline ----
 var _tlData = null;
@@ -1830,6 +1834,9 @@ document.addEventListener('click', function(ev) {
   window.applyTheme = function(theme) { return AdminClient.applyTheme(theme); };
   window.setTheme = function(theme) { return AdminClient.setTheme(theme); };
   window.setLanguage = function(lang) { return AdminClient.setLanguage(lang); };
+  window.setFilterBots = function(checked) { return AdminClient.setFilterBots(checked); };
+  window.setFilterSelfReferrers = function(checked) { return AdminClient.setFilterSelfReferrers(checked); };
+  window.updateComboHint = function() { return AdminClient.updateComboHint(); };
   window.countryName = function(code) { return AdminClient.countryName(code); };
   window.fmtCount = function(n) { return AdminClient.fmtCount(n); };
   window.formatDate = function(ts) { return AdminClient.formatDate(ts); };
