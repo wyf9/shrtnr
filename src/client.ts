@@ -1674,27 +1674,67 @@ document.addEventListener('click', function(ev) {
   else if (action === 'delete') deleteBundleAction(id, name);
 });
 
-// Expose functions to global scope for inline event handlers
-window.setTheme = setTheme;
-window.setLanguage = setLanguage;
-window.setDefaultRange = setDefaultRange;
-window.saveSettings = saveSettings;
-window.saveAnalyticsFilters = saveAnalyticsFilters;
-window.saveRootRedirectUrl = saveRootRedirectUrl;
-window.closeModal = closeModal;
-window.openModal = openModal;
-window.copyToClipboard = copyToClipboard;
-window.toggleSidebar = toggleSidebar;
-window.closeSidebar = closeSidebar;
-window.addRedirectRule = addRedirectRule;
-window.deleteRedirectRule = deleteRedirectRule;
-window.showCreateKeyModal = showCreateKeyModal;
-window.deleteKey = deleteKey;
-window.toggleDetailMenu = toggleDetailMenu;
-window.cancelEditLabel = cancelEditLabel;
-window.cancelEditExpiry = cancelEditExpiry;
-window.quickShorten = quickShorten;
-window.showCreateBundleModal = showCreateBundleModal;
+// Ensure all functions are exposed to window before any event handlers run
+(function() {
+  var maxAttempts = 100;
+  var attempt = 0;
+  function exposeGlobalFunctions() {
+    try {
+      window.setTheme = setTheme;
+      window.setLanguage = setLanguage;
+      window.setDefaultRange = setDefaultRange;
+      window.saveSettings = saveSettings;
+      window.saveAnalyticsFilters = saveAnalyticsFilters;
+      window.saveRootRedirectUrl = saveRootRedirectUrl;
+      window.closeModal = closeModal;
+      window.openModal = openModal;
+      window.copyToClipboard = copyToClipboard;
+      window.toggleSidebar = toggleSidebar;
+      window.closeSidebar = closeSidebar;
+      window.addRedirectRule = addRedirectRule;
+      window.deleteRedirectRule = deleteRedirectRule;
+      window.showCreateKeyModal = showCreateKeyModal;
+      window.deleteKey = deleteKey;
+      window.toggleDetailMenu = toggleDetailMenu;
+      window.cancelEditLabel = cancelEditLabel;
+      window.cancelEditExpiry = cancelEditExpiry;
+      window.quickShorten = quickShorten;
+      window.showCreateBundleModal = showCreateBundleModal;
+      window.createKey = createKey;
+      window.copyRawKey = copyRawKey;
+      window.closeKeyRevealModal = closeKeyRevealModal;
+      window.createLink = createLink;
+      window.doAddLinkToBundle = doAddLinkToBundle;
+      window.doAddSlug = doAddSlug;
+      window.doCreateBundle = doCreateBundle;
+      window.doDeleteLink = doDeleteLink;
+      window.doDeleteSlug = doDeleteSlug;
+      window.doDisableLink = doDisableLink;
+      window.doDisableSlug = doDisableSlug;
+      window.doDuplicate = doDuplicate;
+      window.doEnableLink = doEnableLink;
+      window.doEnableSlug = doEnableSlug;
+      window.doSetPrimary = doSetPrimary;
+      window.doUpdateBundle = doUpdateBundle;
+      window.downloadQrPng = downloadQrPng;
+      window.downloadQrSvg = downloadQrSvg;
+      window.saveAddToBundle = saveAddToBundle;
+      window.selectAccent = selectAccent;
+      window.selectBundleIcon = selectBundleIcon;
+      window.showCreateBundleForLink = showCreateBundleForLink;
+      window.toggleAddToBundleRow = toggleAddToBundleRow;
+    } catch(e) {
+      if (attempt++ < maxAttempts) {
+        setTimeout(exposeGlobalFunctions, 10);
+      }
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', exposeGlobalFunctions);
+  } else {
+    exposeGlobalFunctions();
+  }
+})();
 window.createKey = createKey;
 window.copyRawKey = copyRawKey;
 window.closeKeyRevealModal = closeKeyRevealModal;
