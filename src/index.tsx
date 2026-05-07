@@ -57,6 +57,7 @@ import {
   handleRemoveSlug,
 } from "./api/slugs";
 import { handleGetSettings, handleUpdateSettings } from "./api/settings";
+import { handleGetRedirectRules, handleUpdateRedirectRules } from "./api/redirects";
 import { handleListKeys, handleCreateKey, handleDeleteKey } from "./api/keys";
 import {
   handleDashboardStats as handleDashboardStatsApi,
@@ -390,6 +391,10 @@ app.get("/_/admin/api/links/:id/qr", (c) => {
 // Settings
 app.get("/_/admin/api/settings", (c) => handleGetSettings(c.env, c.var.identity));
 app.put("/_/admin/api/settings", (c) => handleUpdateSettings(c.req.raw, c.env, c.var.identity));
+
+// Redirect Rules
+app.get("/_/admin/api/redirects", (c) => handleGetRedirectRules(c.env));
+app.put("/_/admin/api/redirects", (c) => handleUpdateRedirectRules(c.req.raw, c.env));
 
 // Dashboard stats
 app.get("/_/admin/api/dashboard", (c) => handleDashboardStatsApi(c.env, c.var.identity, c.req.query("range")));

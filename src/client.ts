@@ -309,14 +309,14 @@ AdminClient.quickShorten = function () {
 }
 
 AdminClient.upsertDynamicRedirectRule = function (sourcePattern, destinationUrl) {
-  AdminClient.api('/settings').then(function(getRes) {
-    if (!getRes.ok) throw new Error('Failed to read settings');
+  AdminClient.api('/_/admin/api/redirects').then(function(getRes) {
+    if (!getRes.ok) throw new Error('Failed to read rules');
     return getRes.json();
-  }).then(function(settings) {
-    var currentRules = (settings.dynamic_redirect_rules || '').trim();
+  }).then(function(data) {
+    var currentRules = (data.rules || '').trim();
     var nextLine = sourcePattern.trim() + ' ' + destinationUrl.trim();
     var nextRules = currentRules ? (currentRules + '\\n' + nextLine) : nextLine;
-    return AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules }) });
+    return AdminClient.api('/_/admin/api/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {
@@ -324,7 +324,7 @@ AdminClient.upsertDynamicRedirectRule = function (sourcePattern, destinationUrl)
       });
     }
     AdminClient.toast(AdminClient.t('client.settingsSaved'));
-    window.location.href = '/_/admin/settings';
+    window.location.href = '/_/admin/redirects';
   }).catch(function() {
     AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
@@ -923,16 +923,16 @@ AdminClient.addRedirectRule = function () {
 
 AdminClient.deleteRedirectRule = function (idx) {
   if (!confirm(AdminClient.t('redirects.delete'))) return;
-  AdminClient.api('/settings').then(function(getRes) {
-    if (!getRes.ok) throw new Error('Failed to read settings');
+  AdminClient.api('/_/admin/api/redirects').then(function(getRes) {
+    if (!getRes.ok) throw new Error('Failed to read rules');
     return getRes.json();
-  }).then(function(settings) {
-    var currentRules = (settings.dynamic_redirect_rules || '').trim();
+  }).then(function(data) {
+    var currentRules = (data.rules || '').trim();
     var lines = currentRules ? currentRules.split('\\n').filter(function(l) { return l.trim(); }) : [];
     if (idx < 0 || idx >= lines.length) return;
     lines.splice(idx, 1);
     var nextRules = lines.join('\\n');
-    return AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules || null }) });
+    return AdminClient.api('/_/admin/api/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules || null }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {
