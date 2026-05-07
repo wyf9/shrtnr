@@ -6,20 +6,151 @@ import { RANDOM_CHARSET } from "./slugs";
 import { MIN_SLUG_LENGTH } from "./constants";
 import { ACCESS_METHOD_OPTIONS } from "./analytics-fill";
 
+/**
+ * Generate the admin client script.
+ * 
+ * This refactored version uses a proper module pattern with AdminClient namespace
+ * instead of relying on fragile global function assignment retry logic.
+ * 
+ * All functions are methods on window.AdminClient, with backward-compatible
+ * global wrappers for inline event handlers like onclick="func()".
+ */
 export function adminClientScript(version: string, translations: Translations): string {
   const tJson = JSON.stringify(translations);
   const accessMethodOptionsJson = JSON.stringify(ACCESS_METHOD_OPTIONS);
+  
+  // Extract function bodies from the template below
+  // This is injected into the page as an inline script
   return `
 'use strict';
-var API = '/_/admin/api';
-var APP_VERSION = '${version}';
-var REPO_URL = 'https://oddb.it/github-shrtnr-app';
-var CHARSET_SIZE = ${RANDOM_CHARSET.length};
-var MIN_SLUG_LEN = ${MIN_SLUG_LENGTH};
-var T = ${tJson};
-var ACCESS_METHOD_OPTIONS = ${accessMethodOptionsJson};
 
-function fillMissingOptions(items, alwaysOn) {
+(function initAdminClientModule() {
+  // ============================================================================
+  // MODULE INITIALIZATION AND CONFIGURATION
+  // ============================================================================
+  
+  // Configuration object - set once at module initialization
+  var CONFIG = {
+    API: '/_/admin/api',
+    VERSION: '${version}',
+    REPO_URL: 'https://oddb.it/github-shrtnr-app',
+    CHARSET_SIZE: ${RANDOM_CHARSET.length},
+    MIN_SLUG_LEN: ${MIN_SLUG_LENGTH},
+    T: ${tJson},
+    ACCESS_METHOD_OPTIONS: ${accessMethodOptionsJson},
+  };
+
+  // The main module namespace - all functions are methods on this object
+  var AdminClient = {};
+
+  // ============================================================================
+  // UTILITY FUNCTIONS (helpers used by other functions)
+  // ============================================================================
+
+  AdminClient.fillMissingOptions = function(items, alwaysOn) {
+    var seen = {};
+    var out = [];
+    for (var i = 0; i < items.length; i++) {
+      seen[items[i].name] = true;
+      out.push(items[i]);
+    }
+    for (var j = 0; j < alwaysOn.length; j++) {
+      if (!seen[alwaysOn[j]]) out.push({ name: alwaysOn[j], count: 0 });
+    }
+    return out;
+  };
+
+  AdminClient.t = function(key, params) {
+    var val = CONFIG.T[key] || key;
+    if (params) {
+      for (var k in params) {
+        val = val.replace(new RegExp('\\\\{' + k + '\\\\}', 'g'), String(params[k]));
+      }
+    }
+    return val;
+  };
+
+  // ---- Toast ----
+  AdminClient.toast = function(msg, type) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast toast-' + (type || 'success');
+    el.style.display = 'block';
+    setTimeout(function() { el.style.display = 'none'; }, 3000);
+  };
+
+  // ---- Modal ----
+  AdminClient.closeModal = function() { 
+    document.getElementById('modal-overlay').style.display = 'none'; 
+  };
+
+  AdminClient.openModal = function(html) {
+    document.getElementById('modal').innerHTML = html;
+    document.getElementById('modal-overlay').style.display = 'flex';
+  };
+
+  // ---- Escape ----
+  AdminClient.esc = function(s) { 
+    var d = document.createElement('div'); 
+    d.textContent = s; 
+    return d.innerHTML; 
+  };
+
+  // ---- API helper ----
+  AdminClient.api = function(path, opts) {
+    opts = opts || {};
+    if (!opts.headers) opts.headers = {};
+    if (opts.body && !opts.headers['Content-Type']) opts.headers['Content-Type'] = 'application/json';
+    return fetch(CONFIG.API + path, opts).then(function(res) {
+      if (res.status === 401) { window.location.reload(); return res; }
+      return res;
+    });
+  };
+
+  // ---- Copy ----
+  AdminClient.copyUrl = function(slug) {
+    var url = location.origin + '/' + slug;
+    navigator.clipboard.writeText(url);
+    AdminClient.toast(AdminClient.t('client.copied', {url: url}));
+  };
+
+  AdminClient.copyToClipboard = function(slug) {
+    AdminClient.copyUrl(slug);
+  };
+
+  // ---- Mobile drawer ----
+  AdminClient.toggleDrawer = function() {
+    var s = document.querySelector('.sidebar');
+    var b = document.getElementById('sidebar-backdrop');
+    var open = s.classList.toggle('open');
+    b.classList.toggle('open', open);
+  };
+
+  AdminClient.closeDrawer = function() {
+    document.querySelector('.sidebar').classList.remove('open');
+    document.getElementById('sidebar-backdrop').classList.remove('open');
+  };
+
+  // Aliases for consistency
+  AdminClient.toggleSidebar = function() { AdminClient.toggleDrawer(); };
+  AdminClient.closeSidebar = function() { AdminClient.closeDrawer(); };
+
+  // ---- Theme ----
+  AdminClient.applyTheme = function(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.querySelectorAll('#theme-picker .theme-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+    });
+  };
+
+  AdminClient.setTheme = function(theme) {
+    AdminClient.applyTheme(theme);
+    document.cookie = 'theme=' + theme + ';path=/;max-age=31536000;SameSite=Lax';
+    AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ theme: theme }) });
+    AdminClient.toast(AdminClient.t('client.themeUpdated'));
+  };
+
+AdminClient.fillMissingOptions = function (items, alwaysOn) {
   var seen = {};
   var out = [];
   for (var i = 0; i < items.length; i++) { seen[items[i].name] = true; out.push(items[i]); }
@@ -29,8 +160,8 @@ function fillMissingOptions(items, alwaysOn) {
   return out;
 }
 
-function t(key, params) {
-  var val = T[key] || key;
+AdminClient.t = function (key, params) {
+  var val = CONFIG.T[key] || key;
   if (params) {
     for (var k in params) {
       val = val.replace(new RegExp('\\\\{' + k + '\\\\}', 'g'), String(params[k]));
@@ -40,7 +171,7 @@ function t(key, params) {
 }
 
 // ---- Toast ----
-function toast(msg, type) {
+AdminClient.toast = function (msg, type) {
   var el = document.getElementById('toast');
   el.textContent = msg;
   el.className = 'toast toast-' + (type || 'success');
@@ -49,108 +180,108 @@ function toast(msg, type) {
 }
 
 // ---- Modal ----
-function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
-function openModal(html) {
+AdminClient.closeModal = function () { document.getElementById('modal-overlay').style.display = 'none'; }
+AdminClient.openModal = function (html) {
   document.getElementById('modal').innerHTML = html;
   document.getElementById('modal-overlay').style.display = 'flex';
 }
 
 // ---- Escape ----
-function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+AdminClient.esc = function (s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-// ---- API helper ----
-function api(path, opts) {
+// ---- CONFIG.API helper ----
+AdminClient.api = function (path, opts) {
   opts = opts || {};
   if (!opts.headers) opts.headers = {};
   if (opts.body && !opts.headers['Content-Type']) opts.headers['Content-Type'] = 'application/json';
-  return fetch(API + path, opts).then(function(res) {
+  return fetch(CONFIG.API + path, opts).then(function(res) {
     if (res.status === 401) { window.location.reload(); return res; }
     return res;
   });
 }
 
 // ---- Copy ----
-function copyUrl(slug) {
+AdminClient.copyUrl = function (slug) {
   var url = location.origin + '/' + slug;
   navigator.clipboard.writeText(url);
-  toast(t('client.copied', {url: url}));
+  AdminClient.toast(AdminClient.t('client.copied', {url: url}));
 }
 
 // ---- Mobile drawer ----
-function toggleDrawer() {
+AdminClient.toggleDrawer = function () {
   var s = document.querySelector('.sidebar');
   var b = document.getElementById('sidebar-backdrop');
   var open = s.classList.toggle('open');
   b.classList.toggle('open', open);
 }
-function closeDrawer() {
+AdminClient.closeDrawer = function () {
   document.querySelector('.sidebar').classList.remove('open');
   document.getElementById('sidebar-backdrop').classList.remove('open');
 }
 
 // ---- Theme ----
-function applyTheme(theme) {
+AdminClient.applyTheme = function (theme) {
   document.documentElement.setAttribute('data-theme', theme);
   document.querySelectorAll('#theme-picker .theme-btn').forEach(function(btn) {
     btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
   });
 }
-function setTheme(theme) {
-  applyTheme(theme);
+AdminClient.setTheme = function (theme) {
+  AdminClient.applyTheme(theme);
   document.cookie = 'theme=' + theme + ';path=/;max-age=31536000;SameSite=Lax';
-  api('/settings', { method: 'PUT', body: JSON.stringify({ theme: theme }) });
-  toast(t('client.themeUpdated'));
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ theme: theme }) });
+  AdminClient.toast(AdminClient.t('client.themeUpdated'));
 }
 
 // ---- Language ----
-function setLanguage(lang) {
+AdminClient.setLanguage = function (lang) {
   document.cookie = 'lang=' + lang + ';path=/;max-age=31536000;SameSite=Lax';
-  api('/settings', { method: 'PUT', body: JSON.stringify({ lang: lang }) }).then(function() {
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ lang: lang }) }).then(function() {
     window.location.reload();
   });
 }
 
 // ---- Country names ----
-var UI_LANG = T['_lang'] || 'en';
+var UI_LANG = CONFIG.T['_lang'] || 'en';
 var countryNames = new Intl.DisplayNames([UI_LANG], { type: 'region' });
-function countryName(code) {
+AdminClient.countryName = function (code) {
   try { return countryNames.of(code) || code; } catch(e) { return code; }
 }
 
 // ---- Number formatting ----
 var numberFormatter = new Intl.NumberFormat(UI_LANG);
-function fmtCount(n) { return numberFormatter.format(n); }
+AdminClient.fmtCount = function (n) { return numberFormatter.format(n); }
 
 // ---- Date formatting ----
-function formatDate(ts) {
+AdminClient.formatDate = function (ts) {
   var d = new Date(ts * 1000);
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 // ---- Quick shorten / search ----
-function isUrl(value) {
+AdminClient.isUrl = function (value) {
   try { var u = new URL(value); return u.protocol === 'http:' || u.protocol === 'https:'; } catch(e) { return false; }
 }
 
-function quickShorten() {
+AdminClient.quickShorten = function () {
   var value = document.getElementById('quick-url').value.trim();
   var labelEl = document.getElementById('quick-label');
   var label = labelEl ? labelEl.value.trim() : '';
   var slugEl = document.getElementById('quick-slug');
   var customSlug = slugEl ? slugEl.value.trim() : '';
-  if (!value) { toast(t('client.pasteUrl'), 'error'); return; }
-  if (!isUrl(value)) {
+  if (!value) { AdminClient.toast(AdminClient.t('client.pasteUrl'), 'error'); return; }
+  if (!AdminClient.isUrl(value)) {
     window.location.href = '/_/admin/links?search=' + encodeURIComponent(value);
     return;
   }
   // Only support dynamic rules and custom slug/label if the elements exist (links page)
   if (customSlug && customSlug.startsWith('/') && slugEl) {
-    return upsertDynamicRedirectRule(customSlug, value);
+    return AdminClient.upsertDynamicRedirectRule(customSlug, value);
   }
   var body = { url: value };
   if (label && labelEl) body.label = label;
   if (customSlug && slugEl) body.custom_slug = customSlug;
-  api('/links', { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
+  AdminClient.api('/links', { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
     if (res.ok) {
       var isDuplicate = res.status === 200;
       return res.json().then(function(link) {
@@ -164,73 +295,73 @@ function quickShorten() {
           var primary = link.slugs.find(function(s) { return s.is_primary; })
             || link.slugs.find(function(s) { return s.is_custom; })
             || link.slugs[0];
-          if (primary) copyUrl(primary.slug);
-          toast(t('client.linkCreatedCopied'));
+          if (primary) AdminClient.copyUrl(primary.slug);
+          AdminClient.toast(AdminClient.t('client.linkCreatedCopied'));
           window.location.href = '/_/admin/links/' + link.id;
         }
       });
     } else {
       return res.json().then(function(data) {
-        toast(data.error || t('client.createLinkError'), 'error');
+        AdminClient.toast(data.error || AdminClient.t('client.createLinkError'), 'error');
       });
     }
   });
 }
 
-function upsertDynamicRedirectRule(sourcePattern, destinationUrl) {
-  api('/settings').then(function(getRes) {
+AdminClient.upsertDynamicRedirectRule = function (sourcePattern, destinationUrl) {
+  AdminClient.api('/settings').then(function(getRes) {
     if (!getRes.ok) throw new Error('Failed to read settings');
     return getRes.json();
   }).then(function(settings) {
     var currentRules = (settings.dynamic_redirect_rules || '').trim();
     var nextLine = sourcePattern.trim() + ' ' + destinationUrl.trim();
     var nextRules = currentRules ? (currentRules + '\n' + nextLine) : nextLine;
-    return api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules }) });
+    return AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {
-        toast(data.error || t('client.createLinkError'), 'error');
+        AdminClient.toast(data.error || AdminClient.t('client.createLinkError'), 'error');
       });
     }
-    toast(t('client.settingsSaved'));
+    AdminClient.toast(AdminClient.t('client.settingsSaved'));
     window.location.href = '/_/admin/settings';
   }).catch(function() {
-    toast(t('client.settingsError'), 'error');
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
 }
 
-function updateQuickActionButton() {
+AdminClient.updateQuickActionButton = function () {
   var el = document.getElementById('quick-url');
   var iconEl = document.getElementById('quick-action-icon');
   var labelEl = document.getElementById('quick-action-label');
   if (!el || !iconEl || !labelEl) return;
   var value = el.value.trim();
-  if (value && !isUrl(value)) {
+  if (value && !AdminClient.isUrl(value)) {
     iconEl.textContent = 'search';
-    labelEl.textContent = t('links.search');
+    labelEl.textContent = AdminClient.t('links.search');
   } else {
     iconEl.textContent = 'bolt';
-    labelEl.textContent = t('dashboard.shorten');
+    labelEl.textContent = AdminClient.t('dashboard.shorten');
   }
 }
 
 // ---- Create link (modal) ----
-function showCreateModal() {
+AdminClient.showCreateModal = function () {
   var len = (document.getElementById('slug-length-default') || {}).value || '3';
-  openModal(
-    '<div class="modal-title">' + esc(t('client.modalNewLink')) + '</div>' +
-    '<div class="form-group"><label class="form-label">' + esc(t('client.destinationUrl')) + '</label><input class="form-input" id="m-url" placeholder="https://example.com/long/path"></div>' +
-    '<div class="form-group"><label class="form-label">' + esc(t('client.labelOptional')) + '</label><input class="form-input" id="m-label" placeholder="My Blog Post"></div>' +
-    '<div class="form-row"><div class="form-group"><label class="form-label">' + esc(t('client.slugLength')) + '</label><input class="form-input" id="m-len" type="number" min="3" value="' + esc(len) + '"></div>' +
-    '<div class="form-group"><label class="form-label">' + esc(t('client.customOptional')) + '</label><input class="form-input" id="m-custom" placeholder="my-post"></div></div>' +
-    '<div class="form-group"><label class="form-label">' + esc(t('client.expiresOptional')) + '</label><input class="form-input" id="m-expires" type="datetime-local"></div>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="createLink()">' + esc(t('client.create')) + '</button></div>'
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('client.modalNewLink')) + '</div>' +
+    '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.destinationUrl')) + '</label><input class="form-input" id="m-url" placeholder="https://example.com/long/path"></div>' +
+    '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.labelOptional')) + '</label><input class="form-input" id="m-label" placeholder="My Blog Post"></div>' +
+    '<div class="form-row"><div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.slugLength')) + '</label><input class="form-input" id="m-len" type="number" min="3" value="' + AdminClient.esc(len) + '"></div>' +
+    '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.customOptional')) + '</label><input class="form-input" id="m-custom" placeholder="my-post"></div></div>' +
+    '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.expiresOptional')) + '</label><input class="form-input" id="m-expires" type="datetime-local"></div>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-primary" onclick="AdminClient.createLink()">' + AdminClient.esc(AdminClient.t('client.create')) + '</button></div>'
   );
 }
 
-function createLink() {
+AdminClient.createLink = function () {
   var url = document.getElementById('m-url').value.trim();
-  if (!url) { toast(t('client.urlRequired'), 'error'); return; }
+  if (!url) { AdminClient.toast(AdminClient.t('client.urlRequired'), 'error'); return; }
   var body = { url: url };
   var label = document.getElementById('m-label').value.trim();
   if (label) body.label = label;
@@ -240,12 +371,12 @@ function createLink() {
   var exp = document.getElementById('m-expires').value;
   if (exp) body.expires_at = Math.floor(new Date(exp).getTime() / 1000);
 
-  api('/links', { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
+  AdminClient.api('/links', { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
     if (res.ok) {
       var isDuplicate = res.status === 200;
       return res.json().then(function(link) {
         if (isDuplicate) {
-          closeModal();
+          AdminClient.closeModal();
           if (link.duplicate_count > 1) {
             window.location.href = '/_/admin/links?search=' + encodeURIComponent(body.url);
           } else {
@@ -254,108 +385,108 @@ function createLink() {
           return;
         }
         if (!custom) {
-          closeModal();
-          toast(t('client.linkCreated'));
+          AdminClient.closeModal();
+          AdminClient.toast(AdminClient.t('client.linkCreated'));
           window.location.href = '/_/admin/links/' + link.id;
           return;
         }
-        api('/links/' + link.id + '/slugs', { method: 'POST', body: JSON.stringify({ slug: custom }) }).then(function(slugRes) {
-          closeModal();
+        AdminClient.api('/links/' + link.id + '/slugs', { method: 'POST', body: JSON.stringify({ slug: custom }) }).then(function(slugRes) {
+          AdminClient.closeModal();
           if (!slugRes.ok) {
-            toast(t('client.linkCreated'));
+            AdminClient.toast(AdminClient.t('client.linkCreated'));
           } else {
-            toast(t('client.linkCreated'));
+            AdminClient.toast(AdminClient.t('client.linkCreated'));
           }
           window.location.href = '/_/admin/links/' + link.id;
         });
       });
     } else {
       return res.json().then(function(data) {
-        toast(data.error || t('client.createLinkError'), 'error');
+        AdminClient.toast(data.error || AdminClient.t('client.createLinkError'), 'error');
       });
     }
   });
 }
 
 // ---- Duplicate link ----
-function createDuplicate(url) {
-  api('/links', { method: 'POST', body: JSON.stringify({ url: url, allow_duplicate: true }) }).then(function(res) {
+AdminClient.createDuplicate = function (url) {
+  AdminClient.api('/links', { method: 'POST', body: JSON.stringify({ url: url, allow_duplicate: true }) }).then(function(res) {
     if (res.ok) {
       return res.json().then(function(link) {
         var primary = link.slugs.find(function(s) { return !s.is_custom; });
-        if (primary) copyUrl(primary.slug);
-        toast(t('client.linkCreatedCopied'));
+        if (primary) AdminClient.copyUrl(primary.slug);
+        AdminClient.toast(AdminClient.t('client.linkCreatedCopied'));
         window.location.href = '/_/admin/links/' + link.id;
       });
     } else {
       return res.json().then(function(data) {
-        toast(data.error || t('client.createLinkError'), 'error');
+        AdminClient.toast(data.error || AdminClient.t('client.createLinkError'), 'error');
       });
     }
   });
 }
 
-// ---- API Keys ----
-function showCreateKeyModal() {
-  openModal(
-    '<div class="modal-title">' + esc(t('client.createApiKey')) + '</div>' +
-    '<div class="form-group"><label class="form-label">' + esc(t('client.keyTitleLabel')) + '</label><input class="form-input" id="m-key-title" placeholder="e.g. CI Pipeline, Mobile App"></div>' +
-    '<div class="form-group"><label class="form-label">' + esc(t('client.keyScopeLabel')) + '</label>' +
+// ---- CONFIG.API Keys ----
+AdminClient.showCreateKeyModal = function () {
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('client.createApiKey')) + '</div>' +
+    '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.keyTitleLabel')) + '</label><input class="form-input" id="m-key-title" placeholder="e.g. CI Pipeline, Mobile App"></div>' +
+    '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.keyScopeLabel')) + '</label>' +
     '<div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.25rem">' +
-    '<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem"><input type="radio" name="key-scope" value="create"> <strong>' + esc(t('client.scopeCreate')) + '</strong> <span style="color:var(--color-text-muted)">\\u2014 ' + esc(t('client.scopeCreateDesc')) + '</span></label>' +
-    '<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem"><input type="radio" name="key-scope" value="read"> <strong>' + esc(t('client.scopeRead')) + '</strong> <span style="color:var(--color-text-muted)">\\u2014 ' + esc(t('client.scopeReadDesc')) + '</span></label>' +
-    '<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem"><input type="radio" name="key-scope" value="create,read" checked> <strong>' + esc(t('client.scopeCreateRead')) + '</strong> <span style="color:var(--color-text-muted)">\\u2014 ' + esc(t('client.scopeCreateReadDesc')) + '</span></label>' +
+    '<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem"><input type="radio" name="key-scope" value="create"> <strong>' + AdminClient.esc(AdminClient.t('client.scopeCreate')) + '</strong> <span style="color:var(--color-text-muted)">\\u2014 ' + AdminClient.esc(AdminClient.t('client.scopeCreateDesc')) + '</span></label>' +
+    '<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem"><input type="radio" name="key-scope" value="read"> <strong>' + AdminClient.esc(AdminClient.t('client.scopeRead')) + '</strong> <span style="color:var(--color-text-muted)">\\u2014 ' + AdminClient.esc(AdminClient.t('client.scopeReadDesc')) + '</span></label>' +
+    '<label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem"><input type="radio" name="key-scope" value="create,read" checked> <strong>' + AdminClient.esc(AdminClient.t('client.scopeCreateRead')) + '</strong> <span style="color:var(--color-text-muted)">\\u2014 ' + AdminClient.esc(AdminClient.t('client.scopeCreateReadDesc')) + '</span></label>' +
     '</div></div>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="createKey()">' + esc(t('client.createKey')) + '</button></div>'
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-primary" onclick="AdminClient.createKey()">' + AdminClient.esc(AdminClient.t('client.createKey')) + '</button></div>'
   );
 }
 
-function createKey() {
+AdminClient.createKey = function () {
   var title = document.getElementById('m-key-title').value.trim();
-  if (!title) { toast(t('client.titleRequired'), 'error'); return; }
+  if (!title) { AdminClient.toast(AdminClient.t('client.titleRequired'), 'error'); return; }
   var checked = document.querySelector('input[name="key-scope"]:checked');
   var scope = checked ? checked.value : null;
-  if (!scope) { toast(t('client.selectScope'), 'error'); return; }
+  if (!scope) { AdminClient.toast(AdminClient.t('client.selectScope'), 'error'); return; }
 
-  api('/keys', { method: 'POST', body: JSON.stringify({ title: title, scope: scope }) }).then(function(res) {
+  AdminClient.api('/keys', { method: 'POST', body: JSON.stringify({ title: title, scope: scope }) }).then(function(res) {
     if (!res.ok) {
-      return res.json().then(function(data) { toast(data.error || t('client.createKeyError'), 'error'); });
+      return res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.createKeyError'), 'error'); });
     }
-    return res.json().then(function(data) { showKeyRevealModal(data.raw_key); });
+    return res.json().then(function(data) { AdminClient.showKeyRevealModal(data.raw_key); });
   });
 }
 
-function showKeyRevealModal(rawKey) {
-  openModal(
-    '<div class="modal-title">' + esc(t('client.keyCreated')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1rem">' + esc(t('client.keyCreatedDesc')) + '</p>' +
-    '<div class="key-revealed" id="revealed-key">' + esc(rawKey) + '</div>' +
-    '<div class="key-warning"><span class="icon" style="font-size:18px">warning</span> ' + esc(t('client.keyWarning')) + '</div>' +
-    '<div class="modal-actions"><button class="btn btn-secondary" onclick="copyRawKey()"><span class="icon">content_copy</span> ' + esc(t('client.copy')) + '</button><button class="btn btn-ghost" onclick="closeKeyRevealModal()">' + esc(t('client.done')) + '</button></div>'
+AdminClient.showKeyRevealModal = function (rawKey) {
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('client.keyCreated')) + '</div>' +
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1rem">' + AdminClient.esc(AdminClient.t('client.keyCreatedDesc')) + '</p>' +
+    '<div class="key-revealed" id="revealed-key">' + AdminClient.esc(rawKey) + '</div>' +
+    '<div class="key-warning"><span class="icon" style="font-size:18px">warning</span> ' + AdminClient.esc(AdminClient.t('client.keyWarning')) + '</div>' +
+    '<div class="modal-actions"><button class="btn btn-secondary" onclick="AdminClient.copyRawKey()"><span class="icon">content_copy</span> ' + AdminClient.esc(AdminClient.t('client.copy')) + '</button><button class="btn btn-ghost" onclick="AdminClient.closeKeyRevealModal()">' + AdminClient.esc(AdminClient.t('client.done')) + '</button></div>'
   );
 }
 
-function copyRawKey() {
+AdminClient.copyRawKey = function () {
   var key = document.getElementById('revealed-key').textContent;
   navigator.clipboard.writeText(key);
-  toast(t('client.apiKeyCopied'));
+  AdminClient.toast(AdminClient.t('client.apiKeyCopied'));
 }
 
-function closeKeyRevealModal() {
-  closeModal();
+AdminClient.closeKeyRevealModal = function () {
+  AdminClient.closeModal();
   window.location.reload();
 }
 
-function deleteKey(id, title) {
-  if (!confirm(t('client.confirmDeleteKey', {title: title}))) return;
-  api('/keys/' + id, { method: 'DELETE' }).then(function(res) {
-    if (res.ok) { toast(t('client.keyDeleted')); window.location.reload(); }
-    else toast(t('client.keyDeleteError'), 'error');
+AdminClient.deleteKey = function (id, title) {
+  if (!confirm(AdminClient.t('client.confirmDeleteKey', {title: title}))) return;
+  AdminClient.api('/keys/' + id, { method: 'DELETE' }).then(function(res) {
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.keyDeleted')); window.location.reload(); }
+    else AdminClient.toast(AdminClient.t('client.keyDeleteError'), 'error');
   });
 }
 
 // ---- Triple-dot menu ----
-function toggleDetailMenu() {
+AdminClient.toggleDetailMenu = function () {
   var menu = document.getElementById('detail-menu');
   var visible = menu.style.display !== 'none';
   menu.style.display = visible ? 'none' : 'block';
@@ -363,7 +494,7 @@ function toggleDetailMenu() {
     document.addEventListener('click', closeDetailMenuOnOutside);
   }
 }
-function closeDetailMenuOnOutside(e) {
+AdminClient.closeDetailMenuOnOutside = function (e) {
   var menu = document.getElementById('detail-menu');
   if (menu && !menu.parentElement.contains(e.target)) {
     menu.style.display = 'none';
@@ -372,159 +503,159 @@ function closeDetailMenuOnOutside(e) {
 }
 
 // ---- Link actions (detail page) ----
-function showDisableLinkModal(id) {
+AdminClient.showDisableLinkModal = function (id) {
   document.getElementById('detail-menu').style.display = 'none';
-  openModal(
-    '<div class="modal-title">' + esc(t('linkDetail.disable')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDisable')) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDisableLink(' + id + ')">' + esc(t('linkDetail.disable')) + '</button></div>'
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.disable')) + '</div>' +
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + AdminClient.esc(AdminClient.t('linkDetail.confirmDisable')) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-danger" onclick="AdminClient.doDisableLink(' + id + ')">' + AdminClient.esc(AdminClient.t('linkDetail.disable')) + '</button></div>'
   );
 }
-function doDisableLink(id) {
-  api('/links/' + id + '/disable', { method: 'POST' }).then(function(res) {
-    if (res.ok) { closeModal(); toast(t('client.linkDisabled')); window.location.reload(); }
-    else res.json().then(function(body) { toast(body.error || t('client.disableError'), 'error'); }).catch(function() { toast(t('client.disableError'), 'error'); });
+AdminClient.doDisableLink = function (id) {
+  AdminClient.api('/links/' + id + '/disable', { method: 'POST' }).then(function(res) {
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.linkDisabled')); window.location.reload(); }
+    else res.json().then(function(body) { AdminClient.toast(body.error || AdminClient.t('client.disableError'), 'error'); }).catch(function() { AdminClient.toast(AdminClient.t('client.disableError'), 'error'); });
   });
 }
 
-function showDeleteLinkModal(id) {
+AdminClient.showDeleteLinkModal = function (id) {
   document.getElementById('detail-menu').style.display = 'none';
-  openModal(
-    '<div class="modal-title">' + esc(t('linkDetail.delete')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDelete')) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDeleteLink(' + id + ')">' + esc(t('linkDetail.delete')) + '</button></div>'
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.delete')) + '</div>' +
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + AdminClient.esc(AdminClient.t('linkDetail.confirmDelete')) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-danger" onclick="AdminClient.doDeleteLink(' + id + ')">' + AdminClient.esc(AdminClient.t('linkDetail.delete')) + '</button></div>'
   );
 }
-function doDeleteLink(id) {
-  api('/links/' + id, { method: 'DELETE' }).then(function(res) {
-    if (res.ok) { closeModal(); toast(t('client.linkDeleted')); window.location.href = '/_/admin/links'; }
-    else res.json().then(function(body) { toast(body.error || t('client.deleteError'), 'error'); }).catch(function() { toast(t('client.deleteError'), 'error'); });
+AdminClient.doDeleteLink = function (id) {
+  AdminClient.api('/links/' + id, { method: 'DELETE' }).then(function(res) {
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.linkDeleted')); window.location.href = '/_/admin/links'; }
+    else res.json().then(function(body) { AdminClient.toast(body.error || AdminClient.t('client.deleteError'), 'error'); }).catch(function() { AdminClient.toast(AdminClient.t('client.deleteError'), 'error'); });
   });
 }
 
-function showEnableLinkModal(id) {
+AdminClient.showEnableLinkModal = function (id) {
   document.getElementById('detail-menu').style.display = 'none';
-  openModal(
-    '<div class="modal-title">' + esc(t('linkDetail.enable')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmEnable')) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="doEnableLink(' + id + ')">' + esc(t('linkDetail.enable')) + '</button></div>'
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.enable')) + '</div>' +
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + AdminClient.esc(AdminClient.t('linkDetail.confirmEnable')) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-primary" onclick="AdminClient.doEnableLink(' + id + ')">' + AdminClient.esc(AdminClient.t('linkDetail.enable')) + '</button></div>'
   );
 }
-function doEnableLink(id) {
-  api('/links/' + id + '/enable', { method: 'POST' }).then(function(res) {
-    if (res.ok) { closeModal(); toast(t('client.linkEnabled')); window.location.reload(); }
-    else res.json().then(function(body) { toast(body.error || t('client.enableError'), 'error'); }).catch(function() { toast(t('client.enableError'), 'error'); });
+AdminClient.doEnableLink = function (id) {
+  AdminClient.api('/links/' + id + '/enable', { method: 'POST' }).then(function(res) {
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.linkEnabled')); window.location.reload(); }
+    else res.json().then(function(body) { AdminClient.toast(body.error || AdminClient.t('client.enableError'), 'error'); }).catch(function() { AdminClient.toast(AdminClient.t('client.enableError'), 'error'); });
   });
 }
 
 // ---- Add custom slug modal ----
-function showAddSlugModal(linkId) {
+AdminClient.showAddSlugModal = function (linkId) {
   document.getElementById('detail-menu').style.display = 'none';
-  openModal(
-    '<div class="modal-title">' + esc(t('linkDetail.addCustomSlug')) + '</div>' +
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.addCustomSlug')) + '</div>' +
     '<div class="form-group"><label class="form-label">Slug</label><input class="form-input" id="m-new-slug" placeholder="my-custom-slug"></div>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="doAddSlug(' + linkId + ')">' + esc(t('linkDetail.add')) + '</button></div>'
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-primary" onclick="AdminClient.AdminClient.doAddSlug(' + linkId + ')">' + AdminClient.esc(AdminClient.t('linkDetail.add')) + '</button></div>'
   );
   setTimeout(function() { document.getElementById('m-new-slug').focus(); }, 100);
 }
-function doAddSlug(linkId) {
+AdminClient.doAddSlug = function (linkId) {
   var slug = document.getElementById('m-new-slug').value.trim();
-  if (!slug) { toast(t('client.urlRequired'), 'error'); return; }
-  api('/links/' + linkId + '/slugs', { method: 'POST', body: JSON.stringify({ slug: slug }) }).then(function(res) {
-    if (res.ok) { closeModal(); toast(t('client.customAdded')); window.location.reload(); }
-    else res.json().then(function(data) { toast(data.error || t('client.customError'), 'error'); });
+  if (!slug) { AdminClient.toast(AdminClient.t('client.urlRequired'), 'error'); return; }
+  AdminClient.api('/links/' + linkId + '/slugs', { method: 'POST', body: JSON.stringify({ slug: slug }) }).then(function(res) {
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.customAdded')); window.location.reload(); }
+    else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.customError'), 'error'); });
   });
 }
 
 // ---- Change primary slug modal ----
-function showChangePrimaryModal(linkId) {
+AdminClient.showChangePrimaryModal = function (linkId) {
   document.getElementById('detail-menu').style.display = 'none';
   // Fetch link data to render slug list
-  api('/links/' + linkId).then(function(res) {
-    if (!res.ok) { toast(t('client.createLinkError'), 'error'); return; }
+  AdminClient.api('/links/' + linkId).then(function(res) {
+    if (!res.ok) { AdminClient.toast(AdminClient.t('client.createLinkError'), 'error'); return; }
     return res.json().then(function(link) {
-      var html = '<div class="modal-title">' + esc(t('linkDetail.selectPrimary')) + '</div>';
+      var html = '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.selectPrimary')) + '</div>';
       html += '<div style="display:flex;flex-direction:column;gap:0.25rem;margin-bottom:1rem">';
       link.slugs.forEach(function(s) {
         var active = s.is_primary ? ' style="background:var(--color-selection);border-color:var(--color-accent)"' : '';
-        html += '<button class="btn btn-ghost" ' + active + ' onclick="doSetPrimary(' + linkId + ',\\'' + s.slug + '\\')" style="justify-content:flex-start;font-family:var(--font-family-mono);font-size:0.875rem">';
-        html += '/' + esc(s.slug);
+        html += '<button class="btn btn-ghost" ' + active + ' onclick="AdminClient.doSetPrimary(' + linkId + ',\\'' + s.slug + '\\')" style="justify-content:flex-start;font-family:var(--font-family-mono);font-size:0.875rem">';
+        html += '/' + AdminClient.esc(s.slug);
         if (s.is_primary) html += ' <span class="icon" style="font-size:14px;color:var(--color-accent);margin-left:auto">star</span>';
         html += '</button>';
       });
       html += '</div>';
-      html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button></div>';
-      openModal(html);
+      html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button></div>';
+      AdminClient.openModal(html);
     });
   });
 }
-function doSetPrimary(linkId, slug) {
-  api('/links/' + linkId + '/slugs/primary', { method: 'PUT', body: JSON.stringify({ slug: slug }) }).then(function(res) {
-    if (res.ok) { closeModal(); toast(t('client.labelUpdated')); window.location.reload(); }
-    else res.json().then(function(data) { toast(data.error || 'Error', 'error'); });
+AdminClient.doSetPrimary = function (linkId, slug) {
+  AdminClient.api('/links/' + linkId + '/slugs/primary', { method: 'PUT', body: JSON.stringify({ slug: slug }) }).then(function(res) {
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.labelUpdated')); window.location.reload(); }
+    else res.json().then(function(data) { AdminClient.toast(data.error || 'Error', 'error'); });
   });
 }
 
 // ---- Duplicate link modal ----
-function showDuplicateModal(linkId, url) {
+AdminClient.showDuplicateModal = function (linkId, url) {
   document.getElementById('detail-menu').style.display = 'none';
-  openModal(
-    '<div class="modal-title">' + esc(t('linkDetail.duplicateTitle')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:0.75rem">' + esc(t('linkDetail.duplicateBody')) + '</p>' +
-    '<p style="font-size:0.8rem;color:var(--color-text-muted);margin-bottom:1.5rem;opacity:0.7">' + esc(t('linkDetail.duplicateHelper')) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="doDuplicate(\\'' + esc(url).replace(/'/g, "\\\\'") + '\\')">' + esc(t('linkDetail.duplicate')) + '</button></div>'
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.duplicateTitle')) + '</div>' +
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:0.75rem">' + AdminClient.esc(AdminClient.t('linkDetail.duplicateBody')) + '</p>' +
+    '<p style="font-size:0.8rem;color:var(--color-text-muted);margin-bottom:1.5rem;opacity:0.7">' + AdminClient.esc(AdminClient.t('linkDetail.duplicateHelper')) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-primary" onclick="AdminClient.doDuplicate(\\'' + AdminClient.esc(url).replace(/'/g, "\\\\'") + '\\')">' + AdminClient.esc(AdminClient.t('linkDetail.duplicate')) + '</button></div>'
   );
 }
-function doDuplicate(url) {
-  createDuplicate(url);
-  closeModal();
+AdminClient.doDuplicate = function (url) {
+  AdminClient.createDuplicate(url);
+  AdminClient.closeModal();
 }
 
 // ---- Slug actions (detail page) ----
-function confirmDeleteSlug(linkId, slug) {
-  openModal(
-    '<div class="modal-title">' + esc(t('linkDetail.deleteSlug')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDeleteSlug').replace('{slug}', slug)) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDeleteSlug(' + linkId + ',\\'' + slug + '\\')">' + esc(t('linkDetail.deleteSlug')) + '</button></div>'
+AdminClient.confirmDeleteSlug = function (linkId, slug) {
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.deleteSlug')) + '</div>' +
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + AdminClient.esc(AdminClient.t('linkDetail.confirmDeleteSlug').replace('{slug}', slug)) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-danger" onclick="AdminClient.doDeleteSlug(' + linkId + ',\\'' + slug + '\\')">' + AdminClient.esc(AdminClient.t('linkDetail.deleteSlug')) + '</button></div>'
   );
 }
-function doDeleteSlug(linkId, slug) {
-  api('/links/' + linkId + '/slugs/' + slug, { method: 'DELETE' }).then(function(res) {
-    if (res.ok) { closeModal(); toast(t('client.customAdded')); window.location.reload(); }
-    else res.json().then(function(data) { toast(data.error || 'Error', 'error'); });
+AdminClient.doDeleteSlug = function (linkId, slug) {
+  AdminClient.api('/links/' + linkId + '/slugs/' + slug, { method: 'DELETE' }).then(function(res) {
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.customAdded')); window.location.reload(); }
+    else res.json().then(function(data) { AdminClient.toast(data.error || 'Error', 'error'); });
   });
 }
 
-function confirmDisableSlug(linkId, slug) {
-  openModal(
-    '<div class="modal-title">' + esc(t('linkDetail.disableSlug')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmDisableSlug').replace('{slug}', slug)) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-danger" onclick="doDisableSlug(' + linkId + ',\\'' + slug + '\\')">' + esc(t('linkDetail.disableSlug')) + '</button></div>'
+AdminClient.confirmDisableSlug = function (linkId, slug) {
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.disableSlug')) + '</div>' +
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + AdminClient.esc(AdminClient.t('linkDetail.confirmDisableSlug').replace('{slug}', slug)) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-danger" onclick="AdminClient.doDisableSlug(' + linkId + ',\\'' + slug + '\\')">' + AdminClient.esc(AdminClient.t('linkDetail.disableSlug')) + '</button></div>'
   );
 }
-function doDisableSlug(linkId, slug) {
-  api('/links/' + linkId + '/slugs/' + slug + '/disable', { method: 'POST' }).then(function(res) {
-    if (res.ok) { closeModal(); window.location.reload(); }
-    else res.json().then(function(data) { toast(data.error || 'Error', 'error'); });
+AdminClient.doDisableSlug = function (linkId, slug) {
+  AdminClient.api('/links/' + linkId + '/slugs/' + slug + '/disable', { method: 'POST' }).then(function(res) {
+    if (res.ok) { AdminClient.closeModal(); window.location.reload(); }
+    else res.json().then(function(data) { AdminClient.toast(data.error || 'Error', 'error'); });
   });
 }
 
-function confirmEnableSlug(linkId, slug) {
-  openModal(
-    '<div class="modal-title">' + esc(t('linkDetail.enableSlug')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + esc(t('linkDetail.confirmEnableSlug').replace('{slug}', slug)) + '</p>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.cancel')) + '</button><button class="btn btn-primary" onclick="doEnableSlug(' + linkId + ',\\'' + slug + '\\')">' + esc(t('linkDetail.enableSlug')) + '</button></div>'
+AdminClient.confirmEnableSlug = function (linkId, slug) {
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.enableSlug')) + '</div>' +
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + AdminClient.esc(AdminClient.t('linkDetail.confirmEnableSlug').replace('{slug}', slug)) + '</p>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-primary" onclick="AdminClient.doEnableSlug(' + linkId + ',\\'' + slug + '\\')">' + AdminClient.esc(AdminClient.t('linkDetail.enableSlug')) + '</button></div>'
   );
 }
-function doEnableSlug(linkId, slug) {
-  api('/links/' + linkId + '/slugs/' + slug + '/enable', { method: 'POST' }).then(function(res) {
-    if (res.ok) { closeModal(); window.location.reload(); }
-    else res.json().then(function(data) { toast(data.error || 'Error', 'error'); });
+AdminClient.doEnableSlug = function (linkId, slug) {
+  AdminClient.api('/links/' + linkId + '/slugs/' + slug + '/enable', { method: 'POST' }).then(function(res) {
+    if (res.ok) { AdminClient.closeModal(); window.location.reload(); }
+    else res.json().then(function(data) { AdminClient.toast(data.error || 'Error', 'error'); });
   });
 }
 
 // ---- Inline edit: Label ----
-function beginEditLabel() {
+AdminClient.beginEditLabel = function () {
   document.getElementById('label-display').style.display = 'none';
   document.getElementById('label-form').style.display = 'flex';
   var inp = document.getElementById('detail-label');
@@ -532,45 +663,45 @@ function beginEditLabel() {
   inp.select();
 }
 
-function cancelEditLabel() {
+AdminClient.cancelEditLabel = function () {
   document.getElementById('label-form').style.display = 'none';
   document.getElementById('label-display').style.display = 'flex';
 }
 
-function saveDetailLabel(linkId) {
+AdminClient.saveDetailLabel = function (linkId) {
   var val = document.getElementById('detail-label').value.trim();
   var body = { label: val || null };
-  api('/links/' + linkId, { method: 'PUT', body: JSON.stringify(body) }).then(function(res) {
-    if (res.ok) { toast(t('client.labelUpdated')); window.location.reload(); }
-    else res.json().then(function(data) { toast(data.error || t('client.labelError'), 'error'); });
+  AdminClient.api('/links/' + linkId, { method: 'PUT', body: JSON.stringify(body) }).then(function(res) {
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.labelUpdated')); window.location.reload(); }
+    else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.labelError'), 'error'); });
   });
 }
 
 // ---- Inline edit: Expiry ----
-function beginEditExpiry() {
+AdminClient.beginEditExpiry = function () {
   document.getElementById('expiry-display').style.display = 'none';
   document.getElementById('expiry-form').style.display = 'flex';
   document.getElementById('detail-expires').focus();
 }
 
-function cancelEditExpiry() {
+AdminClient.cancelEditExpiry = function () {
   document.getElementById('expiry-form').style.display = 'none';
   document.getElementById('expiry-display').style.display = 'flex';
 }
 
-function saveDetailExpiry(linkId) {
+AdminClient.saveDetailExpiry = function (linkId) {
   var exp = document.getElementById('detail-expires').value;
   var body = { expires_at: exp ? Math.floor(new Date(exp).getTime() / 1000) : null };
-  api('/links/' + linkId, { method: 'PUT', body: JSON.stringify(body) }).then(function(res) {
-    if (res.ok) { toast(t('client.expiryUpdated')); window.location.reload(); }
-    else res.json().then(function(data) { toast(data.error || t('client.expiryError'), 'error'); });
+  AdminClient.api('/links/' + linkId, { method: 'PUT', body: JSON.stringify(body) }).then(function(res) {
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.expiryUpdated')); window.location.reload(); }
+    else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.expiryError'), 'error'); });
   });
 }
 
-function clearDetailExpiry(linkId) {
-  api('/links/' + linkId, { method: 'PUT', body: JSON.stringify({ expires_at: null }) }).then(function(res) {
-    if (res.ok) { toast(t('client.expiryCleared')); window.location.reload(); }
-    else toast(t('client.expiryClearError'), 'error');
+AdminClient.clearDetailExpiry = function (linkId) {
+  AdminClient.api('/links/' + linkId, { method: 'PUT', body: JSON.stringify({ expires_at: null }) }).then(function(res) {
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.expiryCleared')); window.location.reload(); }
+    else AdminClient.toast(AdminClient.t('client.expiryClearError'), 'error');
   });
 }
 
@@ -578,29 +709,29 @@ function clearDetailExpiry(linkId) {
 var _qrSlug = '';
 var _qrSrc = '';
 
-function showQRModal(linkId, slug) {
+AdminClient.showQRModal = function (linkId, slug) {
   _qrSlug = slug;
-  _qrSrc = API + '/links/' + linkId + '/qr?slug=' + encodeURIComponent(slug);
+  _qrSrc = CONFIG.API + '/links/' + linkId + '/qr?slug=' + encodeURIComponent(slug);
   var shortUrl = location.origin + '/' + slug;
-  openModal(
-    '<div class="modal-title">' + esc(t('client.qrCode')) + '</div>' +
-    '<p style="text-align:center;font-size:0.85rem;color:var(--color-text-muted);margin:0 0 1.25rem">' + esc(shortUrl) + '</p>' +
+  AdminClient.openModal(
+    '<div class="modal-title">' + AdminClient.esc(AdminClient.t('client.qrCode')) + '</div>' +
+    '<p style="text-align:center;font-size:0.85rem;color:var(--color-text-muted);margin:0 0 1.25rem">' + AdminClient.esc(shortUrl) + '</p>' +
     '<div style="display:flex;justify-content:center;margin-bottom:1.25rem">' +
       '<img id="qr-img" src="' + _qrSrc + '" style="width:280px;height:280px;border-radius:var(--radius-md);background:#fff;padding:12px;box-sizing:border-box">' +
     '</div>' +
     '<div class="modal-actions">' +
-      '<button class="btn btn-ghost" onclick="closeModal()">' + esc(t('client.close')) + '</button>' +
-      '<button class="btn btn-ghost btn-sm" onclick="downloadQrSvg()">' +
-        '<span class="icon">download</span> ' + esc(t('client.downloadSvg')) +
+      '<button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.close')) + '</button>' +
+      '<button class="btn btn-ghost btn-sm" onclick="AdminClient.downloadQrSvg()">' +
+        '<span class="icon">download</span> ' + AdminClient.esc(AdminClient.t('client.downloadSvg')) +
       '</button>' +
-      '<button class="btn btn-secondary btn-sm" onclick="downloadQrPng()">' +
-        '<span class="icon">download</span> ' + esc(t('client.downloadPng')) +
+      '<button class="btn btn-secondary btn-sm" onclick="AdminClient.downloadQrPng()">' +
+        '<span class="icon">download</span> ' + AdminClient.esc(AdminClient.t('client.downloadPng')) +
       '</button>' +
     '</div>'
   );
 }
 
-function downloadQrSvg() {
+AdminClient.downloadQrSvg = function () {
   fetch(_qrSrc).then(function(r) { return r.blob(); }).then(function(blob) {
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -611,7 +742,7 @@ function downloadQrSvg() {
   });
 }
 
-function downloadQrPng() {
+AdminClient.downloadQrPng = function () {
   var img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = function() {
@@ -634,161 +765,161 @@ function downloadQrPng() {
 }
 
 // ---- Settings ----
-function setDefaultRange(range) {
-  api('/settings', { method: 'PUT', body: JSON.stringify({ default_range: range }) }).then(function(res) {
-    if (res.ok) toast(t('client.settingsSaved'));
-    else toast(t('client.settingsError'), 'error');
+AdminClient.setDefaultRange = function (range) {
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ default_range: range }) }).then(function(res) {
+    if (res.ok) AdminClient.toast(AdminClient.t('client.settingsSaved'));
+    else AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
 }
 
-function saveSettings() {
+AdminClient.saveSettings = function () {
   var val = parseInt(document.getElementById('slug-length-input').value);
-  if (val < 3) { toast(t('client.minSlugLength'), 'error'); return; }
-  api('/settings', { method: 'PUT', body: JSON.stringify({ slug_default_length: val }) }).then(function(res) {
+  if (val < 3) { AdminClient.toast(AdminClient.t('client.minSlugLength'), 'error'); return; }
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ slug_default_length: val }) }).then(function(res) {
     if (res.ok) {
       updateComboHint();
-      toast(t('client.settingsSaved'));
+      AdminClient.toast(AdminClient.t('client.settingsSaved'));
     } else {
-      toast(t('client.settingsError'), 'error');
+      AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
     }
   });
 }
 
-function setFilterBots(checked) {
-  api('/settings', { method: 'PUT', body: JSON.stringify({ filter_bots: Boolean(checked) }) }).then(function(res) {
+AdminClient.setFilterBots = function (checked) {
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ filter_bots: Boolean(checked) }) }).then(function(res) {
     if (res.ok) {
-      toast(t('client.settingsSaved'));
+      AdminClient.toast(AdminClient.t('client.settingsSaved'));
     } else {
       return res.json().then(function(data) {
-        toast(data.error || t('client.settingsError'), 'error');
+        AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
       }).catch(function() {
-        toast(t('client.settingsError'), 'error');
+        AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
       });
     }
   }).catch(function(err) {
-    toast(t('client.settingsError'), 'error');
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
 }
 
-function setFilterSelfReferrers(checked) {
-  api('/settings', { method: 'PUT', body: JSON.stringify({ filter_self_referrers: Boolean(checked) }) }).then(function(res) {
+AdminClient.setFilterSelfReferrers = function (checked) {
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ filter_self_referrers: Boolean(checked) }) }).then(function(res) {
     if (res.ok) {
-      toast(t('client.settingsSaved'));
+      AdminClient.toast(AdminClient.t('client.settingsSaved'));
     } else {
       return res.json().then(function(data) {
-        toast(data.error || t('client.settingsError'), 'error');
+        AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
       }).catch(function() {
-        toast(t('client.settingsError'), 'error');
+        AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
       });
     }
   }).catch(function(err) {
-    toast(t('client.settingsError'), 'error');
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
 }
 
-function saveAnalyticsFilters() {
+AdminClient.saveAnalyticsFilters = function () {
   var filterBotsEl = document.getElementById('filter-bots-toggle');
   var filterSelfReferrersEl = document.getElementById('filter-self-referrers-toggle');
   if (!filterBotsEl || !filterSelfReferrersEl) return;
   var filterBots = filterBotsEl.checked;
   var filterSelfReferrers = filterSelfReferrersEl.checked;
-  api('/settings', { method: 'PUT', body: JSON.stringify({ filter_bots: filterBots, filter_self_referrers: filterSelfReferrers }) }).then(function(res) {
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ filter_bots: filterBots, filter_self_referrers: filterSelfReferrers }) }).then(function(res) {
     if (res.ok) {
-      toast(t('client.settingsSaved'));
+      AdminClient.toast(AdminClient.t('client.settingsSaved'));
     } else {
       return res.json().then(function(data) {
-        toast(data.error || t('client.settingsError'), 'error');
+        AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
       }).catch(function() {
-        toast(t('client.settingsError'), 'error');
+        AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
       });
     }
   }).catch(function(err) {
-    toast(t('client.settingsError'), 'error');
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
 }
 
-function saveRootRedirectUrl() {
+AdminClient.saveRootRedirectUrl = function () {
   var input = document.getElementById('root-redirect-url-input');
   if (!input) return;
   var val = input.value.trim();
-  api('/settings', { method: 'PUT', body: JSON.stringify({ root_redirect_url: val || null }) }).then(function(res) {
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ root_redirect_url: val || null }) }).then(function(res) {
     if (res.ok) {
       return res.json().then(function(body) {
         input.value = body.root_redirect_url || '';
-        toast(t('client.settingsSaved'));
+        AdminClient.toast(AdminClient.t('client.settingsSaved'));
       });
     }
     return res.json().then(function(data) {
-      toast(data.error || t('client.settingsError'), 'error');
+      AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
     }).catch(function() {
-      toast(t('client.settingsError'), 'error');
+      AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
     });
   });
 }
 
-function saveDynamicRedirectRules() {
+AdminClient.saveDynamicRedirectRules = function () {
   var input = document.getElementById('dynamic-redirect-rules-input');
   if (!input) return;
   var val = input.value;
-  api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: val || null }) }).then(function(res) {
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: val || null }) }).then(function(res) {
     if (res.ok) {
       return res.json().then(function(body) {
         input.value = body.dynamic_redirect_rules || '';
-        toast(t('client.settingsSaved'));
+        AdminClient.toast(AdminClient.t('client.settingsSaved'));
       });
     }
     return res.json().then(function(data) {
-      toast(data.error || t('client.settingsError'), 'error');
+      AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
     }).catch(function() {
-      toast(t('client.settingsError'), 'error');
+      AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
     });
   });
 }
 
-function updateComboHint() {
+AdminClient.updateComboHint = function () {
   var el = document.getElementById('slug-combo-hint');
   if (!el) return;
-  var len = parseInt(document.getElementById('slug-length-input').value) || MIN_SLUG_LEN;
-  var combos = Math.pow(CHARSET_SIZE, Math.max(len, MIN_SLUG_LEN));
-  el.textContent = len >= MIN_SLUG_LEN
-    ? t('client.combos', {count: fmtCount(combos)})
-    : t('client.minLength');
+  var len = parseInt(document.getElementById('slug-length-input').value) || CONFIG.MIN_SLUG_LEN;
+  var combos = Math.pow(CONFIG.CHARSET_SIZE, Math.max(len, CONFIG.MIN_SLUG_LEN));
+  el.textContent = len >= CONFIG.MIN_SLUG_LEN
+    ? AdminClient.t('client.combos', {count: AdminClient.fmtCount(combos)})
+    : AdminClient.t('client.minLength');
 }
 
-function addRedirectRule() {
+AdminClient.addRedirectRule = function () {
   var sourceEl = document.getElementById('quick-rule-source');
   var destEl = document.getElementById('quick-rule-dest');
   if (!sourceEl || !destEl) return;
   var source = sourceEl.value.trim();
   var dest = destEl.value.trim();
-  if (!source) { toast(t('client.pasteUrl'), 'error'); return; }
-  if (!dest) { toast(t('redirects.destinationUrl'), 'error'); return; }
-  api('/settings').then(function(getRes) {
+  if (!source) { AdminClient.toast(AdminClient.t('client.pasteUrl'), 'error'); return; }
+  if (!dest) { AdminClient.toast(AdminClient.t('redirects.destinationUrl'), 'error'); return; }
+  AdminClient.api('/settings').then(function(getRes) {
     if (!getRes.ok) throw new Error('Failed to read settings');
     return getRes.json();
   }).then(function(settings) {
     var currentRules = (settings.dynamic_redirect_rules || '').trim();
     var nextLine = source + ' ' + dest;
     var nextRules = currentRules ? (currentRules + '\n' + nextLine) : nextLine;
-    return api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules }) });
+    return AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {
-        toast(data.error || t('client.settingsError'), 'error');
+        AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
       });
     }
     sourceEl.value = '';
     destEl.value = '';
-    toast(t('client.settingsSaved'));
+    AdminClient.toast(AdminClient.t('client.settingsSaved'));
     window.location.reload();
   }).catch(function() {
-    toast(t('client.settingsError'), 'error');
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
 }
 
-function deleteRedirectRule(idx) {
-  if (!confirm(t('redirects.delete'))) return;
-  api('/settings').then(function(getRes) {
+AdminClient.deleteRedirectRule = function (idx) {
+  if (!confirm(AdminClient.t('redirects.delete'))) return;
+  AdminClient.api('/settings').then(function(getRes) {
     if (!getRes.ok) throw new Error('Failed to read settings');
     return getRes.json();
   }).then(function(settings) {
@@ -797,17 +928,17 @@ function deleteRedirectRule(idx) {
     if (idx < 0 || idx >= lines.length) return;
     lines.splice(idx, 1);
     var nextRules = lines.join('\n');
-    return api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules || null }) });
+    return AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules || null }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {
-        toast(data.error || t('client.settingsError'), 'error');
+        AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
       });
     }
-    toast(t('client.settingsSaved'));
+    AdminClient.toast(AdminClient.t('client.settingsSaved'));
     window.location.reload();
   }).catch(function() {
-    toast(t('client.settingsError'), 'error');
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
 }
 
@@ -824,7 +955,7 @@ window.addEventListener('appinstalled', function() {
   if (btn) btn.style.display = 'none';
   _installPrompt = null;
 });
-function installApp() {
+AdminClient.installApp = function () {
   if (!_installPrompt) return;
   _installPrompt.prompt();
   _installPrompt.userChoice.then(function() { _installPrompt = null; });
@@ -833,13 +964,13 @@ function installApp() {
 // ---- Init ----
 var quickUrlEl = document.getElementById('quick-url');
 if (quickUrlEl) {
-  quickUrlEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') quickShorten(); });
+  quickUrlEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') AdminClient.quickShorten(); });
   quickUrlEl.addEventListener('input', updateQuickActionButton);
-  updateQuickActionButton();
+  AdminClient.updateQuickActionButton();
 }
 var quickSlugEl = document.getElementById('quick-slug');
 if (quickSlugEl) {
-  quickSlugEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') quickShorten(); });
+  quickSlugEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') AdminClient.quickShorten(); });
 }
 
 var slugLengthEl = document.getElementById('slug-length-input');
@@ -848,16 +979,16 @@ if (slugLengthEl) slugLengthEl.addEventListener('input', updateComboHint);
 // ---- Analytics + Timeline ----
 var _tlData = null;
 
-function deviceIcon(name) {
+AdminClient.deviceIcon = function (name) {
   if (name === 'mobile') return 'phone_android';
   if (name === 'tablet') return 'tablet';
   return 'computer';
 }
-function linkModeIcon(name) {
+AdminClient.linkModeIcon = function (name) {
   if (name === 'qr') return 'qr_code_2';
   return 'link';
 }
-function osIcon(name) {
+AdminClient.osIcon = function (name) {
   if (name === 'ios') return 'phone_iphone';
   if (name === 'macos') return 'laptop_mac';
   if (name === 'android') return 'android';
@@ -866,14 +997,14 @@ function osIcon(name) {
   return 'devices';
 }
 
-function renderStatCard(containerId, items, color, opts) {
+AdminClient.renderStatCard = function (containerId, items, color, opts) {
   opts = opts || {};
   var el = document.getElementById(containerId);
   if (!el) return;
   var body = el.querySelector('.stat-card-body');
   if (!body) return;
   if (!items || items.length === 0) {
-    body.innerHTML = '<div style="color:var(--color-text-muted);font-size:0.875rem">' + esc(t('linkDetail.noData')) + '</div>';
+    body.innerHTML = '<div style="color:var(--color-text-muted);font-size:0.875rem">' + AdminClient.esc(AdminClient.t('linkDetail.noData')) + '</div>';
     return;
   }
   var maxVal = 0;
@@ -884,18 +1015,18 @@ function renderStatCard(containerId, items, color, opts) {
     var item = items[i];
     var pct = maxVal > 0 ? Math.round((item.count / maxVal) * 100) : 0;
     var name = opts.mapName ? opts.mapName(item.name) : item.name;
-    var flagStr = opts.flagFromName ? '<span class="flag">' + esc(item.name) + '</span>' : '';
+    var flagStr = opts.flagFromName ? '<span class="flag">' + AdminClient.esc(item.name) + '</span>' : '';
     var iconStr = opts.iconFn ? '<span class="icon">' + opts.iconFn(item.name) + '</span>' : '';
     html += '<div class="stat-row">';
-    html += '<div class="name' + (opts.mono ? ' mono' : '') + '">' + flagStr + iconStr + '<span class="label">' + esc(name) + '</span></div>';
-    html += '<div class="right"><span class="count">' + fmtCount(item.count) + '</span><span class="pct">' + pct + '%</span></div>';
+    html += '<div class="name' + (opts.mono ? ' mono' : '') + '">' + flagStr + iconStr + '<span class="label">' + AdminClient.esc(name) + '</span></div>';
+    html += '<div class="right"><span class="count">' + AdminClient.fmtCount(item.count) + '</span><span class="pct">' + pct + '%</span></div>';
     html += '<div class="bar"><div class="fill ' + color + '" style="width:' + pct + '%"></div></div>';
     html += '</div>';
   }
   body.innerHTML = html;
 }
 
-function loadAnalytics(linkId, range) {
+AdminClient.loadAnalytics = function (linkId, range) {
   // Update active button
   var btns = document.querySelectorAll('.timeline-range-btn');
   for (var i = 0; i < btns.length; i++) {
@@ -903,8 +1034,8 @@ function loadAnalytics(linkId, range) {
   }
 
   // Fetch both timeline and analytics in parallel
-  var timelineReq = api('/links/' + linkId + '/timeline?range=' + range).then(function(r) { return r.json(); });
-  var analyticsReq = api('/links/' + linkId + '/analytics?range=' + range).then(function(r) { return r.json(); });
+  var timelineReq = AdminClient.api('/links/' + linkId + '/timeline?range=' + range).then(function(r) { return r.json(); });
+  var analyticsReq = AdminClient.api('/links/' + linkId + '/analytics?range=' + range).then(function(r) { return r.json(); });
 
   Promise.all([timelineReq, analyticsReq]).then(function(results) {
     var tlData = results[0];
@@ -948,7 +1079,7 @@ function loadAnalytics(linkId, range) {
     renderStatCard('card-countries', stats.countries, 'orange', { mapName: countryName, flagFromName: true });
     renderStatCard('card-domains', stats.referrer_hosts, 'mint', { mono: true });
     renderStatCard('card-sources', stats.referrers, 'mint', { mono: true });
-    renderStatCard('card-link-modes', fillMissingOptions(stats.link_modes, ACCESS_METHOD_OPTIONS), 'orange', { iconFn: linkModeIcon });
+    renderStatCard('card-link-modes', AdminClient.fillMissingOptions(stats.link_modes, CONFIG.ACCESS_METHOD_OPTIONS), 'orange', { iconFn: linkModeIcon });
     renderStatCard('card-devices', stats.devices, 'orange', { iconFn: deviceIcon });
     renderStatCard('card-os', stats.os, 'mint', { iconFn: osIcon });
     renderStatCard('card-browsers', stats.browsers, 'mint');
@@ -964,19 +1095,19 @@ function loadAnalytics(linkId, range) {
   });
 }
 
-function updateCount(id, value) {
+AdminClient.updateCount = function (id, value) {
   var el = document.getElementById(id);
   if (el) el.textContent = fmtNum(value);
 }
 
-function fmtNum(n) {
+AdminClient.fmtNum = function (n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
   if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
   return String(n);
 }
 
 var RANGE_SECONDS = { '24h': 86400, '7d': 7*86400, '30d': 30*86400, '90d': 90*86400, '1y': 365*86400 };
-function fmtAvgPerDay(totalClicks, range, createdAt) {
+AdminClient.fmtAvgPerDay = function (totalClicks, range, createdAt) {
   var days;
   if (range !== 'all') {
     days = RANGE_SECONDS[range] / 86400;
@@ -993,9 +1124,9 @@ function fmtAvgPerDay(totalClicks, range, createdAt) {
 }
 
 var MONTH_KEYS = ['month.jan','month.feb','month.mar','month.apr','month.may','month.jun','month.jul','month.aug','month.sep','month.oct','month.nov','month.dec'];
-function monthName(m) { return t(MONTH_KEYS[m - 1]); }
+AdminClient.monthName = function (m) { return AdminClient.t(MONTH_KEYS[m - 1]); }
 
-function fmtLabel(label, range) {
+AdminClient.fmtLabel = function (label, range) {
   if (range === '24h') {
     // "YYYY-MM-DD HH" → "HH:00"
     return label.slice(11) + ':00';
@@ -1012,10 +1143,10 @@ function fmtLabel(label, range) {
   return monthName(parseInt(parts[1], 10)) + ' ' + parts[0].slice(2);
 }
 
-function renderTimeline(data) {
+AdminClient.renderTimeline = function (data) {
   var container = document.getElementById('timeline-chart');
   if (!data.buckets || data.buckets.length === 0) {
-    container.innerHTML = '<div class="empty-card-hint">' + esc(t('linkDetail.noClickData')) + '</div>';
+    container.innerHTML = '<div class="empty-card-hint">' + AdminClient.esc(AdminClient.t('linkDetail.noClickData')) + '</div>';
     return;
   }
 
@@ -1079,8 +1210,8 @@ function renderTimeline(data) {
 
   for (var i = 0; i < n; i++) {
     if (i % dotInterval === 0 || i === n - 1) {
-      var label = i === n - 1 ? t('linkDetail.today') : fmtLabel(buckets[i].label, data.range);
-      parts.push('<text x="' + pts[i][0].toFixed(1) + '" y="' + (h - 6) + '" font-size="9" fill="var(--color-text-subtle)" text-anchor="middle" font-family="var(--font-family-mono)">' + esc(label) + '</text>');
+      var label = i === n - 1 ? AdminClient.t('linkDetail.today') : fmtLabel(buckets[i].label, data.range);
+      parts.push('<text x="' + pts[i][0].toFixed(1) + '" y="' + (h - 6) + '" font-size="9" fill="var(--color-text-subtle)" text-anchor="middle" font-family="var(--font-family-mono)">' + AdminClient.esc(label) + '</text>');
     }
   }
 
@@ -1088,7 +1219,7 @@ function renderTimeline(data) {
   container.innerHTML = parts.join('');
 }
 
-function niceStep(max) {
+AdminClient.niceStep = function (max) {
   if (max <= 4) return 1;
   var rough = max / 4;
   var pow = Math.pow(10, Math.floor(Math.log10(rough)));
@@ -1116,7 +1247,7 @@ if (labelDisplay && !labelDisplay.querySelector('.inline-edit-value')) {
     var labelPoll = setInterval(function() {
       labelAttempts++;
       if (labelAttempts > 5) { clearInterval(labelPoll); return; }
-      api('/links/' + labelLinkId).then(function(res) {
+      AdminClient.api('/links/' + labelLinkId).then(function(res) {
         if (!res.ok) return;
         return res.json();
       }).then(function(link) {
@@ -1142,17 +1273,17 @@ if (labelDisplay && !labelDisplay.querySelector('.inline-edit-value')) {
 // ---- Live polling (15s) ----
 var POLL_INTERVAL = 15000;
 
-function getActiveRange() {
+AdminClient.getActiveRange = function () {
   var btn = document.querySelector('.timeline-range-btn.active')
     || document.querySelector('.range-picker a.active');
   return btn ? btn.getAttribute('data-range') : 'all';
 }
 
 // Dashboard polling
-function pollDashboard() {
+AdminClient.pollDashboard = function () {
   var range = getActiveRange();
   var path = '/dashboard' + (range ? '?range=' + encodeURIComponent(range) : '');
-  api(path).then(function(res) {
+  AdminClient.api(path).then(function(res) {
     if (!res.ok) return;
     return res.json();
   }).then(function(d) {
@@ -1160,10 +1291,10 @@ function pollDashboard() {
     var el;
 
     el = document.getElementById('dash-total-links');
-    if (el) el.textContent = fmtCount(d.total_links);
+    if (el) el.textContent = AdminClient.fmtCount(d.total_links);
 
     el = document.getElementById('dash-total-clicks');
-    if (el) el.textContent = fmtCount(d.total_clicks);
+    if (el) el.textContent = AdminClient.fmtCount(d.total_clicks);
 
     // Top countries
     var countriesCard = document.getElementById('dash-top-countries');
@@ -1175,7 +1306,7 @@ function pollDashboard() {
       if (cMax === 0) cMax = 1;
       if (d.top_countries.length === 0) {
         cAfter = '';
-        if (cBody) cBody.innerHTML = '<span style="color:var(--color-text-muted)">' + esc(t('dashboard.noData')) + '</span>';
+        if (cBody) cBody.innerHTML = '<span style="color:var(--color-text-muted)">' + AdminClient.esc(AdminClient.t('dashboard.noData')) + '</span>';
       } else {
         if (cBody) cBody.innerHTML = '';
       }
@@ -1187,8 +1318,8 @@ function pollDashboard() {
         var cpct = Math.round((cc.count / cMax) * 100);
         var row = document.createElement('div');
         row.className = 'stat-row';
-        row.innerHTML = '<div class="name"><span class="flag">' + esc(cc.name) + '</span><span class="label">' + esc(countryName(cc.name)) + '</span></div>' +
-          '<div class="right"><span class="count">' + fmtCount(cc.count) + '</span><span class="pct">' + cpct + '%</span></div>' +
+        row.innerHTML = '<div class="name"><span class="flag">' + AdminClient.esc(cc.name) + '</span><span class="label">' + AdminClient.esc(AdminClient.countryName(cc.name)) + '</span></div>' +
+          '<div class="right"><span class="count">' + AdminClient.fmtCount(cc.count) + '</span><span class="pct">' + cpct + '%</span></div>' +
           '<div class="bar"><div class="fill orange" style="width:' + cpct + '%"></div></div>';
         countriesCard.appendChild(row);
       }
@@ -1207,7 +1338,7 @@ function pollDashboard() {
         if (!sNoData) {
           var nd = document.createElement('div');
           nd.className = 'muted-hint';
-          nd.textContent = t('dashboard.noData');
+          nd.textContent = AdminClient.t('dashboard.noData');
           domainsCard.appendChild(nd);
         }
       } else {
@@ -1217,8 +1348,8 @@ function pollDashboard() {
           var rpct = Math.round((ref.count / sMax) * 100);
           var row = document.createElement('div');
           row.className = 'stat-row';
-          row.innerHTML = '<div class="name"><span class="label">' + esc(ref.name) + '</span></div>' +
-            '<div class="right"><span class="count">' + fmtCount(ref.count) + '</span><span class="pct">' + rpct + '%</span></div>' +
+          row.innerHTML = '<div class="name"><span class="label">' + AdminClient.esc(ref.name) + '</span></div>' +
+            '<div class="right"><span class="count">' + AdminClient.fmtCount(ref.count) + '</span><span class="pct">' + rpct + '%</span></div>' +
             '<div class="bar"><div class="fill mint" style="width:' + rpct + '%"></div></div>';
           domainsCard.appendChild(row);
         }
@@ -1235,7 +1366,7 @@ function pollDashboard() {
         if (!recentNoData) {
           var nd = document.createElement('div');
           nd.className = 'muted-hint';
-          nd.textContent = t('dashboard.noLinks');
+          nd.textContent = AdminClient.t('dashboard.noLinks');
           recentCard.appendChild(nd);
         }
       } else {
@@ -1250,9 +1381,9 @@ function pollDashboard() {
           var a = document.createElement('a');
           a.href = '/_/admin/links/' + link.id;
           a.style.cssText = 'display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0;cursor:pointer;overflow:hidden;min-width:0;text-decoration:none;color:inherit';
-          a.innerHTML = '<span class="slug-chip" onclick="event.preventDefault();event.stopPropagation();copyUrl(\\'' + esc(slug) + '\\')" title="' + esc(t('dashboard.clickToCopy')) + '">' + esc(slug) + ' <span class="icon" style="font-size:14px">content_copy</span></span>' +
-            '<span style="flex:1;min-width:0;font-size:0.8rem;color:var(--color-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(link.url) + '</span>' +
-            '<span style="font-family:var(--font-family-display);font-weight:700;color:var(--color-accent);flex-shrink:0">' + fmtCount(link.total_clicks) + '</span>';
+          a.innerHTML = '<span class="slug-chip" onclick="event.preventDefault();event.stopPropagation();AdminClient.copyUrl(\\'' + AdminClient.esc(slug) + '\\')" title="' + AdminClient.esc(AdminClient.t('dashboard.clickToCopy')) + '">' + AdminClient.esc(slug) + ' <span class="icon" style="font-size:14px">content_copy</span></span>' +
+            '<span style="flex:1;min-width:0;font-size:0.8rem;color:var(--color-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + AdminClient.esc(link.url) + '</span>' +
+            '<span style="font-family:var(--font-family-display);font-weight:700;color:var(--color-accent);flex-shrink:0">' + AdminClient.fmtCount(link.total_clicks) + '</span>';
           recentCard.appendChild(a);
         }
       }
@@ -1271,7 +1402,7 @@ function pollDashboard() {
         if (!tlNoData) {
           var nd = document.createElement('div');
           nd.className = 'muted-hint';
-          nd.textContent = t('dashboard.noData');
+          nd.textContent = AdminClient.t('dashboard.noData');
           topLinksCard.appendChild(nd);
         }
       } else {
@@ -1288,11 +1419,11 @@ function pollDashboard() {
           a.href = '/_/admin/links/' + tLink.id;
           a.className = 'top-link-row';
           a.innerHTML = '<div class="stat-row">' +
-            '<div class="name mono"><span class="label">' + esc(tSlug) + '</span></div>' +
-            '<div class="right"><span class="count">' + fmtCount(tLink.total_clicks) + '</span><span class="pct">' + tPct + '%</span></div>' +
+            '<div class="name mono"><span class="label">' + AdminClient.esc(tSlug) + '</span></div>' +
+            '<div class="right"><span class="count">' + AdminClient.fmtCount(tLink.total_clicks) + '</span><span class="pct">' + tPct + '%</span></div>' +
             '<div class="bar"><div class="fill orange" style="width:' + tPct + '%"></div></div>' +
             '</div>' +
-            '<div class="top-link-row-url">' + esc(tLink.url) + '</div>';
+            '<div class="top-link-row-url">' + AdminClient.esc(tLink.url) + '</div>';
           topLinksCard.appendChild(a);
         }
       }
@@ -1301,7 +1432,7 @@ function pollDashboard() {
 }
 
 // Link detail polling
-function pollLinkDetail(linkId) {
+AdminClient.pollLinkDetail = function (linkId) {
   var range = getActiveRange();
   loadAnalytics(linkId, range);
 }
@@ -1337,7 +1468,7 @@ var BUNDLE_ICONS = [
   'shopping_cart','store','sell','paid','savings','redeem','credit_card',
 ];
 
-function renderIconPicker(selected) {
+AdminClient.renderIconPicker = function (selected) {
   var chosen = selected || 'inventory_2';
   // If the pre-selected icon is not in our curated set (e.g. from an older
   // bundle that had a typed icon), prepend it so it stays selectable.
@@ -1346,14 +1477,14 @@ function renderIconPicker(selected) {
   var html = '<div class="bundle-icon-picker" id="bundle-icon-picker">';
   list.forEach(function(name) {
     var cls = 'bundle-icon-option' + (name === chosen ? ' selected' : '');
-    html += '<button type="button" class="' + cls + '" data-icon="' + esc(name) + '" onclick="selectBundleIcon(\\'' + name + '\\')" aria-label="' + esc(name) + '"><span class="icon">' + esc(name) + '</span></button>';
+    html += '<button type="button" class="' + cls + '" data-icon="' + AdminClient.esc(name) + '" onclick="selectBundleIcon(\\'' + name + '\\')" aria-label="' + AdminClient.esc(name) + '"><span class="icon">' + AdminClient.esc(name) + '</span></button>';
   });
   html += '</div>';
-  html += '<input type="hidden" id="bundle-icon" value="' + esc(chosen) + '">';
+  html += '<input type="hidden" id="bundle-icon" value="' + AdminClient.esc(chosen) + '">';
   return html;
 }
 
-function selectBundleIcon(name) {
+AdminClient.selectBundleIcon = function (name) {
   var picker = document.getElementById('bundle-icon-picker');
   if (!picker) return;
   var buttons = picker.querySelectorAll('.bundle-icon-option');
@@ -1364,18 +1495,18 @@ function selectBundleIcon(name) {
   if (input) input.value = name;
 }
 
-function renderAccentPicker(selected, inputId) {
+AdminClient.renderAccentPicker = function (selected, inputId) {
   var html = '<div class="accent-picker" id="accent-picker">';
   BUNDLE_ACCENTS.forEach(function(a) {
     var cls = 'accent-swatch accent-' + a + (a === selected ? ' selected' : '');
-    html += '<button type="button" class="' + cls + '" data-accent="' + a + '" onclick="selectAccent(\\'' + a + '\\')" title="' + esc(t('bundles.accent.' + a)) + '"></button>';
+    html += '<button type="button" class="' + cls + '" data-accent="' + a + '" onclick="selectAccent(\\'' + a + '\\')" title="' + AdminClient.esc(AdminClient.t('bundles.accent.' + a)) + '"></button>';
   });
-  html += '<input type="hidden" id="' + inputId + '" value="' + esc(selected) + '">';
+  html += '<input type="hidden" id="' + inputId + '" value="' + AdminClient.esc(selected) + '">';
   html += '</div>';
   return html;
 }
 
-function selectAccent(a) {
+AdminClient.selectAccent = function (a) {
   var picker = document.getElementById('accent-picker');
   if (!picker) return;
   var swatches = picker.querySelectorAll('.accent-swatch');
@@ -1386,28 +1517,28 @@ function selectAccent(a) {
   if (input) input.value = a;
 }
 
-function showCreateBundleModal(onCreated) {
+AdminClient.showCreateBundleModal = function (onCreated) {
   // Stash the optional callback so doCreateBundle can pick it up without us
   // having to rewrite the button's onclick attribute after render.
   window.__bundleOnCreated = typeof onCreated === 'function' ? onCreated : null;
-  var html = '<div class="modal-title">' + esc(t('bundles.newBundle')) + '</div>';
-  html += '<div class="form-group"><label class="form-label">' + esc(t('bundles.formName')) + ' *</label>';
-  html += '<input class="form-input" id="bundle-name" placeholder="' + esc(t('bundles.formNameHint')) + '"></div>';
-  html += '<div class="form-group"><label class="form-label">' + esc(t('bundles.formDescription')) + '</label>';
-  html += '<input class="form-input" id="bundle-description" placeholder="' + esc(t('bundles.formDescriptionHint')) + '"></div>';
-  html += '<div class="form-group"><label class="form-label">' + esc(t('bundles.formIcon')) + '</label>';
+  var html = '<div class="modal-title">' + AdminClient.esc(AdminClient.t('bundles.newBundle')) + '</div>';
+  html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formName')) + ' *</label>';
+  html += '<input class="form-input" id="bundle-name" placeholder="' + AdminClient.esc(AdminClient.t('bundles.formNameHint')) + '"></div>';
+  html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formDescription')) + '</label>';
+  html += '<input class="form-input" id="bundle-description" placeholder="' + AdminClient.esc(AdminClient.t('bundles.formDescriptionHint')) + '"></div>';
+  html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formIcon')) + '</label>';
   html += renderIconPicker('inventory_2') + '</div>';
-  html += '<div class="form-group"><label class="form-label">' + esc(t('bundles.formAccent')) + '</label>';
+  html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formAccent')) + '</label>';
   html += renderAccentPicker('orange', 'bundle-accent') + '</div>';
-  html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('bundles.cancel')) + '</button>';
-  html += '<button class="btn btn-primary" onclick="doCreateBundle()">' + esc(t('bundles.create')) + '</button></div>';
-  openModal(html);
+  html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('bundles.cancel')) + '</button>';
+  html += '<button class="btn btn-primary" onclick="doCreateBundle()">' + AdminClient.esc(AdminClient.t('bundles.create')) + '</button></div>';
+  AdminClient.openModal(html);
   setTimeout(function() { var el = document.getElementById('bundle-name'); if (el) el.focus(); }, 100);
 }
 
-function doCreateBundle() {
+AdminClient.doCreateBundle = function () {
   var name = document.getElementById('bundle-name').value.trim();
-  if (!name) { toast(t('client.urlRequired'), 'error'); return; }
+  if (!name) { AdminClient.toast(AdminClient.t('client.urlRequired'), 'error'); return; }
   var body = {
     name: name,
     description: document.getElementById('bundle-description').value.trim() || null,
@@ -1416,11 +1547,11 @@ function doCreateBundle() {
   };
   var onCreated = window.__bundleOnCreated;
   window.__bundleOnCreated = null;
-  api('/bundles', { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
+  AdminClient.api('/bundles', { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
     if (res.ok) {
       res.json().then(function(bundle) {
-        closeModal();
-        toast(t('client.bundles.created'));
+        AdminClient.closeModal();
+        AdminClient.toast(AdminClient.t('client.bundles.created'));
         if (typeof onCreated === 'function') {
           onCreated(bundle);
         } else {
@@ -1428,91 +1559,91 @@ function doCreateBundle() {
         }
       });
     } else {
-      res.json().then(function(data) { toast(data.error || t('client.bundles.createError'), 'error'); });
+      res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.bundles.createError'), 'error'); });
     }
   });
 }
 
-function showEditBundleModal(bundleId) {
+AdminClient.showEditBundleModal = function (bundleId) {
   var menu = document.getElementById('detail-menu');
   if (menu) menu.style.display = 'none';
-  api('/bundles/' + bundleId).then(function(res) {
-    if (!res.ok) { toast(t('client.bundles.saveError'), 'error'); return; }
+  AdminClient.api('/bundles/' + bundleId).then(function(res) {
+    if (!res.ok) { AdminClient.toast(AdminClient.t('client.bundles.saveError'), 'error'); return; }
     res.json().then(function(b) {
-      var html = '<div class="modal-title">' + esc(t('bundles.editBundle')) + '</div>';
-      html += '<div class="form-group"><label class="form-label">' + esc(t('bundles.formName')) + ' *</label>';
-      html += '<input class="form-input" id="bundle-name" value="' + esc(b.name || '') + '"></div>';
-      html += '<div class="form-group"><label class="form-label">' + esc(t('bundles.formDescription')) + '</label>';
-      html += '<input class="form-input" id="bundle-description" value="' + esc(b.description || '') + '"></div>';
-      html += '<div class="form-group"><label class="form-label">' + esc(t('bundles.formIcon')) + '</label>';
+      var html = '<div class="modal-title">' + AdminClient.esc(AdminClient.t('bundles.editBundle')) + '</div>';
+      html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formName')) + ' *</label>';
+      html += '<input class="form-input" id="bundle-name" value="' + AdminClient.esc(b.name || '') + '"></div>';
+      html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formDescription')) + '</label>';
+      html += '<input class="form-input" id="bundle-description" value="' + AdminClient.esc(b.description || '') + '"></div>';
+      html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formIcon')) + '</label>';
       html += renderIconPicker(b.icon || 'inventory_2') + '</div>';
-      html += '<div class="form-group"><label class="form-label">' + esc(t('bundles.formAccent')) + '</label>';
+      html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formAccent')) + '</label>';
       html += renderAccentPicker(b.accent || 'orange', 'bundle-accent') + '</div>';
-      html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('bundles.cancel')) + '</button>';
-      html += '<button class="btn btn-primary" onclick="doUpdateBundle(' + bundleId + ')">' + esc(t('bundles.save')) + '</button></div>';
-      openModal(html);
+      html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('bundles.cancel')) + '</button>';
+      html += '<button class="btn btn-primary" onclick="doUpdateBundle(' + bundleId + ')">' + AdminClient.esc(AdminClient.t('bundles.save')) + '</button></div>';
+      AdminClient.openModal(html);
     });
   });
 }
 
-function doUpdateBundle(bundleId) {
+AdminClient.doUpdateBundle = function (bundleId) {
   var name = document.getElementById('bundle-name').value.trim();
-  if (!name) { toast(t('client.urlRequired'), 'error'); return; }
+  if (!name) { AdminClient.toast(AdminClient.t('client.urlRequired'), 'error'); return; }
   var body = {
     name: name,
     description: document.getElementById('bundle-description').value.trim() || null,
     icon: document.getElementById('bundle-icon').value.trim() || null,
     accent: document.getElementById('bundle-accent').value || 'orange',
   };
-  api('/bundles/' + bundleId, { method: 'PUT', body: JSON.stringify(body) }).then(function(res) {
-    if (res.ok) { closeModal(); toast(t('client.bundles.updated')); window.location.reload(); }
-    else res.json().then(function(data) { toast(data.error || t('client.bundles.saveError'), 'error'); });
+  AdminClient.api('/bundles/' + bundleId, { method: 'PUT', body: JSON.stringify(body) }).then(function(res) {
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.bundles.updated')); window.location.reload(); }
+    else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.bundles.saveError'), 'error'); });
   });
 }
 
-function archiveBundle(bundleId, name) {
+AdminClient.archiveBundle = function (bundleId, name) {
   var menu = document.getElementById('detail-menu');
   if (menu) menu.style.display = 'none';
-  if (!confirm(t('client.bundles.confirmArchive', { name: name }))) return;
-  api('/bundles/' + bundleId + '/archive', { method: 'POST' }).then(function(res) {
-    if (res.ok) { toast(t('client.bundles.archived')); window.location.href = '/_/admin/bundles'; }
-    else toast(t('client.bundles.saveError'), 'error');
+  if (!confirm(AdminClient.t('client.bundles.confirmArchive', { name: name }))) return;
+  AdminClient.api('/bundles/' + bundleId + '/archive', { method: 'POST' }).then(function(res) {
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.bundles.archived')); window.location.href = '/_/admin/bundles'; }
+    else AdminClient.toast(AdminClient.t('client.bundles.saveError'), 'error');
   });
 }
 
-function unarchiveBundle(bundleId) {
+AdminClient.unarchiveBundle = function (bundleId) {
   var menu = document.getElementById('detail-menu');
   if (menu) menu.style.display = 'none';
-  api('/bundles/' + bundleId + '/unarchive', { method: 'POST' }).then(function(res) {
-    if (res.ok) { toast(t('client.bundles.unarchived')); window.location.reload(); }
-    else toast(t('client.bundles.saveError'), 'error');
+  AdminClient.api('/bundles/' + bundleId + '/unarchive', { method: 'POST' }).then(function(res) {
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.bundles.unarchived')); window.location.reload(); }
+    else AdminClient.toast(AdminClient.t('client.bundles.saveError'), 'error');
   });
 }
 
-function deleteBundleAction(bundleId, name) {
+AdminClient.deleteBundleAction = function (bundleId, name) {
   var menu = document.getElementById('detail-menu');
   if (menu) menu.style.display = 'none';
-  if (!confirm(t('client.bundles.confirmDelete', { name: name }))) return;
-  api('/bundles/' + bundleId, { method: 'DELETE' }).then(function(res) {
-    if (res.ok) { toast(t('client.bundles.deleted')); window.location.href = '/_/admin/bundles'; }
-    else toast(t('client.bundles.deleteError'), 'error');
+  if (!confirm(AdminClient.t('client.bundles.confirmDelete', { name: name }))) return;
+  AdminClient.api('/bundles/' + bundleId, { method: 'DELETE' }).then(function(res) {
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.bundles.deleted')); window.location.href = '/_/admin/bundles'; }
+    else AdminClient.toast(AdminClient.t('client.bundles.deleteError'), 'error');
   });
 }
 
-function removeLinkFromBundle(bundleId, linkId) {
-  if (!confirm(t('bundles.removeFromBundle') + '?')) return;
-  api('/bundles/' + bundleId + '/links/' + linkId, { method: 'DELETE' }).then(function(res) {
-    if (res.ok) { toast(t('client.bundles.updated')); window.location.reload(); }
-    else toast(t('client.bundles.saveError'), 'error');
+AdminClient.removeLinkFromBundle = function (bundleId, linkId) {
+  if (!confirm(AdminClient.t('bundles.removeFromBundle') + '?')) return;
+  AdminClient.api('/bundles/' + bundleId + '/links/' + linkId, { method: 'DELETE' }).then(function(res) {
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.bundles.updated')); window.location.reload(); }
+    else AdminClient.toast(AdminClient.t('client.bundles.saveError'), 'error');
   });
 }
 
-function showAddToBundleModal(linkId) {
+AdminClient.showAddToBundleModal = function (linkId) {
   var menu = document.getElementById('detail-menu');
   if (menu) menu.style.display = 'none';
   Promise.all([
-    api('/bundles?archived=false'),
-    api('/links/' + linkId + '/bundles'),
+    AdminClient.api('/bundles?archived=false'),
+    AdminClient.api('/links/' + linkId + '/bundles'),
   ]).then(function(responses) {
     return Promise.all(responses.map(function(r) { return r.json(); }));
   }).then(function(data) {
@@ -1521,55 +1652,55 @@ function showAddToBundleModal(linkId) {
     var memberIds = {};
     memberOf.forEach(function(b) { memberIds[b.id] = true; });
 
-    var html = '<div class="modal-title">' + esc(t('linkDetail.addToBundle')) + '</div>';
+    var html = '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.addToBundle')) + '</div>';
     if (allBundles.length === 0) {
-      html += '<div class="add-to-bundle-empty">' + esc(t('client.bundles.noBundles')) + '</div>';
+      html += '<div class="add-to-bundle-empty">' + AdminClient.esc(AdminClient.t('client.bundles.noBundles')) + '</div>';
     } else {
       html += '<div class="add-to-bundle-list">';
       allBundles.forEach(function(b) {
         var selectedCls = memberIds[b.id] ? ' selected' : '';
-        html += '<button type="button" class="add-to-bundle-row accent-' + esc(b.accent || 'orange') + selectedCls + '" data-bundle-id="' + b.id + '" onclick="toggleAddToBundleRow(this)">';
-        html += '<span class="icon">' + esc(b.icon || 'inventory_2') + '</span>';
-        html += '<div><div class="add-to-bundle-row-name">' + esc(b.name) + '</div>';
-        if (b.description) html += '<div class="add-to-bundle-row-desc">' + esc(b.description) + '</div>';
+        html += '<button type="button" class="add-to-bundle-row accent-' + AdminClient.esc(b.accent || 'orange') + selectedCls + '" data-bundle-id="' + b.id + '" onclick="AdminClient.toggleAddToBundleRow(this)">';
+        html += '<span class="icon">' + AdminClient.esc(b.icon || 'inventory_2') + '</span>';
+        html += '<div><div class="add-to-bundle-row-name">' + AdminClient.esc(b.name) + '</div>';
+        if (b.description) html += '<div class="add-to-bundle-row-desc">' + AdminClient.esc(b.description) + '</div>';
         html += '</div></button>';
       });
       html += '</div>';
     }
-    html += '<div class="add-to-bundle-create"><button type="button" class="btn btn-ghost" onclick="showCreateBundleForLink(' + linkId + ')">+ ' + esc(t('client.bundles.createNew')) + '</button></div>';
-    html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('bundles.cancel')) + '</button>';
-    html += '<button class="btn btn-primary" onclick="saveAddToBundle(' + linkId + ')">' + esc(t('bundles.save')) + '</button></div>';
-    openModal(html);
+    html += '<div class="add-to-bundle-create"><button type="button" class="btn btn-ghost" onclick="AdminClient.showCreateBundleForLink(' + linkId + ')">+ ' + AdminClient.esc(AdminClient.t('client.bundles.createNew')) + '</button></div>';
+    html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('bundles.cancel')) + '</button>';
+    html += '<button class="btn btn-primary" onclick="AdminClient.saveAddToBundle(' + linkId + ')">' + AdminClient.esc(AdminClient.t('bundles.save')) + '</button></div>';
+    AdminClient.openModal(html);
 
     // Stash the original memberships so save can compute the diff.
     window.__bundleOriginalMembership = memberIds;
   });
 }
 
-function showCreateBundleForLink(linkId) {
+AdminClient.showCreateBundleForLink = function (linkId) {
   // On create, attach the link to the new bundle. The callback is threaded
   // through the modal rather than spliced into the primary button's onclick
   // attribute, so renames to the modal markup do not silently break this.
   showCreateBundleModal(function(bundle) {
-    api('/bundles/' + bundle.id + '/links', {
+    AdminClient.api('/bundles/' + bundle.id + '/links', {
       method: 'POST',
       body: JSON.stringify({ link_id: linkId }),
     }).then(function(res) {
       if (res.ok) {
-        toast(t('client.bundles.updated'));
+        AdminClient.toast(AdminClient.t('client.bundles.updated'));
         window.location.reload();
       } else {
-        toast(t('client.bundles.saveError'), 'error');
+        AdminClient.toast(AdminClient.t('client.bundles.saveError'), 'error');
       }
     });
   });
 }
 
-function toggleAddToBundleRow(el) {
+AdminClient.toggleAddToBundleRow = function (el) {
   el.classList.toggle('selected');
 }
 
-function saveAddToBundle(linkId) {
+AdminClient.saveAddToBundle = function (linkId) {
   var original = window.__bundleOriginalMembership || {};
   var rows = document.querySelectorAll('.add-to-bundle-list .add-to-bundle-row');
   var desired = {};
@@ -1583,41 +1714,41 @@ function saveAddToBundle(linkId) {
 
   var ops = [];
   toAdd.forEach(function(bid) {
-    ops.push(api('/bundles/' + bid + '/links', {
+    ops.push(AdminClient.api('/bundles/' + bid + '/links', {
       method: 'POST',
       body: JSON.stringify({ link_id: linkId }),
     }));
   });
   toRemove.forEach(function(bid) {
-    ops.push(api('/bundles/' + bid + '/links/' + linkId, { method: 'DELETE' }));
+    ops.push(AdminClient.api('/bundles/' + bid + '/links/' + linkId, { method: 'DELETE' }));
   });
 
   Promise.all(ops).then(function(results) {
     var failed = results.some(function(r) { return !r.ok; });
     if (failed) {
-      toast(t('client.bundles.saveError'), 'error');
+      AdminClient.toast(AdminClient.t('client.bundles.saveError'), 'error');
     } else {
-      closeModal();
-      toast(t('client.bundles.updated'));
+      AdminClient.closeModal();
+      AdminClient.toast(AdminClient.t('client.bundles.updated'));
       window.location.reload();
     }
   });
 }
 
-function showAddLinkToBundlePicker(bundleId, excludeIds) {
+AdminClient.showAddLinkToBundlePicker = function (bundleId, excludeIds) {
   var exclude = {};
   if (excludeIds && excludeIds.length) {
     for (var i = 0; i < excludeIds.length; i++) exclude[excludeIds[i]] = true;
   }
-  api('/links').then(function(res) {
-    if (!res.ok) { toast(t('client.createLinkError'), 'error'); return; }
+  AdminClient.api('/links').then(function(res) {
+    if (!res.ok) { AdminClient.toast(AdminClient.t('client.createLinkError'), 'error'); return; }
     res.json().then(function(links) {
       var available = links.filter(function(link) { return !exclude[link.id]; });
-      var html = '<div class="modal-title">' + esc(t('bundles.addLinkToBundle')) + '</div>';
-      html += '<div class="form-group"><input class="form-input" id="bundle-link-search" placeholder="' + esc(t('links.search')) + '" oninput="filterBundleLinkPicker()"></div>';
+      var html = '<div class="modal-title">' + AdminClient.esc(AdminClient.t('bundles.addLinkToBundle')) + '</div>';
+      html += '<div class="form-group"><input class="form-input" id="bundle-link-search" placeholder="' + AdminClient.esc(AdminClient.t('links.search')) + '" oninput="AdminClient.filterBundleLinkPicker()"></div>';
       html += '<div class="add-to-bundle-list" id="bundle-link-picker-list">';
       if (available.length === 0) {
-        html += '<div class="muted-hint">' + esc(t('bundles.allLinksAdded')) + '</div>';
+        html += '<div class="muted-hint">' + AdminClient.esc(AdminClient.t('bundles.allLinksAdded')) + '</div>';
       } else {
         available.forEach(function(link) {
           var slug = '';
@@ -1626,21 +1757,21 @@ function showAddLinkToBundlePicker(bundleId, excludeIds) {
             slug = primary.slug;
           }
           var label = link.label || link.url;
-          html += '<div class="add-to-bundle-row" data-search="' + esc((link.label || '') + ' ' + link.url + ' ' + slug).toLowerCase() + '" onclick="doAddLinkToBundle(' + bundleId + ',' + link.id + ')">';
-          html += '<span class="slug-chip">' + esc(slug) + '</span>';
-          html += '<div><div class="add-to-bundle-row-name">' + esc(label) + '</div>';
-          html += '<div class="add-to-bundle-row-desc">' + esc(link.url) + '</div></div>';
+          html += '<div class="add-to-bundle-row" data-search="' + AdminClient.esc((link.label || '') + ' ' + link.url + ' ' + slug).toLowerCase() + '" onclick="AdminClient.doAddLinkToBundle(' + bundleId + ',' + link.id + ')">';
+          html += '<span class="slug-chip">' + AdminClient.esc(slug) + '</span>';
+          html += '<div><div class="add-to-bundle-row-name">' + AdminClient.esc(label) + '</div>';
+          html += '<div class="add-to-bundle-row-desc">' + AdminClient.esc(link.url) + '</div></div>';
           html += '</div>';
         });
       }
       html += '</div>';
-      html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">' + esc(t('bundles.cancel')) + '</button></div>';
-      openModal(html);
+      html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('bundles.cancel')) + '</button></div>';
+      AdminClient.openModal(html);
     });
   });
 }
 
-function filterBundleLinkPicker() {
+AdminClient.filterBundleLinkPicker = function () {
   var q = (document.getElementById('bundle-link-search').value || '').toLowerCase();
   var rows = document.querySelectorAll('#bundle-link-picker-list .add-to-bundle-row');
   for (var i = 0; i < rows.length; i++) {
@@ -1649,13 +1780,13 @@ function filterBundleLinkPicker() {
   }
 }
 
-function doAddLinkToBundle(bundleId, linkId) {
-  api('/bundles/' + bundleId + '/links', {
+AdminClient.doAddLinkToBundle = function (bundleId, linkId) {
+  AdminClient.api('/bundles/' + bundleId + '/links', {
     method: 'POST',
     body: JSON.stringify({ link_id: linkId }),
   }).then(function(res) {
-    if (res.ok) { closeModal(); toast(t('client.bundles.updated')); window.location.reload(); }
-    else res.json().then(function(data) { toast(data.error || t('client.bundles.saveError'), 'error'); });
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.bundles.updated')); window.location.reload(); }
+    else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.bundles.saveError'), 'error'); });
   });
 }
 
@@ -1674,80 +1805,91 @@ document.addEventListener('click', function(ev) {
   else if (action === 'delete') deleteBundleAction(id, name);
 });
 
-// Ensure all functions are exposed to window before any event handlers run
-(function() {
-  var maxAttempts = 100;
-  var attempt = 0;
-  function exposeGlobalFunctions() {
-    try {
-      window.setTheme = setTheme;
-      window.setLanguage = setLanguage;
-      window.setDefaultRange = setDefaultRange;
-      window.saveSettings = saveSettings;
-      window.saveAnalyticsFilters = saveAnalyticsFilters;
-      window.saveRootRedirectUrl = saveRootRedirectUrl;
-      window.closeModal = closeModal;
-      window.openModal = openModal;
-      window.copyToClipboard = copyToClipboard;
-      window.toggleSidebar = toggleSidebar;
-      window.closeSidebar = closeSidebar;
-      window.addRedirectRule = addRedirectRule;
-      window.deleteRedirectRule = deleteRedirectRule;
-      window.showCreateKeyModal = showCreateKeyModal;
-      window.deleteKey = deleteKey;
-      window.toggleDetailMenu = toggleDetailMenu;
-      window.cancelEditLabel = cancelEditLabel;
-      window.cancelEditExpiry = cancelEditExpiry;
-      window.quickShorten = quickShorten;
-      window.createKey = createKey;
-      window.copyRawKey = copyRawKey;
-      window.closeKeyRevealModal = closeKeyRevealModal;
-      window.createLink = createLink;
-      window.doAddSlug = doAddSlug;
-      window.doDeleteLink = doDeleteLink;
-      window.doDeleteSlug = doDeleteSlug;
-      window.doDisableLink = doDisableLink;
-      window.doDisableSlug = doDisableSlug;
-      window.doDuplicate = doDuplicate;
-      window.doEnableLink = doEnableLink;
-      window.doEnableSlug = doEnableSlug;
-      window.doSetPrimary = doSetPrimary;
-      window.downloadQrPng = downloadQrPng;
-      window.downloadQrSvg = downloadQrSvg;
-      window.saveAddToBundle = saveAddToBundle;
-      window.selectAccent = selectAccent;
-      window.selectBundleIcon = selectBundleIcon;
-      window.showCreateBundleForLink = showCreateBundleForLink;
-      window.toggleAddToBundleRow = toggleAddToBundleRow;
-    } catch(e) {
-      if (attempt++ < maxAttempts) {
-        setTimeout(exposeGlobalFunctions, 10);
-      }
-    }
+  // ============================================================================
+  // EXPORT MODULE TO WINDOW
+  // ============================================================================
+
+  // Make AdminClient available as a namespace
+  window.AdminClient = AdminClient;
+
+  // Create backward-compatible global functions
+  // These allow existing onclick="func()" handlers to continue working
+  // while delegating to the AdminClient namespace
+  window.t = function(key, params) { return AdminClient.t(key, params); };
+  window.toast = function(msg, type) { return AdminClient.toast(msg, type); };
+  window.closeModal = function() { return AdminClient.closeModal(); };
+  window.openModal = function(html) { return AdminClient.openModal(html); };
+  window.esc = function(s) { return AdminClient.esc(s); };
+  window.api = function(path, opts) { return AdminClient.api(path, opts); };
+  window.copyUrl = function(slug) { return AdminClient.copyUrl(slug); };
+  window.copyToClipboard = function(slug) { return AdminClient.copyToClipboard(slug); };
+  window.toggleDrawer = function() { return AdminClient.toggleDrawer(); };
+  window.closeDrawer = function() { return AdminClient.closeDrawer(); };
+  window.toggleSidebar = function() { return AdminClient.toggleSidebar(); };
+  window.closeSidebar = function() { return AdminClient.closeSidebar(); };
+  window.applyTheme = function(theme) { return AdminClient.applyTheme(theme); };
+  window.setTheme = function(theme) { return AdminClient.setTheme(theme); };
+  window.setLanguage = function(lang) { return AdminClient.setLanguage(lang); };
+  window.countryName = function(code) { return AdminClient.countryName(code); };
+  window.fmtCount = function(n) { return AdminClient.fmtCount(n); };
+  window.formatDate = function(ts) { return AdminClient.formatDate(ts); };
+  window.isUrl = function(v) { return AdminClient.isUrl(v); };
+  window.quickShorten = function() { return AdminClient.quickShorten(); };
+  window.upsertDynamicRedirectRule = function(s, d) { return AdminClient.upsertDynamicRedirectRule(s, d); };
+  window.updateQuickActionButton = function() { return AdminClient.updateQuickActionButton(); };
+  window.showCreateModal = function() { return AdminClient.showCreateModal(); };
+  window.createLink = function() { return AdminClient.createLink(); };
+  window.createDuplicate = function(url) { return AdminClient.createDuplicate(url); };
+  window.showCreateKeyModal = function() { return AdminClient.showCreateKeyModal(); };
+  window.createKey = function() { return AdminClient.createKey(); };
+  window.showKeyRevealModal = function(key) { return AdminClient.showKeyRevealModal(key); };
+  window.copyRawKey = function() { return AdminClient.copyRawKey(); };
+  window.closeKeyRevealModal = function() { return AdminClient.closeKeyRevealModal(); };
+  window.deleteKey = function(id, title) { return AdminClient.deleteKey(id, title); };
+  window.toggleDetailMenu = function() { return AdminClient.toggleDetailMenu(); };
+  window.cancelEditLabel = function(linkId, slugId) { return AdminClient.cancelEditLabel(linkId, slugId); };
+  window.cancelEditExpiry = function(linkId, slugId) { return AdminClient.cancelEditExpiry(linkId, slugId); };
+  window.saveDetailLabel = function(linkId, slugId) { return AdminClient.saveDetailLabel(linkId, slugId); };
+  window.saveDetailExpiry = function(linkId, slugId) { return AdminClient.saveDetailExpiry(linkId, slugId); };
+  window.showQRModal = function(slug) { return AdminClient.showQRModal(slug); };
+  window.saveSettings = function() { return AdminClient.saveSettings(); };
+  window.saveAnalyticsFilters = function() { return AdminClient.saveAnalyticsFilters(); };
+  window.saveRootRedirectUrl = function() { return AdminClient.saveRootRedirectUrl(); };
+  window.setDefaultRange = function(r) { return AdminClient.setDefaultRange(r); };
+  window.addRedirectRule = function() { return AdminClient.addRedirectRule(); };
+  window.deleteRedirectRule = function(idx) { return AdminClient.deleteRedirectRule(idx); };
+  window.doAddSlug = function(id) { return AdminClient.doAddSlug(id); };
+  window.doDeleteLink = function(id) { return AdminClient.doDeleteLink(id); };
+  window.doDeleteSlug = function(id) { return AdminClient.doDeleteSlug(id); };
+  window.doDisableLink = function(id) { return AdminClient.doDisableLink(id); };
+  window.doDisableSlug = function(id) { return AdminClient.doDisableSlug(id); };
+  window.doDuplicate = function(id, url) { return AdminClient.doDuplicate(id, url); };
+  window.doEnableLink = function(id) { return AdminClient.doEnableLink(id); };
+  window.doEnableSlug = function(id) { return AdminClient.doEnableSlug(id); };
+  window.doSetPrimary = function(id, sid) { return AdminClient.doSetPrimary(id, sid); };
+  window.downloadQrPng = function(slug) { return AdminClient.downloadQrPng(slug); };
+  window.downloadQrSvg = function(slug) { return AdminClient.downloadQrSvg(slug); };
+  window.showDisableLinkModal = function(id) { return AdminClient.showDisableLinkModal(id); };
+  window.showDeleteLinkModal = function(id) { return AdminClient.showDeleteLinkModal(id); };
+  window.showEnableLinkModal = function(id) { return AdminClient.showEnableLinkModal(id); };
+  window.showAddSlugModal = function(linkId) { return AdminClient.showAddSlugModal(linkId); };
+  window.showChangePrimaryModal = function(linkId) { return AdminClient.showChangePrimaryModal(linkId); };
+  window.showDuplicateModal = function(linkId, url) { return AdminClient.showDuplicateModal(linkId, url); };
+  window.showAddToBundleModal = function(linkId) { return AdminClient.showAddToBundleModal(linkId); };
+  window.removeLinkFromBundle = function(bid, lid) { return AdminClient.removeLinkFromBundle(bid, lid); };
+  window.showCreateBundleForLink = function(linkId) { return AdminClient.showCreateBundleForLink(linkId); };
+  window.toggleAddToBundleRow = function(el) { return AdminClient.toggleAddToBundleRow(el); };
+  window.saveAddToBundle = function(linkId) { return AdminClient.saveAddToBundle(linkId); };
+  window.showAddLinkToBundlePicker = function(bundleId, excludeIds) { return AdminClient.showAddLinkToBundlePicker(bundleId, excludeIds); };
+  window.filterBundleLinkPicker = function() { return AdminClient.filterBundleLinkPicker(); };
+  window.doAddLinkToBundle = function(bundleId, linkId) { return AdminClient.doAddLinkToBundle(bundleId, linkId); };
+
+  // Log successful initialization
+  if (typeof console !== 'undefined' && console.debug) {
+    console.debug('[Admin Client] Module initialized successfully with ' + 
+                  Object.keys(AdminClient).length + ' functions available');
   }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', exposeGlobalFunctions);
-  } else {
-    exposeGlobalFunctions();
-  }
+
 })();
-window.createKey = createKey;
-window.copyRawKey = copyRawKey;
-window.closeKeyRevealModal = closeKeyRevealModal;
-window.createLink = createLink;
-window.doAddLinkToBundle = doAddLinkToBundle;
-window.doAddSlug = doAddSlug;
-window.doCreateBundle = doCreateBundle;
-window.doDeleteLink = doDeleteLink;
-window.doDeleteSlug = doDeleteSlug;
-window.doDisableLink = doDisableLink;
-window.doDisableSlug = doDisableSlug;
-window.doDuplicate = doDuplicate;
-window.doEnableLink = doEnableLink;
-window.doEnableSlug = doEnableSlug;
-window.doSetPrimary = doSetPrimary;
-window.doUpdateBundle = doUpdateBundle;
-window.downloadQrPng = downloadQrPng;
-window.downloadQrSvg = downloadQrSvg;
 `;
 }
