@@ -554,7 +554,7 @@ AdminClient.showAddSlugModal = function (linkId) {
   AdminClient.openModal(
     '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.addCustomSlug')) + '</div>' +
     '<div class="form-group"><label class="form-label">Slug</label><input class="form-input" id="m-new-slug" placeholder="my-custom-slug"></div>' +
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-primary" onclick="AdminClient.AdminClient.doAddSlug(' + linkId + ')">' + AdminClient.esc(AdminClient.t('linkDetail.add')) + '</button></div>'
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-primary" onclick="AdminClient.doAddSlug(' + linkId + ')">' + AdminClient.esc(AdminClient.t('linkDetail.add')) + '</button></div>'
   );
   setTimeout(function() { document.getElementById('m-new-slug').focus(); }, 100);
 }
