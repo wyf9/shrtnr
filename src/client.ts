@@ -1699,14 +1699,11 @@ document.addEventListener('click', function(ev) {
       window.cancelEditLabel = cancelEditLabel;
       window.cancelEditExpiry = cancelEditExpiry;
       window.quickShorten = quickShorten;
-      window.showCreateBundleModal = showCreateBundleModal;
       window.createKey = createKey;
       window.copyRawKey = copyRawKey;
       window.closeKeyRevealModal = closeKeyRevealModal;
       window.createLink = createLink;
-      window.doAddLinkToBundle = doAddLinkToBundle;
       window.doAddSlug = doAddSlug;
-      window.doCreateBundle = doCreateBundle;
       window.doDeleteLink = doDeleteLink;
       window.doDeleteSlug = doDeleteSlug;
       window.doDisableLink = doDisableLink;
@@ -1715,7 +1712,6 @@ document.addEventListener('click', function(ev) {
       window.doEnableLink = doEnableLink;
       window.doEnableSlug = doEnableSlug;
       window.doSetPrimary = doSetPrimary;
-      window.doUpdateBundle = doUpdateBundle;
       window.downloadQrPng = downloadQrPng;
       window.downloadQrSvg = downloadQrSvg;
       window.saveAddToBundle = saveAddToBundle;
@@ -1753,10 +1749,5 @@ window.doSetPrimary = doSetPrimary;
 window.doUpdateBundle = doUpdateBundle;
 window.downloadQrPng = downloadQrPng;
 window.downloadQrSvg = downloadQrSvg;
-window.saveAddToBundle = saveAddToBundle;
-window.selectAccent = selectAccent;
-window.selectBundleIcon = selectBundleIcon;
-window.showCreateBundleForLink = showCreateBundleForLink;
-window.toggleAddToBundleRow = toggleAddToBundleRow;
 `;
 }
