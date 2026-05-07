@@ -315,7 +315,7 @@ AdminClient.upsertDynamicRedirectRule = function (sourcePattern, destinationUrl)
   }).then(function(settings) {
     var currentRules = (settings.dynamic_redirect_rules || '').trim();
     var nextLine = sourcePattern.trim() + ' ' + destinationUrl.trim();
-    var nextRules = currentRules ? (currentRules + '\n' + nextLine) : nextLine;
+    var nextRules = currentRules ? (currentRules + '\\n' + nextLine) : nextLine;
     return AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
@@ -900,7 +900,7 @@ AdminClient.addRedirectRule = function () {
   }).then(function(settings) {
     var currentRules = (settings.dynamic_redirect_rules || '').trim();
     var nextLine = source + ' ' + dest;
-    var nextRules = currentRules ? (currentRules + '\n' + nextLine) : nextLine;
+    var nextRules = currentRules ? (currentRules + '\\n' + nextLine) : nextLine;
     return AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
@@ -924,10 +924,10 @@ AdminClient.deleteRedirectRule = function (idx) {
     return getRes.json();
   }).then(function(settings) {
     var currentRules = (settings.dynamic_redirect_rules || '').trim();
-    var lines = currentRules ? currentRules.split('\n').filter(function(l) { return l.trim(); }) : [];
+    var lines = currentRules ? currentRules.split('\\n').filter(function(l) { return l.trim(); }) : [];
     if (idx < 0 || idx >= lines.length) return;
     lines.splice(idx, 1);
-    var nextRules = lines.join('\n');
+    var nextRules = lines.join('\\n');
     return AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules || null }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
