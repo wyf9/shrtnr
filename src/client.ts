@@ -865,10 +865,10 @@ AdminClient.saveDynamicRedirectRules = function () {
   var input = document.getElementById('dynamic-redirect-rules-input');
   if (!input) return;
   var val = input.value;
-  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: val || null }) }).then(function(res) {
+  AdminClient.api('/_/admin/api/redirects', { method: 'PUT', body: JSON.stringify({ rules: val || null }) }).then(function(res) {
     if (res.ok) {
       return res.json().then(function(body) {
-        input.value = body.dynamic_redirect_rules || '';
+        input.value = body.rules || '';
         AdminClient.toast(AdminClient.t('client.settingsSaved'));
       });
     }
@@ -877,6 +877,8 @@ AdminClient.saveDynamicRedirectRules = function () {
     }).catch(function() {
       AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
     });
+  }).catch(function() {
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
 }
 
@@ -898,14 +900,14 @@ AdminClient.addRedirectRule = function () {
   var dest = destEl.value.trim();
   if (!source) { AdminClient.toast(AdminClient.t('client.pasteUrl'), 'error'); return; }
   if (!dest) { AdminClient.toast(AdminClient.t('redirects.destinationUrl'), 'error'); return; }
-  AdminClient.api('/settings').then(function(getRes) {
-    if (!getRes.ok) throw new Error('Failed to read settings');
+  AdminClient.api('/_/admin/api/redirects').then(function(getRes) {
+    if (!getRes.ok) throw new Error('Failed to read rules');
     return getRes.json();
-  }).then(function(settings) {
-    var currentRules = (settings.dynamic_redirect_rules || '').trim();
+  }).then(function(data) {
+    var currentRules = (data.rules || '').trim();
     var nextLine = source + ' ' + dest;
     var nextRules = currentRules ? (currentRules + '\\n' + nextLine) : nextLine;
-    return AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_rules: nextRules }) });
+    return AdminClient.api('/_/admin/api/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {
