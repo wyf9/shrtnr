@@ -4,7 +4,6 @@
 import type { FC } from "hono/jsx";
 import type { TranslateFn } from "../i18n";
 import { DynamicRedirectRule } from "../redirect-rules";
-import { escHtml } from "../escape";
 
 type Props = {
   rules: DynamicRedirectRule[];
@@ -12,40 +11,26 @@ type Props = {
   lang: string;
 };
 
-// Helper to render rule parts with syntax highlighting
 function renderRulePart(part: string): any {
-  // Highlight :placeholder and * splat with different colors
   const tokens: any[] = [];
   let lastIndex = 0;
-  
-  // Match :placeholder or * 
   const regex = /(:[\w]+|\*)/g;
   let match;
-  
+
   while ((match = regex.exec(part)) !== null) {
-    // Add text before match
-    if (match.index > lastIndex) {
-      tokens.push(part.substring(lastIndex, match.index));
-    }
-    // Add highlighted match
+    if (match.index > lastIndex) tokens.push(part.substring(lastIndex, match.index));
     const token = match[0];
-    if (token === "*") {
-      tokens.push(<span class="syntax-splat">{token}</span>);
-    } else {
-      tokens.push(<span class="syntax-placeholder">{token}</span>);
-    }
+    tokens.push(
+      token === "*" ? <span class="syntax-splat">{token}</span> : <span class="syntax-placeholder">{token}</span>,
+    );
     lastIndex = regex.lastIndex;
   }
-  
-  // Add remaining text
-  if (lastIndex < part.length) {
-    tokens.push(part.substring(lastIndex));
-  }
-  
+
+  if (lastIndex < part.length) tokens.push(part.substring(lastIndex));
   return tokens.length > 0 ? tokens : part;
 }
 
-export const RedirectsPage: FC<Props> = ({ rules, t, lang }) => {
+export const RedirectsPage: FC<Props> = ({ rules, t }) => {
   return (
     <>
       <div class="page-header topbar">
@@ -88,7 +73,6 @@ export const RedirectsPage: FC<Props> = ({ rules, t, lang }) => {
                 <tr>
                   <th>{t("redirects.colSource")}</th>
                   <th>{t("redirects.colDestination")}</th>
-                  <th>{t("redirects.colStatus")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -96,19 +80,19 @@ export const RedirectsPage: FC<Props> = ({ rules, t, lang }) => {
                 {rules.map((rule, idx) => (
                   <tr class="redirect-row">
                     <td data-label={t("redirects.colSource")}>
-                      <code class="redirect-rule-code">
-                        {renderRulePart(rule.source)}
-                      </code>
+                      <code class="redirect-rule-code">{renderRulePart(rule.source)}</code>
                     </td>
                     <td data-label={t("redirects.colDestination")}>
-                      <code class="redirect-rule-code">
-                        {renderRulePart(rule.destination)}
-                      </code>
-                    </td>
-                    <td data-label={t("redirects.colStatus")} class="col-status">
-                      {rule.status}
+                      <code class="redirect-rule-code">{renderRulePart(rule.destination)}</code>
                     </td>
                     <td class="col-actions">
+                      <button
+                        class="btn btn-ghost btn-sm no-row-nav"
+                        onclick={`AdminClient.showEditRedirectModal(${idx}, ${JSON.stringify(rule.source)}, ${JSON.stringify(rule.destination)})`}
+                        title={t("redirects.edit")}
+                      >
+                        <span class="icon icon-sm">edit</span>
+                      </button>
                       <button
                         class="btn btn-ghost btn-sm no-row-nav"
                         onclick={`deleteRedirectRule(${idx})`}

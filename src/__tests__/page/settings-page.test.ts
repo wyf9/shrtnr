@@ -66,16 +66,12 @@ describe("Settings page analytics filter toggles", () => {
   });
 });
 
-describe("Settings page root redirect control", () => {
-  it("renders root redirect URL input", async () => {
-    const res = await SELF.fetch(req("/_/admin/settings"));
+describe("Redirects page", () => {
+  it("renders rule inputs without a status column", async () => {
+    const res = await SELF.fetch(req("/_/admin/redirects"));
     const html = await res.text();
-    expect(html).toContain('id="root-redirect-url-input"');
-  });
-
-  it("renders dynamic redirect rules input", async () => {
-    const res = await SELF.fetch(req("/_/admin/settings"));
-    const html = await res.text();
-    expect(html).toContain('id="dynamic-redirect-rules-input"');
+    expect(html).toContain('id="quick-rule-source"');
+    expect(html).toContain('id="quick-rule-dest"');
+    expect(html).not.toContain("redirects.colStatus");
   });
 });

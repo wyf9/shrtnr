@@ -141,13 +141,15 @@ const en = {
 
   // Redirects
   "redirects.title": "Dynamic Redirects",
-  "redirects.subtitle": "Manage dynamic redirect rules with placeholders and splat",
+  "redirects.subtitle": "Manage dynamic redirect rules with placeholders and splat. All rules use 302.",
   "redirects.colSource": "Source Pattern",
   "redirects.colDestination": "Destination",
-  "redirects.colStatus": "Status",
   "redirects.sourcePattern": "/pattern/:placeholder or /prefix/*",
   "redirects.destinationUrl": "https://destination.com/:placeholder or :splat",
   "redirects.add": "Add Rule",
+  "redirects.edit": "Edit",
+  "redirects.editRule": "Edit Rule",
+  "redirects.saveRule": "Save Rule",
   "redirects.delete": "Delete",
   "redirects.empty": "No dynamic redirect rules yet. Add one to get started.",
 

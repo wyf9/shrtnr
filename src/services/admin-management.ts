@@ -205,7 +205,7 @@ export async function getDynamicRedirectRules(env: Env): Promise<string> {
   return stored ?? "";
 }
 
-export async function getDynamicRedirect(env: Env, requestUrl: string): Promise<{ url: string; status: number } | null> {
+export async function getDynamicRedirect(env: Env, requestUrl: string): Promise<{ url: string } | null> {
   const rules = await getDynamicRedirectRules(env);
   const parsed = parseDynamicRedirectRules(rules);
   if (!parsed.ok || parsed.rules.length === 0) return null;

@@ -144,13 +144,15 @@ const id: Translations = {
 
   // Redirects
   "redirects.title": "Pengalihan Dinamis",
-  "redirects.subtitle": "Mengelola aturan pengalihan dinamis dengan placeholder dan splat",
+  "redirects.subtitle": "Mengelola aturan pengalihan dinamis dengan placeholder dan splat. Semua aturan memakai 302.",
   "redirects.colSource": "Pola Sumber",
   "redirects.colDestination": "Tujuan",
-  "redirects.colStatus": "Status",
   "redirects.sourcePattern": "/pola/:placeholder atau /awalan/*",
   "redirects.destinationUrl": "https://tujuan.com/:placeholder atau :splat",
   "redirects.add": "Tambah Aturan",
+  "redirects.edit": "Sunting",
+  "redirects.editRule": "Sunting Aturan",
+  "redirects.saveRule": "Simpan Aturan",
   "redirects.delete": "Hapus",
   "redirects.empty": "Belum ada aturan pengalihan dinamis. Tambahkan satu untuk memulai.",
 

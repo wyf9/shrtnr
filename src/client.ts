@@ -861,27 +861,6 @@ AdminClient.saveRootRedirectUrl = function () {
   });
 }
 
-AdminClient.saveDynamicRedirectRules = function () {
-  var input = document.getElementById('dynamic-redirect-rules-input');
-  if (!input) return;
-  var val = input.value;
-  AdminClient.api('/redirects', { method: 'PUT', body: JSON.stringify({ rules: val || null }) }).then(function(res) {
-    if (res.ok) {
-      return res.json().then(function(body) {
-        input.value = body.rules || '';
-        AdminClient.toast(AdminClient.t('client.settingsSaved'));
-      });
-    }
-    return res.json().then(function(data) {
-      AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
-    }).catch(function() {
-      AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
-    });
-  }).catch(function() {
-    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
-  });
-}
-
 AdminClient.updateComboHint = function () {
   var el = document.getElementById('slug-combo-hint');
   if (!el) return;
@@ -892,6 +871,20 @@ AdminClient.updateComboHint = function () {
     : AdminClient.t('client.minLength');
 }
 
+AdminClient.getRedirectRules = function () {
+  return AdminClient.api('/redirects').then(function(getRes) {
+    if (!getRes.ok) throw new Error('Failed to read rules');
+    return getRes.json();
+  });
+}
+
+AdminClient.saveRedirectRules = function (rules) {
+  return AdminClient.api('/redirects', {
+    method: 'PUT',
+    body: JSON.stringify({ rules: rules }),
+  });
+}
+
 AdminClient.addRedirectRule = function () {
   var sourceEl = document.getElementById('quick-rule-source');
   var destEl = document.getElementById('quick-rule-dest');
@@ -900,14 +893,11 @@ AdminClient.addRedirectRule = function () {
   var dest = destEl.value.trim();
   if (!source) { AdminClient.toast(AdminClient.t('client.pasteUrl'), 'error'); return; }
   if (!dest) { AdminClient.toast(AdminClient.t('redirects.destinationUrl'), 'error'); return; }
-  AdminClient.api('/redirects').then(function(getRes) {
-    if (!getRes.ok) throw new Error('Failed to read rules');
-    return getRes.json();
-  }).then(function(data) {
+  AdminClient.getRedirectRules().then(function(data) {
     var currentRules = (data.rules || '').trim();
     var nextLine = source + ' ' + dest;
     var nextRules = currentRules ? (currentRules + '\\n' + nextLine) : nextLine;
-    return AdminClient.api('/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules }) });
+    return AdminClient.saveRedirectRules(nextRules);
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {
@@ -923,18 +913,57 @@ AdminClient.addRedirectRule = function () {
   });
 }
 
+AdminClient.showEditRedirectModal = function (idx, source, destination) {
+  var html = '<div class="modal-title">' + AdminClient.esc(AdminClient.t('redirects.editRule')) + '</div>';
+  html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('redirects.colSource')) + '</label>';
+  html += '<input class="form-input" id="redirect-edit-source" value="' + AdminClient.esc(source) + '"></div>';
+  html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('redirects.colDestination')) + '</label>';
+  html += '<input class="form-input" id="redirect-edit-dest" value="' + AdminClient.esc(destination) + '"></div>';
+  html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button>';
+  html += '<button class="btn btn-primary" onclick="AdminClient.doUpdateRedirectRule(' + idx + ')">' + AdminClient.esc(AdminClient.t('redirects.saveRule')) + '</button></div>';
+  AdminClient.openModal(html);
+  setTimeout(function() {
+    var input = document.getElementById('redirect-edit-source');
+    if (input) input.focus();
+  }, 100);
+}
+
+AdminClient.doUpdateRedirectRule = function (idx) {
+  var sourceEl = document.getElementById('redirect-edit-source');
+  var destEl = document.getElementById('redirect-edit-dest');
+  if (!sourceEl || !destEl) return;
+  var source = sourceEl.value.trim();
+  var dest = destEl.value.trim();
+  if (!source) { AdminClient.toast(AdminClient.t('client.pasteUrl'), 'error'); return; }
+  if (!dest) { AdminClient.toast(AdminClient.t('redirects.destinationUrl'), 'error'); return; }
+  AdminClient.getRedirectRules().then(function(data) {
+    var lines = (data.rules || '').trim() ? (data.rules || '').trim().split('\\n').filter(function(l) { return l.trim(); }) : [];
+    if (idx < 0 || idx >= lines.length) throw new Error('Invalid redirect rule index');
+    lines[idx] = source + ' ' + dest;
+    return AdminClient.saveRedirectRules(lines.join('\\n'));
+  }).then(function(putRes) {
+    if (!putRes.ok) {
+      return putRes.json().then(function(data) {
+        AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
+      });
+    }
+    AdminClient.closeModal();
+    AdminClient.toast(AdminClient.t('client.settingsSaved'));
+    window.location.reload();
+  }).catch(function() {
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
+  });
+}
+
 AdminClient.deleteRedirectRule = function (idx) {
   if (!confirm(AdminClient.t('redirects.delete'))) return;
-  AdminClient.api('/redirects').then(function(getRes) {
-    if (!getRes.ok) throw new Error('Failed to read rules');
-    return getRes.json();
-  }).then(function(data) {
+  AdminClient.getRedirectRules().then(function(data) {
     var currentRules = (data.rules || '').trim();
     var lines = currentRules ? currentRules.split('\\n').filter(function(l) { return l.trim(); }) : [];
     if (idx < 0 || idx >= lines.length) return;
     lines.splice(idx, 1);
     var nextRules = lines.join('\\n');
-    return AdminClient.api('/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules || null }) });
+    return AdminClient.saveRedirectRules(nextRules || null);
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {

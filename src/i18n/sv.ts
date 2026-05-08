@@ -144,13 +144,15 @@ const sv: Translations = {
 
   // Redirects
   "redirects.title": "Dynamiska omdirigeringar",
-  "redirects.subtitle": "Hantera dynamiska omdirigeringsregler med platshållare och splat",
+  "redirects.subtitle": "Hantera dynamiska omdirigeringsregler med platshållare och splat. Alla regler använder 302.",
   "redirects.colSource": "Källmönster",
   "redirects.colDestination": "Destination",
-  "redirects.colStatus": "Status",
   "redirects.sourcePattern": "/mönster/:platshållare eller /prefix/*",
   "redirects.destinationUrl": "https://destination.com/:platshållare eller :splat",
   "redirects.add": "Lägg till regel",
+  "redirects.edit": "Redigera",
+  "redirects.editRule": "Redigera regel",
+  "redirects.saveRule": "Spara regel",
   "redirects.delete": "Radera",
   "redirects.empty": "Ingen dynamisk omdirigeringsregel ännu. Lägg till en för att komma igång.",
 

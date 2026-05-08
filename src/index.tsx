@@ -434,7 +434,7 @@ app.get("/*", async (c) => {
   if (!pathname || pathname === "/" || pathname.startsWith("/_")) return notFoundResponse();
 
   const dynamicRedirect = await getDynamicRedirect(c.env, c.req.url);
-  if (dynamicRedirect) return c.redirect(dynamicRedirect.url, dynamicRedirect.status as any);
+  if (dynamicRedirect) return c.redirect(dynamicRedirect.url, 302);
 
   const slug = pathname.slice(1);
   if (!slug || slug.includes("/")) return notFoundResponse();

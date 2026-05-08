@@ -12,7 +12,7 @@ describe("parseDynamicRedirectRules", () => {
     if (!parsed.ok) return;
     expect(parsed.rules).toHaveLength(2);
     expect(parsed.rules[0].source).toBe("/mail/:email");
-    expect(parsed.rules[1].status).toBe(301);
+    expect(parsed.rules[1].source).toBe("/a/*");
   });
 
   it("rejects malformed rules with line number", () => {
@@ -31,7 +31,6 @@ describe("matchDynamicRedirect", () => {
     const match = matchDynamicRedirect(parsed.rules, "/t/m/alice", "https://shrtnr.test/t/m/alice");
     expect(match).toEqual({
       url: "https://siiway.org/go/mail?name=alice",
-      status: 302,
     });
   });
 
@@ -42,7 +41,6 @@ describe("matchDynamicRedirect", () => {
     const match = matchDynamicRedirect(parsed.rules, "/a/team/core", "https://short.example/a/team/core");
     expect(match).toEqual({
       url: "https://short.example/about/team/core",
-      status: 302,
     });
   });
 });

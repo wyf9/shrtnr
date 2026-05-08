@@ -13,7 +13,6 @@ type RuleToken =
 export type DynamicRedirectRule = {
   source: string;
   destination: string;
-  status: number;
   tokens: RuleToken[];
 };
 
@@ -23,7 +22,6 @@ export type DynamicRedirectParseResult =
 
 export type DynamicRedirectMatch = {
   url: string;
-  status: number;
 };
 
 function tokenizePattern(source: string): RuleToken[] {
@@ -85,15 +83,17 @@ function parseRuleLine(line: string): DynamicRedirectRule {
 
   const source = parts[0];
   const destination = parts[1];
-  const status = parts[2] ? parseInt(parts[2], 10) : 302;
-  if (!Number.isInteger(status) || !VALID_REDIRECT_STATUS.has(status)) {
-    throw new Error("status must be one of 301, 302, 303, 307, 308");
+  if (parts[2]) {
+    const status = parseInt(parts[2], 10);
+    if (!Number.isInteger(status) || !VALID_REDIRECT_STATUS.has(status)) {
+      throw new Error("status must be one of 301, 302, 303, 307, 308");
+    }
   }
 
   validateDestination(destination);
   const tokens = tokenizePattern(source);
 
-  return { source, destination, status, tokens };
+  return { source, destination, tokens };
 }
 
 export function parseDynamicRedirectRules(raw: string | null | undefined): DynamicRedirectParseResult {
@@ -172,7 +172,7 @@ export function matchDynamicRedirect(
     if (!matched || segmentIndex !== pathSegments.length) continue;
 
     const templated = applyDestinationTemplate(rule.destination, params);
-    return { url: resolveDestination(templated, requestUrl), status: rule.status };
+    return { url: resolveDestination(templated, requestUrl) };
   }
 
   return null;

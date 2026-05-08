@@ -85,7 +85,7 @@ describe("Routing", () => {
       }),
     );
     const res = await SELF.fetch(unauthed("/a/team/core"), { redirect: "manual" });
-    expect(res.status).toBe(301);
+    expect(res.status).toBe(302);
     expect(res.headers.get("Location")).toBe("https://siiway.org/about/team/core");
   });
 
