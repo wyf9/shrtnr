@@ -309,14 +309,14 @@ AdminClient.quickShorten = function () {
 }
 
 AdminClient.upsertDynamicRedirectRule = function (sourcePattern, destinationUrl) {
-  AdminClient.api('/_/admin/api/redirects').then(function(getRes) {
+  AdminClient.api('/redirects').then(function(getRes) {
     if (!getRes.ok) throw new Error('Failed to read rules');
     return getRes.json();
   }).then(function(data) {
     var currentRules = (data.rules || '').trim();
     var nextLine = sourcePattern.trim() + ' ' + destinationUrl.trim();
     var nextRules = currentRules ? (currentRules + '\\n' + nextLine) : nextLine;
-    return AdminClient.api('/_/admin/api/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules }) });
+    return AdminClient.api('/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {
@@ -865,7 +865,7 @@ AdminClient.saveDynamicRedirectRules = function () {
   var input = document.getElementById('dynamic-redirect-rules-input');
   if (!input) return;
   var val = input.value;
-  AdminClient.api('/_/admin/api/redirects', { method: 'PUT', body: JSON.stringify({ rules: val || null }) }).then(function(res) {
+  AdminClient.api('/redirects', { method: 'PUT', body: JSON.stringify({ rules: val || null }) }).then(function(res) {
     if (res.ok) {
       return res.json().then(function(body) {
         input.value = body.rules || '';
@@ -900,14 +900,14 @@ AdminClient.addRedirectRule = function () {
   var dest = destEl.value.trim();
   if (!source) { AdminClient.toast(AdminClient.t('client.pasteUrl'), 'error'); return; }
   if (!dest) { AdminClient.toast(AdminClient.t('redirects.destinationUrl'), 'error'); return; }
-  AdminClient.api('/_/admin/api/redirects').then(function(getRes) {
+  AdminClient.api('/redirects').then(function(getRes) {
     if (!getRes.ok) throw new Error('Failed to read rules');
     return getRes.json();
   }).then(function(data) {
     var currentRules = (data.rules || '').trim();
     var nextLine = source + ' ' + dest;
     var nextRules = currentRules ? (currentRules + '\\n' + nextLine) : nextLine;
-    return AdminClient.api('/_/admin/api/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules }) });
+    return AdminClient.api('/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {
@@ -925,7 +925,7 @@ AdminClient.addRedirectRule = function () {
 
 AdminClient.deleteRedirectRule = function (idx) {
   if (!confirm(AdminClient.t('redirects.delete'))) return;
-  AdminClient.api('/_/admin/api/redirects').then(function(getRes) {
+  AdminClient.api('/redirects').then(function(getRes) {
     if (!getRes.ok) throw new Error('Failed to read rules');
     return getRes.json();
   }).then(function(data) {
@@ -934,7 +934,7 @@ AdminClient.deleteRedirectRule = function (idx) {
     if (idx < 0 || idx >= lines.length) return;
     lines.splice(idx, 1);
     var nextRules = lines.join('\\n');
-    return AdminClient.api('/_/admin/api/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules || null }) });
+    return AdminClient.api('/redirects', { method: 'PUT', body: JSON.stringify({ rules: nextRules || null }) });
   }).then(function(putRes) {
     if (!putRes.ok) {
       return putRes.json().then(function(data) {

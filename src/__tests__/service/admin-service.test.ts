@@ -4,6 +4,7 @@ import { applyMigrations, resetData } from "../setup";
 import {
   createNewApiKey,
   getAppSettings,
+  getDynamicRedirectRules,
   updateAppSettings,
 } from "../../services/admin-management";
 
@@ -163,24 +164,9 @@ describe("admin-management service", () => {
     if (b.ok) expect(b.data.root_redirect_url).toBe("https://global.example.com/");
   });
 
-  it("persists dynamic_redirect_rules globally", async () => {
-    const rules = "/mail/:email https://siiway.org/go/mail?email=:email\n/a/* https://siiway.org/about/:splat";
-    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { dynamic_redirect_rules: rules });
-    expect(updated.ok).toBe(true);
-    if (!updated.ok) return;
-    expect(updated.data.dynamic_redirect_rules).toBe(rules);
-
-    const other = await getAppSettings(env as any, "someone@example.com");
-    expect(other.ok).toBe(true);
-    if (other.ok) expect(other.data.dynamic_redirect_rules).toBe(rules);
-  });
-
-  it("rejects invalid dynamic_redirect_rules", async () => {
-    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
-      dynamic_redirect_rules: "/a/*/b https://example.com",
-    });
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.status).toBe(400);
+  it("returns empty dynamic redirect rules by default", async () => {
+    const stored = await getDynamicRedirectRules(env as any);
+    expect(stored).toBe("");
   });
 
   it("persists filter_bots when toggled off", async () => {

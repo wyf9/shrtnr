@@ -61,11 +61,11 @@ describe("Routing", () => {
 
   it("GET dynamic placeholder path should follow configured redirect rule", async () => {
     await SELF.fetch(
-      authed("/_/admin/api/settings", {
+      authed("/_/admin/api/redirects", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          dynamic_redirect_rules: "/mail/:email https://siiway.org/go/mail?email=:email",
+          rules: "/mail/:email https://siiway.org/go/mail?email=:email",
         }),
       }),
     );
@@ -76,11 +76,11 @@ describe("Routing", () => {
 
   it("GET dynamic splat path should follow configured redirect rule", async () => {
     await SELF.fetch(
-      authed("/_/admin/api/settings", {
+      authed("/_/admin/api/redirects", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          dynamic_redirect_rules: "/a/* https://siiway.org/about/:splat 301",
+          rules: "/a/* https://siiway.org/about/:splat 301",
         }),
       }),
     );
@@ -371,25 +371,25 @@ describe("Settings API", () => {
     expect(res.status).toBe(400);
   });
 
-  it("PUT /_/admin/api/settings should update dynamic_redirect_rules", async () => {
+  it("PUT /_/admin/api/redirects should update rules", async () => {
     const rules = "/tasks/:task https://git.siiway.org/siiway/tasks/issues/:task";
     const res = await SELF.fetch(
-      authed("/_/admin/api/settings", {
+      authed("/_/admin/api/redirects", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dynamic_redirect_rules: rules }),
+        body: JSON.stringify({ rules }),
       }),
     );
     const body = await res.json() as any;
-    expect(body.dynamic_redirect_rules).toBe(rules);
+    expect(body.rules).toBe(rules);
   });
 
-  it("PUT /_/admin/api/settings with invalid dynamic_redirect_rules should return 400", async () => {
+  it("PUT /_/admin/api/redirects with invalid rules should return 400", async () => {
     const res = await SELF.fetch(
-      authed("/_/admin/api/settings", {
+      authed("/_/admin/api/redirects", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dynamic_redirect_rules: "/a/*/b https://example.com" }),
+        body: JSON.stringify({ rules: "/a/*/b https://example.com" }),
       }),
     );
     expect(res.status).toBe(400);
