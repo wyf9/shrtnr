@@ -150,34 +150,7 @@ export function adminClientScript(version: string, translations: Translations): 
     AdminClient.toast(AdminClient.t('client.themeUpdated'));
   };
 
-AdminClient.fillMissingOptions = function (items, alwaysOn) {
-  var seen = {};
-  var out = [];
-  for (var i = 0; i < items.length; i++) { seen[items[i].name] = true; out.push(items[i]); }
-  for (var j = 0; j < alwaysOn.length; j++) {
-    if (!seen[alwaysOn[j]]) out.push({ name: alwaysOn[j], count: 0 });
-  }
-  return out;
-}
 
-AdminClient.t = function (key, params) {
-  var val = CONFIG.T[key] || key;
-  if (params) {
-    for (var k in params) {
-      val = val.replace(new RegExp('\\\\{' + k + '\\\\}', 'g'), String(params[k]));
-    }
-  }
-  return val;
-}
-
-// ---- Toast ----
-AdminClient.toast = function (msg, type) {
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast toast-' + (type || 'success');
-  el.style.display = 'block';
-  setTimeout(function() { el.style.display = 'none'; }, 3000);
-}
 
 // ---- Modal ----
 AdminClient.closeModal = function () { document.getElementById('modal-overlay').style.display = 'none'; }
@@ -1000,7 +973,7 @@ AdminClient.installApp = function () {
 var quickUrlEl = document.getElementById('quick-url');
 if (quickUrlEl) {
   quickUrlEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') AdminClient.quickShorten(); });
-  quickUrlEl.addEventListener('input', updateQuickActionButton);
+  quickUrlEl.addEventListener('input', AdminClient.updateQuickActionButton);
   AdminClient.updateQuickActionButton();
 }
 var quickSlugEl = document.getElementById('quick-slug');
@@ -1079,13 +1052,13 @@ AdminClient.loadAnalytics = function (linkId, range) {
 
     // Update hero total clicks
     var heroTotal = document.getElementById('hero-total-clicks');
-    if (heroTotal) heroTotal.textContent = fmtNum(stats.total_clicks);
+    if (heroTotal) heroTotal.textContent = AdminClient.fmtNum(stats.total_clicks);
     var timelineTotal = document.getElementById('timeline-total');
-    if (timelineTotal) timelineTotal.textContent = fmtNum(stats.total_clicks);
+    if (timelineTotal) timelineTotal.textContent = AdminClient.fmtNum(stats.total_clicks);
     var heroAvg = document.getElementById('hero-avg-per-day');
     if (heroAvg) {
       var createdAt = parseInt(heroAvg.getAttribute('data-created-at'), 10);
-      heroAvg.textContent = fmtAvgPerDay(stats.total_clicks, range, createdAt);
+      heroAvg.textContent = AdminClient.fmtAvgPerDay(stats.total_clicks, range, createdAt);
     }
 
     // Update per-slug click counts and bars
@@ -1108,31 +1081,31 @@ AdminClient.loadAnalytics = function (linkId, range) {
     }
 
     // Update timeline chart
-    renderTimeline(tlData);
+    AdminClient.renderTimeline(tlData);
 
     // Update all stat cards
-    renderStatCard('card-countries', stats.countries, 'orange', { mapName: countryName, flagFromName: true });
-    renderStatCard('card-domains', stats.referrer_hosts, 'mint', { mono: true });
-    renderStatCard('card-sources', stats.referrers, 'mint', { mono: true });
-    renderStatCard('card-link-modes', AdminClient.fillMissingOptions(stats.link_modes, CONFIG.ACCESS_METHOD_OPTIONS), 'orange', { iconFn: linkModeIcon });
-    renderStatCard('card-devices', stats.devices, 'orange', { iconFn: deviceIcon });
-    renderStatCard('card-os', stats.os, 'mint', { iconFn: osIcon });
-    renderStatCard('card-browsers', stats.browsers, 'mint');
+    AdminClient.renderStatCard('card-countries', stats.countries, 'orange', { mapName: AdminClient.countryName, flagFromName: true });
+    AdminClient.renderStatCard('card-domains', stats.referrer_hosts, 'mint', { mono: true });
+    AdminClient.renderStatCard('card-sources', stats.referrers, 'mint', { mono: true });
+    AdminClient.renderStatCard('card-link-modes', AdminClient.fillMissingOptions(stats.link_modes, CONFIG.ACCESS_METHOD_OPTIONS), 'orange', { iconFn: AdminClient.linkModeIcon });
+    AdminClient.renderStatCard('card-devices', stats.devices, 'orange', { iconFn: AdminClient.deviceIcon });
+    AdminClient.renderStatCard('card-os', stats.os, 'mint', { iconFn: AdminClient.osIcon });
+    AdminClient.renderStatCard('card-browsers', stats.browsers, 'mint');
 
     // Update count pills and hero metrics
-    updateCount('count-countries', stats.num_countries);
-    updateCount('count-domains', stats.num_referrer_hosts);
-    updateCount('count-sources', stats.num_referrers);
-    updateCount('count-os', stats.num_os);
-    updateCount('count-browsers', stats.num_browsers);
-    updateCount('hero-num-countries', stats.num_countries);
-    updateCount('hero-num-domains', stats.num_referrer_hosts);
+    AdminClient.updateCount('count-countries', stats.num_countries);
+    AdminClient.updateCount('count-domains', stats.num_referrer_hosts);
+    AdminClient.updateCount('count-sources', stats.num_referrers);
+    AdminClient.updateCount('count-os', stats.num_os);
+    AdminClient.updateCount('count-browsers', stats.num_browsers);
+    AdminClient.updateCount('hero-num-countries', stats.num_countries);
+    AdminClient.updateCount('hero-num-domains', stats.num_referrer_hosts);
   });
 }
 
 AdminClient.updateCount = function (id, value) {
   var el = document.getElementById(id);
-  if (el) el.textContent = fmtNum(value);
+  if (el) el.textContent = AdminClient.fmtNum(value);
 }
 
 AdminClient.fmtNum = function (n) {
@@ -1168,14 +1141,14 @@ AdminClient.fmtLabel = function (label, range) {
   }
   if (range === '7d' || range === '30d' || range === '90d' || range === '1y') {
     var parts = label.split('-');
-    return monthName(parseInt(parts[1], 10)) + ' ' + parseInt(parts[2], 10);
+    return AdminClient.monthName(parseInt(parts[1], 10)) + ' ' + parseInt(parts[2], 10);
   }
   // "all": label can be YYYY-MM-DD (daily/weekly) or YYYY-MM (monthly)
   var parts = label.split('-');
   if (parts.length === 3) {
-    return monthName(parseInt(parts[1], 10)) + ' ' + parseInt(parts[2], 10);
+    return AdminClient.monthName(parseInt(parts[1], 10)) + ' ' + parseInt(parts[2], 10);
   }
-  return monthName(parseInt(parts[1], 10)) + ' ' + parts[0].slice(2);
+  return AdminClient.monthName(parseInt(parts[1], 10)) + ' ' + parts[0].slice(2);
 }
 
 AdminClient.renderTimeline = function (data) {
@@ -1193,7 +1166,7 @@ AdminClient.renderTimeline = function (data) {
   }
   if (maxVal === 0) maxVal = 1;
 
-  var step = niceStep(maxVal);
+  var step = AdminClient.niceStep(maxVal);
   var gridMax = Math.ceil(maxVal / step) * step;
   if (gridMax === 0) gridMax = step;
 
@@ -1230,7 +1203,7 @@ AdminClient.renderTimeline = function (data) {
     var gy = pad.t + innerH * grid[gi];
     var val = Math.round(gridMax * (1 - grid[gi]));
     parts.push('<line x1="' + pad.l + '" x2="' + (w - pad.r) + '" y1="' + gy + '" y2="' + gy + '" stroke="var(--color-border)" stroke-opacity="0.35" stroke-width="1" vector-effect="non-scaling-stroke"/>');
-    parts.push('<text x="' + (pad.l - 6) + '" y="' + (gy + 3) + '" font-size="9" fill="var(--color-text-subtle)" text-anchor="end" font-family="var(--font-family-mono)">' + fmtNum(val) + '</text>');
+    parts.push('<text x="' + (pad.l - 6) + '" y="' + (gy + 3) + '" font-size="9" fill="var(--color-text-subtle)" text-anchor="end" font-family="var(--font-family-mono)">' + AdminClient.fmtNum(val) + '</text>');
   }
 
   parts.push('<path d="' + area + '" fill="url(#chartGrad)"/>');
@@ -1245,7 +1218,7 @@ AdminClient.renderTimeline = function (data) {
 
   for (var i = 0; i < n; i++) {
     if (i % dotInterval === 0 || i === n - 1) {
-      var label = i === n - 1 ? AdminClient.t('linkDetail.today') : fmtLabel(buckets[i].label, data.range);
+      var label = i === n - 1 ? AdminClient.t('linkDetail.today') : AdminClient.fmtLabel(buckets[i].label, data.range);
       parts.push('<text x="' + pts[i][0].toFixed(1) + '" y="' + (h - 6) + '" font-size="9" fill="var(--color-text-subtle)" text-anchor="middle" font-family="var(--font-family-mono)">' + AdminClient.esc(label) + '</text>');
     }
   }
@@ -1270,7 +1243,7 @@ var analyticsRangeBar = document.getElementById('timeline-range');
 if (analyticsRangeBar) {
   var linkId = parseInt(analyticsRangeBar.getAttribute('data-link-id'), 10);
   var initialRange = analyticsRangeBar.getAttribute('data-initial-range') || 'all';
-  if (linkId) loadAnalytics(linkId, initialRange);
+  if (linkId) AdminClient.loadAnalytics(linkId, initialRange);
 }
 
 // Poll for auto-label if label is empty (background title fetch may be in flight)
@@ -1316,7 +1289,7 @@ AdminClient.getActiveRange = function () {
 
 // Dashboard polling
 AdminClient.pollDashboard = function () {
-  var range = getActiveRange();
+  var range = AdminClient.getActiveRange();
   var path = '/dashboard' + (range ? '?range=' + encodeURIComponent(range) : '');
   AdminClient.api(path).then(function(res) {
     if (!res.ok) return;
@@ -1468,19 +1441,19 @@ AdminClient.pollDashboard = function () {
 
 // Link detail polling
 AdminClient.pollLinkDetail = function (linkId) {
-  var range = getActiveRange();
-  loadAnalytics(linkId, range);
+  var range = AdminClient.getActiveRange();
+  AdminClient.loadAnalytics(linkId, range);
 }
 
 // Start polling based on current page
 if (document.getElementById('dashboard-bento')) {
-  setInterval(pollDashboard, POLL_INTERVAL);
+  setInterval(AdminClient.pollDashboard, POLL_INTERVAL);
 }
 
 if (analyticsRangeBar) {
   var pollLinkId = parseInt(analyticsRangeBar.getAttribute('data-link-id'), 10);
   if (pollLinkId) {
-    setInterval(function() { pollLinkDetail(pollLinkId); }, POLL_INTERVAL);
+    setInterval(function() { AdminClient.pollLinkDetail(pollLinkId); }, POLL_INTERVAL);
   }
 }
 
@@ -1512,7 +1485,7 @@ AdminClient.renderIconPicker = function (selected) {
   var html = '<div class="bundle-icon-picker" id="bundle-icon-picker">';
   list.forEach(function(name) {
     var cls = 'bundle-icon-option' + (name === chosen ? ' selected' : '');
-    html += '<button type="button" class="' + cls + '" data-icon="' + AdminClient.esc(name) + '" onclick="selectBundleIcon(\\'' + name + '\\')" aria-label="' + AdminClient.esc(name) + '"><span class="icon">' + AdminClient.esc(name) + '</span></button>';
+    html += '<button type="button" class="' + cls + '" data-icon="' + AdminClient.esc(name) + '" onclick="AdminClient.selectBundleIcon(\\'' + name + '\\')" aria-label="' + AdminClient.esc(name) + '"><span class="icon">' + AdminClient.esc(name) + '</span></button>';
   });
   html += '</div>';
   html += '<input type="hidden" id="bundle-icon" value="' + AdminClient.esc(chosen) + '">';
@@ -1534,7 +1507,7 @@ AdminClient.renderAccentPicker = function (selected, inputId) {
   var html = '<div class="accent-picker" id="accent-picker">';
   BUNDLE_ACCENTS.forEach(function(a) {
     var cls = 'accent-swatch accent-' + a + (a === selected ? ' selected' : '');
-    html += '<button type="button" class="' + cls + '" data-accent="' + a + '" onclick="selectAccent(\\'' + a + '\\')" title="' + AdminClient.esc(AdminClient.t('bundles.accent.' + a)) + '"></button>';
+    html += '<button type="button" class="' + cls + '" data-accent="' + a + '" onclick="AdminClient.selectAccent(\\'' + a + '\\')" title="' + AdminClient.esc(AdminClient.t('bundles.accent.' + a)) + '"></button>';
   });
   html += '<input type="hidden" id="' + inputId + '" value="' + AdminClient.esc(selected) + '">';
   html += '</div>';
@@ -1562,11 +1535,11 @@ AdminClient.showCreateBundleModal = function (onCreated) {
   html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formDescription')) + '</label>';
   html += '<input class="form-input" id="bundle-description" placeholder="' + AdminClient.esc(AdminClient.t('bundles.formDescriptionHint')) + '"></div>';
   html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formIcon')) + '</label>';
-  html += renderIconPicker('inventory_2') + '</div>';
+  html += AdminClient.renderIconPicker('inventory_2') + '</div>';
   html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formAccent')) + '</label>';
-  html += renderAccentPicker('orange', 'bundle-accent') + '</div>';
+  html += AdminClient.renderAccentPicker('orange', 'bundle-accent') + '</div>';
   html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('bundles.cancel')) + '</button>';
-  html += '<button class="btn btn-primary" onclick="doCreateBundle()">' + AdminClient.esc(AdminClient.t('bundles.create')) + '</button></div>';
+  html += '<button class="btn btn-primary" onclick="AdminClient.doCreateBundle()">' + AdminClient.esc(AdminClient.t('bundles.create')) + '</button></div>';
   AdminClient.openModal(html);
   setTimeout(function() { var el = document.getElementById('bundle-name'); if (el) el.focus(); }, 100);
 }
@@ -1611,11 +1584,11 @@ AdminClient.showEditBundleModal = function (bundleId) {
       html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formDescription')) + '</label>';
       html += '<input class="form-input" id="bundle-description" value="' + AdminClient.esc(b.description || '') + '"></div>';
       html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formIcon')) + '</label>';
-      html += renderIconPicker(b.icon || 'inventory_2') + '</div>';
+      html += AdminClient.renderIconPicker(b.icon || 'inventory_2') + '</div>';
       html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('bundles.formAccent')) + '</label>';
-      html += renderAccentPicker(b.accent || 'orange', 'bundle-accent') + '</div>';
+      html += AdminClient.renderAccentPicker(b.accent || 'orange', 'bundle-accent') + '</div>';
       html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('bundles.cancel')) + '</button>';
-      html += '<button class="btn btn-primary" onclick="doUpdateBundle(' + bundleId + ')">' + AdminClient.esc(AdminClient.t('bundles.save')) + '</button></div>';
+      html += '<button class="btn btn-primary" onclick="AdminClient.doUpdateBundle(' + bundleId + ')">' + AdminClient.esc(AdminClient.t('bundles.save')) + '</button></div>';
       AdminClient.openModal(html);
     });
   });
@@ -1716,7 +1689,7 @@ AdminClient.showCreateBundleForLink = function (linkId) {
   // On create, attach the link to the new bundle. The callback is threaded
   // through the modal rather than spliced into the primary button's onclick
   // attribute, so renames to the modal markup do not silently break this.
-  showCreateBundleModal(function(bundle) {
+  AdminClient.showCreateBundleModal(function(bundle) {
     AdminClient.api('/bundles/' + bundle.id + '/links', {
       method: 'POST',
       body: JSON.stringify({ link_id: linkId }),
@@ -1835,9 +1808,9 @@ document.addEventListener('click', function(ev) {
   var id = parseInt(btn.getAttribute('data-bundle-id'), 10);
   var name = btn.getAttribute('data-bundle-name') || '';
   if (!id) return;
-  if (action === 'archive') archiveBundle(id, name);
-  else if (action === 'unarchive') unarchiveBundle(id);
-  else if (action === 'delete') deleteBundleAction(id, name);
+  if (action === 'archive') AdminClient.archiveBundle(id, name);
+  else if (action === 'unarchive') AdminClient.unarchiveBundle(id);
+  else if (action === 'delete') AdminClient.deleteBundleAction(id, name);
 });
 
   // ============================================================================
@@ -1850,77 +1823,13 @@ document.addEventListener('click', function(ev) {
   // Create backward-compatible global functions
   // These allow existing onclick="func()" handlers to continue working
   // while delegating to the AdminClient namespace
-  window.t = function(key, params) { return AdminClient.t(key, params); };
-  window.toast = function(msg, type) { return AdminClient.toast(msg, type); };
-  window.closeModal = function() { return AdminClient.closeModal(); };
-  window.openModal = function(html) { return AdminClient.openModal(html); };
-  window.esc = function(s) { return AdminClient.esc(s); };
-  window.api = function(path, opts) { return AdminClient.api(path, opts); };
-  window.copyUrl = function(slug) { return AdminClient.copyUrl(slug); };
-  window.copyToClipboard = function(slug) { return AdminClient.copyToClipboard(slug); };
-  window.toggleDrawer = function() { return AdminClient.toggleDrawer(); };
-  window.closeDrawer = function() { return AdminClient.closeDrawer(); };
-  window.toggleSidebar = function() { return AdminClient.toggleSidebar(); };
-  window.closeSidebar = function() { return AdminClient.closeSidebar(); };
-  window.applyTheme = function(theme) { return AdminClient.applyTheme(theme); };
-  window.setTheme = function(theme) { return AdminClient.setTheme(theme); };
-  window.setLanguage = function(lang) { return AdminClient.setLanguage(lang); };
-  window.setFilterBots = function(checked) { return AdminClient.setFilterBots(checked); };
-  window.setFilterSelfReferrers = function(checked) { return AdminClient.setFilterSelfReferrers(checked); };
-  window.updateComboHint = function() { return AdminClient.updateComboHint(); };
-  window.countryName = function(code) { return AdminClient.countryName(code); };
-  window.fmtCount = function(n) { return AdminClient.fmtCount(n); };
-  window.formatDate = function(ts) { return AdminClient.formatDate(ts); };
-  window.isUrl = function(v) { return AdminClient.isUrl(v); };
-  window.quickShorten = function() { return AdminClient.quickShorten(); };
-  window.upsertDynamicRedirectRule = function(s, d) { return AdminClient.upsertDynamicRedirectRule(s, d); };
-  window.updateQuickActionButton = function() { return AdminClient.updateQuickActionButton(); };
-  window.showCreateModal = function() { return AdminClient.showCreateModal(); };
-  window.createLink = function() { return AdminClient.createLink(); };
-  window.createDuplicate = function(url) { return AdminClient.createDuplicate(url); };
-  window.showCreateKeyModal = function() { return AdminClient.showCreateKeyModal(); };
-  window.createKey = function() { return AdminClient.createKey(); };
-  window.showKeyRevealModal = function(key) { return AdminClient.showKeyRevealModal(key); };
-  window.copyRawKey = function() { return AdminClient.copyRawKey(); };
-  window.closeKeyRevealModal = function() { return AdminClient.closeKeyRevealModal(); };
-  window.deleteKey = function(id, title) { return AdminClient.deleteKey(id, title); };
-  window.toggleDetailMenu = function() { return AdminClient.toggleDetailMenu(); };
-  window.cancelEditLabel = function(linkId, slugId) { return AdminClient.cancelEditLabel(linkId, slugId); };
-  window.cancelEditExpiry = function(linkId, slugId) { return AdminClient.cancelEditExpiry(linkId, slugId); };
-  window.saveDetailLabel = function(linkId, slugId) { return AdminClient.saveDetailLabel(linkId, slugId); };
-  window.saveDetailExpiry = function(linkId, slugId) { return AdminClient.saveDetailExpiry(linkId, slugId); };
-  window.showQRModal = function(slug) { return AdminClient.showQRModal(slug); };
-  window.saveSettings = function() { return AdminClient.saveSettings(); };
-  window.saveAnalyticsFilters = function() { return AdminClient.saveAnalyticsFilters(); };
-  window.saveRootRedirectUrl = function() { return AdminClient.saveRootRedirectUrl(); };
-  window.setDefaultRange = function(r) { return AdminClient.setDefaultRange(r); };
-  window.addRedirectRule = function() { return AdminClient.addRedirectRule(); };
-  window.deleteRedirectRule = function(idx) { return AdminClient.deleteRedirectRule(idx); };
-  window.doAddSlug = function(id) { return AdminClient.doAddSlug(id); };
-  window.doDeleteLink = function(id) { return AdminClient.doDeleteLink(id); };
-  window.doDeleteSlug = function(id) { return AdminClient.doDeleteSlug(id); };
-  window.doDisableLink = function(id) { return AdminClient.doDisableLink(id); };
-  window.doDisableSlug = function(id) { return AdminClient.doDisableSlug(id); };
-  window.doDuplicate = function(id, url) { return AdminClient.doDuplicate(id, url); };
-  window.doEnableLink = function(id) { return AdminClient.doEnableLink(id); };
-  window.doEnableSlug = function(id) { return AdminClient.doEnableSlug(id); };
-  window.doSetPrimary = function(id, sid) { return AdminClient.doSetPrimary(id, sid); };
-  window.downloadQrPng = function(slug) { return AdminClient.downloadQrPng(slug); };
-  window.downloadQrSvg = function(slug) { return AdminClient.downloadQrSvg(slug); };
-  window.showDisableLinkModal = function(id) { return AdminClient.showDisableLinkModal(id); };
-  window.showDeleteLinkModal = function(id) { return AdminClient.showDeleteLinkModal(id); };
-  window.showEnableLinkModal = function(id) { return AdminClient.showEnableLinkModal(id); };
-  window.showAddSlugModal = function(linkId) { return AdminClient.showAddSlugModal(linkId); };
-  window.showChangePrimaryModal = function(linkId) { return AdminClient.showChangePrimaryModal(linkId); };
-  window.showDuplicateModal = function(linkId, url) { return AdminClient.showDuplicateModal(linkId, url); };
-  window.showAddToBundleModal = function(linkId) { return AdminClient.showAddToBundleModal(linkId); };
-  window.removeLinkFromBundle = function(bid, lid) { return AdminClient.removeLinkFromBundle(bid, lid); };
-  window.showCreateBundleForLink = function(linkId) { return AdminClient.showCreateBundleForLink(linkId); };
-  window.toggleAddToBundleRow = function(el) { return AdminClient.toggleAddToBundleRow(el); };
-  window.saveAddToBundle = function(linkId) { return AdminClient.saveAddToBundle(linkId); };
-  window.showAddLinkToBundlePicker = function(bundleId, excludeIds) { return AdminClient.showAddLinkToBundlePicker(bundleId, excludeIds); };
-  window.filterBundleLinkPicker = function() { return AdminClient.filterBundleLinkPicker(); };
-  window.doAddLinkToBundle = function(bundleId, linkId) { return AdminClient.doAddLinkToBundle(bundleId, linkId); };
+  for (var key in AdminClient) {
+    if (typeof AdminClient[key] === 'function') {
+      (function(k) {
+        window[k] = function() { return AdminClient[k].apply(AdminClient, arguments); };
+      })(key);
+    }
+  }
 
   // Log successful initialization
   if (typeof console !== 'undefined' && console.debug) {

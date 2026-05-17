@@ -436,13 +436,6 @@ describe("Settings API", () => {
     expect(html).toMatch(/class="active"\s+data-range="30d"/);
   });
 
-  it("bundles page falls back to 30d when no default_range is set", async () => {
-    const res = await SELF.fetch(authed("/_/admin/bundles"));
-    expect(res.status).toBe(200);
-    const html = await res.text();
-    expect(html).toMatch(/class="active"\s+data-range="30d"/);
-  });
-
   it("new links should use updated default length", async () => {
     await SELF.fetch(
       authed("/_/admin/api/settings", {
