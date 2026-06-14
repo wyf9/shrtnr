@@ -22,7 +22,7 @@ import { Hono } from "hono";
 import type { Env, TimelineRange } from "./types";
 import { verifyAccessJwt, extractIdentity, isSignedIn, type AccessUser } from "./access";
 import { handleRedirect } from "./redirect";
-import { unauthorizedResponse, hasScope, forbiddenResponse } from "./auth";
+import { unauthorizedResponse } from "./auth";
 import { apiRouter } from "./api/router";
 import {
   authenticateApiKey,

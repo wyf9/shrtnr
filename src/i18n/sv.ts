@@ -365,8 +365,7 @@ const sv: Translations = {
     'Ta bort API-nyckel "{title}"? Detta kan inte ångras.',
   "client.keyDeleted": "Nyckel borttagen",
   "client.keyDeleteError": "Kunde inte ta bort nyckel",
-  "client.confirmDisable":
-    "Inaktivera denna länk? Omdirigeringen upphör omedelbart.",
+
   "client.linkDisabled": "Länk inaktiverad",
   "client.disableError": "Kunde inte inaktivera",
   "client.linkDeleted": "Länk raderad",

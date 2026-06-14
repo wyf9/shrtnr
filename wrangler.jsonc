@@ -4,7 +4,7 @@
 	"assets": {
 		"directory": "public"
 	},
-	"compatibility_date": "2026-04-01", // LOL
+	"compatibility_date": "2026-04-01",
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
@@ -38,11 +38,6 @@
 			"binding": "DB",
 			"database_name": "shrtnr-db",
 			"migrations_dir": "migrations",
-			"database_id": "bf2b6a95-3ec4-494c-bd04-a19b10f5d979"
-		},
-		{
-			"binding": "shrtnr_db",
-			"database_name": "shrtnr-db",
 			"database_id": "bf2b6a95-3ec4-494c-bd04-a19b10f5d979"
 		}
 	],

@@ -150,62 +150,6 @@ export function adminClientScript(version: string, translations: Translations): 
     AdminClient.toast(AdminClient.t('client.themeUpdated'));
   };
 
-
-
-// ---- Modal ----
-AdminClient.closeModal = function () { document.getElementById('modal-overlay').style.display = 'none'; }
-AdminClient.openModal = function (html) {
-  document.getElementById('modal').innerHTML = html;
-  document.getElementById('modal-overlay').style.display = 'flex';
-}
-
-// ---- Escape ----
-AdminClient.esc = function (s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-// ---- CONFIG.API helper ----
-AdminClient.api = function (path, opts) {
-  opts = opts || {};
-  if (!opts.headers) opts.headers = {};
-  if (opts.body && !opts.headers['Content-Type']) opts.headers['Content-Type'] = 'application/json';
-  return fetch(CONFIG.API + path, opts).then(function(res) {
-    if (res.status === 401) { window.location.reload(); return res; }
-    return res;
-  });
-}
-
-// ---- Copy ----
-AdminClient.copyUrl = function (slug) {
-  var url = location.origin + '/' + slug;
-  navigator.clipboard.writeText(url);
-  AdminClient.toast(AdminClient.t('client.copied', {url: url}));
-}
-
-// ---- Mobile drawer ----
-AdminClient.toggleDrawer = function () {
-  var s = document.querySelector('.sidebar');
-  var b = document.getElementById('sidebar-backdrop');
-  var open = s.classList.toggle('open');
-  b.classList.toggle('open', open);
-}
-AdminClient.closeDrawer = function () {
-  document.querySelector('.sidebar').classList.remove('open');
-  document.getElementById('sidebar-backdrop').classList.remove('open');
-}
-
-// ---- Theme ----
-AdminClient.applyTheme = function (theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  document.querySelectorAll('#theme-picker .theme-btn').forEach(function(btn) {
-    btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
-  });
-}
-AdminClient.setTheme = function (theme) {
-  AdminClient.applyTheme(theme);
-  document.cookie = 'theme=' + theme + ';path=/;max-age=31536000;SameSite=Lax';
-  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ theme: theme }) });
-  AdminClient.toast(AdminClient.t('client.themeUpdated'));
-}
-
 // ---- Language ----
 AdminClient.setLanguage = function (lang) {
   document.cookie = 'lang=' + lang + ';path=/;max-age=31536000;SameSite=Lax';

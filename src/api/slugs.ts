@@ -3,7 +3,7 @@
 
 import { createRoute } from "@hono/zod-openapi";
 import { createApiSubApp } from "./sub-app";
-import { Env } from "../types";
+import type { Env } from "../types";
 import {
   addCustomSlugToLink,
   setSlugPrimary,

@@ -215,6 +215,53 @@ export const TimelineDataSchema = z
   })
   .openapi("TimelineData", { description: "Click timeline with bucketed counts and period summaries." });
 
+export const BundleStatsPerLinkSchema = z
+  .object({
+    link_id: z.number().int(),
+    label: z.string().nullable(),
+    primary_slug: z.string(),
+    url: z.string(),
+    click_count: z.number().int().nonnegative(),
+    pct_of_bundle: z.number(),
+    delta_pct: z.number().optional(),
+  })
+  .openapi("BundleStatsPerLink", { description: "Per-link breakdown inside a bundle." });
+
+export const BundleStatsSchema = z
+  .object({
+    bundle: BundleSchema,
+    link_count: z.number().int().nonnegative(),
+    total_clicks: z.number().int().nonnegative(),
+    delta_pct: z.number().optional(),
+    clicked_links: z.number().int().nonnegative(),
+    top_performer: z.object({
+      slug: z.string(),
+      label: z.string().nullable(),
+      click_count: z.number().int().nonnegative(),
+      pct_of_bundle: z.number(),
+    }).nullable().optional(),
+    countries_reached: z.number().int().nonnegative(),
+    top_country: z.object({
+      name: z.string(),
+      pct: z.number(),
+    }).nullable().optional(),
+    timeline: TimelineDataSchema,
+    countries: z.array(NameCountBucketSchema),
+    devices: z.array(NameCountBucketSchema),
+    os: z.array(NameCountBucketSchema),
+    browsers: z.array(NameCountBucketSchema),
+    referrers: z.array(NameCountBucketSchema),
+    referrer_hosts: z.array(NameCountBucketSchema),
+    link_modes: z.array(NameCountBucketSchema),
+    per_link: z.array(BundleStatsPerLinkSchema),
+    num_countries: z.number().int().nonnegative(),
+    num_referrers: z.number().int().nonnegative(),
+    num_referrer_hosts: z.number().int().nonnegative(),
+    num_os: z.number().int().nonnegative(),
+    num_browsers: z.number().int().nonnegative(),
+  })
+  .openapi("BundleStats", { description: "Bundle analytics breakdown." });
+
 // ---- Param hook for routes with path params ----
 // Path-param failures return 404 (preserving the 404-on-NaN contract).
 // Body and query failures return 400 with a human-readable message.

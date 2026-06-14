@@ -365,8 +365,7 @@ const id: Translations = {
     'Hapus kunci API "{title}"? Tindakan ini tidak dapat dibatalkan.',
   "client.keyDeleted": "Kunci dihapus",
   "client.keyDeleteError": "Gagal menghapus kunci",
-  "client.confirmDisable":
-    "Nonaktifkan tautan ini? Pengalihan akan berhenti segera.",
+
   "client.linkDisabled": "Tautan dinonaktifkan",
   "client.disableError": "Gagal menonaktifkan",
   "client.linkDeleted": "Tautan dihapus",

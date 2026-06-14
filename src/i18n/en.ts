@@ -361,8 +361,7 @@ const en = {
     'Delete API key "{title}"? This cannot be undone.',
   "client.keyDeleted": "Key deleted",
   "client.keyDeleteError": "Failed to delete key",
-  "client.confirmDisable":
-    "Disable this link? It will stop redirecting immediately.",
+
   "client.linkDisabled": "Link disabled",
   "client.disableError": "Failed to disable",
   "client.linkDeleted": "Link deleted",

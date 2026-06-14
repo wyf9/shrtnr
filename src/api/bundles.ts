@@ -26,7 +26,7 @@ import {
   ArchivedQuerySchema,
   BundleSchema,
   BundleWithSummarySchema,
-  ClickStatsSchema,
+  BundleStatsSchema,
   CreateBundleBodySchema,
   ErrorResponseSchema,
   IdParamSchema,
@@ -317,7 +317,7 @@ const bundleAnalyticsRoute = createRoute({
   middleware: [requireScope("read")] as const,
   request: { params: IdParamSchema, query: RangeQuerySchema },
   responses: {
-    200: { description: "OK.", content: { "application/json": { schema: ClickStatsSchema } } },
+    200: { description: "OK.", content: { "application/json": { schema: BundleStatsSchema } } },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],

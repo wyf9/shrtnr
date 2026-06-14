@@ -1,7 +1,6 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-const VALID_REDIRECT_STATUS = new Set([301, 302, 303, 307, 308]);
 const PARAM_NAME_RE = /^[A-Za-z][A-Za-z0-9_]*$/;
 const PARAM_TOKEN_RE = /:([A-Za-z][A-Za-z0-9_]*)/g;
 
@@ -83,12 +82,8 @@ function parseRuleLine(line: string): DynamicRedirectRule {
 
   const source = parts[0];
   const destination = parts[1];
-  if (parts[2]) {
-    const status = parseInt(parts[2], 10);
-    if (!Number.isInteger(status) || !VALID_REDIRECT_STATUS.has(status)) {
-      throw new Error("status must be one of 301, 302, 303, 307, 308");
-    }
-  }
+  // The third column (status) is accepted for backward compatibility but
+  // ignored; all dynamic redirects use 302.
 
   validateDestination(destination);
   const tokens = tokenizePattern(source);
