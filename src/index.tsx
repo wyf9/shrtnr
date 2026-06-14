@@ -65,6 +65,15 @@ import {
   handleAdminLinkTimeline,
 } from "./api/analytics";
 import { handleLinkQr } from "./api/qr";
+import {
+  handleListPages,
+  handleCreatePage,
+  handleUpdatePage,
+  handleDeletePage,
+  handleDisablePage,
+  handleEnablePage,
+  pageResponse,
+} from "./api/pages";
 import type { HonoEnv, AuthContext } from "./api/hono-env";
 import { notFoundResponse } from "./404";
 import { landingResponse } from "./pages/landing";
@@ -78,6 +87,7 @@ import { LinkDetailPage } from "./pages/link-detail";
 import { KeysPage } from "./pages/keys";
 import { SettingsPage } from "./pages/settings";
 import { RedirectsPage } from "./pages/redirects";
+import { PagesPage } from "./pages/pages";
 // ---- App ----
 
 const app = new Hono<HonoEnv>();
@@ -294,6 +304,18 @@ app.get("/_/admin/redirects", async (c) => {
   );
 });
 
+app.get("/_/admin/pages", async (c) => {
+  const identity = c.var.identity;
+  const { theme, t, lang, translations } = await getPageData(c, identity);
+  const { PageRepository } = await import("./db/page-repository");
+  const pages = await PageRepository.list(c.env.DB);
+  return c.html(
+    <Layout active="pages" theme={theme} t={t} lang={lang} translations={translations}>
+      <PagesPage pages={pages} t={t} lang={lang} />
+    </Layout>,
+  );
+});
+
 // ---- Legacy redirects ----
 
 app.get("/_/admin", (c) => c.redirect("/_/admin/dashboard", 302));
@@ -399,6 +421,30 @@ app.put("/_/admin/api/redirects", (c) => handleUpdateRedirectRules(c.req.raw, c.
 // Dashboard stats
 app.get("/_/admin/api/dashboard", (c) => handleDashboardStatsApi(c.env, c.var.identity, c.req.query("range")));
 
+// Pages
+app.get("/_/admin/api/pages", (c) => handleListPages(c.env));
+app.post("/_/admin/api/pages", (c) => handleCreatePage(c.req.raw, c.env));
+app.put("/_/admin/api/pages/:id", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  return handleUpdatePage(c.req.raw, c.env, id);
+});
+app.delete("/_/admin/api/pages/:id", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  return handleDeletePage(c.env, id);
+});
+app.post("/_/admin/api/pages/:id/disable", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  return handleDisablePage(c.env, id);
+});
+app.post("/_/admin/api/pages/:id/enable", (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
+  return handleEnablePage(c.env, id);
+});
+
 // ---- Public API auth middleware ----
 
 app.use("/_/api/*", async (c, next) => {
@@ -438,6 +484,11 @@ app.get("/*", async (c) => {
 
   const slug = pathname.slice(1);
   if (!slug || slug.includes("/")) return notFoundResponse();
+
+  const { PageRepository } = await import("./db/page-repository");
+  const page = await PageRepository.findBySlug(c.env.DB, slug);
+  if (page && !page.disabled_at) return pageResponse(page);
+
   return handleRedirect(slug, c.req.raw, c.env, c.executionCtx);
 });
 

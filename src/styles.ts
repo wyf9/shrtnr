@@ -342,6 +342,8 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
 .form-select::after { content: ""; position: absolute; right: 0.85rem; top: 50%; width: 0; height: 0; margin-top: -2px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--color-text); pointer-events: none; }
 .form-row { display: flex; gap: 1rem; }
 .form-row > * { flex: 1; }
+.form-row-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-textarea { resize: vertical; min-height: 6rem; font-family: var(--font-family-mono, monospace); }
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,17,16,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
@@ -680,6 +682,11 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
 .redirects-table .col-actions { text-align: right; }
 .redirects-table .col-actions .btn { visibility: hidden; }
 .redirects-table tbody tr:hover .col-actions .btn { visibility: visible; }
+.redirect-row.muted { opacity: 0.5; }
+.text-mono { font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace; }
+.text-sm { font-size: 0.75rem; }
+.badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; vertical-align: middle; margin-left: 0.5rem; }
+.badge-disabled { background: var(--color-danger); color: var(--color-danger-foreground); }
 .settings-layout { display: flex; gap: 2.5rem; align-items: flex-start; flex-wrap: wrap; }
 .settings-main { flex: 1; min-width: 280px; max-width: 480px; display: flex; flex-direction: column; gap: 1.4rem; }
 .settings-side { min-width: 240px; max-width: 300px; display: flex; flex-direction: column; gap: 1rem; }

@@ -1758,6 +1758,112 @@ document.addEventListener('click', function(ev) {
 });
 
   // ============================================================================
+  // PAGES
+  // ============================================================================
+
+  AdminClient.showCreatePageModal = function () {
+    var slug = (document.getElementById('quick-page-slug') || {}).value || '';
+    var filename = (document.getElementById('quick-page-filename') || {}).value || '';
+    var html = '<h3 class="modal-title">' + AdminClient.esc(AdminClient.t('client.pages.createTitle')) + '</h3>';
+    html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.slugLabel')) + '</label><input class="form-input" id="page-slug" value="' + AdminClient.esc(slug) + '" placeholder="' + AdminClient.esc(AdminClient.t('pages.slugPlaceholder')) + '"></div>';
+    html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.filenameLabel')) + '</label><input class="form-input" id="page-filename" value="' + AdminClient.esc(filename) + '" placeholder="' + AdminClient.esc(AdminClient.t('pages.filenamePlaceholder')) + '"></div>';
+    html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.contentLabel')) + '</label><textarea class="form-input form-textarea" id="page-content" rows="10" placeholder="<h1>Hello</h1>"></textarea></div>';
+    html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.uploadFile')) + '</label><input type="file" class="form-input" id="page-file-upload" onchange="AdminClient.handlePageFileUpload()"></div>';
+    html += '<div class="form-row form-row-2col"><div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.httpStatusLabel')) + '</label><input class="form-input" id="page-status" type="number" value="200" min="100" max="599" placeholder="' + AdminClient.esc(AdminClient.t('pages.statusPlaceholder')) + '"></div>';
+    html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.headersLabel')) + '</label><input class="form-input" id="page-headers" value="{}" placeholder="' + AdminClient.esc(AdminClient.t('pages.headersPlaceholder')) + '"></div></div>';
+    html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-primary" onclick="AdminClient.createPage()">' + AdminClient.esc(AdminClient.t('client.create')) + '</button></div>';
+    AdminClient.openModal(html);
+  };
+
+  AdminClient.showEditPageModal = function (id, slug, filename, status, headers, content) {
+    var html = '<h3 class="modal-title">' + AdminClient.esc(AdminClient.t('client.pages.editTitle')) + '</h3>';
+    html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.slugLabel')) + '</label><input class="form-input" id="page-slug" value="' + AdminClient.esc(slug) + '" placeholder="' + AdminClient.esc(AdminClient.t('pages.slugPlaceholder')) + '"></div>';
+    html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.filenameLabel')) + '</label><input class="form-input" id="page-filename" value="' + AdminClient.esc(filename) + '" placeholder="' + AdminClient.esc(AdminClient.t('pages.filenamePlaceholder')) + '"></div>';
+    html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.contentLabel')) + '</label><textarea class="form-input form-textarea" id="page-content" rows="10">' + AdminClient.esc(content) + '</textarea></div>';
+    html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.uploadFile')) + '</label><input type="file" class="form-input" id="page-file-upload" onchange="AdminClient.handlePageFileUpload()"></div>';
+    html += '<div class="form-row form-row-2col"><div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.httpStatusLabel')) + '</label><input class="form-input" id="page-status" type="number" value="' + status + '" min="100" max="599" placeholder="' + AdminClient.esc(AdminClient.t('pages.statusPlaceholder')) + '"></div>';
+    html += '<div class="form-group"><label class="form-label">' + AdminClient.esc(AdminClient.t('client.pages.headersLabel')) + '</label><input class="form-input" id="page-headers" value="' + AdminClient.esc(headers) + '" placeholder="' + AdminClient.esc(AdminClient.t('pages.headersPlaceholder')) + '"></div></div>';
+    html += '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-primary" onclick="AdminClient.updatePage(' + id + ')">' + AdminClient.esc(AdminClient.t('pages.edit')) + '</button></div>';
+    AdminClient.openModal(html);
+  };
+
+  AdminClient.handlePageFileUpload = function () {
+    var fileInput = document.getElementById('page-file-upload');
+    var file = fileInput && fileInput.files && fileInput.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var contentEl = document.getElementById('page-content');
+      if (contentEl) contentEl.value = e.target.result;
+      var filenameEl = document.getElementById('page-filename');
+      if (filenameEl && file.name) filenameEl.value = file.name;
+    };
+    reader.readAsText(file);
+  };
+
+  AdminClient.createPage = function () {
+    var slug = (document.getElementById('page-slug') || {}).value || '';
+    var filename = (document.getElementById('page-filename') || {}).value || '';
+    var content = (document.getElementById('page-content') || {}).value || '';
+    var status = parseInt((document.getElementById('page-status') || {}).value, 10) || 200;
+    var headers = (document.getElementById('page-headers') || {}).value || '{}';
+
+    if (!slug) { AdminClient.toast(AdminClient.t('client.pages.slugRequired'), 'error'); return; }
+    if (!filename) { AdminClient.toast(AdminClient.t('client.pages.filenameRequired'), 'error'); return; }
+    if (!content) { AdminClient.toast(AdminClient.t('client.pages.contentRequired'), 'error'); return; }
+
+    AdminClient.api('/pages', {
+      method: 'POST',
+      body: JSON.stringify({ slug: slug, filename: filename, content: content, http_status: status, headers: headers }),
+    }).then(function(res) {
+      if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.pages.created')); window.location.reload(); }
+      else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.pages.createError'), 'error'); });
+    });
+  };
+
+  AdminClient.updatePage = function (id) {
+    var slug = (document.getElementById('page-slug') || {}).value || '';
+    var filename = (document.getElementById('page-filename') || {}).value || '';
+    var content = (document.getElementById('page-content') || {}).value || '';
+    var status = parseInt((document.getElementById('page-status') || {}).value, 10) || 200;
+    var headers = (document.getElementById('page-headers') || {}).value || '{}';
+
+    if (!slug) { AdminClient.toast(AdminClient.t('client.pages.slugRequired'), 'error'); return; }
+    if (!filename) { AdminClient.toast(AdminClient.t('client.pages.filenameRequired'), 'error'); return; }
+    if (!content) { AdminClient.toast(AdminClient.t('client.pages.contentRequired'), 'error'); return; }
+
+    AdminClient.api('/pages/' + id, {
+      method: 'PUT',
+      body: JSON.stringify({ slug: slug, filename: filename, content: content, http_status: status, headers: headers }),
+    }).then(function(res) {
+      if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.pages.updated')); window.location.reload(); }
+      else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.pages.updateError'), 'error'); });
+    });
+  };
+
+  AdminClient.deletePage = function (id, slug) {
+    if (!confirm(AdminClient.t('client.pages.confirmDelete', { slug: slug }))) return;
+    AdminClient.api('/pages/' + id, { method: 'DELETE' }).then(function(res) {
+      if (res.ok) { AdminClient.toast(AdminClient.t('client.pages.deleted')); window.location.reload(); }
+      else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.pages.deleteError'), 'error'); });
+    });
+  };
+
+  AdminClient.disablePage = function (id) {
+    AdminClient.api('/pages/' + id + '/disable', { method: 'POST' }).then(function(res) {
+      if (res.ok) { AdminClient.toast(AdminClient.t('client.pages.disabledMsg')); window.location.reload(); }
+      else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.pages.toggleError'), 'error'); });
+    });
+  };
+
+  AdminClient.enablePage = function (id) {
+    AdminClient.api('/pages/' + id + '/enable', { method: 'POST' }).then(function(res) {
+      if (res.ok) { AdminClient.toast(AdminClient.t('client.pages.enabled')); window.location.reload(); }
+      else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.pages.toggleError'), 'error'); });
+    });
+  };
+
+  // ============================================================================
   // EXPORT MODULE TO WINDOW
   // ============================================================================
 

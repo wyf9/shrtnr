@@ -218,3 +218,16 @@ export interface DashboardStats {
   /** Distinct count of referrer hostnames in the current period. */
   num_referrers: number;
 }
+
+export interface Page {
+  id: number;
+  slug: string;
+  content: string;
+  filename: string;
+  http_status: number;
+  headers: string;
+  created_at: number;
+  updated_at: number;
+  created_by: string;
+  disabled_at: number | null;
+}
