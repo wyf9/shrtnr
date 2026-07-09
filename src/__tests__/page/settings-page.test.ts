@@ -6,6 +6,10 @@ function req(path: string): Request {
   return new Request(`https://shrtnr.test${path}`);
 }
 
+function inputTag(html: string, id: string): string {
+  return html.match(new RegExp(`<input[^>]*id="${id}"[^>]*>`))?.[0] ?? "";
+}
+
 beforeAll(applyMigrations);
 beforeEach(resetData);
 
@@ -63,6 +67,46 @@ describe("Settings page analytics filter toggles", () => {
     // Each input exists with `checked` in the rendered markup when enabled.
     expect(html).toMatch(/id="filter-bots-toggle"[^>]*checked/);
     expect(html).toMatch(/id="filter-self-referrers-toggle"[^>]*checked/);
+  });
+});
+
+describe("Settings page redirect cache toggle", () => {
+  it("renders the redirect cache toggle unchecked by default", async () => {
+    const res = await SELF.fetch(req("/_/admin/settings"));
+    const html = await res.text();
+    expect(html).toContain('id="redirect-cache-toggle"');
+    expect(inputTag(html, "redirect-cache-toggle")).not.toMatch(/\schecked(?:=|\s|\/?>)/);
+  });
+
+  it("checks the redirect cache toggle when enabled", async () => {
+    await SELF.fetch(new Request("https://shrtnr.test/_/admin/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ redirect_cache_enabled: true }),
+    }));
+    const res = await SELF.fetch(req("/_/admin/settings"));
+    const html = await res.text();
+    expect(inputTag(html, "redirect-cache-toggle")).toMatch(/\schecked(?:=|\s|\/?>)/);
+  });
+});
+
+describe("Dashboard redirect cache warning", () => {
+  it("does not render the analytics warning by default", async () => {
+    const res = await SELF.fetch(req("/_/admin/dashboard"));
+    const html = await res.text();
+    expect(html).not.toContain('id="redirect-cache-analytics-warning"');
+  });
+
+  it("renders the analytics warning when redirect cache is enabled", async () => {
+    await SELF.fetch(new Request("https://shrtnr.test/_/admin/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ redirect_cache_enabled: true }),
+    }));
+    const res = await SELF.fetch(req("/_/admin/dashboard"));
+    const html = await res.text();
+    expect(html).toContain('id="redirect-cache-analytics-warning"');
+    expect(html).toContain("Analytics can undercount clicks");
   });
 });
 

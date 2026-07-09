@@ -736,6 +736,22 @@ AdminClient.setFilterSelfReferrers = function (checked) {
   });
 }
 
+AdminClient.setRedirectCache = function (checked) {
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ redirect_cache_enabled: Boolean(checked) }) }).then(function(res) {
+    if (res.ok) {
+      AdminClient.toast(AdminClient.t('client.settingsSaved'));
+    } else {
+      return res.json().then(function(data) {
+        AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
+      }).catch(function() {
+        AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
+      });
+    }
+  }).catch(function(err) {
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
+  });
+}
+
 AdminClient.saveAnalyticsFilters = function () {
   var filterBotsEl = document.getElementById('filter-bots-toggle');
   var filterSelfReferrersEl = document.getElementById('filter-self-referrers-toggle');

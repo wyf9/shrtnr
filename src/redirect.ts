@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { recordClick } from "./services/link-management";
+import { isRedirectCacheEnabled } from "./services/admin-management";
 import { SlugCache } from "./kv";
 import { SlugRepository } from "./db";
 import { parseDeviceType, parseBrowser, parseOS, isBot } from "./ua";
@@ -87,5 +88,12 @@ export async function handleRedirect(
   ctx.waitUntil(recordClick(env, normalizedSlug, data));
 
   // 6. Redirect
-  return Response.redirect(entry.url, 301);
+  const headers = new Headers({ Location: new URL(entry.url).toString() });
+  if (await isRedirectCacheEnabled(env)) {
+    headers.set("Cache-Control", "public, max-age=31536000, stale-while-revalidate=604800");
+    headers.set("Cache-Tag", `redirect:${normalizedSlug}`);
+  } else {
+    headers.set("Cache-Control", "no-store");
+  }
+  return new Response(null, { status: 301, headers });
 }

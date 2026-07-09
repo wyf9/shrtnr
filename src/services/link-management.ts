@@ -14,6 +14,17 @@ import { rangeToSinceTs } from "./trends";
 
 export type { ServiceResult };
 
+type CachePurgeContext = Pick<ExecutionContext, "waitUntil" | "cache">;
+
+function redirectCacheTag(slug: string): string {
+  return `redirect:${slug.toLowerCase()}`;
+}
+
+function purgeRedirectCache(ctx: CachePurgeContext | undefined, slugs: string[]): void {
+  if (!ctx?.cache || slugs.length === 0) return;
+  ctx.waitUntil(ctx.cache.purge({ tags: slugs.map(redirectCacheTag) }).then(() => undefined));
+}
+
 export interface ListLinksOptions {
   /** Range used to compute delta_pct vs the previous window. Pass undefined to skip deltas. */
   withDeltaRange?: TimelineRange;
@@ -151,6 +162,7 @@ export async function updateLink(
   env: Env,
   id: number,
   body: { url?: string; label?: string | null; expires_at?: number | null },
+  ctx?: CachePurgeContext,
 ): Promise<ServiceResult<LinkWithSlugs>> {
   if (body.url !== undefined) {
     try {
@@ -175,11 +187,12 @@ export async function updateLink(
       }),
     ),
   );
+  purgeRedirectCache(ctx, link.slugs.map((s) => s.slug));
 
   return ok(link);
 }
 
-export async function disableLink(env: Env, id: number, identity: string): Promise<ServiceResult<LinkWithSlugs>> {
+export async function disableLink(env: Env, id: number, identity: string, ctx?: CachePurgeContext): Promise<ServiceResult<LinkWithSlugs>> {
   const link = await LinkRepository.getById(env.DB, id);
   if (!link) return fail(404, "Link not found");
   if (link.created_by !== identity) return fail(403, "Only the link owner can disable this link");
@@ -194,11 +207,12 @@ export async function disableLink(env: Env, id: number, identity: string): Promi
       }),
     ),
   );
+  purgeRedirectCache(ctx, disabled!.slugs.map((s) => s.slug));
 
   return ok(disabled!);
 }
 
-export async function enableLink(env: Env, id: number, identity: string): Promise<ServiceResult<LinkWithSlugs>> {
+export async function enableLink(env: Env, id: number, identity: string, ctx?: CachePurgeContext): Promise<ServiceResult<LinkWithSlugs>> {
   const link = await LinkRepository.getById(env.DB, id);
   if (!link) return fail(404, "Link not found");
   if (link.created_by !== identity) return fail(403, "Only the link owner can enable this link");
@@ -213,11 +227,12 @@ export async function enableLink(env: Env, id: number, identity: string): Promis
       }),
     ),
   );
+  purgeRedirectCache(ctx, enabled!.slugs.map((s) => s.slug));
 
   return ok(enabled!);
 }
 
-export async function deleteLink(env: Env, id: number, identity: string): Promise<ServiceResult<{ deleted: boolean }>> {
+export async function deleteLink(env: Env, id: number, identity: string, ctx?: CachePurgeContext): Promise<ServiceResult<{ deleted: boolean }>> {
   const link = await LinkRepository.getById(env.DB, id);
   if (!link) return fail(404, "Link not found");
   if (link.created_by !== identity) return fail(403, "Only the link owner can delete this link");
@@ -226,6 +241,7 @@ export async function deleteLink(env: Env, id: number, identity: string): Promis
   const slugsToDelete = link.slugs.map((s) => s.slug);
   await LinkRepository.delete(env.DB, id);
   await Promise.all(slugsToDelete.map((s) => SlugCache.delete(env.SLUG_KV, s)));
+  purgeRedirectCache(ctx, slugsToDelete);
 
   return ok({ deleted: true });
 }
@@ -234,6 +250,7 @@ export async function addCustomSlugToLink(
   env: Env,
   linkId: number,
   body: { slug?: string },
+  ctx?: CachePurgeContext,
 ): Promise<ServiceResult<Slug>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
@@ -258,6 +275,7 @@ export async function addCustomSlugToLink(
     disabled_at: null,
     expires_at: link.expires_at,
   });
+  purgeRedirectCache(ctx, [normalizedSlug]);
 
   return ok(slug, 201);
 }
@@ -283,6 +301,7 @@ export async function disableSlug(
   linkId: number,
   slug: string,
   identity: string,
+  ctx?: CachePurgeContext,
 ): Promise<ServiceResult<Slug>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
@@ -299,6 +318,7 @@ export async function disableSlug(
     disabled_at: disabled!.disabled_at,
     expires_at: link.expires_at,
   });
+  purgeRedirectCache(ctx, [slug]);
 
   return ok(disabled!);
 }
@@ -308,6 +328,7 @@ export async function enableSlug(
   linkId: number,
   slug: string,
   identity: string,
+  ctx?: CachePurgeContext,
 ): Promise<ServiceResult<Slug>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
@@ -323,6 +344,7 @@ export async function enableSlug(
     disabled_at: null,
     expires_at: link.expires_at,
   });
+  purgeRedirectCache(ctx, [slug]);
 
   return ok(enabled!);
 }
@@ -332,6 +354,7 @@ export async function removeSlug(
   linkId: number,
   slug: string,
   identity: string,
+  ctx?: CachePurgeContext,
 ): Promise<ServiceResult<{ removed: boolean }>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
@@ -344,6 +367,7 @@ export async function removeSlug(
 
   await SlugRepository.remove(env.DB, slug);
   await SlugCache.delete(env.SLUG_KV, slug);
+  purgeRedirectCache(ctx, [slug]);
 
   return ok({ removed: true });
 }

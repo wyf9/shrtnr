@@ -20,7 +20,8 @@ import { ErrorResponseSchema, LinkSchema, SlugParamSchema, paramHook } from "./s
 export async function handleAddCustomSlug(
   request: Request,
   env: Env,
-  linkId: number
+  linkId: number,
+  ctx?: ExecutionContext,
 ): Promise<Response> {
   let body: { slug?: string };
   try {
@@ -29,7 +30,7 @@ export async function handleAddCustomSlug(
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  return fromServiceResult(await addCustomSlugToLink(env, linkId, body));
+  return fromServiceResult(await addCustomSlugToLink(env, linkId, body, ctx));
 }
 
 
@@ -53,8 +54,9 @@ export async function handleDisableSlug(
   linkId: number,
   slug: string,
   identity: string,
+  ctx?: ExecutionContext,
 ): Promise<Response> {
-  return fromServiceResult(await disableSlug(env, linkId, slug, identity));
+  return fromServiceResult(await disableSlug(env, linkId, slug, identity, ctx));
 }
 
 export async function handleEnableSlug(
@@ -62,8 +64,9 @@ export async function handleEnableSlug(
   linkId: number,
   slug: string,
   identity: string,
+  ctx?: ExecutionContext,
 ): Promise<Response> {
-  return fromServiceResult(await enableSlug(env, linkId, slug, identity));
+  return fromServiceResult(await enableSlug(env, linkId, slug, identity, ctx));
 }
 
 export async function handleRemoveSlug(
@@ -71,8 +74,9 @@ export async function handleRemoveSlug(
   linkId: number,
   slug: string,
   identity: string,
+  ctx?: ExecutionContext,
 ): Promise<Response> {
-  return fromServiceResult(await removeSlug(env, linkId, slug, identity));
+  return fromServiceResult(await removeSlug(env, linkId, slug, identity, ctx));
 }
 
 // ---- OpenAPI sub-app ----

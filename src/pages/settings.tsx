@@ -19,12 +19,13 @@ type Props = {
   filterBots: boolean;
   filterSelfReferrers: boolean;
   rootRedirectUrl: string;
+  redirectCacheEnabled: boolean;
   t: TranslateFn;
   mcpConfigured: boolean;
   userEmail?: string | null;
 };
 
-export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, t, mcpConfigured, userEmail }) => {
+export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, t, mcpConfigured, userEmail }) => {
   const combos = Math.pow(RANDOM_CHARSET.length, Math.max(slugLength, MIN_SLUG_LENGTH));
   const comboHint =
     slugLength >= 3
@@ -181,6 +182,28 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                     id="filter-self-referrers-toggle"
                     checked={filterSelfReferrers}
                     onchange="AdminClient.setFilterSelfReferrers(this.checked)"
+                  />
+                  <span class="toggle-track"></span>
+                  <span class="toggle-thumb"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="form-group form-group-flush">
+              <label class="form-label">{t("settings.performance")}</label>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-label">{t("settings.redirectCache")}</div>
+                  <div class="toggle-hint">{t("settings.redirectCacheHint")}</div>
+                </div>
+                <label class="toggle-switch">
+                  <input
+                    type="checkbox"
+                    id="redirect-cache-toggle"
+                    checked={redirectCacheEnabled}
+                    onchange="AdminClient.setRedirectCache(this.checked)"
                   />
                   <span class="toggle-track"></span>
                   <span class="toggle-thumb"></span>

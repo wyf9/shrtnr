@@ -42,6 +42,7 @@ const sv: Translations = {
   "dashboard.topDomains": "Toppdomäner",
   "dashboard.mostClicked": "Mest klickade",
   "dashboard.clickToCopy": "Klicka för att kopiera",
+  "dashboard.redirectCacheWarning": "Omdirigeringscache är aktiv. Statistik kan underräkna klick eftersom cachade omdirigeringar kanske inte kör Workern.",
 
   // Links
   "links.title": "Länkar",
@@ -260,6 +261,9 @@ const sv: Translations = {
   "settings.filterBotsHint": "Exkludera klick som flaggats som bottar eller crawlers från all statistik.",
   "settings.filterSelfReferrers": "Filtrera bort egen hänvisning",
   "settings.filterSelfReferrersHint": "Exkludera klick vars hänvisare är den bara domänen för denna webbplats (intern navigering).",
+  "settings.performance": "Prestanda",
+  "settings.redirectCache": "Cachelagra omdirigeringar i ett år",
+  "settings.redirectCacheHint": "Minskar CPU genom att servera populära kortlänkar från Workers Cache. Klickstatistik kan underräknas tills cachen rensas eller löper ut.",
   "settings.save": "Spara",
   "settings.combos": "{count} möjliga kombinationer",
   "settings.minLength": "Minsta längd är 3 tecken",

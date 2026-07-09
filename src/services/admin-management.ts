@@ -87,6 +87,7 @@ export type AppSettings = {
   filter_bots: boolean;
   filter_self_referrers: boolean;
   root_redirect_url: string | null;
+  redirect_cache_enabled: boolean;
 };
 
 // Stored as "true" / "false" strings in the key-value settings table; absent row
@@ -115,7 +116,7 @@ export async function getAppSettings(
   env: Env,
   identity: string,
 ): Promise<ServiceResult<AppSettings>> {
-  const [slugLength, theme, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl] = await Promise.all([
+  const [slugLength, theme, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled] = await Promise.all([
     SettingRepository.get(env.DB, identity, "slug_default_length"),
     SettingRepository.get(env.DB, identity, "theme"),
     SettingRepository.get(env.DB, identity, "lang"),
@@ -123,6 +124,7 @@ export async function getAppSettings(
     SettingRepository.get(env.DB, identity, "filter_bots"),
     SettingRepository.get(env.DB, identity, "filter_self_referrers"),
     SettingRepository.get(env.DB, "anonymous", "root_redirect_url"),
+    SettingRepository.get(env.DB, "anonymous", "redirect_cache_enabled"),
   ]);
   return ok({
     slug_default_length: parseInt(slugLength ?? String(DEFAULT_SLUG_LENGTH), 10),
@@ -132,6 +134,7 @@ export async function getAppSettings(
     filter_bots: parseBoolSetting(filterBots, true),
     filter_self_referrers: parseBoolSetting(filterSelfReferrers, true),
     root_redirect_url: normalizeRootRedirectUrl(rootRedirectUrl),
+    redirect_cache_enabled: parseBoolSetting(redirectCacheEnabled, false),
   });
 }
 
@@ -146,6 +149,7 @@ export async function updateAppSettings(
     filter_bots?: boolean;
     filter_self_referrers?: boolean;
     root_redirect_url?: string | null;
+    redirect_cache_enabled?: boolean;
   },
 ): Promise<ServiceResult<AppSettings>> {
   if (body.slug_default_length !== undefined) {
@@ -191,8 +195,19 @@ export async function updateAppSettings(
       await SettingRepository.set(env.DB, "anonymous", "root_redirect_url", normalized);
     }
   }
+  if (body.redirect_cache_enabled !== undefined) {
+    if (typeof body.redirect_cache_enabled !== "boolean") {
+      return fail(400, "redirect_cache_enabled must be a boolean");
+    }
+    await SettingRepository.set(env.DB, "anonymous", "redirect_cache_enabled", String(body.redirect_cache_enabled));
+  }
 
   return getAppSettings(env, identity);
+}
+
+export async function isRedirectCacheEnabled(env: Env): Promise<boolean> {
+  const stored = await SettingRepository.get(env.DB, "anonymous", "redirect_cache_enabled");
+  return parseBoolSetting(stored, false);
 }
 
 export async function getRootRedirectUrl(env: Env): Promise<string | null> {

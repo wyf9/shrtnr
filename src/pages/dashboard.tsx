@@ -46,9 +46,10 @@ type Props = {
   t: TranslateFn;
   lang: string;
   range: TimelineRange;
+  redirectCacheEnabled: boolean;
 };
 
-export const DashboardPage: FC<Props> = ({ stats, t, lang, range }) => {
+export const DashboardPage: FC<Props> = ({ stats, t, lang, range, redirectCacheEnabled }) => {
   const d = stats;
   const topCountryMax = d.top_countries.reduce((s, i) => s + i.count, 0) || 1;
   const topRefMax = d.top_referrers.reduce((s, i) => s + i.count, 0) || 1;
@@ -79,6 +80,13 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range }) => {
           </button>
         </div>
       </div>
+
+      {redirectCacheEnabled && (
+        <div class="warning-banner" id="redirect-cache-analytics-warning">
+          <span class="icon">warning</span>
+          <span>{t("dashboard.redirectCacheWarning")}</span>
+        </div>
+      )}
 
       <div class="kpi-strip" id="dashboard-kpi-strip">
         <KpiCard

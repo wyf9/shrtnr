@@ -162,7 +162,7 @@ const updateLinkRoute = createRoute({
 linksApp.openapi(updateLinkRoute, async (c) => {
   const { id } = c.req.valid("param") as { id: number };
   const body = c.req.valid("json") as { url?: string; label?: string | null; expires_at?: number | null };
-  return fromServiceResult(await updateLink(c.env, id, body)) as never;
+  return fromServiceResult(await updateLink(c.env, id, body, c.executionCtx)) as never;
 }, paramHook);
 
 // ---- POST /:id/disable ----
@@ -184,7 +184,7 @@ const disableLinkRoute = createRoute({
 
 linksApp.openapi(disableLinkRoute, async (c) => {
   const { id } = c.req.valid("param") as { id: number };
-  return fromServiceResult(await disableLink(c.env, id, c.var.auth.identity)) as never;
+  return fromServiceResult(await disableLink(c.env, id, c.var.auth.identity, c.executionCtx)) as never;
 }, paramHook);
 
 // ---- POST /:id/enable ----
@@ -206,7 +206,7 @@ const enableLinkRoute = createRoute({
 
 linksApp.openapi(enableLinkRoute, async (c) => {
   const { id } = c.req.valid("param") as { id: number };
-  return fromServiceResult(await enableLink(c.env, id, c.var.auth.identity)) as never;
+  return fromServiceResult(await enableLink(c.env, id, c.var.auth.identity, c.executionCtx)) as never;
 }, paramHook);
 
 // ---- DELETE /:id ----
@@ -229,7 +229,7 @@ const deleteLinkRoute = createRoute({
 
 linksApp.openapi(deleteLinkRoute, async (c) => {
   const { id } = c.req.valid("param") as { id: number };
-  return fromServiceResult(await deleteLink(c.env, id, c.var.auth.identity)) as never;
+  return fromServiceResult(await deleteLink(c.env, id, c.var.auth.identity, c.executionCtx)) as never;
 }, paramHook);
 
 // ---- POST /:id/slugs (add custom slug) ----
@@ -257,7 +257,7 @@ const addSlugRoute = createRoute({
 linksApp.openapi(addSlugRoute, async (c) => {
   const { id } = c.req.valid("param") as { id: number };
   const { slug } = c.req.valid("json") as { slug: string };
-  return fromServiceResult(await addCustomSlugToLink(c.env, id, { slug })) as never;
+  return fromServiceResult(await addCustomSlugToLink(c.env, id, { slug }, c.executionCtx)) as never;
 }, paramHook);
 
 // ---- Slug-scoped param schema ----
@@ -286,7 +286,7 @@ const disableSlugRoute = createRoute({
 
 linksApp.openapi(disableSlugRoute, async (c) => {
   const { id, slug } = c.req.valid("param") as { id: number; slug: string };
-  return fromServiceResult(await disableSlug(c.env, id, slug, c.var.auth.identity)) as never;
+  return fromServiceResult(await disableSlug(c.env, id, slug, c.var.auth.identity, c.executionCtx)) as never;
 }, paramHook);
 
 // ---- POST /:id/slugs/:slug/enable ----
@@ -309,7 +309,7 @@ const enableSlugRoute = createRoute({
 
 linksApp.openapi(enableSlugRoute, async (c) => {
   const { id, slug } = c.req.valid("param") as { id: number; slug: string };
-  return fromServiceResult(await enableSlug(c.env, id, slug, c.var.auth.identity)) as never;
+  return fromServiceResult(await enableSlug(c.env, id, slug, c.var.auth.identity, c.executionCtx)) as never;
 }, paramHook);
 
 // ---- DELETE /:id/slugs/:slug ----
@@ -332,7 +332,7 @@ const removeSlugRoute = createRoute({
 
 linksApp.openapi(removeSlugRoute, async (c) => {
   const { id, slug } = c.req.valid("param") as { id: number; slug: string };
-  return fromServiceResult(await removeSlug(c.env, id, slug, c.var.auth.identity)) as never;
+  return fromServiceResult(await removeSlug(c.env, id, slug, c.var.auth.identity, c.executionCtx)) as never;
 }, paramHook);
 
 // ---- GET /:id/qr ----
@@ -481,7 +481,7 @@ export async function handleCreateLink(request: Request, env: Env, createdVia?: 
   return fromServiceResult(result);
 }
 
-export async function handleUpdateLink(request: Request, env: Env, id: number): Promise<Response> {
+export async function handleUpdateLink(request: Request, env: Env, id: number, ctx?: ExecutionContext): Promise<Response> {
   let body: { url?: string; label?: string | null; expires_at?: number | null };
 
   try {
@@ -490,17 +490,17 @@ export async function handleUpdateLink(request: Request, env: Env, id: number): 
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  return fromServiceResult(await updateLink(env, id, body));
+  return fromServiceResult(await updateLink(env, id, body, ctx));
 }
 
-export async function handleDisableLink(env: Env, id: number, identity: string): Promise<Response> {
-  return fromServiceResult(await disableLink(env, id, identity));
+export async function handleDisableLink(env: Env, id: number, identity: string, ctx?: ExecutionContext): Promise<Response> {
+  return fromServiceResult(await disableLink(env, id, identity, ctx));
 }
 
-export async function handleEnableLink(env: Env, id: number, identity: string): Promise<Response> {
-  return fromServiceResult(await enableLink(env, id, identity));
+export async function handleEnableLink(env: Env, id: number, identity: string, ctx?: ExecutionContext): Promise<Response> {
+  return fromServiceResult(await enableLink(env, id, identity, ctx));
 }
 
-export async function handleDeleteLink(env: Env, id: number, identity: string): Promise<Response> {
-  return fromServiceResult(await deleteLink(env, id, identity));
+export async function handleDeleteLink(env: Env, id: number, identity: string, ctx?: ExecutionContext): Promise<Response> {
+  return fromServiceResult(await deleteLink(env, id, identity, ctx));
 }

@@ -102,6 +102,29 @@ describe("Routing", () => {
     expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
+  it("GET /_/health should not be cacheable by Workers Cache", async () => {
+    const res = await SELF.fetch(unauthed("/_/health"));
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+  });
+
+  it("GET /_/admin/api/settings should return redirect cache disabled by default", async () => {
+    const res = await SELF.fetch(authed("/_/admin/api/settings"));
+    const body = await res.json() as { redirect_cache_enabled: boolean };
+    expect(body.redirect_cache_enabled).toBe(false);
+  });
+
+  it("PUT /_/admin/api/settings should update redirect cache setting", async () => {
+    const res = await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ redirect_cache_enabled: true }),
+      }),
+    );
+    const body = await res.json() as { redirect_cache_enabled: boolean };
+    expect(body.redirect_cache_enabled).toBe(true);
+  });
+
   it("GET /_/admin should redirect to /_/admin/dashboard", async () => {
     const res = await SELF.fetch(unauthed("/_/admin"), { redirect: "manual" });
     expect(res.status).toBe(302);
@@ -187,6 +210,31 @@ describe("Redirect", () => {
     const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
     expect(res.status).toBe(301);
     expect(res.headers.get("Location")).toBe("https://destination.com/");
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+  });
+
+  it("should set long cache headers when redirect cache is enabled", async () => {
+    await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ redirect_cache_enabled: true }),
+      }),
+    );
+    const createRes = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://cached-destination.com" }),
+      })
+    );
+    const created = await createRes.json() as any;
+    const slug = created.slugs[0].slug;
+
+    const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Cache-Control")).toBe("public, max-age=31536000, stale-while-revalidate=604800");
+    expect(res.headers.get("Cache-Tag")).toBe(`redirect:${slug}`);
   });
 
   it("should return 404 for a non-existent slug", async () => {

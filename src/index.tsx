@@ -92,6 +92,17 @@ import { PagesPage } from "./pages/pages";
 
 const app = new Hono<HonoEnv>();
 
+function withNoStoreIfMissing(response: Response): Response {
+  if (response.headers.has("Cache-Control")) return response;
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", "no-store");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 // ---- Health check (public) ----
 
 app.get("/_/health", () => handleHealth());
@@ -159,17 +170,18 @@ async function getPageData(c: { env: Env; req: { raw: Request } }, identity: str
   const filterBots = settings?.filter_bots ?? true;
   const filterSelfReferrers = settings?.filter_self_referrers ?? true;
   const rootRedirectUrl = settings?.root_redirect_url ?? "";
+  const redirectCacheEnabled = settings?.redirect_cache_enabled ?? false;
   const dynamicRedirectRules = await getDynamicRedirectRules(c.env);
   const t = createTranslateFn(lang);
   const translations = getTranslations(lang);
-  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, dynamicRedirectRules, t, translations };
+  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectRules, t, translations };
 }
 
 // ---- Admin pages ----
 
 app.get("/_/admin/dashboard", async (c) => {
   const identity = c.var.identity;
-  const { theme, t, lang, translations, defaultRange } = await getPageData(c, identity);
+  const { theme, t, lang, translations, defaultRange, redirectCacheEnabled } = await getPageData(c, identity);
   const rangeParam = c.req.query("range");
   const validRanges = new Set(["24h", "7d", "30d", "90d", "1y", "all"]);
   const range = (validRanges.has(rangeParam || "") ? rangeParam : defaultRange) as TimelineRange;
@@ -200,7 +212,7 @@ app.get("/_/admin/dashboard", async (c) => {
       };
   return c.html(
     <Layout active="dashboard" theme={theme} t={t} lang={lang} translations={translations}>
-      <DashboardPage stats={stats} t={t} lang={lang} range={range} />
+      <DashboardPage stats={stats} t={t} lang={lang} range={range} redirectCacheEnabled={redirectCacheEnabled} />
     </Layout>,
   );
 });
@@ -281,12 +293,12 @@ app.get("/_/admin/keys", async (c) => {
 
 app.get("/_/admin/settings", async (c) => {
   const identity = c.var.identity;
-  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, dynamicRedirectRules } = await getPageData(c, identity);
+  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectRules } = await getPageData(c, identity);
   const mcpConfigured = Boolean(c.env.MCP_ACCESS_AUD && c.env.ACCESS_JWKS_URL);
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="settings" theme={theme} t={t} lang={lang} translations={translations}>
-      <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} rootRedirectUrl={rootRedirectUrl} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
+        <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} rootRedirectUrl={rootRedirectUrl} redirectCacheEnabled={redirectCacheEnabled} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
     </Layout>,
   );
 });
@@ -349,7 +361,7 @@ app.get("/_/admin/api/links/:id", (c) => {
 app.put("/_/admin/api/links/:id", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleUpdateLink(c.req.raw, c.env, id);
+  return handleUpdateLink(c.req.raw, c.env, id, c.executionCtx);
 });
 app.get("/_/admin/api/links/:id/analytics", (c) => {
   const id = parseInt(c.req.param("id"), 10);
@@ -364,22 +376,22 @@ app.get("/_/admin/api/links/:id/timeline", (c) => {
 app.post("/_/admin/api/links/:id/disable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleDisableLink(c.env, id, c.var.identity);
+  return handleDisableLink(c.env, id, c.var.identity, c.executionCtx);
 });
 app.post("/_/admin/api/links/:id/enable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleEnableLink(c.env, id, c.var.identity);
+  return handleEnableLink(c.env, id, c.var.identity, c.executionCtx);
 });
 app.delete("/_/admin/api/links/:id", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleDeleteLink(c.env, id, c.var.identity);
+  return handleDeleteLink(c.env, id, c.var.identity, c.executionCtx);
 });
 app.post("/_/admin/api/links/:id/slugs", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleAddCustomSlug(c.req.raw, c.env, id);
+  return handleAddCustomSlug(c.req.raw, c.env, id, c.executionCtx);
 });
 app.put("/_/admin/api/links/:id/slugs/primary", (c) => {
   const id = parseInt(c.req.param("id"), 10);
@@ -390,19 +402,19 @@ app.post("/_/admin/api/links/:id/slugs/:slug/disable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   const slug = c.req.param("slug");
   if (isNaN(id) || !slug) return c.json({ error: "Not Found" }, 404);
-  return handleDisableSlug(c.env, id, slug, c.var.identity);
+  return handleDisableSlug(c.env, id, slug, c.var.identity, c.executionCtx);
 });
 app.post("/_/admin/api/links/:id/slugs/:slug/enable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   const slug = c.req.param("slug");
   if (isNaN(id) || !slug) return c.json({ error: "Not Found" }, 404);
-  return handleEnableSlug(c.env, id, slug, c.var.identity);
+  return handleEnableSlug(c.env, id, slug, c.var.identity, c.executionCtx);
 });
 app.delete("/_/admin/api/links/:id/slugs/:slug", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   const slug = c.req.param("slug");
   if (isNaN(id) || !slug) return c.json({ error: "Not Found" }, 404);
-  return handleRemoveSlug(c.env, id, slug, c.var.identity);
+  return handleRemoveSlug(c.env, id, slug, c.var.identity, c.executionCtx);
 });
 app.get("/_/admin/api/links/:id/qr", (c) => {
   const id = parseInt(c.req.param("id"), 10);
@@ -553,7 +565,7 @@ export default {
       (ctx as unknown as { props: Record<string, unknown> }).props = {
         email: identity,
       };
-      return mcpHandler.fetch!(request, env, ctx);
+      return withNoStoreIfMissing(await mcpHandler.fetch!(request, env, ctx));
     }
 
     // OAuth Authorization Server Metadata (RFC 8414).
@@ -580,7 +592,7 @@ export default {
           ],
           code_challenge_methods_supported: ["S256"],
         },
-        { headers: { "Access-Control-Allow-Origin": "*" } },
+        { headers: { "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" } },
       );
     }
 
@@ -590,7 +602,7 @@ export default {
     }
 
     // Everything else goes to the Hono app.
-    return app.fetch(request, env, ctx);
+    return withNoStoreIfMissing(await app.fetch(request, env, ctx));
   },
 } satisfies ExportedHandler<Env>;
 

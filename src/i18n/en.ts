@@ -40,6 +40,7 @@ const en = {
   "dashboard.topDomains": "Top Domains",
   "dashboard.mostClicked": "Most Clicked",
   "dashboard.clickToCopy": "Click to copy",
+  "dashboard.redirectCacheWarning": "Redirect cache is enabled. Analytics can undercount clicks because cached redirects may not run the Worker.",
 
   // Links
   "links.title": "Links",
@@ -257,6 +258,9 @@ const en = {
   "settings.filterBotsHint": "Exclude clicks flagged as bots or crawlers from every analytics view.",
   "settings.filterSelfReferrers": "Filter out self-referrers",
   "settings.filterSelfReferrersHint": "Exclude clicks whose Referer is the bare origin of this site (internal navigation).",
+  "settings.performance": "Performance",
+  "settings.redirectCache": "Cache redirects for one year",
+  "settings.redirectCacheHint": "Reduces CPU by serving hot short links from Workers Cache. Click analytics can undercount until the cache is purged or expires.",
   "settings.save": "Save",
   "settings.combos": "{count} possible combinations",
   "settings.minLength": "Minimum length is 3 characters",

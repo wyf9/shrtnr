@@ -42,6 +42,7 @@ const id: Translations = {
   "dashboard.topDomains": "Domain Teratas",
   "dashboard.mostClicked": "Paling Banyak Diklik",
   "dashboard.clickToCopy": "Klik untuk menyalin",
+  "dashboard.redirectCacheWarning": "Cache pengalihan aktif. Analitik dapat menghitung klik terlalu rendah karena pengalihan yang dilayani cache mungkin tidak menjalankan Worker.",
 
   // Links
   "links.title": "Tautan",
@@ -260,6 +261,9 @@ const id: Translations = {
   "settings.filterBotsHint": "Kecualikan klik yang ditandai sebagai bot atau crawler dari setiap tampilan analitik.",
   "settings.filterSelfReferrers": "Saring self-referrer",
   "settings.filterSelfReferrersHint": "Kecualikan klik yang perujuknya adalah origin mentah situs ini (navigasi internal).",
+  "settings.performance": "Performa",
+  "settings.redirectCache": "Cache pengalihan selama satu tahun",
+  "settings.redirectCacheHint": "Mengurangi CPU dengan menyajikan tautan pendek populer dari Workers Cache. Analitik klik dapat terhitung lebih rendah sampai cache dibersihkan atau kedaluwarsa.",
   "settings.save": "Simpan",
   "settings.combos": "{count} kemungkinan kombinasi",
   "settings.minLength": "Panjang minimum 3 karakter",

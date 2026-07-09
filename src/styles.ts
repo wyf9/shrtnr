@@ -251,6 +251,8 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 .page-header { margin-bottom: 2rem; }
 .page-title { font-family: var(--font-family-display); font-size: 2rem; font-weight: 700; }
 .page-subtitle { color: var(--color-text-muted); font-size: 0.875rem; margin-top: 0.25rem; }
+.warning-banner { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.85rem 1rem; margin-bottom: 1.4rem; border: 1px solid rgba(255, 118, 55, 0.45); border-radius: var(--radius-md); background: rgba(255, 118, 55, 0.12); color: var(--color-text); font-size: 0.86rem; }
+.warning-banner .icon { color: var(--color-accent); font-size: 20px; flex: 0 0 auto; }
 
 /* KPI strip — top-row metrics at four equal columns. */
 .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4rem; margin-bottom: 1.4rem; }
