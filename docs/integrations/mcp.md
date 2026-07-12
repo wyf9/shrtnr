@@ -1,84 +1,71 @@
-# MCP 服务器（AI 集成）
+# MCP Server (AI Integration)
 
-每个 shrtnr 部署都内置一个 [MCP](https://modelcontextprotocol.io/) 端点。Claude、GitHub Copilot、Cursor 以及任何兼容 MCP 的客户端，都能通过 Streamable HTTP 传输连接它，来创建和管理短链。
+Every shrtnr deployment includes a built-in [MCP](https://modelcontextprotocol.io/) endpoint. Claude, GitHub Copilot, Cursor, and any MCP-compatible client can connect over Streamable HTTP transport to create and manage short links.
 
-MCP 端点通过 [Cloudflare Access Managed OAuth](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/) 认证。CF Access 充当 OAuth 授权服务器：它在边缘处理客户端注册、令牌签发与校验。Worker 收到的是带身份头的已认证请求，自身不实现任何 OAuth 端点。
+The MCP endpoint authenticates through [Cloudflare Access Managed OAuth](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/). CF Access acts as the OAuth authorization server: it handles client registration, token issuance, and validation at the edge. The Worker receives authenticated requests with identity headers and does not implement any OAuth endpoints itself.
 
-::: warning 授权模型
-MCP 端点目前**不区分读写**。任何邮箱匹配 MCP 应用 CF Access 策略的用户，都可以调用每一个已注册工具，包括破坏性的工具（`delete_link`、`delete_bundle`、`remove_slug`、`archive_bundle`）。但按资源的归属限制仍然生效：用户无法修改他人的链接或分组。若要提供只读受众，请通过独立的 MCP 应用，或移除写工具的独立 Worker 部署来隔离。
+::: warning Authorization model
+The MCP endpoint does **not** split read from write today. Anyone whose email matches the CF Access policy on the MCP application can call every registered tool, including destructive ones (`delete_link`, `delete_bundle`, `remove_slug`, `archive_bundle`). Per-resource ownership still applies: a user cannot mutate another user's links or bundles. To grant a read-only audience, gate them through a separate MCP application or a separate Worker deployment with the write tools removed.
 :::
 
-## 设置步骤
+## Setup
 
-### 1. 为 MCP 端点创建自托管 Access 应用
+### 1. Create a self-hosted Access application for the MCP endpoint
 
-CF Access 的 MCP 类型应用**不能**限定到某个路径：它们必须独占一个完整子域名。Worker 会检测任何以 `mcp.` 开头的主机并路由到 MCP 处理器，因此子域名**必须**使用 `mcp.` 前缀（例如 `mcp.your-domain.com`）。
+CF Access MCP-type applications cannot be scoped to a path: they must own a full subdomain. The Worker detects requests on any host starting with `mcp.` and routes them to the MCP handler, so the subdomain **must** use the `mcp.` prefix (e.g., `mcp.your-domain.com`).
 
-1. 进入 **Access > Applications > Add an application > Self-hosted**。
-2. 将域名设为你的 MCP 子域名（如 `mcp.your-domain.com`），不带路径。
-3. 为你的邮箱域名添加一条 allow 策略。
-4. 进入 **Advanced settings**，展开 **Managed OAuth (Beta)** 并**打开**开关。
-5. 启用 **Allow localhost clients** 和 **Allow loopback clients**。
-6. 在 **Allowed redirect URIs** 下，为每个集成各添加一条：
-   - `https://claude.ai/api/mcp/auth_callback`：用于 Claude.ai（旧域名）和 Claude Desktop
-   - `https://claude.com/api/mcp/auth_callback`：用于 Claude.ai（当前域名）
-   - `https://dash.cloudflare.com/*`：用于 CF Access AI Controls 门户认证与同步工具
-   - 按需为其他平台（ChatGPT 等）添加等价项。要查明某客户端的确切回调 URI：尝试连接、让流程失败，然后从浏览器错误 URL 中读取 `redirect_uri`。
-7. CF Access 的变更在保存后可能需要 30–60 秒生效。
+1. Go to **Access > Applications > Add an application > Self-hosted**.
+2. Set the domain to your MCP subdomain (e.g., `mcp.your-domain.com`) with no path.
+3. Add an allow policy for your email domain.
+4. Go to **Advanced settings**, expand **Managed OAuth (Beta)** and toggle it **on**.
+5. Enable **Allow localhost clients** and **Allow loopback clients**.
+6. Under **Allowed redirect URIs**, add one entry per integration:
+   - `https://claude.ai/api/mcp/auth_callback`: for Claude.ai (legacy domain) and Claude Desktop
+   - `https://claude.com/api/mcp/auth_callback`: for Claude.ai (current domain)
+   - `https://dash.cloudflare.com/*`: for the CF Access AI Controls portal to authenticate and sync tools
+   - Add equivalents for other platforms (ChatGPT, etc.) as needed. To find a client's exact callback URI: attempt to connect, let the flow fail, and read the `redirect_uri` from the error URL in the browser.
+7. CF Access changes can take 30–60 seconds to propagate after saving.
 
-### 向 Worker 注册自定义域名
+### Register custom domains with the Worker
 
-Worker 需要两个自定义域名：一个用于应用本身（短链重定向、管理面板），一个用于 MCP 端点。CF Access MCP 应用需要独立子域名，不能与路径共享域名，因此 MCP 域名使用 `mcp.` 前缀：`mcp.<your-domain>`。
+The Worker needs two custom domains: one for the app itself (short link redirects, admin dashboard) and one for the MCP endpoint. CF Access MCP applications require their own subdomain and cannot share a domain with a path, so the MCP domain uses a `mcp.` prefix: `mcp.<your-domain>`.
 
-在 Cloudflare 仪表盘中添加两个域名：
+Add both domains in the Cloudflare dashboard:
 
-1. 进入 **Workers & Pages** > shrtnr > **Settings** > **Domains & Routes**。
-2. 点击 **Add Custom Domain**，输入应用域名（如 `your-domain.com`）。
-3. 再次点击 **Add Custom Domain**，输入 MCP 子域名（如 `mcp.your-domain.com`）。
-4. Cloudflare 会自动为两者创建 DNS 记录，无需手动配置。
+1. Go to **Workers & Pages** > shrtnr > **Settings** > **Domains & Routes**.
+2. Click **Add Custom Domain** and enter your app domain (e.g., `your-domain.com`).
+3. Click **Add Custom Domain** again and enter the MCP subdomain (e.g., `mcp.your-domain.com`).
+4. Cloudflare creates the DNS records automatically for both; no manual DNS configuration needed.
 
-### 2. 设置 Worker Secret 并部署
+### 2. Set Worker secrets and deploy
 
 ```bash
-bunx wrangler secret put MCP_ACCESS_AUD    # MCP Access 应用的 AUD Tag
+bunx wrangler secret put MCP_ACCESS_AUD    # AUD tag from the MCP Access application
 bunx wrangler secret put ACCESS_JWKS_URL   # https://<your-team>.cloudflareaccess.com/cdn-cgi/access/certs
 bun run deploy
 ```
 
-### 3. 关闭域名的 "Block AI bots"
+### 3. Disable "Block AI bots" for your domain
 
-Cloudflare 的托管机器人规则会在请求到达 Worker 前，在边缘拦截来自 AI 助手（Claude、Copilot 等）的请求。MCP 客户端从云基础设施发起连接，会被 Cloudflare 归类为 AI 机器人流量。若此规则生效，OAuth 握手能完成，但 MCP 连接本身会被静默丢弃。
+Cloudflare's managed bot rule blocks requests from AI assistants (Claude, Copilot, etc.) at the edge before they reach your Worker. MCP clients connect from cloud infrastructure that Cloudflare classifies as AI bot traffic. If this rule is active, the OAuth handshake completes but the MCP connection itself is silently dropped.
 
-进入 [Cloudflare 仪表盘](https://dash.cloudflare.com/) > 你的 zone > **Security** > 按 **Bot traffic** 过滤 > 找到 **Block AI bots** 并设为 **Do not block (off)**。每个托管 MCP 子域名的 zone 都必须关闭此项。
+Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) > your zone > **Security** > filter by **Bot traffic** > find **Block AI bots** and set it to **Do not block (off)**. This must be disabled on every zone that hosts an MCP subdomain.
 
-## 可用工具
+## Available tools
 
-MCP 服务器注册了用于管理链接、自定义短码、分组、QR 码和分析（终身、时间范围、维度拆分）的工具。已连接的客户端通过标准 MCP `tools/list` 调用即可发现完整列表。
+The MCP server registers tools for managing links, custom slugs, bundles, QR codes, and analytics (lifetime, time-ranged, and dimensional breakdowns). Connected clients discover the full list via the standard MCP `tools/list` call.
 
-::: tip 权威来源
-工具列表会随版本变化。请勿在文档中硬编码可能漂移的动态内容，权威来源是 [`src/mcp/server.ts`](https://github.com/wyf9/shrtnr/blob/main/src/mcp/server.ts)。
+::: tip Authoritative source
+The tool list changes with each release. Do not hardcode dynamic content that can drift; the authoritative source is [`src/mcp/server.ts`](https://github.com/wyf9/shrtnr/blob/main/src/mcp/server.ts).
 :::
 
-## 连接 MCP 客户端
+## Connecting MCP clients
 
-所有客户端都连接到 `https://mcp.your-domain.com`。OAuth 握手是自动的：客户端会在首次连接时打开浏览器进行 Cloudflare Access 登录。
+All clients connect to `https://mcp.your-domain.com`. The OAuth handshake is automatic: the client opens a browser for Cloudflare Access sign-in on first connect.
 
-**Claude (claude.ai)**：Settings > Integrations > Add custom connector，将 `https://mcp.your-domain.com` 作为 URL 输入。
+**Claude (claude.ai):** Settings > Integrations > Add custom connector. Enter `https://mcp.your-domain.com` as the URL.
 
-**Claude Desktop** (`claude_desktop_config.json`)：
-
-```json
-{
-  "mcpServers": {
-    "shrtnr": {
-      "command": "npx",
-      "args": ["mcp-remote", "https://mcp.your-domain.com"]
-    }
-  }
-}
-```
-
-**Claude Code** (`.mcp.json`)：
+**Claude Desktop** (`claude_desktop_config.json`):
 
 ```json
 {
@@ -91,7 +78,20 @@ MCP 服务器注册了用于管理链接、自定义短码、分组、QR 码和�
 }
 ```
 
-**VS Code / GitHub Copilot** (`.vscode/mcp.json`)：
+**Claude Code** (`.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "shrtnr": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mcp.your-domain.com"]
+    }
+  }
+}
+```
+
+**VS Code / GitHub Copilot** (`.vscode/mcp.json`):
 
 ```json
 {
@@ -104,13 +104,13 @@ MCP 服务器注册了用于管理链接、自定义短码、分组、QR 码和�
 }
 ```
 
-**其他客户端**：指向 `https://mcp.your-domain.com`，使用 Streamable HTTP 传输。服务器通过 `/.well-known/oauth-authorization-server` 公布其 OAuth 端点。
+**Other clients:** Point at `https://mcp.your-domain.com` with Streamable HTTP transport. The server advertises its OAuth endpoints via `/.well-known/oauth-authorization-server`.
 
-请将 `your-domain.com` 替换为你实际的短域名。
+Replace `your-domain.com` with your actual short domain.
 
-## 相关资源
+## Related resources
 
-- [Model Context Protocol](https://modelcontextprotocol.io/)：MCP 规范
-- [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/)：零信任访问控制
-- [Cloudflare Access Managed OAuth](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/)：用 Access 保护 MCP 服务器
-- [Cloudflare MCP Portals](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/mcp-portals/)：在 Zero Trust 中管理 MCP 服务器的 AI Controls 门户
+- [Model Context Protocol](https://modelcontextprotocol.io/): the MCP specification
+- [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/): zero-trust access control
+- [Cloudflare Access Managed OAuth](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/): protecting MCP servers with Access
+- [Cloudflare MCP Portals](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/mcp-portals/): the AI Controls portal for managing MCP servers in Zero Trust

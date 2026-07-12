@@ -1,26 +1,26 @@
-# 部署
+# Deploy
 
-shrtnr 运行在 Cloudflare Workers + D1 上。你可以选择一键部署，或手动通过命令行部署。
+shrtnr runs on Cloudflare Workers + D1. You can deploy with one click, or manually from the command line.
 
-::: tip 包管理器
-本项目使用 [Bun](https://bun.sh/) 作为包管理器。下文命令均以 `bun` 为准。你也可以使用 `npx wrangler` 直接调用 Wrangler CLI。
+::: tip Package manager
+This project uses [Bun](https://bun.sh/) as its package manager. The commands below use `bun`. You can also invoke the Wrangler CLI directly with `npx wrangler`.
 :::
 
-## 前置条件
+## Prerequisites
 
-- 一个 [Cloudflare 账号](https://dash.cloudflare.com/sign-up)（免费额度即可）。
-- 已安装 [Bun](https://bun.sh/)（`node >= 22`）。
-- 一个域名（可选，但推荐用于生产环境）。
+- A [Cloudflare account](https://dash.cloudflare.com/sign-up) (the free tier is enough).
+- [Bun](https://bun.sh/) installed (`node >= 22`).
+- A domain (optional, but recommended for production).
 
-## 一键部署
+## One-click deploy
 
-点击仓库 README 中的 **Deploy to Cloudflare** 按钮。Cloudflare 会 Fork 仓库、置备 D1 数据库与 KV 命名空间，并部署 Worker。
+Click the **Deploy to Cloudflare** button in the repository README. Cloudflare forks the repo, provisions a D1 database and KV namespace, and deploys the Worker.
 
-::: warning 重要：一键部署不会复制 GitHub Actions 工作流
-当 Cloudflare Fork 你的仓库时，`.github/workflows/` 下的工作流**不会被复制**。这意味着自动迁移工作流 (`.github/workflows/migrate.yml`) 在你的 Fork 中并不存在。若不执行迁移，数据库表结构会缺失，应用将无法工作。
+::: warning Important: one-click deploy does not copy GitHub Actions workflows
+When Cloudflare forks your repo, the workflows under `.github/workflows/` are **not copied**. This means the automatic migration workflow (`.github/workflows/migrate.yml`) does not exist in your fork. Without running migrations, the database schema is missing and the app will not work.
 :::
 
-首次部署后，立即应用数据库迁移：
+After the initial deploy, apply the database migrations immediately:
 
 ```bash
 cd shrtnr
@@ -28,29 +28,29 @@ bun install
 bunx wrangler d1 migrations apply DB --remote
 ```
 
-之后每次拉取更新并推送到你的 Fork 时，都要重新执行迁移，以应用新的表结构变更：
+Then, every time you pull updates and push them to your fork, re-run migrations to apply any new schema changes:
 
 ```bash
 bunx wrangler d1 migrations apply DB --remote
 ```
 
-若要自动化，可将上游仓库的 `.github/workflows/migrate.yml` 复制到你的 Fork，并添加所需 Secrets（见下方 [持续部署](#持续部署)）。
+To automate this, copy `.github/workflows/migrate.yml` from the upstream repo into your fork and add the required secrets (see [Continuous deployment](#continuous-deployment) below).
 
-## 手动部署
+## Manual deploy
 
 ```bash
 git clone https://github.com/wyf9/shrtnr
 cd shrtnr
 bun install
-bun run wrangler-login   # 或 bunx wrangler login
-bun run db:create        # 创建 D1 数据库 shrtnr-db
-bun run deploy           # 部署 Worker
-bun run db:migrate:remote  # 对远程数据库应用迁移
+bun run wrangler-login    # or: bunx wrangler login
+bun run db:create         # create the D1 database shrtnr-db
+bun run deploy            # deploy the Worker
+bun run db:migrate:remote # apply migrations to the remote database
 ```
 
-对应的 npm scripts 定义在 `package.json` 中：
+The corresponding npm scripts are defined in `package.json`:
 
-| 脚本 | 命令 |
+| Script | Command |
 |---|---|
 | `dev` | `wrangler dev` |
 | `deploy` | `wrangler deploy` |
@@ -60,31 +60,31 @@ bun run db:migrate:remote  # 对远程数据库应用迁移
 | `db:migrate:remote` | `wrangler d1 migrations apply DB --remote` |
 | `secret:put` | `wrangler secret put` |
 
-## 绑定与配置
+## Bindings and configuration
 
-Worker 的绑定定义在 `wrangler.jsonc` 中：
+The Worker bindings are defined in `wrangler.jsonc`:
 
-- **D1 数据库**：绑定名 `DB`，数据库名 `shrtnr-db`，迁移目录 `migrations/`。
-- **KV 命名空间**：绑定名 `SLUG_KV`，用于短码到链接的高速查找。
-- **Durable Object**：`MCP_OBJECT`（类 `ShrtnrMCP`），承载 MCP agent 会话。
-- **静态资源**：`public/` 目录作为静态资源提供。
+- **D1 database**: binding `DB`, database name `shrtnr-db`, migrations dir `migrations/`.
+- **KV namespace**: binding `SLUG_KV`, used for slug-to-link lookups.
+- **Durable Object**: `MCP_OBJECT` (class `ShrtnrMCP`), hosting MCP agent sessions.
+- **Static assets**: the `public/` directory is served as static assets.
 
-> KV 命名空间 ID 在部署时由 `scripts/resolve-bindings.sh` 解析。
+> The KV namespace ID is resolved at deploy time by `scripts/resolve-bindings.sh`.
 
-## 持续部署
+## Continuous deployment
 
-Cloudflare [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) 会在每次推送生产分支时重新部署 Worker。数据库迁移由独立的 GitHub Actions 工作流 `.github/workflows/migrate.yml` 处理，它在 Cloudflare 的检查套件成功完成后触发。
+Cloudflare [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) redeploys the Worker on every push to your production branch. Database migrations are handled by a separate GitHub Actions workflow, `.github/workflows/migrate.yml`, which triggers when Cloudflare's check suite completes successfully.
 
-**如果你使用一键部署**：Cloudflare Fork 仓库时不会复制 GitHub Actions 工作流。要获得自动迁移能力，请手动创建该文件：
+**If you used one-click deploy**: Cloudflare forks the repo but does not copy GitHub Actions workflows. To get automatic migrations, create the file manually:
 
-1. 在你的 Fork 中创建 `.github/workflows/migrate.yml`，内容取自[上游仓库](https://github.com/oddbit/shrtnr/blob/main/.github/workflows/migrate.yml)。
-2. 在 GitHub 的 **Settings > Secrets and variables > Actions** 中添加两个仓库 Secret：
+1. In your fork, create `.github/workflows/migrate.yml` with the contents from the [upstream repo](https://github.com/oddbit/shrtnr/blob/main/.github/workflows/migrate.yml).
+2. Add two repository secrets under GitHub **Settings > Secrets and variables > Actions**:
 
-- `CLOUDFLARE_API_TOKEN`：具备 **Workers Scripts: Edit** 与 **D1: Edit** 权限的 Cloudflare API Token。
-- `CLOUDFLARE_ACCOUNT_ID`：你的 Cloudflare 账号 ID（在仪表盘 URL 或任意 zone 页面右侧栏可见）。
+- `CLOUDFLARE_API_TOKEN`: a Cloudflare API token with **Workers Scripts: Edit** and **D1: Edit** permissions.
+- `CLOUDFLARE_ACCOUNT_ID`: your Cloudflare account ID (visible in the dashboard URL or the right sidebar of any zone page).
 
-没有这些 Secret 你依然可以部署：Workers Builds 负责代码部署，而在推送表结构变更时你手动执行 `bun run db:migrate:remote` 即可。
+Without these secrets you can still deploy: Workers Builds handles the code, and you run `bun run db:migrate:remote` manually when pushing schema changes.
 
-## 下一步
+## Next steps
 
-部署完成后，管理 UI 默认**没有内置认证**。请务必先阅读 [访问控制](/guide/access-control) 来保护它。
+After deploying, the admin UI ships **without built-in authentication**. Read [Access Control](/guide/access-control) first to protect it.

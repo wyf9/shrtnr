@@ -1,92 +1,92 @@
-# 项目架构
+# Architecture
 
-shrtnr 是一个单一的 Cloudflare Worker，入口为 `src/index.tsx`。它根据请求的主机与路径，分发到重定向、管理 UI、公开 API 或 MCP 处理器。
+shrtnr is a single Cloudflare Worker with its entry point at `src/index.tsx`. It dispatches by request host and path to the redirect, admin UI, public API, or MCP handlers.
 
-## 目录结构
+## Directory layout
 
 ```
 shrtnr/
-├── src/                    Worker 源码
-│   ├── index.tsx           入口：请求分发
-│   ├── redirect.ts         短链重定向逻辑
-│   ├── redirect-rules.ts   动态重定向规则（_redirects 迁移）
-│   ├── slugs.ts            短码生成与校验
-│   ├── access.ts / auth.ts Cloudflare Access JWT 校验与认证
-│   ├── analytics-fill.ts   点击分析数据填充
-│   ├── country.ts / ua.ts / referrer.ts / fingerprint.ts  点击维度解析
-│   ├── qr.ts               QR 码生成
-│   ├── title-fetch.ts      抓取目标 URL 标题
-│   ├── normalize-url.ts    URL 规范化
-│   ├── api/                公开 API（Hono + zod-openapi）
-│   ├── db/                 D1 仓储层（repository 模式）
-│   ├── services/           业务逻辑层
-│   ├── kv/                 KV 短码缓存
-│   ├── mcp/                MCP 服务器与页面
-│   ├── pages/              管理 UI 页面 (JSX/SSR)
-│   ├── components/         管理 UI 共享组件
-│   ├── i18n/               多语言（en / id / sv）
-│   └── __tests__/          Vitest 测试
-├── migrations/             D1 数据库迁移
-├── public/                 静态资源（图标、logo、manifest）
-├── scripts/                构建与发布脚本
-├── sdk/                    官方 SDK（typescript / python / dart）
-├── browser-extensions/     Chrome / Firefox 扩展
-├── docs/                   本文档站点 (VitePress)
-└── wrangler.jsonc          Cloudflare Worker 配置
+├── src/                    Worker source
+│   ├── index.tsx           Entry point: request dispatch
+│   ├── redirect.ts         Short-link redirect logic
+│   ├── redirect-rules.ts   Dynamic redirect rules (_redirects migration)
+│   ├── slugs.ts            Slug generation and validation
+│   ├── access.ts / auth.ts Cloudflare Access JWT verification and auth
+│   ├── analytics-fill.ts   Click analytics backfill
+│   ├── country.ts / ua.ts / referrer.ts / fingerprint.ts  Click dimension parsing
+│   ├── qr.ts               QR code generation
+│   ├── title-fetch.ts      Fetch the target URL title
+│   ├── normalize-url.ts    URL normalization
+│   ├── api/                Public API (Hono + zod-openapi)
+│   ├── db/                 D1 repository layer (repository pattern)
+│   ├── services/           Business logic layer
+│   ├── kv/                 KV slug cache
+│   ├── mcp/                MCP server and page
+│   ├── pages/              Admin UI pages (JSX/SSR)
+│   ├── components/         Admin UI shared components
+│   ├── i18n/               Localization (en / id / sv)
+│   └── __tests__/          Vitest tests
+├── migrations/             D1 database migrations
+├── public/                 Static assets (icons, logos, manifest)
+├── scripts/                Build and release scripts
+├── sdk/                    Official SDKs (typescript / python / dart)
+├── browser-extensions/     Chrome / Firefox extensions
+├── docs/                   This documentation site (VitePress)
+└── wrangler.jsonc          Cloudflare Worker configuration
 ```
 
-## 分层设计
+## Layered design
 
-应用大致分为三层：
+The app roughly splits into three layers.
 
-### API / 页面层
+### API / page layer
 
-- `src/api/`：公开的 Bearer Token API，基于 [Hono](https://hono.dev/) 与 `@hono/zod-openapi`。`router.ts` 挂载 `links`、`slugs`、`bundles` 三个子应用，并暴露 `/openapi.json` 与 `/docs`。
-- `src/pages/`：服务端渲染的管理 UI 页面（仪表盘、链接、链接详情、分组、分组详情、API Keys、设置、重定向、自定义页面）。
-- `src/components/`：管理 UI 共享组件（KPI 卡片、大图表、稀疏折线图、范围选择器等）。
+- `src/api/`: the public Bearer-token API, built on [Hono](https://hono.dev/) with `@hono/zod-openapi`. `router.ts` mounts the `links`, `slugs`, and `bundles` sub-apps and exposes `/openapi.json` and `/docs`.
+- `src/pages/`: server-rendered admin UI pages (dashboard, links, link detail, bundles, bundle detail, API keys, settings, redirects, custom pages).
+- `src/components/`: admin UI shared components (KPI cards, big charts, sparklines, range picker, etc.).
 
-### 服务层 (`src/services/`)
+### Service layer (`src/services/`)
 
-封装业务逻辑，独立于传输层：
+Encapsulates business logic independent of the transport layer:
 
-| 模块 | 职责 |
+| Module | Responsibility |
 |---|---|
-| `link-management.ts` | 链接创建、更新、启用/禁用、删除 |
-| `bundle-management.ts` | 分组管理 |
-| `admin-management.ts` | 管理端操作 |
-| `analytics.ts` | 点击分析聚合 |
-| `trends.ts` | 趋势与环比计算 |
-| `result.ts` | 统一的结果/错误封装 |
+| `link-management.ts` | Link create, update, enable/disable, delete |
+| `bundle-management.ts` | Bundle management |
+| `admin-management.ts` | Admin-side operations |
+| `analytics.ts` | Click analytics aggregation |
+| `trends.ts` | Trend and delta computation |
+| `result.ts` | Unified result/error wrapper |
 
-### 数据层 (`src/db/`)
+### Data layer (`src/db/`)
 
-对 D1 数据库的仓储 (repository) 封装：
+Repository wrappers over the D1 database:
 
-| 仓储 | 表 |
+| Repository | Table |
 |---|---|
-| `link-repository.ts` | 链接 |
-| `slug-repository.ts` | 短码 |
-| `click-repository.ts` | 点击事件 |
-| `bundle-repository.ts` | 分组 |
-| `api-key-repository.ts` | API 密钥 |
-| `setting-repository.ts` | 每用户设置 |
-| `page-repository.ts` | 自定义页面 |
-| `filters.ts` | 分析过滤（机器人 / 自引用 / 时间范围）子查询 |
+| `link-repository.ts` | Links |
+| `slug-repository.ts` | Slugs |
+| `click-repository.ts` | Click events |
+| `bundle-repository.ts` | Bundles |
+| `api-key-repository.ts` | API keys |
+| `setting-repository.ts` | Per-user settings |
+| `page-repository.ts` | Custom pages |
+| `filters.ts` | Analytics filter subqueries (bot / self-referrer / time range) |
 
-KV 层 (`src/kv/slug-cache.ts`) 为短码到链接的查找提供高速缓存。
+The KV layer (`src/kv/slug-cache.ts`) provides a high-speed cache for slug-to-link lookups.
 
 ## MCP (`src/mcp/`)
 
-- `server.ts`：注册所有 MCP 工具（链接、短码、分组、QR、分析），是工具列表的权威来源。
-- `page.ts`：MCP 相关页面。
+- `server.ts`: registers all MCP tools (links, slugs, bundles, QR, analytics) and is the authoritative source for the tool list.
+- `page.ts`: MCP-related page.
 
-MCP 会话由 `wrangler.jsonc` 中声明的 Durable Object `MCP_OBJECT`（类 `ShrtnrMCP`）承载。
+MCP sessions are hosted by the Durable Object `MCP_OBJECT` (class `ShrtnrMCP`) declared in `wrangler.jsonc`.
 
-## 国际化 (`src/i18n/`)
+## Internationalization (`src/i18n/`)
 
-所有管理页面/组件中面向用户的字符串都经由 `t()` 处理，翻译存放于 `en.ts`、`id.ts`、`sv.ts`。英语是唯一事实来源与回退。
+All user-facing strings in admin pages/components go through `t()`, with translations in `en.ts`, `id.ts`, and `sv.ts`. English is the source of truth and the fallback.
 
-## 相关文件
+## Related files
 
-- [`AGENTS.md`](https://github.com/wyf9/shrtnr/blob/main/AGENTS.md)：贡献约定、发布流程、SDK 一致性规则。
-- [`wrangler.jsonc`](https://github.com/wyf9/shrtnr/blob/main/wrangler.jsonc)：Worker 绑定配置。
+- [Contribution Guidelines](/contributing/guidelines) and [Releases](/contributing/releases): contribution conventions, release process, SDK parity rules.
+- [`wrangler.jsonc`](https://github.com/wyf9/shrtnr/blob/main/wrangler.jsonc): Worker binding configuration.

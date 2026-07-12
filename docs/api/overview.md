@@ -1,74 +1,74 @@
-# API 概览
+# API Overview
 
-shrtnr 暴露一个公开的链接管理 API，使用 Bearer Token 认证。认证方式由**路由前缀**决定。
+shrtnr exposes a public link-management API authenticated with Bearer tokens. Authentication is determined by **route prefix**.
 
-## 认证矩阵
+## Authentication matrix
 
-| 路由 | 认证 | 说明 |
+| Route | Auth | Notes |
 |---|---|---|
-| `/_/api/*` | Bearer Token | 公开的链接管理 API。在管理 UI 的 **API Keys** 中创建密钥，并以 `Authorization: Bearer sk_...` 传递。 |
-| `/_/mcp`（及 `mcp.<域名>`） | OAuth | 面向 AI 助手的 MCP 端点。认证由 Cloudflare Access 处理，见 [MCP 服务器](/integrations/mcp)。 |
-| `/_/admin/*` | 无内置认证 | 管理 UI 与管理专用 API。需外部保护（见 [访问控制](/guide/access-control)）。不可用 API Key 调用。 |
-| `/_/health` | 公开 | 健康检查。 |
+| `/_/api/*` | Bearer token | Public link-management API. Create keys in the admin UI under **API Keys** and pass them as `Authorization: Bearer sk_...`. |
+| `/_/mcp` (and `mcp.<domain>`) | OAuth | MCP endpoint for AI assistants. Auth handled by Cloudflare Access; see [MCP Server](/integrations/mcp). |
+| `/_/admin/*` | None built in | Admin UI and admin-only API. Protect externally (see [Access Control](/guide/access-control)). Not callable with API keys. |
+| `/_/health` | Public | Health check. |
 
-## 认证
+## Authentication
 
-在管理 UI 的 **API Keys** 中创建带作用域的密钥，然后作为 Bearer Token 传递：
+Create a scoped key in the admin UI under **API Keys**, then pass it as a Bearer token:
 
 ```bash
 curl https://your-shrtnr.example.com/_/api/links \
   -H "Authorization: Bearer sk_your_api_key"
 ```
 
-密钥前缀为 `sk_`。它的影响范围等同于会话令牌，请妥善保管。
+Keys are prefixed with `sk_`. A key has the same blast radius as a session token, so store it carefully.
 
-## 交互式文档与规范
+## Interactive docs and spec
 
-公开 API 使用 [`@hono/zod-openapi`](https://github.com/honojs/middleware/tree/main/packages/zod-openapi) 声明每个端点的类型化请求与响应模式，因此规范始终与服务端保持一致。
+The public API uses [`@hono/zod-openapi`](https://github.com/honojs/middleware/tree/main/packages/zod-openapi) to declare typed request and response schemas for every endpoint, so the spec stays in lockstep with the server.
 
-- **实时 API 参考**（内嵌 Scalar）：部署上的 **`/_/api/docs`**
-- **OpenAPI 3.1 规范**（JSON）：部署上的 **`/_/api/openapi.json`**
+- **Live API reference** (embedded Scalar): **`/_/api/docs`** on your deployment
+- **OpenAPI 3.1 spec** (JSON): **`/_/api/openapi.json`** on your deployment
 
-::: tip 规范是唯一事实来源
-SDK（[TypeScript](/integrations/sdks)、Python、Dart）在 API 变更时从该规范重新生成。请以 `/_/api/openapi.json` 为准，而非硬编码端点细节。
+::: tip The spec is the source of truth
+The SDKs ([TypeScript](/integrations/sdks), Python, Dart) regenerate from this spec when the API changes. Treat `/_/api/openapi.json` as authoritative instead of hardcoding endpoint details.
 :::
 
-## 资源分组
+## Resource groups
 
-公开 API 路由挂载于 `/_/api` 之下（见 `src/api/router.ts`）：
+Public API routes are mounted under `/_/api` (see `src/api/router.ts`):
 
-| 前缀 | 资源 | 实现 |
+| Prefix | Resource | Implementation |
 |---|---|---|
-| `/_/api/links` | 链接的增删改查、分析、时间线、QR 码 | `src/api/links.ts` |
-| `/_/api/slugs` | 短码查找、添加、启用/禁用、移除 | `src/api/slugs.ts` |
-| `/_/api/bundles` | 分组管理与合并分析 | `src/api/bundles.ts` |
+| `/_/api/links` | Link CRUD, analytics, timeline, QR codes | `src/api/links.ts` |
+| `/_/api/slugs` | Slug lookup, add, enable/disable, remove | `src/api/slugs.ts` |
+| `/_/api/bundles` | Bundle management and combined analytics | `src/api/bundles.ts` |
 
-## 时间范围参数
+## Time range parameter
 
-链接与分组的列表/详情/分析端点接受可选的 `?range=` 查询参数：
+The list/detail/analytics endpoints for links and bundles accept an optional `?range=` query parameter:
 
 ```
 24h | 7d | 30d | 90d | 1y | all
 ```
 
-给定后，它会限定 `total_clicks` 的统计窗口，并添加与上一等长窗口相比的 `delta_pct`，与管理 UI 的行为一致。
+When given, it scopes `total_clicks` to that window and adds a `delta_pct` versus the prior window of equal length, matching the admin UI.
 
-::: warning 公开 API 返回原始数据
-公开 API 返回原始点击计数，**忽略** API Key 拥有者的过滤偏好（机器人过滤、自引用过滤）。因此 SDK 使用者拿到的是未过滤数据，除非自行后处理。管理端分析不受影响。
+::: warning The public API returns raw data
+The public API returns raw click counts and **ignores** the API key owner's filter preferences (bot filtering, self-referrer filtering). SDK consumers therefore get unfiltered data unless they post-process. Admin-side analytics are unaffected.
 :::
 
-## 校验行为
+## Validation behavior
 
-- 严格校验会拒绝带未知字段的请求体：`400 {"error": "Unknown field \"<name>\""}`。
-- 路径参数 `:id` 若为非数字，返回 `404`。
-- `url` 在链接创建/更新时上限 2048 字符。
-- `slug` 必须匹配服务端校验器：首尾为 `[a-z0-9]`，连字符仅允许出现在中间，不允许下划线。
-- `expires_at` 拒绝负的 Unix 时间戳。
+- Strict validation rejects request bodies with unknown fields: `400 {"error": "Unknown field \"<name>\""}`.
+- A non-numeric path param `:id` returns `404`.
+- `url` is capped at 2048 characters on link create/update.
+- `slug` must match the server-side validator: `[a-z0-9]` at the start and end, hyphens allowed only in the middle, no underscores.
+- `expires_at` rejects negative Unix timestamps.
 
-## 错误响应
+## Error responses
 
-错误以 JSON 形式返回，包含 `error` 字段。SDK 会将其映射为语言相应的错误类型（见 [SDK](/integrations/sdks)）。
+Errors are returned as JSON with an `error` field. The SDKs map these to language-appropriate error types (see [SDKs](/integrations/sdks)).
 
-## 权限模型
+## Permission model
 
-按资源的归属限制生效：任何持有有效 API Key 的调用者都能读取链接与分组、向分组追加链接；但只有链接/分组的拥有者才能修改、删除、归档等。非拥有者的写操作返回 `403 Forbidden`。
+Per-resource ownership applies: any caller with a valid API key can read links and bundles and append links to a bundle, but only the owner of a link or bundle can update, delete, archive, and so on. Non-owner writes return `403 Forbidden`.

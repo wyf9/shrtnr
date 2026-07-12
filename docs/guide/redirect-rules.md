@@ -1,37 +1,37 @@
-# 动态重定向规则
+# Dynamic Redirect Rules
 
-如果你正在从 Cloudflare Pages 的 `_redirects` 迁移，可以在管理 UI 的 **Settings** 中打开 **Dynamic Redirect Rules**，把你的规则粘贴进去。
+If you are migrating from Cloudflare Pages `_redirects`, open **Settings** in the admin UI and paste your rules into **Dynamic Redirect Rules**.
 
-## 语法
+## Syntax
 
-- 每行一条规则：`<source> <destination> [status]`
-- source 与 destination 中可用 `:placeholder`（例如 `:name`、`:task`）
-- source 中可用 `*` 通配符（仅限最后一段），在 destination 中以 `:splat` 引用
-- 可选状态码：`301`、`302`、`303`、`307`、`308`（默认 `302`）
-- 以 `#` 开头的行是注释
+- One rule per line: `<source> <destination> [status]`
+- `:placeholder` in source and destination (for example `:name`, `:task`)
+- `*` splat in source (last segment only), available as `:splat` in destination
+- Optional status: `301`, `302`, `303`, `307`, `308` (default `302`)
+- Lines starting with `#` are comments
 
-## 示例
+## Example
 
 ```txt
-# 邮件重定向
+# Email redirects
 /t/m/:name https://siiway.org/go/mail?name=:name
 /t/m/:name/:domain https://siiway.org/go/mail?name=:name&domain=:domain
 /mail/:email https://siiway.org/go/mail?email=:email
 /m64/:base64 https://siiway.org/go/mail?base64=:base64
 
-# 路径别名
+# Path aliases
 /a/* https://siiway.org/about/:splat
 /m/* https://siiway.org/zh/members/:splat
 ```
 
-## 匹配顺序
+## Match order
 
-规则在**未命中的公开路径**上运行，且发生在单段短码回退**之前**，因此已有的短链会继续正常工作。
+Rules run on **unmatched public paths**, and **before** the single-segment short-slug fallback, so existing short links continue to work.
 
-匹配流程大致如下：
+The matching flow is roughly:
 
-1. 请求命中某个已存在的短码 → 直接重定向。
-2. 未命中短码 → 尝试动态重定向规则（按定义顺序）。
-3. 仍未匹配 → 回退到单段短码逻辑 / 404。
+1. Request hits an existing slug → redirect directly.
+2. No slug match → try dynamic redirect rules (in definition order).
+3. Still no match → fall back to single-segment slug logic / 404.
 
-相关实现见 `src/redirect-rules.ts` 与 `src/redirect.ts`。
+The relevant implementation lives in `src/redirect-rules.ts` and `src/redirect.ts`.

@@ -1,5 +1,4 @@
--- Copyright 2026 Oddbit (https://oddbit.id)
--- SPDX-License-Identifier: Apache-2.0
+-- Add pages (response static files instead of 30x redirection)
 
 CREATE TABLE IF NOT EXISTS pages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

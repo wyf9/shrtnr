@@ -1,14 +1,14 @@
-# SDK
+# SDKs
 
-从你自己的代码里短链 URL、管理链接、读取分析数据。shrtnr 提供三套官方 SDK，均从同一份 OpenAPI 规范生成，保持接口一致。
+Shorten URLs, manage links, and read analytics from your own code. shrtnr provides three official SDKs, all generated from the same OpenAPI spec so their interfaces stay consistent.
 
-| 语言 | 包名 | 说明 |
+| Language | Package | Notes |
 |---|---|---|
-| TypeScript / JavaScript | [`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm-readme) | 详见 `sdk/typescript/README.md` |
-| Python（同步 + 异步，基于 httpx） | [`shrtnr`](https://oddb.it/shrtnr-pypi-readme) | 详见 `sdk/python/README.md` |
-| Dart / Flutter | [`shrtnr`](https://oddb.it/shrtnr-pub-readme) | 详见 `sdk/dart/README.md` |
+| TypeScript / JavaScript | [`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm-readme) | See `sdk/typescript/README.md` |
+| Python (sync + async, on httpx) | [`shrtnr`](https://oddb.it/shrtnr-pypi-readme) | See `sdk/python/README.md` |
+| Dart / Flutter | [`shrtnr`](https://oddb.it/shrtnr-pub-readme) | See `sdk/dart/README.md` |
 
-所有 SDK 都使用 [API Key](/api/overview) 进行 Bearer Token 认证。API Key 在管理 UI 的 **API Keys** 中创建。
+All SDKs authenticate with an [API key](/api/overview) as a Bearer token. Create API keys in the admin UI under **API Keys**.
 
 ## TypeScript
 
@@ -27,10 +27,10 @@ const client = new ShrtnrClient({
 const link = await client.links.create({ url: "https://example.com/very-long-path" });
 console.log(link.slugs[0].slug); // "a3x9"
 
-// 获取近 7 天的点击数
+// Get a 7-day click count
 const fresh = await client.links.get(link.id, { range: "7d" });
 
-// 近 30 天完整分析
+// Full analytics for the last 30 days
 const stats = await client.links.analytics(link.id, { range: "30d" });
 console.log(stats.totalClicks, stats.countries, stats.browsers);
 ```
@@ -41,7 +41,7 @@ console.log(stats.totalClicks, stats.countries, stats.browsers);
 pip install shrtnr
 ```
 
-同步用法：
+Synchronous:
 
 ```python
 from shrtnr import Shrtnr
@@ -52,7 +52,7 @@ link = client.links.create(url="https://example.com/very-long-path")
 print(link.slugs[0].slug)  # "a3x9"
 ```
 
-异步用法：
+Async:
 
 ```python
 import asyncio
@@ -86,51 +86,51 @@ print(link.slugs.first.slug); // 'a3x9'
 client.close();
 ```
 
-## 资源与方法
+## Resources and methods
 
-三套 SDK 都提供一致的资源分组：
+All three SDKs expose consistent resource groups:
 
 ### Links (`client.links`)
 
-| 方法 | 说明 |
+| Method | Description |
 |---|---|
-| `get(id, {range?})` | 获取链接及点击数 |
-| `list({owner?, range?})` | 列出所有链接 |
-| `create({url, label?, slugLength?, expiresAt?, allowDuplicate?})` | 创建短链 |
-| `update(id, {url?, label?, expiresAt?})` | 更新 URL、标签或过期时间 |
-| `disable(id)` / `enable(id)` | 停止 / 恢复重定向 |
-| `delete(id)` | 永久删除 |
-| `analytics(id, {range?})` | 按国家、设备、来源等维度的点击分析 |
-| `timeline(id, {range?})` | 按时间分桶的点击数 |
-| `qr(id, {slug?, size?})` | QR 码（SVG 字符串） |
-| `bundles(id)` | 该链接所属的分组 |
+| `get(id, {range?})` | Get a link with click count |
+| `list({owner?, range?})` | List all links |
+| `create({url, label?, slugLength?, expiresAt?, allowDuplicate?})` | Create a short link |
+| `update(id, {url?, label?, expiresAt?})` | Update URL, label, or expiry |
+| `disable(id)` / `enable(id)` | Stop / resume redirecting |
+| `delete(id)` | Permanently delete |
+| `analytics(id, {range?})` | Click breakdown by country, device, referrer, etc. |
+| `timeline(id, {range?})` | Click counts bucketed over time |
+| `qr(id, {slug?, size?})` | QR code as an SVG string |
+| `bundles(id)` | Bundles this link belongs to |
 
 ### Slugs (`client.slugs`)
 
-| 方法 | 说明 |
+| Method | Description |
 |---|---|
-| `lookup(slug)` | 根据短码查找链接 |
-| `add(linkId, slug)` | 添加自定义短码 |
-| `disable / enable(linkId, slug)` | 禁用 / 启用短码 |
-| `remove(linkId, slug)` | 移除短码 |
+| `lookup(slug)` | Find a link by slug |
+| `add(linkId, slug)` | Add a custom slug |
+| `disable / enable(linkId, slug)` | Disable / enable a slug |
+| `remove(linkId, slug)` | Remove a slug |
 
 ### Bundles (`client.bundles`)
 
-| 方法 | 说明 |
+| Method | Description |
 |---|---|
-| `get(id, {range?})` | 获取分组及点击摘要 |
-| `list({archived?, range?})` | 列出分组 |
-| `create({name, description?, icon?, accent?})` | 创建分组 |
-| `update(id, {...})` | 更新元数据 |
-| `delete(id)` | 永久删除 |
-| `archive / unarchive(id)` | 归档 / 取消归档 |
-| `analytics(id, {range?})` | 合并点击分析 |
-| `links(id)` | 列出分组内链接 |
-| `addLink / removeLink(id, linkId)` | 添加 / 移除链接 |
+| `get(id, {range?})` | Get a bundle with click summary |
+| `list({archived?, range?})` | List bundles |
+| `create({name, description?, icon?, accent?})` | Create a bundle |
+| `update(id, {...})` | Update metadata |
+| `delete(id)` | Permanently delete |
+| `archive / unarchive(id)` | Archive / unarchive |
+| `analytics(id, {range?})` | Combined click analytics |
+| `links(id)` | List links in the bundle |
+| `addLink / removeLink(id, linkId)` | Add / remove a link |
 
-## 错误处理
+## Error handling
 
-各 SDK 都会在 4xx/5xx 响应时抛出错误类型（TypeScript 为 `ShrtnrError`），网络失败时 `status` 为 `0`：
+Every SDK throws a language-appropriate error type on 4xx/5xx responses (`ShrtnrError` in TypeScript); network failures use `status: 0`:
 
 ```ts
 import { ShrtnrError } from "@oddbit/shrtnr";
@@ -145,8 +145,8 @@ try {
 }
 ```
 
-## 另见
+## See also
 
-- [API 概览](/api/overview)
-- 部署上的实时 API 文档：`/_/api/docs`
-- OpenAPI 规范：`/_/api/openapi.json`
+- [API Overview](/api/overview)
+- Live API docs on your deployment: `/_/api/docs`
+- OpenAPI spec: `/_/api/openapi.json`

@@ -3,59 +3,59 @@ layout: home
 
 hero:
   name: shrtnr
-  text: 自托管短链接服务
-  tagline: 免费、开源，运行在 Cloudflare Workers + D1 上。零服务器、零月费，数据完全归你所有。
+  text: Self-hosted URL shortener
+  tagline: Free and open-source, running on Cloudflare Workers + D1. Zero servers, zero monthly cost, and your data stays yours.
   image:
     light: /logo-black.svg
     dark: /logo-white.svg
     alt: shrtnr
   actions:
     - theme: brand
-      text: 快速开始
+      text: Get Started
       link: /guide/introduction
     - theme: alt
-      text: 立即部署
+      text: Deploy Now
       link: /guide/deploy
     - theme: alt
-      text: 在 GitHub 查看
+      text: View on GitHub
       link: https://github.com/wyf9/shrtnr
 
 features:
   - icon: 🚀
-    title: 一键部署，免费托管
-    details: 运行在 Cloudflare Workers + D1 免费额度上，无需 VPS、无需容器、无月度账单。一次点击即可完成部署与数据库置备。
+    title: One-click deploy, free hosting
+    details: Runs on the Cloudflare Workers + D1 free tier. No VPS, no containers, no monthly bill. A single click provisions the database and runs migrations.
   - icon: 📊
-    title: 点击分析
-    details: 内置来源、国家、设备与浏览器维度的点击统计，配套管理面板中的分析图表与 QR 码生成。
+    title: Click analytics
+    details: Built-in click tracking by referrer, country, device, and browser, plus analytics charts and QR code generation in the admin dashboard.
   - icon: 🔗
-    title: 灵活的短链
-    details: 支持最短 3 字符的随机短码、自定义短码、链接分组 (Bundles)，以及 _redirects 风格的动态重定向规则。
+    title: Flexible short links
+    details: Random slugs from 3 characters, custom slugs, link bundles, and _redirects-style dynamic redirect rules for legacy migration.
   - icon: 🤖
-    title: AI 集成 (MCP)
-    details: 内置 MCP 服务器，通过 Cloudflare Access OAuth 授权，让 Claude、Copilot 等 AI 助手直接创建和管理短链。
+    title: AI integration (MCP)
+    details: A built-in MCP server, authorized via Cloudflare Access OAuth, lets Claude, Copilot, and other AI assistants create and manage short links.
   - icon: 🧩
-    title: 多端 SDK
-    details: 提供 TypeScript、Python、Dart/Flutter 官方 SDK，以及 Chrome / Firefox 浏览器扩展。
+    title: SDKs and extensions
+    details: Official SDKs for TypeScript, Python, and Dart/Flutter, plus Chrome and Firefox browser extensions.
   - icon: 🔐
-    title: 你掌控一切
-    details: 自托管、开源、Apache 2.0 许可。你拥有自己的数据、域名和短链。管理 API 支持带作用域的 Bearer Token。
+    title: You own everything
+    details: Self-hosted, open-source, Apache 2.0. You own your data, domain, and short links. The management API uses scoped Bearer tokens.
 ---
 
-## 这是什么
+## What is shrtnr
 
-**shrtnr** 是一个免费、开源、自托管的短链接服务，构建于 Cloudflare Workers + D1 之上。它提供完整的管理界面、点击分析、多语言 SDK，以及面向 AI 助手的 MCP 服务器，全部由单个 Cloudflare Worker 提供。
+**shrtnr** is a free, open-source, self-hosted URL shortener built on Cloudflare Workers + D1. It ships with a full admin UI, click analytics, SDKs in three languages, and an MCP server for AI assistants, all from a single Cloudflare Worker.
 
 > [!NOTE]
-> 本仓库是一个**独立维护的 Fork** ([wyf9/shrtnr](https://github.com/wyf9/shrtnr))，在上游 [oddbit/shrtnr](https://github.com/oddbit/shrtnr) 的基础上加入了自定义功能与增强。本文档针对本 Fork 编写。
+> This repository is an **independently maintained fork** ([wyf9/shrtnr](https://github.com/wyf9/shrtnr)) that adds custom features and enhancements on top of the upstream [oddbit/shrtnr](https://github.com/oddbit/shrtnr). This documentation is written for this fork.
 
-## 为什么选择 shrtnr
+## Why shrtnr
 
-大多数短链接服务要么把你锁定在按点击计费的 SaaS 中，要么要求你运行一台 VPS。shrtnr 运行在 Cloudflare Workers + D1 免费额度上，你拥有自己的数据、域名和短链。
+Most URL shorteners either lock you into a SaaS with per-click pricing or require you to run a VPS. shrtnr runs on the Cloudflare Workers + D1 free tier. You own your data, your domain, and your short links.
 
-只需一次点击即可完成部署，随后你便获得完整的管理界面、点击分析、TypeScript / Python / Dart 三套 SDK，以及供 AI 助手使用的 MCP 服务器。
+It takes one click to deploy. You then get a full admin UI, click analytics, SDKs for TypeScript, Python, and Dart, and an MCP server for AI assistants, all from a single Worker.
 
-## 下一步
+## Next steps
 
-- 阅读 [介绍](/guide/introduction) 了解整体设计
-- 查看 [功能特性](/guide/features) 了解完整能力
-- 跟随 [部署指南](/guide/deploy) 上线你自己的实例
+- Read the [Introduction](/guide/introduction) for an overview of the design
+- See [Features](/guide/features) for the full capability list
+- Follow the [Deploy guide](/guide/deploy) to bring up your own instance

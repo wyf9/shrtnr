@@ -1,44 +1,44 @@
-# 浏览器扩展
+# Browser Extensions
 
-面向 Chrome 与 Firefox 的扩展，一键把当前标签页短链到你**自己的**自托管 shrtnr 部署。源码位于仓库的 `browser-extensions/` 目录。
+Chrome and Firefox extensions that shorten the active tab into your **own** self-hosted shrtnr deployment in one click. The source lives in the repository's `browser-extensions/` directory.
 
-一份源码树，两个可上架产物。弹窗会将当前标签页短链到你的 shrtnr 部署、把短 URL 复制到剪贴板，并按需渲染由服务端生成的 QR 码。
+One source tree, two store-ready artifacts. The popup shortens the active tab into your shrtnr deployment, copies the short URL to the clipboard, and renders a server-side QR code on demand.
 
-## 功能
+## What it does
 
-- **工具栏动作**：短链当前标签页并把短 URL 复制到剪贴板。
-- **QR 码**：为新短链生成，由你的 shrtnr 服务端生成（无客户端 QR 库，无第三方 API）。
-- **设置页**：配置 `baseUrl + apiKey`，并带有命中 `GET /_/api/links` 的连接测试。
-- **首次运行流程**：安装时自动打开选项页，并为尚无 shrtnr 的用户展示一键部署入口。
+- **Toolbar action**: shortens the active tab and copies the short URL to your clipboard.
+- **QR code**: generated for new short links by your shrtnr server (no client-side QR library, no third-party API).
+- **Settings page**: for `baseUrl + apiKey`, with a connection test that hits `GET /_/api/links`.
+- **First-run flow**: on install, the options page opens automatically and surfaces a one-click deploy CTA for users who don't yet have a shrtnr.
 
-扩展只与**你自己的** shrtnr 部署通信。除了你配置的调用外，不会有任何数据外泄。
+The extension talks to **your own** shrtnr deployment. Nothing leaves the extension except the calls you configure.
 
-## 安装（终端用户）
+## Install (end users)
 
-- Chrome / Edge / Brave / Opera / Vivaldi：[Chrome Web Store](https://oddb.it/shrtnr-ext-chrome)
-- Firefox：[Firefox Add-ons](https://oddb.it/shrtnr-ext-firefox)
+- Chrome / Edge / Brave / Opera / Vivaldi: [Chrome Web Store](https://oddb.it/shrtnr-ext-chrome)
+- Firefox: [Firefox Add-ons](https://oddb.it/shrtnr-ext-firefox)
 
-安装后点击工具栏图标。弹窗会：
+After install, click the toolbar icon. The popup either:
 
-- 显示配置表单（首次运行）——粘贴你的 shrtnr URL 与来自 `/_/admin/api-keys` 的 API Key，或
-- 短链当前标签页并复制短 URL。
+- shows the configure form (first run) — paste your shrtnr URL and an API key from `/_/admin/api-keys`, or
+- shortens the current tab and copies the short URL.
 
-## 权限
+## Permissions
 
-在 `manifests/base.json` 中声明：
+Declared in `manifests/base.json`:
 
-| 权限 | 原因 |
+| Permission | Why |
 |---|---|
-| `activeTab` | 在点击工具栏时读取当前标签页 URL。比更宽泛的 `tabs` 权限更克制，不会在安装对话框中显示"读取你的浏览历史"。 |
-| `storage` | 将配置的 `baseUrl + apiKey` 持久化到 `chrome.storage.sync`。 |
-| `clipboardWrite` | 通过 `navigator.clipboard.writeText` 把短 URL 复制到剪贴板。 |
-| `optional_host_permissions: ["*://*/*"]` | 在用户于选项页保存 `baseUrl` 后，于**运行时**针对其实际地址授予。安装对话框因此不列出任何主机权限。 |
+| `activeTab` | Read the active tab URL on toolbar click. Less invasive than the broader `tabs` permission and does not show "read your browsing history" in the install dialog. |
+| `storage` | Persist the configured `baseUrl + apiKey` to `chrome.storage.sync`. |
+| `clipboardWrite` | Copy the short URL to the clipboard via `navigator.clipboard.writeText`. |
+| `optional_host_permissions: ["*://*/*"]` | Granted **at runtime** against the user's actual `baseUrl` after they save it in options. The install dialog therefore lists no host permissions. |
 
-扩展在安装时**不**请求 `host_permissions`。
+The extension does not request `host_permissions` at install time.
 
-## 存储
+## Storage
 
-`chrome.storage.sync` 中的单个键：
+A single key in `chrome.storage.sync`:
 
 ```json
 {
@@ -50,46 +50,46 @@
 ```
 
 ::: warning
-API Key 的影响范围等同于一个会话令牌。`chrome.storage.sync` 由浏览器静态加密，但扩展代码可读取。
+The API key has the same blast radius as a session token. `chrome.storage.sync` is encrypted at rest by the browser but readable by extension code.
 :::
 
-## 开发
+## Development
 
 ```bash
 cd browser-extensions
 bun install
-bun run test          # 全部单元 + 组件测试
-bun run build         # 产出 dist/{chrome,firefox}/ 与 dist/{chrome,firefox}.zip
+bun run test          # all unit + component tests
+bun run build         # produces dist/{chrome,firefox}/ and dist/{chrome,firefox}.zip
 ```
 
-监听模式：
+Watch mode:
 
 ```bash
-bun run dev:chrome    # esbuild 监听模式，输出 dist/chrome/
-bun run dev:firefox   # esbuild 监听模式，输出 dist/firefox/
+bun run dev:chrome    # esbuild watch mode, output dist/chrome/
+bun run dev:firefox   # esbuild watch mode, output dist/firefox/
 ```
 
-- Chrome：`chrome://extensions/` → 开启开发者模式 → 加载已解压的扩展 → 选择 `dist/chrome`。
-- Firefox：`about:debugging#/runtime/this-firefox` → 临时载入附加组件 → 选择 `dist/firefox/manifest.json`。
+- Chrome: `chrome://extensions/` → enable Developer mode → Load unpacked → pick `dist/chrome`.
+- Firefox: `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → pick `dist/firefox/manifest.json`.
 
-::: tip 依赖关系
-扩展依赖 npm 上**已发布**的 `@oddbit/shrtnr`，与任何外部使用者一样。它不会引用本地 `sdk/typescript` 源码。SDK 变更先发布到 npm，扩展在下次版本更新时再拾取。
+::: tip Dependency
+The extension depends on the **published** `@oddbit/shrtnr` from npm, like any external consumer. It never imports the local `sdk/typescript` source. SDK changes ship to npm first; the extension picks them up on the next version bump.
 :::
 
-## 架构
+## Architecture
 
 ```
 browser-extensions/
   src/
-    background.ts         MV3 service worker，首次安装时打开选项页
-    popup/                工具栏弹窗 (Preact)
-    options/              整页设置 (Preact)
-    components/           共享表单 + CTA 横幅
-    api.ts                对 @oddbit/shrtnr 的封装
-    storage.ts            chrome.storage.sync 封装
-    i18n/                 en / id / sv 三语翻译
-  manifests/              base + 各目标覆盖 (chrome, firefox)
-  build.mjs               esbuild + manifest 合并 + 打包
+    background.ts         MV3 service worker, opens options on first install
+    popup/                toolbar popup (Preact)
+    options/              full-page settings (Preact)
+    components/           shared form + CTA banner
+    api.ts                wrapper around @oddbit/shrtnr
+    storage.ts            chrome.storage.sync wrapper
+    i18n/                 en / id / sv translations
+  manifests/              base + per-target overrides (chrome, firefox)
+  build.mjs               esbuild + manifest merge + zipper
 ```
 
-完整说明见 `browser-extensions/README.md`。
+Full details in `browser-extensions/README.md`.

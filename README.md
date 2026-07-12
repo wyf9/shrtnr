@@ -1,7 +1,11 @@
-![SHRTNR. logotype](./public/logotype-white.svg)
 # Open-Source URL Shortener on Cloudflare Workers
 
-> **⚠️ Custom Fork**: This is an independently maintained fork with custom features and enhancements. While built on the same foundation, this branch diverges from upstream in design philosophy and includes functionality that may not align with the original project's goals. It is maintained as a separate project rather than a pull request.
+![SHRTNR. logotype](./public/logotype-white.svg)
+
+> **⚠️ Custom Fork**: This is an independently maintained fork with custom features and enhancements. While built on the same foundation, this branch diverges from upstream in design philosophy and includes functionality that may not align with the original project's goals. It is maintained as a separate project rather than a pull request. <br/>
+> Links below are to the original project's, though the other parts aren't.
+
+---
 
 [![npm](https://img.shields.io/npm/v/%40oddbit%2Fshrtnr?label=npm&color=cb3837&logo=npm)](https://oddb.it/shrtnr-npm-readme)
 [![PyPI](https://img.shields.io/pypi/v/shrtnr?label=pypi&color=3775a9&logo=pypi&logoColor=white)](https://oddb.it/shrtnr-pypi-readme)
@@ -69,7 +73,6 @@ We're an Indonesian-based studio with roots in Sweden. [**shrtnr**](https://oddb
 Click the **Deploy to Cloudflare** button above. Cloudflare will fork the repo, provision a D1 database and KV namespace, and deploy the Worker.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://oddb.it/shrtnr-deploy-howto)
-
 
 **⚠️ Important: GitHub Actions workflows are not copied when Cloudflare forks your repo.** This means the automatic migration workflow (`.github/workflows/migrate.yml`) does not exist in your fork after the initial deploy. You must set up migrations yourself. Without running migrations, the database schema will be missing and the app will not work.
 
@@ -150,7 +153,6 @@ npx wrangler secret put ACCESS_JWKS_URL
 
 When `ACCESS_AUD` is set, the worker validates the JWT signature and audience claim on every admin and MCP request. When absent (local dev), it skips verification and falls back to dev mode.
 
-
 ## Dynamic redirect rules (`_redirects` migration)
 
 If you are migrating from Cloudflare Pages `_redirects`, open **Settings** in the admin UI and paste your rules into **Dynamic Redirect Rules**.
@@ -179,7 +181,6 @@ Example:
 
 Rules run on unmatched public paths before the single-segment short-slug fallback, so existing short links continue to work.
 
-
 ## Integrations
 
 ### SDKs
@@ -189,7 +190,6 @@ Shorten URLs, manage links, and read analytics from your own code.
 - TypeScript/JavaScript: [`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm-readme). Details in [sdk/typescript/README.md](sdk/typescript/README.md).
 - Python: [`shrtnr`](https://oddb.it/shrtnr-pypi-readme). Sync and async clients on httpx. Details in [sdk/python/README.md](sdk/python/README.md).
 - Dart/Flutter: [`shrtnr`](https://oddb.it/shrtnr-pub-readme). Details in [sdk/dart/README.md](sdk/dart/README.md).
-
 
 ### MCP Server (AI Integration)
 

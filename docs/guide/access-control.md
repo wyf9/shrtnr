@@ -1,52 +1,52 @@
-# 访问控制
+# Access Control
 
-管理 UI (`/_/admin/*`) 出厂时**不带内置认证**。保护它是你的责任。应用不对你使用的认证方式做任何假设，但我们推荐在多数部署中使用 [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/applications/)。其他选项包括 IP 白名单、防火墙规则、Cloudflare Tunnel，或运行在私有网络中。
+The admin UI (`/_/admin/*`) ships **without built-in authentication**. Protecting it is your responsibility. The app makes no assumptions about which method you use, but we recommend [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/applications/) for most deployments. Other options include IP allowlists, firewall rules, Cloudflare Tunnel, or running on a private network.
 
-::: danger 请勿跳过这一步
-未受保护的管理 UI 意味着任何知道地址的人都能管理你的链接。部署后请立即配置访问控制。
+::: danger Do not skip this step
+An unprotected admin UI means anyone who knows the address can manage your links. Configure access control immediately after deploying.
 :::
 
-## 推荐：Cloudflare Access
+## Recommended: Cloudflare Access
 
-Cloudflare Access 在请求到达 Worker 之前，就在边缘处理登录、会话和 SSO。它支持 Google、GitHub、Microsoft、Okta、SAML、OIDC，以及内置的一次性 PIN。
+Cloudflare Access handles login, sessions, and SSO at the edge before requests reach your Worker. It supports Google, GitHub, Microsoft, Okta, SAML, OIDC, and a built-in one-time PIN.
 
-1. 在 [Cloudflare 仪表盘](https://one.dash.cloudflare.com/)中打开 **Zero Trust**。
-2. 进入 **Access > Applications > Add an application**。
-3. 选择 **Self-hosted**。
-4. 将应用域名设置为你的短域名（如 `oddb.it`），路径为 `_/admin/*`。
-5. 添加一条策略，例如：
+1. Open **Zero Trust** in the [Cloudflare dashboard](https://one.dash.cloudflare.com/).
+2. Go to **Access > Applications > Add an application**.
+3. Choose **Self-hosted**.
+4. Set the application domain to your short domain (e.g. `oddb.it`) with path `_/admin/*`.
+5. Add a policy, for example:
    - **Action:** Allow
-   - **Include rule:** 邮箱以 `@yourcompany.com` 结尾
-6. 在 **Authentication** 下，至少启用一种登录方式。"One-time PIN" 无需外部 IdP 即可开箱即用。
+   - **Include rule:** Emails ending in `@yourcompany.com`
+6. Under **Authentication**, enable at least one login method. "One-time PIN" works out of the box with no external IdP.
 
-访问 `https://yourdomain.com` 时，Cloudflare Access 会在你到达管理面板前提示登录。IdP 配置见 [Cloudflare 的 IdP 指南](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/)。
+Visit `https://yourdomain.com` and Cloudflare Access will prompt you to log in before reaching the admin dashboard. See [Cloudflare's IdP guides](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/) for setup.
 
-## 在 Worker 中启用 JWT 校验
+## Enable JWT verification in the Worker
 
-默认情况下，Worker 信任 Cloudflare Access 放行的任何请求（网络层保护）。为实现纵深防御，可启用加密级别的 JWT 校验，让 Worker 独立验证每个请求：
+By default the Worker trusts whatever Cloudflare Access lets through (network-layer protection). For defense-in-depth, enable cryptographic JWT verification so the Worker validates every request independently:
 
-1. 在 Zero Trust 中，进入应用的 **Overview** 标签页，复制 **Application Audience (AUD) Tag**。
-2. 将其设置为 Worker Secret：
+1. In Zero Trust, go to your application's **Overview** tab and copy the **Application Audience (AUD) Tag**.
+2. Set it as a Worker secret:
 
 ```bash
 bunx wrangler secret put ACCESS_AUD
 bunx wrangler secret put ACCESS_JWKS_URL
 ```
 
-`ACCESS_JWKS_URL` 遵循以下格式：
+`ACCESS_JWKS_URL` follows the pattern:
 
 ```
 https://<your-team-name>.cloudflareaccess.com/cdn-cgi/access/certs
 ```
 
-当 `ACCESS_AUD` 已设置时，Worker 会在每个管理与 MCP 请求上校验 JWT 签名和 audience 声明。当未设置时（本地开发），它会跳过校验并回退到开发模式。
+When `ACCESS_AUD` is set, the Worker validates the JWT signature and audience claim on every admin and MCP request. When absent (local dev), it skips verification and falls back to dev mode.
 
-## 相关 Worker Secret
+## Related Worker secrets
 
-| Secret | 用途 |
+| Secret | Purpose |
 |---|---|
-| `ACCESS_AUD` | 管理应用的 AUD Tag，启用管理请求的 JWT 校验 |
-| `ACCESS_JWKS_URL` | Cloudflare Access 的 JWKS 证书地址 |
-| `MCP_ACCESS_AUD` | MCP Access 应用的 AUD Tag，见 [MCP 服务器](/integrations/mcp) |
+| `ACCESS_AUD` | AUD tag of the admin application, enabling JWT verification on admin requests |
+| `ACCESS_JWKS_URL` | JWKS certificate URL for Cloudflare Access |
+| `MCP_ACCESS_AUD` | AUD tag of the MCP Access application, see [MCP Server](/integrations/mcp) |
 
-相关实现见 `src/access.ts` 与 `src/auth.ts`。
+The relevant implementation lives in `src/access.ts` and `src/auth.ts`.

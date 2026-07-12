@@ -1,50 +1,50 @@
-# 介绍
+# Introduction
 
-**shrtnr** 是一个免费、开源、自托管的短链接服务，构建在 [Cloudflare Workers](https://developers.cloudflare.com/workers/) + [D1](https://developers.cloudflare.com/d1/) 之上。它内置 AI 集成、点击分析和管理面板，跑在 Cloudflare 的免费额度上，无需服务器、无月度成本。
+**shrtnr** is a free, open-source, self-hosted URL shortener built on [Cloudflare Workers](https://developers.cloudflare.com/workers/) + [D1](https://developers.cloudflare.com/d1/). It has built-in AI integration, click analytics, and an admin dashboard. It runs on Cloudflare's free tier: no servers, no monthly cost.
 
-## 核心理念
+## Core philosophy
 
-大多数短链接服务要么把你锁定在按点击计费的 SaaS 中，要么要求你自行运维一台 VPS。shrtnr 选择另一条路：
+Most URL shorteners either lock you into a SaaS with per-click pricing or require you to operate a VPS. shrtnr takes a different route:
 
-- **零服务器**：整个应用是一个 Cloudflare Worker，配合 D1（SQLite）数据库与 KV 命名空间。
-- **零月费**：默认运行在 Cloudflare 免费额度内。
-- **数据自持**：你拥有自己的数据、域名和短链，随时可以导出或迁移。
+- **Zero servers**: the whole app is a single Cloudflare Worker, backed by a D1 (SQLite) database and a KV namespace.
+- **Zero monthly cost**: it runs within the Cloudflare free tier by default.
+- **You own your data**: you own your data, domain, and short links, and can export or migrate at any time.
 
-只需一次点击即可部署，随后你就得到完整的管理 UI、点击分析、TypeScript / Python / Dart 三套 SDK，以及供 AI 助手使用的 MCP 服务器，全部来自同一个 Worker。
+It takes one click to deploy. You then get a full admin UI, click analytics, TypeScript / Python / Dart SDKs, and an MCP server for AI assistants, all from the same Worker.
 
-## 关于本 Fork
+## About this fork
 
-::: warning 独立维护的 Fork
-本仓库 ([wyf9/shrtnr](https://github.com/wyf9/shrtnr)) 是在上游项目 [oddbit/shrtnr](https://github.com/oddbit/shrtnr) 基础上独立维护的 Fork，包含自定义功能与增强。它在设计理念上与上游有所分歧，作为独立项目维护，而非以 Pull Request 形式回合上游。
+::: warning Independently maintained fork
+This repository ([wyf9/shrtnr](https://github.com/wyf9/shrtnr)) is a fork maintained independently on top of the upstream [oddbit/shrtnr](https://github.com/oddbit/shrtnr), with custom features and enhancements. It diverges from upstream in design philosophy and is maintained as a separate project rather than a pull request back upstream.
 :::
 
-上游项目 **shrtnr** 由 [Oddbit](https://oddb.it/website) 构建，这是一家以资深工程师主导的工作室，为初创与成长型公司交付 Cloudflare、Firebase、Flutter 和 AI 集成方案。
+The upstream **shrtnr** is built by [Oddbit](https://oddb.it/website), a senior-led studio shipping Cloudflare, Firebase, Flutter, and AI integrations for funded startups and scale-ups.
 
-## 技术栈
+## Tech stack
 
-| 组件 | 用途 |
+| Component | Purpose |
 |---|---|
-| [Cloudflare Workers](https://developers.cloudflare.com/workers/) | 运行时，处理所有请求（重定向、管理 UI、API、MCP） |
-| [Cloudflare D1](https://developers.cloudflare.com/d1/) | SQLite 数据库，存储链接、短码、点击事件、分组等 |
-| [Cloudflare KV](https://developers.cloudflare.com/kv/) | 短码到链接的高速查找缓存 |
-| [Hono](https://hono.dev/) | Web 框架，配合 `@hono/zod-openapi` 生成 API 规范 |
-| [Durable Objects](https://developers.cloudflare.com/durable-objects/) | 承载 MCP agent 会话 |
-| [Zod](https://zod.dev/) | 请求/响应模式校验，同时驱动 OpenAPI 规范生成 |
+| [Cloudflare Workers](https://developers.cloudflare.com/workers/) | Runtime that handles every request (redirects, admin UI, API, MCP) |
+| [Cloudflare D1](https://developers.cloudflare.com/d1/) | SQLite database storing links, slugs, click events, bundles, etc. |
+| [Cloudflare KV](https://developers.cloudflare.com/kv/) | High-speed cache for slug-to-link lookups |
+| [Hono](https://hono.dev/) | Web framework, paired with `@hono/zod-openapi` to generate the API spec |
+| [Durable Objects](https://developers.cloudflare.com/durable-objects/) | Hosts MCP agent sessions |
+| [Zod](https://zod.dev/) | Request/response schema validation that also drives OpenAPI generation |
 
-## 请求路由概览
+## Request routing overview
 
-应用根据路由前缀区分处理逻辑：
+The app dispatches by route prefix:
 
-| 路由 | 用途 | 认证 |
+| Route | Purpose | Auth |
 |---|---|---|
-| `/<slug>` | 短链重定向 | 公开 |
-| `/_/admin/*` | 管理 UI 与管理 API | 需外部保护（见 [访问控制](/guide/access-control)） |
-| `/_/api/*` | 公开的链接管理 API | Bearer Token |
-| `/_/mcp`（及 `mcp.<域名>`） | 面向 AI 助手的 MCP 端点 | OAuth（Cloudflare Access） |
-| `/_/health` | 健康检查 | 公开 |
+| `/<slug>` | Short-link redirect | Public |
+| `/_/admin/*` | Admin UI and admin API | Requires external protection (see [Access Control](/guide/access-control)) |
+| `/_/api/*` | Public link-management API | Bearer token |
+| `/_/mcp` (and `mcp.<domain>`) | MCP endpoint for AI assistants | OAuth (Cloudflare Access) |
+| `/_/health` | Health check | Public |
 
-## 接下来
+## What's next
 
-- [功能特性](/guide/features)：完整能力清单
-- [部署](/guide/deploy)：把实例上线到 Cloudflare
-- [访问控制](/guide/access-control)：保护你的管理面板
+- [Features](/guide/features): the full capability list
+- [Deploy](/guide/deploy): bring an instance online on Cloudflare
+- [Access Control](/guide/access-control): protect your admin dashboard
