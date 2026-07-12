@@ -87,7 +87,7 @@ browser-extensions/
     components/           shared form + CTA banner
     api.ts                wrapper around @oddbit/shrtnr
     storage.ts            chrome.storage.sync wrapper
-    i18n/                 en / id / sv translations
+    i18n/                 en / id / sv / zh translations
   manifests/              base + per-target overrides (chrome, firefox)
   build.mjs               esbuild + manifest merge + zipper
 ```

@@ -3,8 +3,9 @@
 
 import type { Translations } from "./i18n/types";
 import { RANDOM_CHARSET } from "./slugs";
-import { MIN_SLUG_LENGTH } from "./constants";
+import { MIN_SLUG_LENGTH, SLUG_COMBO_INFINITE_THRESHOLD } from "./constants";
 import { ACCESS_METHOD_OPTIONS } from "./analytics-fill";
+import { SUPPORTED_LANGUAGES } from "./i18n";
 
 /**
  * Generate the admin client script.
@@ -18,6 +19,7 @@ import { ACCESS_METHOD_OPTIONS } from "./analytics-fill";
 export function adminClientScript(version: string, translations: Translations): string {
   const tJson = JSON.stringify(translations);
   const accessMethodOptionsJson = JSON.stringify(ACCESS_METHOD_OPTIONS);
+  const supportedLangsJson = JSON.stringify(SUPPORTED_LANGUAGES);
   
   // Extract function bodies from the template below
   // This is injected into the page as an inline script
@@ -36,8 +38,11 @@ export function adminClientScript(version: string, translations: Translations): 
     REPO_URL: 'https://oddb.it/github-shrtnr-app',
     CHARSET_SIZE: ${RANDOM_CHARSET.length},
     MIN_SLUG_LEN: ${MIN_SLUG_LENGTH},
+    SLUG_COMBO_INFINITE_THRESHOLD: ${SLUG_COMBO_INFINITE_THRESHOLD},
     T: ${tJson},
     ACCESS_METHOD_OPTIONS: ${accessMethodOptionsJson},
+    SUPPORTED_LANGS: ${supportedLangsJson},
+    LANG_STORAGE_KEY: 'shrtnr:lang',
   };
 
   // The main module namespace - all functions are methods on this object
@@ -153,9 +158,59 @@ export function adminClientScript(version: string, translations: Translations): 
 // ---- Language ----
 AdminClient.setLanguage = function (lang) {
   document.cookie = 'lang=' + lang + ';path=/;max-age=31536000;SameSite=Lax';
+  // Remember the explicit choice per-browser so auto-detection never overrides it.
+  try { localStorage.setItem(CONFIG.LANG_STORAGE_KEY, lang); } catch (e) {}
   AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ lang: lang }) }).then(function() {
     window.location.reload();
   });
+}
+
+// Map a BCP-47 browser language tag (e.g. "zh-CN", "en-US") to one of the
+// languages the app actually supports, or null if none match.
+AdminClient.matchSupportedLanguage = function (tag) {
+  if (!tag) return null;
+  var lower = String(tag).toLowerCase();
+  var primary = lower.split('-')[0];
+  var supported = CONFIG.SUPPORTED_LANGS || [];
+  // Every Chinese variant (zh-CN, zh-Hans, zh-SG, ...) maps to Simplified Chinese.
+  if (primary === 'zh' && supported.indexOf('zh') !== -1) return 'zh';
+  for (var i = 0; i < supported.length; i++) {
+    if (supported[i] === lower || supported[i] === primary) return supported[i];
+  }
+  return null;
+}
+
+// Detect the preferred supported language from the browser's language settings.
+AdminClient.detectBrowserLanguage = function () {
+  var tags = (navigator.languages && navigator.languages.length)
+    ? navigator.languages
+    : [navigator.language || navigator.userLanguage];
+  for (var i = 0; i < tags.length; i++) {
+    var match = AdminClient.matchSupportedLanguage(tags[i]);
+    if (match) return match;
+  }
+  return null;
+}
+
+// On the very first dashboard visit in this browser, pick the UI language from
+// the operating system / browser language. The choice is persisted in
+// localStorage (per-browser, independent of the logged-in account) so it only
+// happens once and never fights an explicit selection.
+AdminClient.autoSelectLanguage = function () {
+  var isDashboard = document.body && document.body.getAttribute('data-page') === 'dashboard';
+  if (!isDashboard) return;
+  var stored = null;
+  try { stored = localStorage.getItem(CONFIG.LANG_STORAGE_KEY); } catch (e) { return; }
+  if (stored) return; // Already detected or explicitly chosen before.
+  var detected = AdminClient.detectBrowserLanguage();
+  // Record the outcome (even the fallback) so we never auto-detect again.
+  try { localStorage.setItem(CONFIG.LANG_STORAGE_KEY, detected || UI_LANG); } catch (e) {}
+  // Only switch when we found a supported language different from what the
+  // server already rendered.
+  if (detected && detected !== UI_LANG) {
+    document.cookie = 'lang=' + detected + ';path=/;max-age=31536000;SameSite=Lax';
+    window.location.reload();
+  }
 }
 
 // ---- Country names ----
@@ -798,10 +853,18 @@ AdminClient.updateComboHint = function () {
   var el = document.getElementById('slug-combo-hint');
   if (!el) return;
   var len = parseInt(document.getElementById('slug-length-input').value) || CONFIG.MIN_SLUG_LEN;
+  if (len < CONFIG.MIN_SLUG_LEN) {
+    el.textContent = AdminClient.t('client.minLength');
+    return;
+  }
+  // Very large slug lengths produce an astronomically large combination count
+  // that would overflow the hint area, so show an "infinite" label instead.
+  if (len > CONFIG.SLUG_COMBO_INFINITE_THRESHOLD) {
+    el.textContent = AdminClient.t('client.combosInfinite');
+    return;
+  }
   var combos = Math.pow(CONFIG.CHARSET_SIZE, Math.max(len, CONFIG.MIN_SLUG_LEN));
-  el.textContent = len >= CONFIG.MIN_SLUG_LEN
-    ? AdminClient.t('client.combos', {count: AdminClient.fmtCount(combos)})
-    : AdminClient.t('client.minLength');
+  el.textContent = AdminClient.t('client.combos', {count: AdminClient.fmtCount(combos)});
 }
 
 AdminClient.getRedirectRules = function () {
@@ -930,6 +993,8 @@ AdminClient.installApp = function () {
 }
 
 // ---- Init ----
+AdminClient.autoSelectLanguage();
+
 var quickUrlEl = document.getElementById('quick-url');
 if (quickUrlEl) {
   quickUrlEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') AdminClient.quickShorten(); });

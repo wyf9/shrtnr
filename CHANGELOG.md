@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.36.0 (2026-07-13)
+
+- Added Simplified Chinese (`zh`) to the admin UI language system. `src/i18n/zh.ts` translates every key in the English source of truth, and the Settings language picker now lists 简体中文 alongside English, Bahasa Indonesia, and Svenska.
+- The dashboard now picks a UI language from the browser on a visitor's first load. When no language has been chosen in this browser, the client reads `navigator.languages`, maps the first supported match (every `zh-*` variant resolves to Simplified Chinese), sets the `lang` cookie, and reloads. The outcome is stored in the `shrtnr:lang` localStorage key, so the detection runs once per browser and stays independent of the logged-in account. An explicit choice in Settings writes the same key and is never overridden.
+- The Default Slug Length hint no longer overflows for large values. Above 25 characters the combination count grows past the width of the settings card, so the hint now reads "Practically infinite possible combinations" instead of the exact number. Lengths of 25 and below still show the precise, locale-formatted count.
+
 ## 0.35.0 (2026-05-01)
 
 - Android (and iOS) in-app browser clicks now attribute to the originating brand in the Domains breakdown. The new `src/referrer.ts` module maps known package identifiers (`com.linkedin.android` → `linkedin.com`, `com.twitter.android` → `x.com`, Facebook, Instagram, TikTok, Reddit, Pinterest, Slack, Discord, Telegram, WhatsApp, YouTube, Gmail, Outlook) to their canonical domain, so a click from the LinkedIn Android app shows up under `linkedin.com` instead of as an opaque `android-app://com.linkedin.android/`. Uncurated packages fall through to "no referrer" rather than polluting the breakdown.

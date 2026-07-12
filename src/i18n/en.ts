@@ -263,6 +263,7 @@ const en = {
   "settings.redirectCacheHint": "Reduces CPU by serving hot short links from Workers Cache. Click analytics can undercount until the cache is purged or expires.",
   "settings.save": "Save",
   "settings.combos": "{count} possible combinations",
+  "settings.combosInfinite": "Practically infinite possible combinations",
   "settings.minLength": "Minimum length is 3 characters",
   "settings.version": "Version",
   "settings.account": "Account",
@@ -389,6 +390,7 @@ const en = {
   "client.settingsSaved": "Settings saved",
   "client.settingsError": "Failed to save settings",
   "client.combos": "{count} possible combinations",
+  "client.combosInfinite": "Practically infinite possible combinations",
   "client.minLength": "Minimum length is 3 characters",
   "client.updateAvailable": "available",
   "client.releaseNotes": "Release notes",
@@ -459,11 +461,13 @@ const en = {
   "lang.en": "English",
   "lang.id": "Bahasa Indonesia",
   "lang.sv": "Svenska",
+  "lang.zh": "简体中文",
 
   // Language names (translated into this locale)
   "langLocal.en": "English",
   "langLocal.id": "Indonesian",
   "langLocal.sv": "Swedish",
+  "langLocal.zh": "Simplified Chinese",
 };
 
 export default en;

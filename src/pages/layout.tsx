@@ -73,7 +73,7 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({
         />
         <style>{raw(adminStyles)}</style>
       </head>
-      <body>
+      <body data-page={active}>
         <nav class="sidebar">
           <div class="sidebar-brand">
             <img src={brandLogotype} alt="shrtnr." />

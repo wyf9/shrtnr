@@ -87,7 +87,7 @@ browser-extensions/
     components/           共享表单 + CTA 横幅
     api.ts                对 @oddbit/shrtnr 的封装
     storage.ts            chrome.storage.sync 封装
-    i18n/                 en / id / sv 三语翻译
+    i18n/                 en / id / sv / zh 四语翻译
   manifests/              base + 各目标覆盖 (chrome, firefox)
   build.mjs               esbuild + manifest 合并 + 打包
 ```

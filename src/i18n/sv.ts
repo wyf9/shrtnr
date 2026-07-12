@@ -266,6 +266,7 @@ const sv: Translations = {
   "settings.redirectCacheHint": "Minskar CPU genom att servera populära kortlänkar från Workers Cache. Klickstatistik kan underräknas tills cachen rensas eller löper ut.",
   "settings.save": "Spara",
   "settings.combos": "{count} möjliga kombinationer",
+  "settings.combosInfinite": "Praktiskt taget obegränsat antal möjliga kombinationer",
   "settings.minLength": "Minsta längd är 3 tecken",
   "settings.version": "Version",
   "settings.account": "Konto",
@@ -393,6 +394,7 @@ const sv: Translations = {
   "client.settingsSaved": "Inställningar sparade",
   "client.settingsError": "Kunde inte spara inställningar",
   "client.combos": "{count} möjliga kombinationer",
+  "client.combosInfinite": "Praktiskt taget obegränsat antal möjliga kombinationer",
   "client.minLength": "Minsta längd är 3 tecken",
   "client.updateAvailable": "tillgänglig",
   "client.releaseNotes": "Versionsanteckningar",
@@ -463,11 +465,13 @@ const sv: Translations = {
   "lang.en": "English",
   "lang.id": "Bahasa Indonesia",
   "lang.sv": "Svenska",
+  "lang.zh": "简体中文",
 
   // Language names (translated into this locale)
   "langLocal.en": "Engelska",
   "langLocal.id": "Indonesiska",
   "langLocal.sv": "Svenska",
+  "langLocal.zh": "Förenklad kinesiska",
 };
 
 export default sv;

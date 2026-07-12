@@ -7,7 +7,7 @@ import type { TimelineRange } from "../types";
 import { SUPPORTED_LANGUAGES } from "../i18n";
 import { fmtNumber } from "../i18n/format";
 import { RANDOM_CHARSET } from "../slugs";
-import { MIN_SLUG_LENGTH } from "../constants";
+import { MIN_SLUG_LENGTH, SLUG_COMBO_INFINITE_THRESHOLD } from "../constants";
 
 const RANGE_OPTIONS: TimelineRange[] = ["24h", "7d", "30d", "90d", "1y", "all"];
 
@@ -28,9 +28,11 @@ type Props = {
 export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, t, mcpConfigured, userEmail }) => {
   const combos = Math.pow(RANDOM_CHARSET.length, Math.max(slugLength, MIN_SLUG_LENGTH));
   const comboHint =
-    slugLength >= 3
-      ? t("settings.combos", { count: fmtNumber(combos, lang) })
-      : t("settings.minLength");
+    slugLength < MIN_SLUG_LENGTH
+      ? t("settings.minLength")
+      : slugLength > SLUG_COMBO_INFINITE_THRESHOLD
+        ? t("settings.combosInfinite")
+        : t("settings.combos", { count: fmtNumber(combos, lang) });
 
   return (
     <>

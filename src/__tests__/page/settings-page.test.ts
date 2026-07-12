@@ -110,6 +110,62 @@ describe("Dashboard redirect cache warning", () => {
   });
 });
 
+function comboHint(html: string): string {
+  return (
+    html.match(/id="slug-combo-hint"[^>]*>([^<]*)</)?.[1] ?? ""
+  );
+}
+
+describe("Settings page slug length combinations hint", () => {
+  it("shows the exact combination count for the default slug length", async () => {
+    const res = await SELF.fetch(req("/_/admin/settings"));
+    const hint = comboHint(await res.text());
+    expect(hint).toContain("possible combinations");
+    expect(hint).not.toContain("infinite");
+  });
+
+  it("shows an 'infinite' hint when the stored slug length exceeds 25", async () => {
+    await SELF.fetch(new Request("https://shrtnr.test/_/admin/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug_default_length: 30 }),
+    }));
+    const res = await SELF.fetch(req("/_/admin/settings"));
+    const hint = comboHint(await res.text());
+    expect(hint).toBe("Practically infinite possible combinations");
+  });
+
+  it("still shows the exact count at the 25 boundary", async () => {
+    await SELF.fetch(new Request("https://shrtnr.test/_/admin/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug_default_length: 25 }),
+    }));
+    const res = await SELF.fetch(req("/_/admin/settings"));
+    const hint = comboHint(await res.text());
+    expect(hint).not.toContain("infinite");
+    expect(hint).toContain("possible combinations");
+  });
+});
+
+describe("Settings page language control", () => {
+  it("offers Simplified Chinese as a language option", async () => {
+    const res = await SELF.fetch(req("/_/admin/settings"));
+    const html = await res.text();
+    expect(html).toContain('id="language-picker"');
+    expect(html).toContain('value="zh"');
+    expect(html).toContain("简体中文");
+  });
+});
+
+describe("Dashboard auto language detection", () => {
+  it("tags the dashboard body so the client can auto-detect language on first visit", async () => {
+    const res = await SELF.fetch(req("/_/admin/dashboard"));
+    const html = await res.text();
+    expect(html).toMatch(/<body[^>]*data-page="dashboard"/);
+  });
+});
+
 describe("Redirects page", () => {
   it("renders rule inputs without a status column", async () => {
     const res = await SELF.fetch(req("/_/admin/redirects"));

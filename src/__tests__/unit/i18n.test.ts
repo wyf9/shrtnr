@@ -9,6 +9,7 @@ import {
 import en from "../../i18n/en";
 import id from "../../i18n/id";
 import sv from "../../i18n/sv";
+import zh from "../../i18n/zh";
 
 function flattenKeys(obj: unknown, prefix = ""): string[] {
   if (obj === null || typeof obj !== "object") return [prefix];
@@ -26,6 +27,7 @@ describe("i18n", () => {
       expect(isSupportedLanguage("en")).toBe(true);
       expect(isSupportedLanguage("id")).toBe(true);
       expect(isSupportedLanguage("sv")).toBe(true);
+      expect(isSupportedLanguage("zh")).toBe(true);
     });
 
     it("returns false for unsupported languages", () => {
@@ -49,6 +51,11 @@ describe("i18n", () => {
     it("returns Swedish translations for 'sv'", () => {
       const t = getTranslations("sv");
       expect(t["nav.dashboard"]).toBe("Översikt");
+    });
+
+    it("returns Simplified Chinese translations for 'zh'", () => {
+      const t = getTranslations("zh");
+      expect(t["nav.dashboard"]).toBe("仪表盘");
     });
 
     it("falls back to English for unsupported language", () => {
@@ -117,6 +124,7 @@ describe("i18n", () => {
       expect(SUPPORTED_LANGUAGES).toContain("en");
       expect(SUPPORTED_LANGUAGES).toContain("id");
       expect(SUPPORTED_LANGUAGES).toContain("sv");
+      expect(SUPPORTED_LANGUAGES).toContain("zh");
     });
   });
 
@@ -126,6 +134,7 @@ describe("i18n", () => {
     it.each([
       ["id", id],
       ["sv", sv],
+      ["zh", zh],
     ])("locale %s has the same key set as en", (_name, locale) => {
       const localeKeys = new Set(flattenKeys(locale));
       const missing = [...enKeys].filter((k) => !localeKeys.has(k));

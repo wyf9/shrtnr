@@ -266,6 +266,7 @@ const id: Translations = {
   "settings.redirectCacheHint": "Mengurangi CPU dengan menyajikan tautan pendek populer dari Workers Cache. Analitik klik dapat terhitung lebih rendah sampai cache dibersihkan atau kedaluwarsa.",
   "settings.save": "Simpan",
   "settings.combos": "{count} kemungkinan kombinasi",
+  "settings.combosInfinite": "Kemungkinan kombinasi hampir tak terbatas",
   "settings.minLength": "Panjang minimum 3 karakter",
   "settings.version": "Versi",
   "settings.account": "Akun",
@@ -393,6 +394,7 @@ const id: Translations = {
   "client.settingsSaved": "Pengaturan disimpan",
   "client.settingsError": "Gagal menyimpan pengaturan",
   "client.combos": "{count} kemungkinan kombinasi",
+  "client.combosInfinite": "Kemungkinan kombinasi hampir tak terbatas",
   "client.minLength": "Panjang minimum 3 karakter",
   "client.updateAvailable": "tersedia",
   "client.releaseNotes": "Catatan rilis",
@@ -463,11 +465,13 @@ const id: Translations = {
   "lang.en": "English",
   "lang.id": "Bahasa Indonesia",
   "lang.sv": "Svenska",
+  "lang.zh": "简体中文",
 
   // Language names (translated into this locale)
   "langLocal.en": "Inggris",
   "langLocal.id": "Indonesia",
   "langLocal.sv": "Swedia",
+  "langLocal.zh": "Mandarin Sederhana",
 };
 
 export default id;

@@ -24,7 +24,7 @@ shrtnr/
 │   ├── mcp/                MCP server and page
 │   ├── pages/              Admin UI pages (JSX/SSR)
 │   ├── components/         Admin UI shared components
-│   ├── i18n/               Localization (en / id / sv)
+│   ├── i18n/               Localization (en / id / sv / zh)
 │   └── __tests__/          Vitest tests
 ├── migrations/             D1 database migrations
 ├── public/                 Static assets (icons, logos, manifest)

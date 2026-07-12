@@ -24,7 +24,7 @@ shrtnr/
 │   ├── mcp/                MCP 服务器与页面
 │   ├── pages/              管理 UI 页面 (JSX/SSR)
 │   ├── components/         管理 UI 共享组件
-│   ├── i18n/               多语言（en / id / sv）
+│   ├── i18n/               多语言（en / id / sv / zh）
 │   └── __tests__/          Vitest 测试
 ├── migrations/             D1 数据库迁移
 ├── public/                 静态资源（图标、logo、manifest）
