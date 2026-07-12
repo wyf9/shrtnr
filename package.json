@@ -16,7 +16,10 @@
     "secret:put": "wrangler secret put",
     "test": "vitest run",
     "test:watch": "vitest",
-    "emit-spec": "tsx scripts/emit-spec.ts"
+    "emit-spec": "tsx scripts/emit-spec.ts",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.15.1",
@@ -25,6 +28,7 @@
     "@vitest/snapshot": "^4.1.5",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
+    "vitepress": "^1.6.4",
     "vitest": "^4.1.5",
     "wrangler": "^4.86.0"
   },
