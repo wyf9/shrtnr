@@ -12,7 +12,6 @@ type TopbarProps = {
 const CRUMB_KEYS: Record<string, TranslationKey> = {
   dashboard: "nav.dashboard",
   links: "nav.links",
-  bundles: "nav.bundles",
   keys: "nav.apiKeys",
   settings: "nav.settings",
 };

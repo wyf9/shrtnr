@@ -649,5 +649,5 @@ describe("API key scope enforcement at handler", () => {
   // table column is TEXT NOT NULL (see migrations/0001_initial.sql), so an
   // API-key-backed AuthContext can never reach the null branch. The null path
   // is exercised by the JWT-authenticated admin flow, which already has its
-  // own happy-path tests in api-links.test.ts and bundles-api.test.ts.
+  // own happy-path tests in api-links.test.ts.
 });

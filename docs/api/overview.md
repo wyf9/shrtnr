@@ -41,11 +41,10 @@ Public API routes are mounted under `/_/api` (see `src/api/router.ts`):
 |---|---|---|
 | `/_/api/links` | Link CRUD, analytics, timeline, QR codes | `src/api/links.ts` |
 | `/_/api/slugs` | Slug lookup, add, enable/disable, remove | `src/api/slugs.ts` |
-| `/_/api/bundles` | Bundle management and combined analytics | `src/api/bundles.ts` |
 
 ## Time range parameter
 
-The list/detail/analytics endpoints for links and bundles accept an optional `?range=` query parameter:
+The list/detail/analytics endpoints for links accept an optional `?range=` query parameter:
 
 ```
 24h | 7d | 30d | 90d | 1y | all
@@ -71,4 +70,4 @@ Errors are returned as JSON with an `error` field. The SDKs map these to languag
 
 ## Permission model
 
-Per-resource ownership applies: any caller with a valid API key can read links and bundles and append links to a bundle, but only the owner of a link or bundle can update, delete, archive, and so on. Non-owner writes return `403 Forbidden`.
+Per-resource ownership applies: any caller with a valid API key can read links and append custom slugs to a link, but only the owner of a link can update, delete, disable, and so on. Non-owner writes return `403 Forbidden`.

@@ -5,7 +5,7 @@
 MCP 端点通过 [Cloudflare Access Managed OAuth](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/) 认证。CF Access 充当 OAuth 授权服务器：它在边缘处理客户端注册、令牌签发与校验。Worker 收到的是带身份头的已认证请求，自身不实现任何 OAuth 端点。
 
 ::: warning 授权模型
-MCP 端点目前**不区分读写**。任何邮箱匹配 MCP 应用 CF Access 策略的用户，都可以调用每一个已注册工具，包括破坏性的工具（`delete_link`、`delete_bundle`、`remove_slug`、`archive_bundle`）。但按资源的归属限制仍然生效：用户无法修改他人的链接或分组。若要提供只读受众，请通过独立的 MCP 应用，或移除写工具的独立 Worker 部署来隔离。
+MCP 端点目前**不区分读写**。任何邮箱匹配 MCP 应用 CF Access 策略的用户，都可以调用每一个已注册工具，包括破坏性的工具（`delete_link`、`remove_slug`）。但按资源的归属限制仍然生效：用户无法修改他人的链接。若要提供只读受众，请通过独立的 MCP 应用，或移除写工具的独立 Worker 部署来隔离。
 :::
 
 ## 设置步骤
@@ -53,7 +53,7 @@ Cloudflare 的托管机器人规则会在请求到达 Worker 前，在边缘拦�
 
 ## 可用工具
 
-MCP 服务器注册了用于管理链接、自定义短码、分组、QR 码和分析（终身、时间范围、维度拆分）的工具。已连接的客户端通过标准 MCP `tools/list` 调用即可发现完整列表。
+MCP 服务器注册了用于管理链接、自定义短码、QR 码和分析（终身、时间范围、维度拆分）的工具。已连接的客户端通过标准 MCP `tools/list` 调用即可发现完整列表。
 
 ::: tip 权威来源
 工具列表会随版本变化。请勿在文档中硬编码可能漂移的动态内容，权威来源是 [`src/mcp/server.ts`](https://github.com/wyf9/shrtnr/blob/main/src/mcp/server.ts)。

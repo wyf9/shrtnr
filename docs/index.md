@@ -29,7 +29,7 @@ features:
     details: Built-in click tracking by referrer, country, device, and browser, plus analytics charts and QR code generation in the admin dashboard.
   - icon: 🔗
     title: Flexible short links
-    details: Random slugs from 3 characters, custom slugs, link bundles, and _redirects-style dynamic redirect rules for legacy migration.
+    details: Random slugs from 3 characters, custom slugs, and _redirects-style dynamic redirect rules for legacy migration.
   - icon: 🤖
     title: AI integration (MCP)
     details: A built-in MCP server, authorized via Cloudflare Access OAuth, lets Claude, Copilot, and other AI assistants create and manage short links.

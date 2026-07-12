@@ -1138,7 +1138,7 @@ describe("Open read access (design): anyone can read anything", () => {
   });
 });
 
-// ---- Link+slug access model (design): mirrors bundles ----
+// ---- Link+slug access model (design) ----
 //
 // The app is for internal team/organization use, not public sign-up. Links
 // and their slugs follow an open-read, open-append, owner-only-shrink model:
@@ -1151,9 +1151,7 @@ describe("Open read access (design): anyone can read anything", () => {
 //     link: those service functions return 403 on identity mismatch
 //
 // This describe locks that contract so a future tightening cannot quietly
-// break it. Mirrors the "Bundle access model (design)" describe in
-// src/__tests__/handler/bundles-api.test.ts. Clarified by user on
-// 2026-04-30.
+// break it. Clarified by user on 2026-04-30.
 
 describe("Link+slug access model (design): anyone reads, anyone adds slugs, only owner removes", () => {
   it("any authenticated caller can add a custom slug to another owner's link (open append)", async () => {

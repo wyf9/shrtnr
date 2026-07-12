@@ -41,8 +41,8 @@ shrtnr/
 
 ### API / 页面层
 
-- `src/api/`：公开的 Bearer Token API，基于 [Hono](https://hono.dev/) 与 `@hono/zod-openapi`。`router.ts` 挂载 `links`、`slugs`、`bundles` 三个子应用，并暴露 `/openapi.json` 与 `/docs`。
-- `src/pages/`：服务端渲染的管理 UI 页面（仪表盘、链接、链接详情、分组、分组详情、API Keys、设置、重定向、自定义页面）。
+- `src/api/`：公开的 Bearer Token API，基于 [Hono](https://hono.dev/) 与 `@hono/zod-openapi`。`router.ts` 挂载 `links`、`slugs` 两个子应用，并暴露 `/openapi.json` 与 `/docs`。
+- `src/pages/`：服务端渲染的管理 UI 页面（仪表盘、链接、链接详情、API Keys、设置、重定向、自定义页面）。
 - `src/components/`：管理 UI 共享组件（KPI 卡片、大图表、稀疏折线图、范围选择器等）。
 
 ### 服务层 (`src/services/`)
@@ -52,7 +52,6 @@ shrtnr/
 | 模块 | 职责 |
 |---|---|
 | `link-management.ts` | 链接创建、更新、启用/禁用、删除 |
-| `bundle-management.ts` | 分组管理 |
 | `admin-management.ts` | 管理端操作 |
 | `analytics.ts` | 点击分析聚合 |
 | `trends.ts` | 趋势与环比计算 |
@@ -67,7 +66,6 @@ shrtnr/
 | `link-repository.ts` | 链接 |
 | `slug-repository.ts` | 短码 |
 | `click-repository.ts` | 点击事件 |
-| `bundle-repository.ts` | 分组 |
 | `api-key-repository.ts` | API 密钥 |
 | `setting-repository.ts` | 每用户设置 |
 | `page-repository.ts` | 自定义页面 |
@@ -77,7 +75,7 @@ KV 层 (`src/kv/slug-cache.ts`) 为短码到链接的查找提供高速缓存。
 
 ## MCP (`src/mcp/`)
 
-- `server.ts`：注册所有 MCP 工具（链接、短码、分组、QR、分析），是工具列表的权威来源。
+- `server.ts`：注册所有 MCP 工具（链接、短码、QR、分析），是工具列表的权威来源。
 - `page.ts`：MCP 相关页面。
 
 MCP 会话由 `wrangler.jsonc` 中声明的 Durable Object `MCP_OBJECT`（类 `ShrtnrMCP`）承载。

@@ -5,7 +5,7 @@ Every shrtnr deployment includes a built-in [MCP](https://modelcontextprotocol.i
 The MCP endpoint authenticates through [Cloudflare Access Managed OAuth](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/). CF Access acts as the OAuth authorization server: it handles client registration, token issuance, and validation at the edge. The Worker receives authenticated requests with identity headers and does not implement any OAuth endpoints itself.
 
 ::: warning Authorization model
-The MCP endpoint does **not** split read from write today. Anyone whose email matches the CF Access policy on the MCP application can call every registered tool, including destructive ones (`delete_link`, `delete_bundle`, `remove_slug`, `archive_bundle`). Per-resource ownership still applies: a user cannot mutate another user's links or bundles. To grant a read-only audience, gate them through a separate MCP application or a separate Worker deployment with the write tools removed.
+The MCP endpoint does **not** split read from write today. Anyone whose email matches the CF Access policy on the MCP application can call every registered tool, including destructive ones (`delete_link`, `remove_slug`). Per-resource ownership still applies: a user cannot mutate another user's links. To grant a read-only audience, gate them through a separate MCP application or a separate Worker deployment with the write tools removed.
 :::
 
 ## Setup
@@ -53,7 +53,7 @@ Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) > your zone > **Secur
 
 ## Available tools
 
-The MCP server registers tools for managing links, custom slugs, bundles, QR codes, and analytics (lifetime, time-ranged, and dimensional breakdowns). Connected clients discover the full list via the standard MCP `tools/list` call.
+The MCP server registers tools for managing links, custom slugs, QR codes, and analytics (lifetime, time-ranged, and dimensional breakdowns). Connected clients discover the full list via the standard MCP `tools/list` call.
 
 ::: tip Authoritative source
 The tool list changes with each release. Do not hardcode dynamic content that can drift; the authoritative source is [`src/mcp/server.ts`](https://github.com/wyf9/shrtnr/blob/main/src/mcp/server.ts).

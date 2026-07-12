@@ -41,11 +41,10 @@ SDK（[TypeScript](/zh/integrations/sdks)、Python、Dart）在 API 变更时从
 |---|---|---|
 | `/_/api/links` | 链接的增删改查、分析、时间线、QR 码 | `src/api/links.ts` |
 | `/_/api/slugs` | 短码查找、添加、启用/禁用、移除 | `src/api/slugs.ts` |
-| `/_/api/bundles` | 分组管理与合并分析 | `src/api/bundles.ts` |
 
 ## 时间范围参数
 
-链接与分组的列表/详情/分析端点接受可选的 `?range=` 查询参数：
+链接的列表/详情/分析端点接受可选的 `?range=` 查询参数：
 
 ```
 24h | 7d | 30d | 90d | 1y | all
@@ -71,4 +70,4 @@ SDK（[TypeScript](/zh/integrations/sdks)、Python、Dart）在 API 变更时从
 
 ## 权限模型
 
-按资源的归属限制生效：任何持有有效 API Key 的调用者都能读取链接与分组、向分组追加链接；但只有链接/分组的拥有者才能修改、删除、归档等。非拥有者的写操作返回 `403 Forbidden`。
+按资源的归属限制生效：任何持有有效 API Key 的调用者都能读取链接、向链接追加自定义短码；但只有链接的拥有者才能修改、删除、禁用等。非拥有者的写操作返回 `403 Forbidden`。

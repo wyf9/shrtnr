@@ -114,9 +114,6 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
             <button class="detail-menu-item" onclick={`showAddSlugModal(${link.id})`}>
               <span class="icon">add_link</span> {t("linkDetail.addCustomSlug")}
             </button>
-            <button class="detail-menu-item" onclick={`showAddToBundleModal(${link.id})`}>
-              <span class="icon">inventory_2</span> {t("linkDetail.addToBundle")}
-            </button>
             {hasMultipleSlugs && (
               <button class="detail-menu-item" onclick={`showChangePrimaryModal(${link.id})`}>
                 <span class="icon">star</span> {t("linkDetail.changePrimary")}

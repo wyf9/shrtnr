@@ -29,7 +29,7 @@ features:
     details: 内置来源、国家、设备与浏览器维度的点击统计，配套管理面板中的分析图表与 QR 码生成。
   - icon: 🔗
     title: 灵活的短链
-    details: 支持最短 3 字符的随机短码、自定义短码、链接分组 (Bundles)，以及 _redirects 风格的动态重定向规则。
+    details: 支持最短 3 字符的随机短码、自定义短码，以及 _redirects 风格的动态重定向规则。
   - icon: 🤖
     title: AI 集成 (MCP)
     details: 内置 MCP 服务器，通过 Cloudflare Access OAuth 授权，让 Claude、Copilot 等 AI 助手直接创建和管理短链。

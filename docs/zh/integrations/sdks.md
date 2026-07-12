@@ -103,7 +103,6 @@ client.close();
 | `analytics(id, {range?})` | 按国家、设备、来源等维度的点击分析 |
 | `timeline(id, {range?})` | 按时间分桶的点击数 |
 | `qr(id, {slug?, size?})` | QR 码（SVG 字符串） |
-| `bundles(id)` | 该链接所属的分组 |
 
 ### Slugs (`client.slugs`)
 
@@ -113,20 +112,6 @@ client.close();
 | `add(linkId, slug)` | 添加自定义短码 |
 | `disable / enable(linkId, slug)` | 禁用 / 启用短码 |
 | `remove(linkId, slug)` | 移除短码 |
-
-### Bundles (`client.bundles`)
-
-| 方法 | 说明 |
-|---|---|
-| `get(id, {range?})` | 获取分组及点击摘要 |
-| `list({archived?, range?})` | 列出分组 |
-| `create({name, description?, icon?, accent?})` | 创建分组 |
-| `update(id, {...})` | 更新元数据 |
-| `delete(id)` | 永久删除 |
-| `archive / unarchive(id)` | 归档 / 取消归档 |
-| `analytics(id, {range?})` | 合并点击分析 |
-| `links(id)` | 列出分组内链接 |
-| `addLink / removeLink(id, linkId)` | 添加 / 移除链接 |
 
 ## 错误处理
 

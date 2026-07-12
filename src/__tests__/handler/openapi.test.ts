@@ -103,9 +103,9 @@ describe("paramHook handles body and query failures", () => {
     expect(body.error).toMatch(/banana/i);
   });
 
-  it("GET /_/api/bundles/:id?range=invalid returns 400 + {error: string}", async () => {
+  it("GET /_/api/links/:id?range=invalid returns 400 + {error: string}", async () => {
     const key = await createApiKey("read");
-    const res = await SELF.fetch(new Request("https://shrtnr.test/_/api/bundles/1?range=99d", {
+    const res = await SELF.fetch(new Request("https://shrtnr.test/_/api/links/1?range=99d", {
       headers: { "Authorization": `Bearer ${key}` },
     }));
     expect(res.status).toBe(400);
@@ -208,7 +208,7 @@ describe("OpenAPI spec coverage", () => {
       paths: Record<string, Record<string, unknown>>;
     };
     // @hono/zod-openapi records paths relative to the sub-app mount point, so
-    // the /_/api prefix is stripped and keys start with /links, /bundles, etc.
+    // the /_/api prefix is stripped and keys start with /links, /slugs, etc.
     const expected = [
       "/links",
       "/links/{id}",
@@ -221,15 +221,7 @@ describe("OpenAPI spec coverage", () => {
       "/links/{id}/qr",
       "/links/{id}/analytics",
       "/links/{id}/timeline",
-      "/links/{id}/bundles",
       "/slugs/{slug}",
-      "/bundles",
-      "/bundles/{id}",
-      "/bundles/{id}/archive",
-      "/bundles/{id}/unarchive",
-      "/bundles/{id}/analytics",
-      "/bundles/{id}/links",
-      "/bundles/{id}/links/{linkId}",
     ];
     const actualKeys = Object.keys(doc.paths).sort();
     for (const path of expected) {

@@ -25,7 +25,7 @@ The upstream **shrtnr** is built by [Oddbit](https://oddb.it/website), a senior-
 | Component | Purpose |
 |---|---|
 | [Cloudflare Workers](https://developers.cloudflare.com/workers/) | Runtime that handles every request (redirects, admin UI, API, MCP) |
-| [Cloudflare D1](https://developers.cloudflare.com/d1/) | SQLite database storing links, slugs, click events, bundles, etc. |
+| [Cloudflare D1](https://developers.cloudflare.com/d1/) | SQLite database storing links, slugs, click events, etc. |
 | [Cloudflare KV](https://developers.cloudflare.com/kv/) | High-speed cache for slug-to-link lookups |
 | [Hono](https://hono.dev/) | Web framework, paired with `@hono/zod-openapi` to generate the API spec |
 | [Durable Objects](https://developers.cloudflare.com/durable-objects/) | Hosts MCP agent sessions |

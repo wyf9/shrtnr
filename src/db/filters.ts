@@ -25,7 +25,7 @@ export function clickFilterSql(filters?: ClickFilters, alias = ""): string {
 }
 
 /**
- * Options for the per-slug click_count subquery used by Link, Slug and Bundle
+ * Options for the per-slug click_count subquery used by Link and Slug
  * repositories. Callers that want raw lifetime counts (slug deletion guards,
  * redirect resolution) pass nothing.
  */

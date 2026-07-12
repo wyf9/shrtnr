@@ -20,12 +20,6 @@ shrtnr delivers a complete URL shortener in a single Cloudflare Worker.
 - **Referrer brand attribution**: clicks from in-app browsers (LinkedIn, X, Facebook, Instagram, and other Android/iOS apps) attribute to the originating brand domain instead of an opaque `android-app://` value.
 - **Time ranges**: analytics support `24h`, `7d`, `30d`, `90d`, `1y`, and `all` windows, with a `delta_pct` versus the prior window of equal length.
 
-## Bundles
-
-- Group related links (for example a project's blog post, GitHub repo, npm page, and docs) to track their **combined** engagement.
-- A link can belong to more than one bundle.
-- Bundles support archive/unarchive, combined analytics, sparklines, and top-link previews.
-
 ## Admin dashboard
 
 - **Link management**, analytics charts, and QR code generation.

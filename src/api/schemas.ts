@@ -103,72 +103,6 @@ export const SlugParamSchema = z
   })
   .openapi("SlugParam");
 
-// ---- Bundle ----
-
-export const BUNDLE_ACCENTS = ["orange", "red", "green", "blue", "purple"] as const;
-export const BundleAccentSchema = z.enum(BUNDLE_ACCENTS);
-
-export const BundleSchema = z
-  .object({
-    id: z.number().int(),
-    name: z.string(),
-    description: z.string().nullable(),
-    icon: z.string().nullable(),
-    accent: BundleAccentSchema,
-    archived_at: z.number().int().nullable(),
-    created_via: z.string().nullable(),
-    created_by: z.string(),
-    created_at: z.number().int(),
-    updated_at: z.number().int(),
-  })
-  .openapi("Bundle");
-
-export const BundleWithSummarySchema = BundleSchema
-  .extend({
-    link_count: z.number().int().nonnegative(),
-    total_clicks: z.number().int().nonnegative(),
-    delta_pct: z.number().optional(),
-    sparkline: z.array(z.number().int().nonnegative()),
-    top_links: z.array(
-      z.object({ slug: z.string(), click_count: z.number().int().nonnegative() }),
-    ),
-  })
-  .openapi("BundleWithSummary", { description: "Bundle with aggregated click and link counts." });
-
-export const CreateBundleBodySchema = z
-  .object({
-    name: z.string().min(1).max(120),
-    description: z.string().nullable().optional(),
-    icon: z.string().nullable().optional(),
-    accent: BundleAccentSchema.optional(),
-  })
-  .strict()
-  .openapi("CreateBundleBody");
-
-export const UpdateBundleBodySchema = z
-  .object({
-    name: z.string().min(1).max(120).optional(),
-    description: z.string().nullable().optional(),
-    icon: z.string().nullable().optional(),
-    accent: BundleAccentSchema.optional(),
-  })
-  .strict()
-  .openapi("UpdateBundleBody");
-
-export const AddBundleLinkBodySchema = z
-  .object({
-    link_id: z.number().int().positive(),
-  })
-  .strict()
-  .openapi("AddBundleLinkBody");
-
-export const ArchivedQuerySchema = z
-  .object({
-    archived: z.enum(["true", "1", "only", "all"]).optional()
-      .openapi({ description: "true|1|only -> archived only. all -> include archived. Omit -> active only." }),
-  })
-  .openapi("ArchivedQuery");
-
 // ---- Analytics (responses) ----
 // These schemas match ClickStats and TimelineData from src/types.ts.
 
@@ -214,53 +148,6 @@ export const TimelineDataSchema = z
     }),
   })
   .openapi("TimelineData", { description: "Click timeline with bucketed counts and period summaries." });
-
-export const BundleStatsPerLinkSchema = z
-  .object({
-    link_id: z.number().int(),
-    label: z.string().nullable(),
-    primary_slug: z.string(),
-    url: z.string(),
-    click_count: z.number().int().nonnegative(),
-    pct_of_bundle: z.number(),
-    delta_pct: z.number().optional(),
-  })
-  .openapi("BundleStatsPerLink", { description: "Per-link breakdown inside a bundle." });
-
-export const BundleStatsSchema = z
-  .object({
-    bundle: BundleSchema,
-    link_count: z.number().int().nonnegative(),
-    total_clicks: z.number().int().nonnegative(),
-    delta_pct: z.number().optional(),
-    clicked_links: z.number().int().nonnegative(),
-    top_performer: z.object({
-      slug: z.string(),
-      label: z.string().nullable(),
-      click_count: z.number().int().nonnegative(),
-      pct_of_bundle: z.number(),
-    }).nullable().optional(),
-    countries_reached: z.number().int().nonnegative(),
-    top_country: z.object({
-      name: z.string(),
-      pct: z.number(),
-    }).nullable().optional(),
-    timeline: TimelineDataSchema,
-    countries: z.array(NameCountBucketSchema),
-    devices: z.array(NameCountBucketSchema),
-    os: z.array(NameCountBucketSchema),
-    browsers: z.array(NameCountBucketSchema),
-    referrers: z.array(NameCountBucketSchema),
-    referrer_hosts: z.array(NameCountBucketSchema),
-    link_modes: z.array(NameCountBucketSchema),
-    per_link: z.array(BundleStatsPerLinkSchema),
-    num_countries: z.number().int().nonnegative(),
-    num_referrers: z.number().int().nonnegative(),
-    num_referrer_hosts: z.number().int().nonnegative(),
-    num_os: z.number().int().nonnegative(),
-    num_browsers: z.number().int().nonnegative(),
-  })
-  .openapi("BundleStats", { description: "Bundle analytics breakdown." });
 
 // ---- Param hook for routes with path params ----
 // Path-param failures return 404 (preserving the 404-on-NaN contract).

@@ -4,8 +4,6 @@
 import { describe, it, expect } from "vitest";
 import {
   CustomSlugStringSchema,
-  BundleAccentSchema,
-  BUNDLE_ACCENTS,
   TIMELINE_RANGES,
   CreateLinkBodySchema,
   UpdateLinkBodySchema,
@@ -34,18 +32,6 @@ describe("CustomSlugStringSchema", () => {
   ])("safeParse(%j) -> ok=%s", (value, expectedOk) => {
     const result = CustomSlugStringSchema.safeParse(value);
     expect(result.success).toBe(expectedOk);
-  });
-});
-
-describe("BundleAccentSchema", () => {
-  it("accepts every BUNDLE_ACCENTS entry", () => {
-    for (const accent of BUNDLE_ACCENTS) {
-      expect(BundleAccentSchema.safeParse(accent).success).toBe(true);
-    }
-  });
-
-  it("rejects an unknown accent", () => {
-    expect(BundleAccentSchema.safeParse("magenta").success).toBe(false);
   });
 });
 

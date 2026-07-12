@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.0 (2026-07-13)
+
+- Removed the **bundles** feature entirely. Bundles (user-owned collections of links with combined analytics) had been partially retired already — the sidebar entry and pages were orphaned — so this change finishes the job. Removed the bundle API sub-app (`/_/api/bundles`), the `bundle-management` service, `bundle-repository`, bundle MCP tools (`list_bundles`, `create_bundle`, `get_bundle_analytics`, and the rest), bundle schemas and types, the `/{id}/bundles` link route, the orphaned bundle admin pages, all bundle CSS, and the "Add to bundle" action from the link-detail three-dot menu. The new migration `0009_drop_bundles.sql` drops the `bundles` and `bundle_links` tables (the unrelated `visitor_fp` column added by `0005` is preserved).
+- Removed all now-unused bundle-related admin UI translations (`nav.bundles`, `linkDetail.addToBundle`, `linkDetail.inBundles`, every `bundles.*` and `client.bundles.*` key) across all four locales.
+- Docs: removed bundle coverage from the features, introduction, architecture, database, API overview, MCP, and SDK reference pages (English and Simplified Chinese).
+
 ## 0.37.0 (2026-07-13)
 
 - Dynamic redirect splats now respect the path separator. A rule like `/m/*` requires the request path to continue past `/m/`, so visiting `/m` (no trailing slash) no longer matches the splat and instead falls through to a static short link such as `/m`. Previously `/m` matched `/m/*` with an empty splat, letting a broad dynamic rule shadow a more specific static redirect. This fix applies regardless of the new strict-match setting.

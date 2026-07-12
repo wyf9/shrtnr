@@ -4,7 +4,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { env } from "cloudflare:test";
 import { applyMigrations, resetData } from "../setup";
-import { LinkRepository, ClickRepository, BundleRepository } from "../../db";
+import { LinkRepository, ClickRepository } from "../../db";
 
 beforeAll(applyMigrations);
 beforeEach(resetData);
@@ -164,30 +164,6 @@ describe("ClickRepository.getDashboardStats: ClickFilters", () => {
 
     expect(all.recent_links[0].total_clicks).toBe(2);
     expect(last7.recent_links[0].total_clicks).toBe(1);
-  });
-});
-
-describe("ClickRepository.getBundleStats: ClickFilters", () => {
-  it("both filters on: bundle totals, per-link, and breakdowns drop bot + self-referrer", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f3a" });
-    await seedClicksMixed(link.slugs[0].slug);
-    const bundle = await BundleRepository.create(env.DB, {
-      name: "Filter Bundle",
-      accent: "orange",
-      icon: "link",
-      createdBy: "test@example.com",
-    });
-    await BundleRepository.addLink(env.DB, bundle.id, link.id);
-
-    const stats = await ClickRepository.getBundleStats(env.DB, bundle.id, "all", undefined, {
-      excludeBots: true,
-      excludeSelfReferrers: true,
-    });
-
-    expect(stats).not.toBeNull();
-    expect(stats!.total_clicks).toBe(2);
-    expect(stats!.referrer_hosts.map((r) => r.name).sort()).toEqual(["github.com", "pub.dev"]);
-    expect(stats!.per_link[0]?.click_count).toBe(2);
   });
 });
 

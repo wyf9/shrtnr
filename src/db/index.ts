@@ -10,6 +10,4 @@ export { clickFilterSql, slugClickCountSql } from "./filters";
 export { SettingRepository } from "./setting-repository";
 export { ApiKeyRepository } from "./api-key-repository";
 export type { ApiKeyRow } from "./api-key-repository";
-export { BundleRepository } from "./bundle-repository";
-export type { CreateBundleInput, UpdateBundleInput, ListBundlesOptions } from "./bundle-repository";
 export { PageRepository } from "./page-repository";

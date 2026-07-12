@@ -121,66 +121,6 @@ export interface TimelineData {
   };
 }
 
-export type BundleAccent = "orange" | "red" | "green" | "blue" | "purple";
-
-export interface Bundle {
-  id: number;
-  name: string;
-  description: string | null;
-  icon: string | null;
-  accent: BundleAccent;
-  archived_at: number | null;
-  created_via: string | null;
-  created_by: string;
-  created_at: number;
-  updated_at: number;
-}
-
-export interface BundleWithSummary extends Bundle {
-  link_count: number;
-  total_clicks: number;
-  delta_pct?: number;
-  sparkline: number[];
-  top_links: { slug: string; click_count: number }[];
-}
-
-export interface BundleStatsPerLink {
-  link_id: number;
-  label: string | null;
-  primary_slug: string;
-  url: string;
-  click_count: number;
-  pct_of_bundle: number;
-  delta_pct?: number;
-}
-
-export interface BundleStats {
-  bundle: Bundle;
-  link_count: number;
-  total_clicks: number;
-  delta_pct?: number;
-  clicked_links: number;
-  top_performer?: { slug: string; label: string | null; click_count: number; pct_of_bundle: number };
-  countries_reached: number;
-  top_country?: { name: string; pct: number };
-  timeline: TimelineData;
-  countries: { name: string; count: number }[];
-  devices: { name: string; count: number }[];
-  os: { name: string; count: number }[];
-  browsers: { name: string; count: number }[];
-  /** Referrers as full URLs (unique per exact URL). Shown as "Sources". */
-  referrers: { name: string; count: number }[];
-  /** Referrers grouped by hostname. Shown as "Domains". */
-  referrer_hosts: { name: string; count: number }[];
-  link_modes: { name: string; count: number }[];
-  per_link: BundleStatsPerLink[];
-  num_countries: number;
-  num_referrers: number;
-  num_referrer_hosts: number;
-  num_os: number;
-  num_browsers: number;
-}
-
 export interface DashboardStats {
   range: TimelineRange;
   /** Links created in the current period; lifetime when range is "all". */

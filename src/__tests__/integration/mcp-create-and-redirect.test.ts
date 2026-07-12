@@ -89,7 +89,7 @@ async function initSession(): Promise<string> {
   return sessionId!;
 }
 
-// Same poll helper used in redirect-flow / bundle-aggregation: redirect-time
+// Same poll helper used in redirect-flow: redirect-time
 // click recording runs through ctx.waitUntil(...), so the row may lag the
 // SELF.fetch return.
 async function waitForClick(linkId: number, timeoutMs = 1000): Promise<number> {

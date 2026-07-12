@@ -103,7 +103,6 @@ All three SDKs expose consistent resource groups:
 | `analytics(id, {range?})` | Click breakdown by country, device, referrer, etc. |
 | `timeline(id, {range?})` | Click counts bucketed over time |
 | `qr(id, {slug?, size?})` | QR code as an SVG string |
-| `bundles(id)` | Bundles this link belongs to |
 
 ### Slugs (`client.slugs`)
 
@@ -113,20 +112,6 @@ All three SDKs expose consistent resource groups:
 | `add(linkId, slug)` | Add a custom slug |
 | `disable / enable(linkId, slug)` | Disable / enable a slug |
 | `remove(linkId, slug)` | Remove a slug |
-
-### Bundles (`client.bundles`)
-
-| Method | Description |
-|---|---|
-| `get(id, {range?})` | Get a bundle with click summary |
-| `list({archived?, range?})` | List bundles |
-| `create({name, description?, icon?, accent?})` | Create a bundle |
-| `update(id, {...})` | Update metadata |
-| `delete(id)` | Permanently delete |
-| `archive / unarchive(id)` | Archive / unarchive |
-| `analytics(id, {range?})` | Combined click analytics |
-| `links(id)` | List links in the bundle |
-| `addLink / removeLink(id, linkId)` | Add / remove a link |
 
 ## Error handling
 

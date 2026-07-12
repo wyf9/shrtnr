@@ -6,7 +6,6 @@ import { scalarResponse } from "./scalar";
 import { createApiSubApp } from "./sub-app";
 import { linksApp } from "./links";
 import { slugsApp } from "./slugs";
-import { bundlesApp } from "./bundles";
 
 export const apiRouter = createApiSubApp();
 
@@ -37,4 +36,3 @@ apiRouter.get("/docs", (_c) => scalarResponse());
 
 apiRouter.route("/links", linksApp);
 apiRouter.route("/slugs", slugsApp);
-apiRouter.route("/bundles", bundlesApp);

@@ -19,7 +19,6 @@ import {
   enableSlug,
   removeSlug,
 } from "../services/link-management";
-import { listBundlesForLink } from "../services/bundle-management";
 import { handleLinkQr } from "./qr";
 import { handlePublicLinkAnalytics, handlePublicLinkTimeline } from "./analytics";
 import { fetchPageTitle } from "../title-fetch";
@@ -28,7 +27,6 @@ import { requireScope } from "./scope";
 import type { Env, TimelineRange } from "../types";
 import {
   AddSlugBodySchema,
-  BundleSchema,
   ClickStatsSchema,
   CreateLinkBodySchema,
   ErrorResponseSchema,
@@ -367,28 +365,6 @@ const linkQrRoute = createRoute({
 linksApp.openapi(linkQrRoute, async (c) => {
   const { id } = c.req.valid("param") as { id: number };
   return (await handleLinkQr(c.req.raw, c.env, id)) as never;
-}, paramHook);
-
-// ---- GET /:id/bundles (list bundles a link belongs to) ----
-
-const listLinkBundlesRoute = createRoute({
-  method: "get",
-  path: "/{id}/bundles",
-  tags: ["links", "bundles"],
-  summary: "List bundles a link belongs to",
-  middleware: [requireScope("read")] as const,
-  request: { params: IdParamSchema },
-  responses: {
-    200: { description: "OK.", content: { "application/json": { schema: z.array(BundleSchema) } } },
-    401: errorResponses[401],
-    403: errorResponses[403],
-    404: errorResponses[404],
-  },
-});
-
-linksApp.openapi(listLinkBundlesRoute, async (c) => {
-  const { id } = c.req.valid("param") as { id: number };
-  return fromServiceResult(await listBundlesForLink(c.env, id, c.var.auth.identity)) as never;
 }, paramHook);
 
 // ---- GET /:id/analytics ----

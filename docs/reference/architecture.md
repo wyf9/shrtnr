@@ -41,8 +41,8 @@ The app roughly splits into three layers.
 
 ### API / page layer
 
-- `src/api/`: the public Bearer-token API, built on [Hono](https://hono.dev/) with `@hono/zod-openapi`. `router.ts` mounts the `links`, `slugs`, and `bundles` sub-apps and exposes `/openapi.json` and `/docs`.
-- `src/pages/`: server-rendered admin UI pages (dashboard, links, link detail, bundles, bundle detail, API keys, settings, redirects, custom pages).
+- `src/api/`: the public Bearer-token API, built on [Hono](https://hono.dev/) with `@hono/zod-openapi`. `router.ts` mounts the `links` and `slugs` sub-apps and exposes `/openapi.json` and `/docs`.
+- `src/pages/`: server-rendered admin UI pages (dashboard, links, link detail, API keys, settings, redirects, custom pages).
 - `src/components/`: admin UI shared components (KPI cards, big charts, sparklines, range picker, etc.).
 
 ### Service layer (`src/services/`)
@@ -52,7 +52,6 @@ Encapsulates business logic independent of the transport layer:
 | Module | Responsibility |
 |---|---|
 | `link-management.ts` | Link create, update, enable/disable, delete |
-| `bundle-management.ts` | Bundle management |
 | `admin-management.ts` | Admin-side operations |
 | `analytics.ts` | Click analytics aggregation |
 | `trends.ts` | Trend and delta computation |
@@ -67,7 +66,6 @@ Repository wrappers over the D1 database:
 | `link-repository.ts` | Links |
 | `slug-repository.ts` | Slugs |
 | `click-repository.ts` | Click events |
-| `bundle-repository.ts` | Bundles |
 | `api-key-repository.ts` | API keys |
 | `setting-repository.ts` | Per-user settings |
 | `page-repository.ts` | Custom pages |
@@ -77,7 +75,7 @@ The KV layer (`src/kv/slug-cache.ts`) provides a high-speed cache for slug-to-li
 
 ## MCP (`src/mcp/`)
 
-- `server.ts`: registers all MCP tools (links, slugs, bundles, QR, analytics) and is the authoritative source for the tool list.
+- `server.ts`: registers all MCP tools (links, slugs, QR, analytics) and is the authoritative source for the tool list.
 - `page.ts`: MCP-related page.
 
 MCP sessions are hosted by the Durable Object `MCP_OBJECT` (class `ShrtnrMCP`) declared in `wrangler.jsonc`.

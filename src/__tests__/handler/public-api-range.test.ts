@@ -4,15 +4,13 @@
 import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import { SELF, env } from "cloudflare:test";
 import { applyMigrations, resetData } from "../setup";
-import { LinkRepository, BundleRepository, ClickRepository, SettingRepository } from "../../db";
+import { LinkRepository, ClickRepository, SettingRepository } from "../../db";
 
 const ADMIN_AUTH = { "Cf-Access-Jwt-Assertion": btoa(JSON.stringify({ alg: "RS256", typ: "JWT" })) + "." + btoa(JSON.stringify({ email: "test@example.com" })) + ".sig" };
 
 beforeAll(applyMigrations);
 beforeEach(async () => {
   await resetData();
-  await env.DB.exec("DELETE FROM bundles");
-  await env.DB.exec("DELETE FROM bundle_links");
 });
 
 async function createReadKey(): Promise<string> {
@@ -31,7 +29,7 @@ function publicGet(path: string, key: string): Request {
   });
 }
 
-describe("Public API: ?range= on list/get link and bundle endpoints", () => {
+describe("Public API: ?range= on list/get link endpoints", () => {
   it("GET /_/api/links/:id (no range) returns lifetime total_clicks and no delta_pct", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com/control", slug: "ctrl1" });
     const slug = link.slugs[0].slug;
@@ -109,49 +107,6 @@ describe("Public API: ?range= on list/get link and bundle endpoints", () => {
     expect(old?.total_clicks).toBe(0);
   });
 
-  it("GET /_/api/bundles/:id?range=30d returns total_clicks scoped to 30d", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com/bndl", slug: "bndl1", createdBy: "test@example.com" });
-    const bundle = await BundleRepository.create(env.DB, { name: "RangeBundle", createdBy: "test@example.com" });
-    await BundleRepository.addLink(env.DB, bundle.id, link.id);
-    const now = Math.floor(Date.now() / 1000);
-    // One click within 30d, one click older than 30d
-    await env.DB.prepare(
-      "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(link.slugs[0].slug, now - 60).run();
-    await env.DB.prepare(
-      "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(link.slugs[0].slug, now - 60 * 86400).run();
-
-    const key = await createReadKey();
-    const res = await SELF.fetch(publicGet(`/_/api/bundles/${bundle.id}?range=30d`, key));
-    expect(res.status).toBe(200);
-    const body = await res.json() as { total_clicks: number };
-    expect(body.total_clicks).toBe(1);
-  });
-
-  it("GET /_/api/bundles?range=30d returns range-scoped totals on every bundle", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com/blist", slug: "blist1", createdBy: "test@example.com" });
-    const bundle = await BundleRepository.create(env.DB, { name: "ListRangeBundle", createdBy: "test@example.com" });
-    await BundleRepository.addLink(env.DB, bundle.id, link.id);
-    const now = Math.floor(Date.now() / 1000);
-    // One click within 30d
-    await env.DB.prepare(
-      "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(link.slugs[0].slug, now - 60).run();
-    // One click outside 30d (should not appear in range-scoped total)
-    await env.DB.prepare(
-      "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(link.slugs[0].slug, now - 60 * 86400).run();
-
-    const key = await createReadKey();
-    const res = await SELF.fetch(publicGet("/_/api/bundles?range=30d", key));
-    expect(res.status).toBe(200);
-    const body = await res.json() as Array<{ id: number; total_clicks: number; sparkline?: number[] }>;
-    const found = body.find((b) => b.id === bundle.id);
-    expect(found?.total_clicks).toBe(1);
-    expect(Array.isArray(found?.sparkline)).toBe(true);
-  });
-
   it("GET /_/api/links/:id?range=99d returns 400 with {error: string}", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com/inv", slug: "inv1" });
     const key = await createReadKey();
@@ -208,26 +163,6 @@ describe("Public API: range defaults to all and accepts ?range=", () => {
 
     const key = await createReadKey();
     const res = await SELF.fetch(publicGet(`/_/api/links/${link.id}/analytics`, key));
-    const body = await res.json() as { total_clicks: number };
-    expect(body.total_clicks).toBe(2);
-  });
-
-  it("/_/api/bundles/:id/analytics defaults to all-time", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdBy: "test@example.com" });
-    const bundle = await BundleRepository.create(env.DB, { name: "B", createdBy: "test@example.com" });
-    await BundleRepository.addLink(env.DB, bundle.id, link.id);
-    const slug = link.slugs[0].slug;
-    const now = Math.floor(Date.now() / 1000);
-    await env.DB.prepare(
-      "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(slug, now - 60 * 86400).run();
-    await env.DB.prepare(
-      "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(slug, now - 60).run();
-
-    const key = await createReadKey();
-    const res = await SELF.fetch(publicGet(`/_/api/bundles/${bundle.id}/analytics`, key));
-    expect(res.status).toBe(200);
     const body = await res.json() as { total_clicks: number };
     expect(body.total_clicks).toBe(2);
   });

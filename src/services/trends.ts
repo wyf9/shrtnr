@@ -45,7 +45,7 @@ function avgPerDayDivisor(range: TimelineRange, createdAt: number, now: number):
 }
 
 /**
- * Display string for the avg/day hero metric on link and bundle detail pages.
+ * Display string for the avg/day hero metric on link detail pages.
  * Range-scoped `totalClicks` is divided by the selected window so the metric
  * answers "how many clicks per day in this period" rather than lifetime.
  */
