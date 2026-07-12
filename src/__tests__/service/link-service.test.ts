@@ -69,7 +69,7 @@ describe("link-management service", () => {
     }
   });
 
-  it("accepts custom_slug on create and promotes it to primary", async () => {
+  it("uses custom_slug as the only primary slug and skips the random slug", async () => {
     const result = await createLink(env as any, {
       url: "https://example.com",
       custom_slug: "My-Branded-Slug",
@@ -78,12 +78,12 @@ describe("link-management service", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.slugs).toHaveLength(2);
-    const customSlug = result.data.slugs.find((s) => s.is_custom === 1);
-    const autoSlug = result.data.slugs.find((s) => s.is_custom === 0);
-    expect(customSlug?.slug).toBe("my-branded-slug");
-    expect(customSlug?.is_primary).toBe(1);
-    expect(autoSlug?.is_primary).toBe(0);
+    // A supplied custom slug replaces the auto-generated random slug entirely.
+    expect(result.data.slugs).toHaveLength(1);
+    const customSlug = result.data.slugs[0];
+    expect(customSlug.slug).toBe("my-branded-slug");
+    expect(customSlug.is_custom).toBe(1);
+    expect(customSlug.is_primary).toBe(1);
   });
 
   it("returns 409 when custom_slug already exists", async () => {

@@ -77,6 +77,9 @@ export class LinkRepository {
     data: {
       url: string;
       slug: string;
+      // When true, the initial primary slug is recorded as a custom slug. Used
+      // when the caller supplied their own slug, so no random slug is created.
+      slugIsCustom?: boolean;
       label?: string | null;
       expiresAt?: number | null;
       createdVia?: string | null;
@@ -93,8 +96,8 @@ export class LinkRepository {
         .prepare("INSERT INTO links (url, label, created_at, expires_at, created_via, created_by) VALUES (?, ?, ?, ?, ?, ?)")
         .bind(data.url, data.label ?? null, now, data.expiresAt ?? null, data.createdVia ?? "app", data.createdBy ?? "anonymous"),
       db
-        .prepare("INSERT INTO slugs (link_id, slug, is_custom, is_primary, created_at) VALUES (last_insert_rowid(), ?, 0, 1, ?)")
-        .bind(data.slug, now),
+        .prepare("INSERT INTO slugs (link_id, slug, is_custom, is_primary, created_at) VALUES (last_insert_rowid(), ?, ?, 1, ?)")
+        .bind(data.slug, data.slugIsCustom ? 1 : 0, now),
     ]);
 
     const linkId = linkResult.meta.last_row_id as number;

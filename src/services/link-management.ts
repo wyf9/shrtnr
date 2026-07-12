@@ -90,12 +90,43 @@ export async function createLink(
   }
 
   const normalizedCustomSlug = body.custom_slug?.toLowerCase();
+
+  // When the caller supplies a custom slug, it becomes the link's sole primary
+  // slug. We deliberately do NOT also generate a random slug in that case.
   if (normalizedCustomSlug) {
     const slugErr = validateCustomSlug(normalizedCustomSlug);
     if (slugErr) return fail(400, slugErr);
     if (await SlugRepository.exists(env.DB, normalizedCustomSlug)) {
       return fail(409, "Slug already exists");
     }
+
+    let link: LinkWithSlugs;
+    try {
+      link = await LinkRepository.create(env.DB, {
+        url: body.url,
+        slug: normalizedCustomSlug,
+        slugIsCustom: true,
+        label: body.label,
+        expiresAt: body.expires_at,
+        createdVia: body.created_via,
+        createdBy: body.created_by,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // A concurrent create can still lose the UNIQUE race on the slug.
+      if (message.toLowerCase().includes("unique")) {
+        return fail(409, "Slug already exists");
+      }
+      return fail(500, message);
+    }
+
+    await SlugCache.put(env.SLUG_KV, normalizedCustomSlug, {
+      url: body.url,
+      disabled_at: null,
+      expires_at: body.expires_at ?? null,
+    });
+
+    return ok(link, 201);
   }
 
   let slugLength: number;
@@ -131,29 +162,6 @@ export async function createLink(
     disabled_at: null,
     expires_at: body.expires_at ?? null,
   });
-
-  if (normalizedCustomSlug) {
-    try {
-      await SlugRepository.addCustom(env.DB, link.id, normalizedCustomSlug);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (message.toLowerCase().includes("unique")) {
-        await LinkRepository.delete(env.DB, link.id);
-        await SlugCache.delete(env.SLUG_KV, slug);
-        return fail(409, "Slug already exists");
-      }
-      return fail(500, message);
-    }
-
-    await SlugCache.put(env.SLUG_KV, normalizedCustomSlug, {
-      url: body.url,
-      disabled_at: null,
-      expires_at: body.expires_at ?? null,
-    });
-
-    const linkWithCustom = await LinkRepository.getById(env.DB, link.id);
-    return ok(linkWithCustom ?? link, 201);
-  }
 
   return ok(link, 201);
 }

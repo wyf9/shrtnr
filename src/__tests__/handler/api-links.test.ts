@@ -212,7 +212,7 @@ describe("Links API", () => {
     expect(body.slugs[0].is_custom).toBe(0);
   });
 
-  it("POST /_/admin/api/links with custom_slug should create custom as primary", async () => {
+  it("POST /_/admin/api/links with custom_slug uses it as the only primary slug", async () => {
     const res = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
@@ -222,12 +222,12 @@ describe("Links API", () => {
     );
     expect(res.status).toBe(201);
     const body = await res.json() as any;
-    expect(body.slugs).toHaveLength(2);
-    const customSlug = body.slugs.find((s: any) => s.is_custom === 1);
-    const autoSlug = body.slugs.find((s: any) => s.is_custom === 0);
+    // No random slug is generated when a custom slug is supplied.
+    expect(body.slugs).toHaveLength(1);
+    const customSlug = body.slugs[0];
     expect(customSlug.slug).toBe("my-custom");
+    expect(customSlug.is_custom).toBe(1);
     expect(customSlug.is_primary).toBe(1);
-    expect(autoSlug.is_primary).toBe(0);
   });
 
   it("POST /_/admin/api/links should accept dot in custom_slug", async () => {

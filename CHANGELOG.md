@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.40.0 (2026-07-13)
+
+- Creating a link with a custom slug no longer also generates a random slug. The supplied custom slug becomes the link's sole primary slug, so `POST /_/api/links` (and the admin UI / MCP `create_link`) with `custom_slug` now returns a single slug instead of a random + custom pair. Adding a custom slug to an existing link via the slug endpoints is unchanged.
+
 ## 0.39.0 (2026-07-13)
 
 - Command-line tools and HTTP client libraries now show up as their own entries in the link-detail **Browsers** breakdown instead of collapsing into "Other". `parseBrowser` recognizes curl, Wget, HTTPie, Postman, Insomnia, RestSharp, python-requests, aiohttp, HTTPX, urllib, Go-http-client, OkHttp, Apache HttpClient, Java, axios, node-fetch, undici, got, Perl LWP, Guzzle, PHP, Ruby, Deno, Bun, and PowerShell. Real browsers are still matched first; the new `parseCliClient` helper only runs as a fallback. (These clients remain classified as bots, so they only appear when bot filtering is off.)
