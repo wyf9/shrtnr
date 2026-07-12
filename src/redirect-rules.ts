@@ -132,6 +132,7 @@ export function matchDynamicRedirect(
   rules: DynamicRedirectRule[],
   pathname: string,
   requestUrl: string,
+  strict = false,
 ): DynamicRedirectMatch | null {
   const pathSegments = splitPath(pathname);
 
@@ -142,7 +143,23 @@ export function matchDynamicRedirect(
 
     for (const token of rule.tokens) {
       if (token.kind === "splat") {
-        params.splat = pathSegments.slice(segmentIndex).join("/");
+        // A splat always consumes everything after the preceding path
+        // separator. The rule "/a/*" therefore requires the request path to
+        // continue past "/a/": visiting "/a" (no trailing slash) must never
+        // match, because there is no separator for the splat to sit behind.
+        // This holds regardless of the strict-match setting.
+        if (segmentIndex >= pathSegments.length) {
+          matched = false;
+          break;
+        }
+        const splat = pathSegments.slice(segmentIndex).join("/");
+        // In strict mode every captured field must be non-empty, so "/a/"
+        // (splat === "") does not trigger "/a/*".
+        if (strict && splat === "") {
+          matched = false;
+          break;
+        }
+        params.splat = splat;
         segmentIndex = pathSegments.length;
         break;
       }
@@ -159,6 +176,12 @@ export function matchDynamicRedirect(
           break;
         }
       } else {
+        // In strict mode a placeholder must capture a non-empty segment, so
+        // "/a/" does not trigger "/a/:name".
+        if (strict && segment === "") {
+          matched = false;
+          break;
+        }
         params[token.name] = segment;
       }
       segmentIndex++;

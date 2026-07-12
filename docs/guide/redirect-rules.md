@@ -24,6 +24,24 @@ If you are migrating from Cloudflare Pages `_redirects`, open **Settings** in th
 /m/* https://siiway.org/zh/members/:splat
 ```
 
+## Separator and strict matching
+
+A splat always sits **behind a path separator**. The rule `/m/*` therefore
+requires the request path to continue past `/m/`:
+
+- `/m` (no trailing slash) **never** matches `/m/*`, regardless of settings — so
+  a static short link `/m` keeps taking precedence.
+- `/m/` matches `/m/*` with an empty splat.
+- `/m/team` matches `/m/*` with `:splat` = `team`.
+
+The **Strict dynamic redirect matching** toggle in **Settings** controls the
+empty-capture case. When enabled, every placeholder (`:name`) and splat (`*`)
+must capture a **non-empty** value before the rule fires:
+
+- Enabled: `/a/` does **not** match `/a/*` or `/a/:name`.
+- Disabled (default): `/a/` matches `/a/*` (empty splat) or `/a/:name` (empty
+  placeholder).
+
 ## Match order
 
 Rules run on **unmatched public paths**, and **before** the single-segment short-slug fallback, so existing short links continue to work.

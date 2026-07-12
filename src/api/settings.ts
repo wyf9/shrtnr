@@ -22,6 +22,7 @@ export async function handleUpdateSettings(request: Request, env: Env, identity:
     filter_self_referrers?: boolean;
     root_redirect_url?: string | null;
     redirect_cache_enabled?: boolean;
+    dynamic_redirect_strict_match?: boolean;
   };
 
   try {

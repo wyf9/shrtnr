@@ -89,6 +89,60 @@ describe("Routing", () => {
     expect(res.headers.get("Location")).toBe("https://siiway.org/about/team/core");
   });
 
+  it("GET path without trailing slash should not be shadowed by a splat rule", async () => {
+    // Static short link /m -> /mail must win over the broad dynamic rule /m/*.
+    await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://siiway.org/mail", custom_slug: "m" }),
+      }),
+    );
+    await SELF.fetch(
+      authed("/_/admin/api/redirects", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rules: "/m/* https://siiway.org/zh/members/:splat" }),
+      }),
+    );
+
+    // /m has no trailing slash: the splat rule must not fire, the static slug wins.
+    const staticRes = await SELF.fetch(unauthed("/m"), { redirect: "manual" });
+    expect(staticRes.status).toBe(301);
+    expect(staticRes.headers.get("Location")).toBe("https://siiway.org/mail");
+
+    // /m/alice still follows the dynamic splat rule.
+    const dynamicRes = await SELF.fetch(unauthed("/m/alice"), { redirect: "manual" });
+    expect(dynamicRes.status).toBe(302);
+    expect(dynamicRes.headers.get("Location")).toBe("https://siiway.org/zh/members/alice");
+  });
+
+  it("strict dynamic redirect matching rejects empty splat captures", async () => {
+    await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dynamic_redirect_strict_match: true }),
+      }),
+    );
+    await SELF.fetch(
+      authed("/_/admin/api/redirects", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rules: "/a/* https://siiway.org/about/:splat" }),
+      }),
+    );
+
+    // Empty splat: strict mode does not fire, so this falls through to 404.
+    const emptyRes = await SELF.fetch(unauthed("/a/"), { redirect: "manual" });
+    expect(emptyRes.status).toBe(404);
+
+    // Non-empty splat still matches under strict mode.
+    const filledRes = await SELF.fetch(unauthed("/a/team"), { redirect: "manual" });
+    expect(filledRes.status).toBe(302);
+    expect(filledRes.headers.get("Location")).toBe("https://siiway.org/about/team");
+  });
+
   it("GET /_/health should return ok without auth", async () => {
     const res = await SELF.fetch(unauthed("/_/health"));
     expect(res.status).toBe(200);

@@ -171,10 +171,11 @@ async function getPageData(c: { env: Env; req: { raw: Request } }, identity: str
   const filterSelfReferrers = settings?.filter_self_referrers ?? true;
   const rootRedirectUrl = settings?.root_redirect_url ?? "";
   const redirectCacheEnabled = settings?.redirect_cache_enabled ?? false;
+  const dynamicRedirectStrictMatch = settings?.dynamic_redirect_strict_match ?? false;
   const dynamicRedirectRules = await getDynamicRedirectRules(c.env);
   const t = createTranslateFn(lang);
   const translations = getTranslations(lang);
-  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectRules, t, translations };
+  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch, dynamicRedirectRules, t, translations };
 }
 
 // ---- Admin pages ----
@@ -293,12 +294,12 @@ app.get("/_/admin/keys", async (c) => {
 
 app.get("/_/admin/settings", async (c) => {
   const identity = c.var.identity;
-  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectRules } = await getPageData(c, identity);
+  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch } = await getPageData(c, identity);
   const mcpConfigured = Boolean(c.env.MCP_ACCESS_AUD && c.env.ACCESS_JWKS_URL);
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="settings" theme={theme} t={t} lang={lang} translations={translations}>
-        <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} rootRedirectUrl={rootRedirectUrl} redirectCacheEnabled={redirectCacheEnabled} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
+        <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} rootRedirectUrl={rootRedirectUrl} redirectCacheEnabled={redirectCacheEnabled} dynamicRedirectStrictMatch={dynamicRedirectStrictMatch} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
     </Layout>,
   );
 });

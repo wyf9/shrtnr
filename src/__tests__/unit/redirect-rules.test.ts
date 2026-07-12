@@ -43,4 +43,43 @@ describe("matchDynamicRedirect", () => {
       url: "https://short.example/about/team/core",
     });
   });
+
+  it("never matches a splat rule when the path lacks the trailing separator", () => {
+    const parsed = parseDynamicRedirectRules("/m/* https://siiway.org/zh/members/:splat");
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    // "/m" has no "/" for the splat to sit behind, so "/m/*" must not fire in
+    // either strict or non-strict mode.
+    expect(matchDynamicRedirect(parsed.rules, "/m", "https://short.example/m")).toBeNull();
+    expect(matchDynamicRedirect(parsed.rules, "/m", "https://short.example/m", true)).toBeNull();
+  });
+
+  it("matches an empty splat only when strict matching is disabled", () => {
+    const parsed = parseDynamicRedirectRules("/m/* https://siiway.org/zh/members/:splat");
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    // Non-strict: "/m/" matches with an empty splat.
+    expect(matchDynamicRedirect(parsed.rules, "/m/", "https://short.example/m/")).toEqual({
+      url: "https://siiway.org/zh/members/",
+    });
+    // Strict: an empty splat is rejected.
+    expect(matchDynamicRedirect(parsed.rules, "/m/", "https://short.example/m/", true)).toBeNull();
+    // Strict: a non-empty splat still matches.
+    expect(matchDynamicRedirect(parsed.rules, "/m/alice", "https://short.example/m/alice", true)).toEqual({
+      url: "https://siiway.org/zh/members/alice",
+    });
+  });
+
+  it("rejects empty placeholder captures in strict mode", () => {
+    const parsed = parseDynamicRedirectRules("/a/:name https://example.com/:name");
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    // "/a" never matches "/a/:name" because the placeholder segment is absent.
+    expect(matchDynamicRedirect(parsed.rules, "/a", "https://short.example/a")).toBeNull();
+    // "/a/" matches with an empty capture only when strict matching is off.
+    expect(matchDynamicRedirect(parsed.rules, "/a/", "https://short.example/a/")).toEqual({
+      url: "https://example.com/",
+    });
+    expect(matchDynamicRedirect(parsed.rules, "/a/", "https://short.example/a/", true)).toBeNull();
+  });
 });

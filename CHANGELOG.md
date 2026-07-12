@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.37.0 (2026-07-13)
+
+- Dynamic redirect splats now respect the path separator. A rule like `/m/*` requires the request path to continue past `/m/`, so visiting `/m` (no trailing slash) no longer matches the splat and instead falls through to a static short link such as `/m`. Previously `/m` matched `/m/*` with an empty splat, letting a broad dynamic rule shadow a more specific static redirect. This fix applies regardless of the new strict-match setting.
+- Added a **Strict dynamic redirect matching** toggle in Settings (stored as `dynamic_redirect_strict_match`, default off). When enabled, every placeholder (`:name`) and splat (`*`) must capture a non-empty value before a dynamic rule fires — so `/a/*` and `/a/:name` no longer match `/a/`. When disabled, the previous behavior of matching empty captures is preserved.
+
 ## 0.36.0 (2026-07-13)
 
 - Added Simplified Chinese (`zh`) to the admin UI language system. `src/i18n/zh.ts` translates every key in the English source of truth, and the Settings language picker now lists 简体中文 alongside English, Bahasa Indonesia, and Svenska.

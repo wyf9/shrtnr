@@ -20,12 +20,13 @@ type Props = {
   filterSelfReferrers: boolean;
   rootRedirectUrl: string;
   redirectCacheEnabled: boolean;
+  dynamicRedirectStrictMatch: boolean;
   t: TranslateFn;
   mcpConfigured: boolean;
   userEmail?: string | null;
 };
 
-export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, t, mcpConfigured, userEmail }) => {
+export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch, t, mcpConfigured, userEmail }) => {
   const combos = Math.pow(RANDOM_CHARSET.length, Math.max(slugLength, MIN_SLUG_LENGTH));
   const comboHint =
     slugLength < MIN_SLUG_LENGTH
@@ -206,6 +207,28 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                     id="redirect-cache-toggle"
                     checked={redirectCacheEnabled}
                     onchange="AdminClient.setRedirectCache(this.checked)"
+                  />
+                  <span class="toggle-track"></span>
+                  <span class="toggle-thumb"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="form-group form-group-flush">
+              <label class="form-label">{t("settings.redirects")}</label>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-label">{t("settings.dynamicRedirectStrictMatch")}</div>
+                  <div class="toggle-hint">{t("settings.dynamicRedirectStrictMatchHint")}</div>
+                </div>
+                <label class="toggle-switch">
+                  <input
+                    type="checkbox"
+                    id="dynamic-redirect-strict-match-toggle"
+                    checked={dynamicRedirectStrictMatch}
+                    onchange="AdminClient.setDynamicRedirectStrictMatch(this.checked)"
                   />
                   <span class="toggle-track"></span>
                   <span class="toggle-thumb"></span>
