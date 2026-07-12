@@ -107,7 +107,7 @@ export function adminClientScript(version: string, translations: Translations): 
     if (!opts.headers) opts.headers = {};
     if (opts.body && !opts.headers['Content-Type']) opts.headers['Content-Type'] = 'application/json';
     return fetch(CONFIG.API + path, opts).then(function(res) {
-      if (res.status === 401) { window.location.reload(); return res; }
+      if (res.status === 401) { AdminClient.hardReload(); return res; }
       return res;
     });
   };
@@ -161,7 +161,9 @@ AdminClient.setLanguage = function (lang) {
   // Remember the explicit choice per-browser so auto-detection never overrides it.
   try { localStorage.setItem(CONFIG.LANG_STORAGE_KEY, lang); } catch (e) {}
   AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ lang: lang }) }).then(function() {
-    window.location.reload();
+    // A language switch re-renders the whole document (including the sidebar,
+    // which lives outside the SPA content area), so do a full reload.
+    AdminClient.hardReload();
   });
 }
 
@@ -209,7 +211,7 @@ AdminClient.autoSelectLanguage = function () {
   // server already rendered.
   if (detected && detected !== UI_LANG) {
     document.cookie = 'lang=' + detected + ';path=/;max-age=31536000;SameSite=Lax';
-    window.location.reload();
+    AdminClient.hardReload();
   }
 }
 
@@ -243,7 +245,7 @@ AdminClient.quickShorten = function () {
   var customSlug = slugEl ? slugEl.value.trim() : '';
   if (!value) { AdminClient.toast(AdminClient.t('client.pasteUrl'), 'error'); return; }
   if (!AdminClient.isUrl(value)) {
-    window.location.href = '/_/admin/links?search=' + encodeURIComponent(value);
+    AdminClient.go('/_/admin/links?search=' + encodeURIComponent(value));
     return;
   }
   // Only support dynamic rules and custom slug/label if the elements exist (links page)
@@ -259,9 +261,9 @@ AdminClient.quickShorten = function () {
       return res.json().then(function(link) {
         if (isDuplicate) {
           if (link.duplicate_count > 1) {
-            window.location.href = '/_/admin/links?search=' + encodeURIComponent(value);
+            AdminClient.go('/_/admin/links?search=' + encodeURIComponent(value));
           } else {
-            window.location.href = '/_/admin/links/' + link.id;
+            AdminClient.go('/_/admin/links/' + link.id);
           }
         } else {
           var primary = link.slugs.find(function(s) { return s.is_primary; })
@@ -269,7 +271,7 @@ AdminClient.quickShorten = function () {
             || link.slugs[0];
           if (primary) AdminClient.copyUrl(primary.slug);
           AdminClient.toast(AdminClient.t('client.linkCreatedCopied'));
-          window.location.href = '/_/admin/links/' + link.id;
+          AdminClient.go('/_/admin/links/' + link.id);
         }
       });
     } else {
@@ -296,7 +298,7 @@ AdminClient.upsertDynamicRedirectRule = function (sourcePattern, destinationUrl)
       });
     }
     AdminClient.toast(AdminClient.t('client.settingsSaved'));
-    window.location.href = '/_/admin/redirects';
+    AdminClient.go('/_/admin/redirects');
   }).catch(function() {
     AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
@@ -350,16 +352,16 @@ AdminClient.createLink = function () {
         if (isDuplicate) {
           AdminClient.closeModal();
           if (link.duplicate_count > 1) {
-            window.location.href = '/_/admin/links?search=' + encodeURIComponent(body.url);
+            AdminClient.go('/_/admin/links?search=' + encodeURIComponent(body.url));
           } else {
-            window.location.href = '/_/admin/links/' + link.id;
+            AdminClient.go('/_/admin/links/' + link.id);
           }
           return;
         }
         if (!custom) {
           AdminClient.closeModal();
           AdminClient.toast(AdminClient.t('client.linkCreated'));
-          window.location.href = '/_/admin/links/' + link.id;
+          AdminClient.go('/_/admin/links/' + link.id);
           return;
         }
         AdminClient.api('/links/' + link.id + '/slugs', { method: 'POST', body: JSON.stringify({ slug: custom }) }).then(function(slugRes) {
@@ -369,7 +371,7 @@ AdminClient.createLink = function () {
           } else {
             AdminClient.toast(AdminClient.t('client.linkCreated'));
           }
-          window.location.href = '/_/admin/links/' + link.id;
+          AdminClient.go('/_/admin/links/' + link.id);
         });
       });
     } else {
@@ -388,7 +390,7 @@ AdminClient.createDuplicate = function (url) {
         var primary = link.slugs.find(function(s) { return !s.is_custom; });
         if (primary) AdminClient.copyUrl(primary.slug);
         AdminClient.toast(AdminClient.t('client.linkCreatedCopied'));
-        window.location.href = '/_/admin/links/' + link.id;
+        AdminClient.go('/_/admin/links/' + link.id);
       });
     } else {
       return res.json().then(function(data) {
@@ -446,13 +448,13 @@ AdminClient.copyRawKey = function () {
 
 AdminClient.closeKeyRevealModal = function () {
   AdminClient.closeModal();
-  window.location.reload();
+  AdminClient.reload();
 }
 
 AdminClient.deleteKey = function (id, title) {
   if (!confirm(AdminClient.t('client.confirmDeleteKey', {title: title}))) return;
   AdminClient.api('/keys/' + id, { method: 'DELETE' }).then(function(res) {
-    if (res.ok) { AdminClient.toast(AdminClient.t('client.keyDeleted')); window.location.reload(); }
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.keyDeleted')); AdminClient.reload(); }
     else AdminClient.toast(AdminClient.t('client.keyDeleteError'), 'error');
   });
 }
@@ -485,7 +487,7 @@ AdminClient.showDisableLinkModal = function (id) {
 }
 AdminClient.doDisableLink = function (id) {
   AdminClient.api('/links/' + id + '/disable', { method: 'POST' }).then(function(res) {
-    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.linkDisabled')); window.location.reload(); }
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.linkDisabled')); AdminClient.reload(); }
     else res.json().then(function(body) { AdminClient.toast(body.error || AdminClient.t('client.disableError'), 'error'); }).catch(function() { AdminClient.toast(AdminClient.t('client.disableError'), 'error'); });
   });
 }
@@ -500,7 +502,7 @@ AdminClient.showDeleteLinkModal = function (id) {
 }
 AdminClient.doDeleteLink = function (id) {
   AdminClient.api('/links/' + id, { method: 'DELETE' }).then(function(res) {
-    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.linkDeleted')); window.location.href = '/_/admin/links'; }
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.linkDeleted')); AdminClient.go('/_/admin/links'); }
     else res.json().then(function(body) { AdminClient.toast(body.error || AdminClient.t('client.deleteError'), 'error'); }).catch(function() { AdminClient.toast(AdminClient.t('client.deleteError'), 'error'); });
   });
 }
@@ -515,7 +517,7 @@ AdminClient.showEnableLinkModal = function (id) {
 }
 AdminClient.doEnableLink = function (id) {
   AdminClient.api('/links/' + id + '/enable', { method: 'POST' }).then(function(res) {
-    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.linkEnabled')); window.location.reload(); }
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.linkEnabled')); AdminClient.reload(); }
     else res.json().then(function(body) { AdminClient.toast(body.error || AdminClient.t('client.enableError'), 'error'); }).catch(function() { AdminClient.toast(AdminClient.t('client.enableError'), 'error'); });
   });
 }
@@ -534,7 +536,7 @@ AdminClient.doAddSlug = function (linkId) {
   var slug = document.getElementById('m-new-slug').value.trim();
   if (!slug) { AdminClient.toast(AdminClient.t('client.urlRequired'), 'error'); return; }
   AdminClient.api('/links/' + linkId + '/slugs', { method: 'POST', body: JSON.stringify({ slug: slug }) }).then(function(res) {
-    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.customAdded')); window.location.reload(); }
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.customAdded')); AdminClient.reload(); }
     else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.customError'), 'error'); });
   });
 }
@@ -563,7 +565,7 @@ AdminClient.showChangePrimaryModal = function (linkId) {
 }
 AdminClient.doSetPrimary = function (linkId, slug) {
   AdminClient.api('/links/' + linkId + '/slugs/primary', { method: 'PUT', body: JSON.stringify({ slug: slug }) }).then(function(res) {
-    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.labelUpdated')); window.location.reload(); }
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.labelUpdated')); AdminClient.reload(); }
     else res.json().then(function(data) { AdminClient.toast(data.error || 'Error', 'error'); });
   });
 }
@@ -593,7 +595,7 @@ AdminClient.confirmDeleteSlug = function (linkId, slug) {
 }
 AdminClient.doDeleteSlug = function (linkId, slug) {
   AdminClient.api('/links/' + linkId + '/slugs/' + slug, { method: 'DELETE' }).then(function(res) {
-    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.customAdded')); window.location.reload(); }
+    if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.customAdded')); AdminClient.reload(); }
     else res.json().then(function(data) { AdminClient.toast(data.error || 'Error', 'error'); });
   });
 }
@@ -607,7 +609,7 @@ AdminClient.confirmDisableSlug = function (linkId, slug) {
 }
 AdminClient.doDisableSlug = function (linkId, slug) {
   AdminClient.api('/links/' + linkId + '/slugs/' + slug + '/disable', { method: 'POST' }).then(function(res) {
-    if (res.ok) { AdminClient.closeModal(); window.location.reload(); }
+    if (res.ok) { AdminClient.closeModal(); AdminClient.reload(); }
     else res.json().then(function(data) { AdminClient.toast(data.error || 'Error', 'error'); });
   });
 }
@@ -621,7 +623,7 @@ AdminClient.confirmEnableSlug = function (linkId, slug) {
 }
 AdminClient.doEnableSlug = function (linkId, slug) {
   AdminClient.api('/links/' + linkId + '/slugs/' + slug + '/enable', { method: 'POST' }).then(function(res) {
-    if (res.ok) { AdminClient.closeModal(); window.location.reload(); }
+    if (res.ok) { AdminClient.closeModal(); AdminClient.reload(); }
     else res.json().then(function(data) { AdminClient.toast(data.error || 'Error', 'error'); });
   });
 }
@@ -644,7 +646,7 @@ AdminClient.saveDetailLabel = function (linkId) {
   var val = document.getElementById('detail-label').value.trim();
   var body = { label: val || null };
   AdminClient.api('/links/' + linkId, { method: 'PUT', body: JSON.stringify(body) }).then(function(res) {
-    if (res.ok) { AdminClient.toast(AdminClient.t('client.labelUpdated')); window.location.reload(); }
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.labelUpdated')); AdminClient.reload(); }
     else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.labelError'), 'error'); });
   });
 }
@@ -665,14 +667,14 @@ AdminClient.saveDetailExpiry = function (linkId) {
   var exp = document.getElementById('detail-expires').value;
   var body = { expires_at: exp ? Math.floor(new Date(exp).getTime() / 1000) : null };
   AdminClient.api('/links/' + linkId, { method: 'PUT', body: JSON.stringify(body) }).then(function(res) {
-    if (res.ok) { AdminClient.toast(AdminClient.t('client.expiryUpdated')); window.location.reload(); }
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.expiryUpdated')); AdminClient.reload(); }
     else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.expiryError'), 'error'); });
   });
 }
 
 AdminClient.clearDetailExpiry = function (linkId) {
   AdminClient.api('/links/' + linkId, { method: 'PUT', body: JSON.stringify({ expires_at: null }) }).then(function(res) {
-    if (res.ok) { AdminClient.toast(AdminClient.t('client.expiryCleared')); window.location.reload(); }
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.expiryCleared')); AdminClient.reload(); }
     else AdminClient.toast(AdminClient.t('client.expiryClearError'), 'error');
   });
 }
@@ -919,7 +921,7 @@ AdminClient.addRedirectRule = function () {
     sourceEl.value = '';
     destEl.value = '';
     AdminClient.toast(AdminClient.t('client.settingsSaved'));
-    window.location.reload();
+    AdminClient.reload();
   }).catch(function() {
     AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
@@ -961,7 +963,7 @@ AdminClient.doUpdateRedirectRule = function (idx) {
     }
     AdminClient.closeModal();
     AdminClient.toast(AdminClient.t('client.settingsSaved'));
-    window.location.reload();
+    AdminClient.reload();
   }).catch(function() {
     AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
@@ -983,7 +985,7 @@ AdminClient.deleteRedirectRule = function (idx) {
       });
     }
     AdminClient.toast(AdminClient.t('client.settingsSaved'));
-    window.location.reload();
+    AdminClient.reload();
   }).catch(function() {
     AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
   });
@@ -1009,21 +1011,9 @@ AdminClient.installApp = function () {
 }
 
 // ---- Init ----
-AdminClient.autoSelectLanguage();
-
-var quickUrlEl = document.getElementById('quick-url');
-if (quickUrlEl) {
-  quickUrlEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') AdminClient.quickShorten(); });
-  quickUrlEl.addEventListener('input', AdminClient.updateQuickActionButton);
-  AdminClient.updateQuickActionButton();
-}
-var quickSlugEl = document.getElementById('quick-slug');
-if (quickSlugEl) {
-  quickSlugEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') AdminClient.quickShorten(); });
-}
-
-var slugLengthEl = document.getElementById('slug-length-input');
-if (slugLengthEl) slugLengthEl.addEventListener('input', function() { AdminClient.updateComboHint(); });
+// Page-scoped wiring (event listeners, analytics load, polling) lives in
+// AdminClient.initPage(), which runs on first load and after every SPA
+// navigation. Boot happens at the end of this module.
 
 // ---- Analytics + Timeline ----
 var _tlData = null;
@@ -1279,45 +1269,50 @@ AdminClient.niceStep = function (max) {
   return 10 * pow;
 }
 
-// Auto-load analytics on link detail page
-var analyticsRangeBar = document.getElementById('timeline-range');
-if (analyticsRangeBar) {
-  var linkId = parseInt(analyticsRangeBar.getAttribute('data-link-id'), 10);
-  var initialRange = analyticsRangeBar.getAttribute('data-initial-range') || 'all';
-  if (linkId) AdminClient.loadAnalytics(linkId, initialRange);
-}
-
-// Poll for auto-label if label is empty (background title fetch may be in flight)
-var labelDisplay = document.getElementById('label-display');
-if (labelDisplay && !labelDisplay.querySelector('.inline-edit-value')) {
-  var labelLinkId = analyticsRangeBar ? parseInt(analyticsRangeBar.getAttribute('data-link-id'), 10) : 0;
-  if (labelLinkId) {
-    var labelAttempts = 0;
-    var labelPoll = setInterval(function() {
-      labelAttempts++;
-      if (labelAttempts > 5) { clearInterval(labelPoll); return; }
-      AdminClient.api('/links/' + labelLinkId).then(function(res) {
-        if (!res.ok) return;
-        return res.json();
-      }).then(function(link) {
-        if (!link || !link.label) return;
-        clearInterval(labelPoll);
-        // Update the display inline without reloading
-        var display = document.getElementById('label-display');
-        var placeholder = display.querySelector('.inline-edit-placeholder');
-        if (placeholder) {
-          var span = document.createElement('span');
-          span.className = 'inline-edit-value';
-          span.textContent = link.label;
-          placeholder.replaceWith(span);
-        }
-        // Update the hidden input too
-        var inp = document.getElementById('detail-label');
-        if (inp) inp.value = link.label;
-      });
-    }, 2000);
+// Auto-load analytics on the link detail page + poll for a background-fetched
+// label. Invoked from AdminClient.initPage() so it re-runs after SPA nav.
+AdminClient.initLinkDetail = function () {
+  var analyticsRangeBar = document.getElementById('timeline-range');
+  if (analyticsRangeBar) {
+    var linkId = parseInt(analyticsRangeBar.getAttribute('data-link-id'), 10);
+    var initialRange = analyticsRangeBar.getAttribute('data-initial-range') || 'all';
+    if (linkId) AdminClient.loadAnalytics(linkId, initialRange);
   }
-}
+
+  // Poll for auto-label if label is empty (background title fetch may be in flight)
+  var labelDisplay = document.getElementById('label-display');
+  if (labelDisplay && !labelDisplay.querySelector('.inline-edit-value')) {
+    var labelLinkId = analyticsRangeBar ? parseInt(analyticsRangeBar.getAttribute('data-link-id'), 10) : 0;
+    if (labelLinkId) {
+      var labelAttempts = 0;
+      var labelPoll = setInterval(function() {
+        labelAttempts++;
+        if (labelAttempts > 5) { clearInterval(labelPoll); return; }
+        AdminClient.api('/links/' + labelLinkId).then(function(res) {
+          if (!res.ok) return;
+          return res.json();
+        }).then(function(link) {
+          if (!link || !link.label) return;
+          clearInterval(labelPoll);
+          // Update the display inline without reloading
+          var display = document.getElementById('label-display');
+          if (!display) return;
+          var placeholder = display.querySelector('.inline-edit-placeholder');
+          if (placeholder) {
+            var span = document.createElement('span');
+            span.className = 'inline-edit-value';
+            span.textContent = link.label;
+            placeholder.replaceWith(span);
+          }
+          // Update the hidden input too
+          var inp = document.getElementById('detail-label');
+          if (inp) inp.value = link.label;
+        });
+      }, 2000);
+      AdminClient.registerPageTimer(labelPoll);
+    }
+  }
+};
 
 // ---- Live polling (15s) ----
 var POLL_INTERVAL = 15000;
@@ -1486,17 +1481,173 @@ AdminClient.pollLinkDetail = function (linkId) {
   AdminClient.loadAnalytics(linkId, range);
 }
 
-// Start polling based on current page
-if (document.getElementById('dashboard-bento')) {
-  setInterval(AdminClient.pollDashboard, POLL_INTERVAL);
-}
+// ============================================================================
+// SPA NAVIGATION
+// ============================================================================
+// The admin dashboard behaves like a single-page app: sidebar navigation and
+// mutations (create / edit / delete link, etc.) swap only the main content area
+// instead of triggering a full document reload. The persistent shell (sidebar,
+// modal overlay, toast, and this very script) is loaded once and reused.
 
-if (analyticsRangeBar) {
-  var pollLinkId = parseInt(analyticsRangeBar.getAttribute('data-link-id'), 10);
-  if (pollLinkId) {
-    setInterval(function() { AdminClient.pollLinkDetail(pollLinkId); }, POLL_INTERVAL);
+// Per-page timers (polling, background label fetch). Cleared on every
+// navigation so intervals never stack up as the user moves between pages.
+AdminClient._pageTimers = [];
+AdminClient.registerPageTimer = function (id) { AdminClient._pageTimers.push(id); };
+AdminClient.clearPageTimers = function () {
+  for (var i = 0; i < AdminClient._pageTimers.length; i++) clearInterval(AdminClient._pageTimers[i]);
+  AdminClient._pageTimers = [];
+};
+
+AdminClient.hardReload = function () { window.location.reload(); };
+
+// (Re)wire everything that depends on the current page's DOM. Safe to call
+// repeatedly; it only attaches to elements that exist right now.
+AdminClient.initPage = function () {
+  AdminClient.clearPageTimers();
+
+  AdminClient.autoSelectLanguage();
+
+  var quickUrlEl = document.getElementById('quick-url');
+  if (quickUrlEl) {
+    quickUrlEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') AdminClient.quickShorten(); });
+    quickUrlEl.addEventListener('input', AdminClient.updateQuickActionButton);
+    AdminClient.updateQuickActionButton();
   }
-}
+  var quickSlugEl = document.getElementById('quick-slug');
+  if (quickSlugEl) {
+    quickSlugEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') AdminClient.quickShorten(); });
+  }
+
+  var slugLengthEl = document.getElementById('slug-length-input');
+  if (slugLengthEl) slugLengthEl.addEventListener('input', function() { AdminClient.updateComboHint(); });
+
+  AdminClient.initLinkDetail();
+
+  // Live polling based on the current page.
+  if (document.getElementById('dashboard-bento')) {
+    AdminClient.registerPageTimer(setInterval(AdminClient.pollDashboard, POLL_INTERVAL));
+  }
+  var rangeBar = document.getElementById('timeline-range');
+  if (rangeBar) {
+    var pollLinkId = parseInt(rangeBar.getAttribute('data-link-id'), 10);
+    if (pollLinkId) {
+      AdminClient.registerPageTimer(setInterval(function() { AdminClient.pollLinkDetail(pollLinkId); }, POLL_INTERVAL));
+    }
+  }
+};
+
+// Which paths are navigable inside the SPA. Everything under /_/admin/ counts,
+// except the API and the logout endpoint (which must hit the server directly).
+AdminClient.isSpaPath = function (pathname) {
+  if (pathname.indexOf('/_/admin/') !== 0) return false;
+  if (pathname.indexOf('/_/admin/api') === 0) return false;
+  if (pathname.indexOf('/_/admin/logout') === 0) return false;
+  return true;
+};
+
+// Reflect the active page in the sidebar and breadcrumb after a swap.
+AdminClient.updateSidebarActive = function (page) {
+  var items = document.querySelectorAll('.sidebar-nav .nav-item');
+  for (var i = 0; i < items.length; i++) {
+    var navId = items[i].getAttribute('data-nav-id');
+    if (navId === page) items[i].classList.add('active');
+    else items[i].classList.remove('active');
+  }
+};
+
+// Fetch a page and swap only the <main> content. Falls back to a full load on
+// anything unexpected (cross-origin redirect, non-HTML response, parse error).
+AdminClient._spaToken = 0;
+AdminClient.navigate = function (url, opts) {
+  opts = opts || {};
+  var main = document.querySelector('.main');
+  if (!main || typeof DOMParser === 'undefined') { window.location.href = url; return; }
+
+  var token = ++AdminClient._spaToken;
+  document.body.classList.add('spa-loading');
+
+  fetch(url, { headers: { 'X-Requested-With': 'fetch' }, credentials: 'same-origin' })
+    .then(function(res) {
+      // A redirect that leaves the admin area (e.g. to the login page) must be
+      // followed with a real navigation.
+      var finalPath;
+      try { finalPath = new URL(res.url, window.location.href).pathname; } catch (e) { finalPath = ''; }
+      if (res.redirected && finalPath && !AdminClient.isSpaPath(finalPath)) { window.location.href = res.url; return null; }
+      var ct = res.headers.get('content-type') || '';
+      if (ct.indexOf('text/html') === -1) { window.location.href = url; return null; }
+      return res.text();
+    })
+    .then(function(html) {
+      if (html === null) return;
+      if (token !== AdminClient._spaToken) return; // superseded by a newer navigation
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var newMain = doc.querySelector('.main');
+      if (!newMain) { window.location.href = url; return; }
+
+      AdminClient.closeModal();
+      if (typeof closeDrawer === 'function') { try { closeDrawer(); } catch (e) {} }
+
+      main.innerHTML = newMain.innerHTML;
+
+      var newPage = doc.body ? doc.body.getAttribute('data-page') : null;
+      if (newPage) document.body.setAttribute('data-page', newPage);
+      if (doc.title) document.title = doc.title;
+      AdminClient.updateSidebarActive(newPage);
+
+      if (opts.replace) history.replaceState({ spa: true }, '', url);
+      else if (opts.push !== false) history.pushState({ spa: true }, '', url);
+
+      window.scrollTo(0, 0);
+      document.body.classList.remove('spa-loading');
+      AdminClient.initPage();
+    })
+    .catch(function() { window.location.href = url; });
+};
+
+// Programmatic navigation used by inline handlers and post-mutation code.
+AdminClient.go = function (url) {
+  try {
+    var u = new URL(url, window.location.href);
+    if (u.origin === window.location.origin && AdminClient.isSpaPath(u.pathname)) {
+      AdminClient.navigate(u.pathname + u.search + u.hash);
+      return;
+    }
+  } catch (e) {}
+  window.location.href = url;
+};
+
+// Soft "reload": re-fetch the current page and swap it in place. Used after
+// mutations so changes appear without a full document reload.
+AdminClient.reload = function () {
+  AdminClient.navigate(window.location.pathname + window.location.search, { replace: true });
+};
+
+// Intercept clicks on internal admin links so they navigate via the SPA.
+document.addEventListener('click', function(e) {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+  if (!a) return;
+  if (a.target && a.target !== '' && a.target !== '_self') return;
+  if (a.hasAttribute('download')) return;
+  var raw = a.getAttribute('href');
+  if (!raw || raw.charAt(0) === '#') return;
+  var u;
+  try { u = new URL(a.href, window.location.href); } catch (err) { return; }
+  if (u.origin !== window.location.origin) return;
+  if (!AdminClient.isSpaPath(u.pathname)) return;
+  e.preventDefault();
+  AdminClient.navigate(u.pathname + u.search + u.hash);
+});
+
+// Back/forward buttons.
+window.addEventListener('popstate', function() {
+  if (!AdminClient.isSpaPath(window.location.pathname)) return;
+  AdminClient.navigate(window.location.pathname + window.location.search, { push: false });
+});
+
+// First-load wiring.
+if (history && history.replaceState) history.replaceState({ spa: true }, '', window.location.href);
+AdminClient.initPage();
 
   // ============================================================================
   // PAGES
@@ -1557,7 +1708,7 @@ if (analyticsRangeBar) {
       method: 'POST',
       body: JSON.stringify({ slug: slug, filename: filename, content: content, http_status: status, headers: headers }),
     }).then(function(res) {
-      if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.pages.created')); window.location.reload(); }
+      if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.pages.created')); AdminClient.reload(); }
       else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.pages.createError'), 'error'); });
     });
   };
@@ -1577,7 +1728,7 @@ if (analyticsRangeBar) {
       method: 'PUT',
       body: JSON.stringify({ slug: slug, filename: filename, content: content, http_status: status, headers: headers }),
     }).then(function(res) {
-      if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.pages.updated')); window.location.reload(); }
+      if (res.ok) { AdminClient.closeModal(); AdminClient.toast(AdminClient.t('client.pages.updated')); AdminClient.reload(); }
       else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.pages.updateError'), 'error'); });
     });
   };
@@ -1585,21 +1736,21 @@ if (analyticsRangeBar) {
   AdminClient.deletePage = function (id, slug) {
     if (!confirm(AdminClient.t('client.pages.confirmDelete', { slug: slug }))) return;
     AdminClient.api('/pages/' + id, { method: 'DELETE' }).then(function(res) {
-      if (res.ok) { AdminClient.toast(AdminClient.t('client.pages.deleted')); window.location.reload(); }
+      if (res.ok) { AdminClient.toast(AdminClient.t('client.pages.deleted')); AdminClient.reload(); }
       else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.pages.deleteError'), 'error'); });
     });
   };
 
   AdminClient.disablePage = function (id) {
     AdminClient.api('/pages/' + id + '/disable', { method: 'POST' }).then(function(res) {
-      if (res.ok) { AdminClient.toast(AdminClient.t('client.pages.disabledMsg')); window.location.reload(); }
+      if (res.ok) { AdminClient.toast(AdminClient.t('client.pages.disabledMsg')); AdminClient.reload(); }
       else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.pages.toggleError'), 'error'); });
     });
   };
 
   AdminClient.enablePage = function (id) {
     AdminClient.api('/pages/' + id + '/enable', { method: 'POST' }).then(function(res) {
-      if (res.ok) { AdminClient.toast(AdminClient.t('client.pages.enabled')); window.location.reload(); }
+      if (res.ok) { AdminClient.toast(AdminClient.t('client.pages.enabled')); AdminClient.reload(); }
       else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.pages.toggleError'), 'error'); });
     });
   };

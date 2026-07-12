@@ -83,6 +83,7 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({
               <a
                 class={`nav-item${active === item.id ? " active" : ""}`}
                 href={item.href}
+                data-nav-id={item.id}
               >
                 <span class="icon">{item.icon}</span> {item.label}
               </a>

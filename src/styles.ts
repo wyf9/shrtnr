@@ -839,4 +839,28 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
   .pagination { flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
   .detail-analytics { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+ * SPA navigation
+ * ============================================================ */
+
+/* Thin top progress bar shown while a soft navigation is in flight. */
+body.spa-loading { cursor: progress; }
+body.spa-loading::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--color-accent, #ff7637);
+  transform-origin: left;
+  animation: spa-progress 0.9s ease-in-out infinite;
+  z-index: 9999;
+}
+@keyframes spa-progress {
+  0% { transform: scaleX(0); transform-origin: left; }
+  50% { transform: scaleX(0.6); }
+  100% { transform: scaleX(1); transform-origin: right; }
+}
 `;

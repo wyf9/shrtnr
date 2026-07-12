@@ -222,7 +222,7 @@ export const LinksPage: FC<Props> = ({
                     return (
                       <tr
                         class={disabled ? "disabled" : ""}
-                        onclick={`if(event.target.closest('.no-row-nav'))return;location.href='${href}'`}
+                        onclick={`if(event.target.closest('.no-row-nav'))return;AdminClient.go('${href}')`}
                       >
                         <td data-label={t("links.colLink")}>
                           <div class="col-link-label">
@@ -317,7 +317,7 @@ export const LinksPage: FC<Props> = ({
                 <div class="form-select per-page-select">
                   <select
                     class="form-input form-input-sm"
-                    onchange="location.href=this.value"
+                    onchange="AdminClient.go(this.value)"
                     aria-label={t("links.perPageAria")}
                   >
                     {[25, 50, 100].map((n) => (

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.41.0 (2026-07-13)
+
+- The admin dashboard now behaves like a single-page app. Sidebar navigation and content mutations (creating, editing, disabling, deleting links; managing slugs, redirect rules, pages, and API keys) swap only the main content area instead of triggering a full document reload, so the shell (sidebar, styles, and client script) loads once and persists. Internal `/_/admin/*` link clicks are intercepted, browser back/forward is handled via `history`/`popstate`, and a thin top progress bar indicates in-flight navigations. Page-scoped wiring and live-polling timers were consolidated into `AdminClient.initPage()`, which re-runs after every soft navigation; `window.location.reload()` / `location.href` mutations were replaced with soft `AdminClient.reload()` / `AdminClient.go()` helpers. Language, theme, and auth (401) transitions still perform a full reload because they re-render the whole document. Any unexpected condition (cross-origin redirect, non-HTML response, parse error) falls back to a normal navigation.
+
 ## 0.40.0 (2026-07-13)
 
 - Creating a link with a custom slug no longer also generates a random slug. The supplied custom slug becomes the link's sole primary slug, so `POST /_/api/links` (and the admin UI / MCP `create_link`) with `custom_slug` now returns a single slug instead of a random + custom pair. Adding a custom slug to an existing link via the slug endpoints is unchanged.
