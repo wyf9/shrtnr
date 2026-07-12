@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.39.0 (2026-07-13)
+
+- Command-line tools and HTTP client libraries now show up as their own entries in the link-detail **Browsers** breakdown instead of collapsing into "Other". `parseBrowser` recognizes curl, Wget, HTTPie, Postman, Insomnia, RestSharp, python-requests, aiohttp, HTTPX, urllib, Go-http-client, OkHttp, Apache HttpClient, Java, axios, node-fetch, undici, got, Perl LWP, Guzzle, PHP, Ruby, Deno, Bun, and PowerShell. Real browsers are still matched first; the new `parseCliClient` helper only runs as a fallback. (These clients remain classified as bots, so they only appear when bot filtering is off.)
+
 ## 0.38.0 (2026-07-13)
 
 - Removed the **bundles** feature entirely. Bundles (user-owned collections of links with combined analytics) had been partially retired already — the sidebar entry and pages were orphaned — so this change finishes the job. Removed the bundle API sub-app (`/_/api/bundles`), the `bundle-management` service, `bundle-repository`, bundle MCP tools (`list_bundles`, `create_bundle`, `get_bundle_analytics`, and the rest), bundle schemas and types, the `/{id}/bundles` link route, the orphaned bundle admin pages, all bundle CSS, and the "Add to bundle" action from the link-detail three-dot menu. The new migration `0009_drop_bundles.sql` drops the `bundles` and `bundle_links` tables (the unrelated `visitor_fp` column added by `0005` is preserved).

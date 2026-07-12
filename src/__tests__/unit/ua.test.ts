@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseDeviceType, parseBrowser, parseOS, isBot } from "../../ua";
+import { parseDeviceType, parseBrowser, parseCliClient, parseOS, isBot } from "../../ua";
 
 describe("parseDeviceType", () => {
   it("should detect Mobile Safari as mobile", () => {
@@ -92,8 +92,75 @@ describe("parseBrowser", () => {
     expect(parseBrowser("")).toBe("Other");
   });
 
-  it("should return Other for unknown UA", () => {
-    expect(parseBrowser("curl/7.68.0")).toBe("Other");
+  it("should return Other for a genuinely unknown UA", () => {
+    expect(parseBrowser("SomeRandomThing/1.0")).toBe("Other");
+  });
+
+  it("should detect curl as its own client instead of Other", () => {
+    expect(parseBrowser("curl/7.68.0")).toBe("curl");
+  });
+
+  it("should detect Wget", () => {
+    expect(parseBrowser("Wget/1.21.3")).toBe("Wget");
+  });
+
+  it("should detect python-requests", () => {
+    expect(parseBrowser("python-requests/2.31.0")).toBe("Python Requests");
+  });
+
+  it("should detect Go-http-client", () => {
+    expect(parseBrowser("Go-http-client/1.1")).toBe("Go-http-client");
+  });
+
+  it("should detect OkHttp", () => {
+    expect(parseBrowser("okhttp/4.9.3")).toBe("OkHttp");
+  });
+
+  it("should detect Java http client", () => {
+    expect(parseBrowser("Java/17.0.2")).toBe("Java");
+  });
+
+  it("should detect axios", () => {
+    expect(parseBrowser("axios/1.6.2")).toBe("axios");
+  });
+
+  it("should detect node-fetch", () => {
+    expect(parseBrowser("node-fetch/1.0 (+https://github.com/bitinn/node-fetch)")).toBe("node-fetch");
+  });
+
+  it("should detect HTTPie", () => {
+    expect(parseBrowser("HTTPie/3.2.2")).toBe("HTTPie");
+  });
+
+  it("should detect Postman", () => {
+    expect(parseBrowser("PostmanRuntime/7.36.0")).toBe("Postman");
+  });
+
+  it("should detect PowerShell", () => {
+    expect(parseBrowser("Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.3803")).toBe("PowerShell");
+  });
+
+  it("should still prefer a real browser over CLI patterns", () => {
+    // Chrome UA contains no CLI token; make sure browser matching wins first.
+    expect(
+      parseBrowser(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      )
+    ).toBe("Chrome");
+  });
+});
+
+describe("parseCliClient", () => {
+  it("returns null for a normal browser UA", () => {
+    expect(
+      parseCliClient(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      )
+    ).toBeNull();
+  });
+
+  it("identifies curl", () => {
+    expect(parseCliClient("curl/8.4.0")).toBe("curl");
   });
 });
 
