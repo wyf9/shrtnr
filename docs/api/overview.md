@@ -61,7 +61,7 @@ The public API returns raw click counts and **ignores** the API key owner's filt
 - Strict validation rejects request bodies with unknown fields: `400 {"error": "Unknown field \"<name>\""}`.
 - A non-numeric path param `:id` returns `404`.
 - `url` is capped at 2048 characters on link create/update.
-- `slug` must match the server-side validator: `[a-z0-9]` at the start and end, hyphens allowed only in the middle, no underscores.
+- `slug` must match the server-side validator: it starts and ends with `[a-z0-9]`, and the middle may also contain `.`, `_`, `~`, or `-`. Uppercase input is lowercased server-side.
 - `expires_at` rejects negative Unix timestamps.
 
 ## Error responses

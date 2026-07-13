@@ -60,12 +60,14 @@ export const LinkSchema = z
 
 // Mirrors validateCustomSlug() in src/slugs.ts after server-side lowercase
 // normalization: must start and end with alphanumeric. The middle may include
-// ".", "_", "~", and "-".
+// ".", "_", "~", and "-". Uppercase is accepted here and lowercased server-side,
+// so the character classes are spelled out instead of using the case-insensitive
+// flag, which the OpenAPI serializer would leak into the JSON Schema pattern.
 export const CustomSlugStringSchema = z
   .string()
   .min(1)
   .max(64)
-  .regex(/^[a-z0-9](?:[a-z0-9._~-]*[a-z0-9])?$/i);
+  .regex(/^[a-zA-Z0-9](?:[a-zA-Z0-9._~-]*[a-zA-Z0-9])?$/);
 
 export const CreateLinkBodySchema = z
   .object({
