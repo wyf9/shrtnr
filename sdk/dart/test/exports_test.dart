@@ -12,11 +12,6 @@ void main() {
       expect(ShrtnrError, isNotNull);
       expect(Link, isNotNull);
       expect(Slug, isNotNull);
-      expect(Bundle, isNotNull);
-      expect(BundleAccent, isNotNull);
-      expect(BundleArchivedFilter, isNotNull);
-      expect(BundleWithSummary, isNotNull);
-      expect(BundleTopLink, isNotNull);
       expect(ClickStats, isNotNull);
       expect(NameCount, isNotNull);
       expect(DateCount, isNotNull);
@@ -26,7 +21,6 @@ void main() {
       expect(TimelineRange, isNotNull);
       expect(TimelineSummary, isNotNull);
       expect(DeletedResult, isNotNull);
-      expect(AddedResult, isNotNull);
       expect(RemovedResult, isNotNull);
     });
 
@@ -38,7 +32,6 @@ void main() {
       );
       expect(client.links, isA<LinksResource>());
       expect(client.slugs, isA<SlugsResource>());
-      expect(client.bundles, isA<BundlesResource>());
       client.close();
     });
 

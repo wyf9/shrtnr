@@ -86,41 +86,6 @@ Map<String, Object?> _slugJson({
       'disabled_at': disabledAt,
     };
 
-Map<String, Object?> _bundleJson({
-  int id = 42,
-  String name = 'B',
-  String accent = 'orange',
-  int? archivedAt,
-}) =>
-    <String, Object?>{
-      'id': id,
-      'name': name,
-      'description': null,
-      'icon': null,
-      'accent': accent,
-      'archived_at': archivedAt,
-      'created_via': 'sdk',
-      'created_by': 'owner@example.com',
-      'created_at': 1000000,
-      'updated_at': 1000000,
-    };
-
-Map<String, Object?> _bundleWithSummaryJson({
-  int id = 42,
-  String name = 'B',
-  String accent = 'orange',
-  int? archivedAt,
-  double? deltaPct,
-}) =>
-    <String, Object?>{
-      ..._bundleJson(id: id, name: name, accent: accent, archivedAt: archivedAt),
-      'link_count': 3,
-      'total_clicks': 100,
-      'sparkline': <int>[10, 20, 30],
-      'top_links': <dynamic>[],
-      if (deltaPct != null) 'delta_pct': deltaPct,
-    };
-
 Map<String, Object?> _clickStatsJson({int totalClicks = 42}) =>
     <String, Object?>{
       'total_clicks': totalClicks,
@@ -451,25 +416,7 @@ void main() {
     });
   });
 
-  // ---- 13. links.bundles ----
-
-  group('links.bundles', () {
-    test('GETs /_/api/links/:id/bundles', () async {
-      final m = _mock(
-        status: 200,
-        body: <Map<String, Object?>>[_bundleJson()],
-      );
-      final bundles = await m.client.links.bundles(7);
-      expect(bundles.length, 1);
-      expect(bundles[0].id, 42);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/links/7/bundles',
-      );
-    });
-  });
-
-  // ---- 14. slugs.lookup ----
+  // ---- 13. slugs.lookup ----
 
   group('slugs.lookup', () {
     test('GETs /_/api/slugs/:slug', () async {
@@ -554,232 +501,6 @@ void main() {
     });
   });
 
-  // ---- 19. bundles.get ----
-
-  group('bundles.get', () {
-    test('GETs /_/api/bundles/:id', () async {
-      final m = _mock(status: 200, body: _bundleWithSummaryJson(id: 42));
-      final b = await m.client.bundles.get(42);
-      expect(b.id, 42);
-      expect(m.capture.request!.url.toString(), '$_base/_/api/bundles/42');
-    });
-
-    test('appends range param when given', () async {
-      final m = _mock(status: 200, body: _bundleWithSummaryJson());
-      await m.client.bundles.get(42, range: TimelineRange.last7d);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles/42?range=7d',
-      );
-    });
-
-    test('omits range param when not given', () async {
-      final m = _mock(status: 200, body: _bundleWithSummaryJson());
-      await m.client.bundles.get(42);
-      expect(m.capture.request!.url.toString(), '$_base/_/api/bundles/42');
-    });
-  });
-
-  // ---- 20. bundles.list ----
-
-  group('bundles.list', () {
-    test('GETs /_/api/bundles with no params by default', () async {
-      final m = _mock(status: 200, body: <dynamic>[]);
-      await m.client.bundles.list();
-      expect(m.capture.request!.url.toString(), '$_base/_/api/bundles');
-    });
-
-    test('appends archived param when given', () async {
-      final m = _mock(status: 200, body: <dynamic>[]);
-      await m.client.bundles.list(archived: BundleArchivedFilter.all);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles?archived=all',
-      );
-    });
-
-    test('appends range param when given', () async {
-      final m = _mock(status: 200, body: <dynamic>[]);
-      await m.client.bundles.list(range: TimelineRange.last30d);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles?range=30d',
-      );
-    });
-  });
-
-  // ---- 21. bundles.create ----
-
-  group('bundles.create', () {
-    test('POSTs /_/api/bundles with required and optional fields', () async {
-      final m = _mock(status: 201, body: _bundleJson(name: 'B', accent: 'blue'));
-      await m.client.bundles.create(
-          name: 'B',
-          description: 'desc',
-          icon: 'star',
-          accent: BundleAccent.blue);
-      final req = m.capture.request!;
-      expect(req.url.toString(), '$_base/_/api/bundles');
-      expect(req.method, 'POST');
-      final body = jsonDecode(req.body) as Map<String, Object?>;
-      expect(body['name'], 'B');
-      expect(body['description'], 'desc');
-      expect(body['icon'], 'star');
-      expect(body['accent'], 'blue');
-    });
-
-    test('omits optional fields when not provided', () async {
-      final m = _mock(status: 201, body: _bundleJson());
-      await m.client.bundles.create(name: 'B');
-      final body = jsonDecode(m.capture.request!.body) as Map<String, Object?>;
-      expect(body.containsKey('description'), isFalse);
-      expect(body.containsKey('icon'), isFalse);
-      expect(body.containsKey('accent'), isFalse);
-    });
-  });
-
-  // ---- 22. bundles.update ----
-
-  group('bundles.update', () {
-    test('PUTs /_/api/bundles/:id with patch body', () async {
-      final m = _mock(status: 200, body: _bundleJson(name: 'Updated'));
-      await m.client.bundles.update(42, name: 'Updated');
-      expect(m.capture.request!.url.toString(), '$_base/_/api/bundles/42');
-      expect(m.capture.request!.method, 'PUT');
-      final body = jsonDecode(m.capture.request!.body) as Map<String, Object?>;
-      expect(body['name'], 'Updated');
-    });
-  });
-
-  // ---- 23. bundles.delete ----
-
-  group('bundles.delete', () {
-    test('DELETEs /_/api/bundles/:id and returns DeletedResult', () async {
-      final m =
-          _mock(status: 200, body: <String, Object?>{'deleted': true});
-      final result = await m.client.bundles.delete(42);
-      expect(result.deleted, isTrue);
-      expect(m.capture.request!.url.toString(), '$_base/_/api/bundles/42');
-      expect(m.capture.request!.method, 'DELETE');
-    });
-  });
-
-  // ---- 24. bundles.archive ----
-
-  group('bundles.archive', () {
-    test('POSTs /_/api/bundles/:id/archive', () async {
-      final m = _mock(
-          status: 200, body: _bundleJson(archivedAt: 9999999));
-      await m.client.bundles.archive(42);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles/42/archive',
-      );
-      expect(m.capture.request!.method, 'POST');
-    });
-  });
-
-  // ---- 25. bundles.unarchive ----
-
-  group('bundles.unarchive', () {
-    test('POSTs /_/api/bundles/:id/unarchive', () async {
-      final m = _mock(status: 200, body: _bundleJson());
-      await m.client.bundles.unarchive(42);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles/42/unarchive',
-      );
-      expect(m.capture.request!.method, 'POST');
-    });
-  });
-
-  // ---- 26. bundles.analytics ----
-
-  group('bundles.analytics', () {
-    test('GETs /_/api/bundles/:id/analytics', () async {
-      final m = _mock(status: 200, body: _clickStatsJson(totalClicks: 55));
-      final stats = await m.client.bundles.analytics(42);
-      expect(stats.totalClicks, 55);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles/42/analytics',
-      );
-    });
-
-    test('appends range param when given', () async {
-      final m = _mock(status: 200, body: _clickStatsJson());
-      await m.client.bundles.analytics(42, range: TimelineRange.last7d);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles/42/analytics?range=7d',
-      );
-    });
-
-    test('omits range param when not given', () async {
-      final m = _mock(status: 200, body: _clickStatsJson());
-      await m.client.bundles.analytics(42);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles/42/analytics',
-      );
-    });
-  });
-
-  // ---- 27. bundles.links ----
-
-  group('bundles.links', () {
-    test('GETs /_/api/bundles/:id/links', () async {
-      final m = _mock(
-        status: 200,
-        body: <Map<String, Object?>>[_linkJson(id: 3)],
-      );
-      final links = await m.client.bundles.links(42);
-      expect(links.length, 1);
-      expect(links[0].id, 3);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles/42/links',
-      );
-    });
-  });
-
-  // ---- 28. bundles.addLink ----
-
-  group('bundles.addLink', () {
-    test('POSTs /_/api/bundles/:id/links with link_id and returns AddedResult',
-        () async {
-      final m =
-          _mock(status: 200, body: <String, Object?>{'added': true});
-      final result = await m.client.bundles.addLink(42, 7);
-      expect(result.added, isTrue);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles/42/links',
-      );
-      expect(m.capture.request!.method, 'POST');
-      final body = jsonDecode(m.capture.request!.body) as Map<String, Object?>;
-      expect(body, <String, Object?>{'link_id': 7});
-    });
-  });
-
-  // ---- 29. bundles.removeLink ----
-
-  group('bundles.removeLink', () {
-    test(
-        'DELETEs /_/api/bundles/:id/links/:linkId and returns RemovedResult',
-        () async {
-      final m =
-          _mock(status: 200, body: <String, Object?>{'removed': true});
-      final result = await m.client.bundles.removeLink(42, 7);
-      expect(result.removed, isTrue);
-      expect(
-        m.capture.request!.url.toString(),
-        '$_base/_/api/bundles/42/links/7',
-      );
-      expect(m.capture.request!.method, 'DELETE');
-    });
-  });
-
   // ---- 30. Base URL normalization ----
 
   group('Base URL normalization', () {
@@ -825,26 +546,6 @@ void main() {
       expect(slug.disabledAt, isNull);
     });
 
-    test('Bundle maps snake_case fields to camelCase', () async {
-      final m = _mock(status: 200, body: _bundleJson(archivedAt: 9999999));
-      final bundle = await m.client.bundles.archive(42);
-      expect(bundle.archivedAt, 9999999);
-      expect(bundle.createdBy, 'owner@example.com');
-      expect(bundle.createdVia, 'sdk');
-    });
-
-    test('BundleWithSummary maps flat JSON fields correctly', () async {
-      final m = _mock(
-        status: 200,
-        body: _bundleWithSummaryJson(deltaPct: 5.0),
-      );
-      final b = await m.client.bundles.get(42);
-      expect(b.linkCount, 3);
-      expect(b.totalClicks, 100);
-      expect(b.deltaPct, 5.0);
-      expect(b.sparkline, <int>[10, 20, 30]);
-    });
-
     test('TimelineData.summary maps last_* fields to camelCase', () async {
       final m = _mock(status: 200, body: _timelineJson());
       final td = await m.client.links.timeline(1);
@@ -856,43 +557,7 @@ void main() {
     });
   });
 
-  // ---- 32. BundleAccent enum ----
-
-  group('BundleAccent enum', () {
-    test('wireValue round-trips for every member', () {
-      expect(BundleAccent.orange.wireValue, 'orange');
-      expect(BundleAccent.red.wireValue, 'red');
-      expect(BundleAccent.green.wireValue, 'green');
-      expect(BundleAccent.blue.wireValue, 'blue');
-      expect(BundleAccent.purple.wireValue, 'purple');
-    });
-
-    test('fromWire parses known values', () {
-      expect(BundleAccent.fromWire('orange'), BundleAccent.orange);
-      expect(BundleAccent.fromWire('blue'), BundleAccent.blue);
-    });
-
-    test('fromWire throws ArgumentError for unknown value', () {
-      expect(() => BundleAccent.fromWire('neon'), throwsA(isA<ArgumentError>()));
-    });
-
-    test('Bundle.fromJson throws when accent is absent', () {
-      final json = <String, Object?>{
-        'id': 1,
-        'name': 'test',
-        'description': null,
-        'icon': null,
-        'archived_at': null,
-        'created_via': null,
-        'created_by': 'user@example.com',
-        'created_at': 1000000,
-        'updated_at': 1000000,
-      };
-      expect(() => Bundle.fromJson(json), throwsA(isA<TypeError>()));
-    });
-  });
-
-  // ---- 33. TimelineRange enum ----
+  // ---- 32. TimelineRange enum ----
 
   group('TimelineRange enum', () {
     test('wireValue round-trips for every member', () {
@@ -912,28 +577,6 @@ void main() {
     test('fromWire throws ArgumentError for unknown value', () {
       expect(
         () => TimelineRange.fromWire('forever'),
-        throwsA(isA<ArgumentError>()),
-      );
-    });
-  });
-
-  // ---- 34. BundleArchivedFilter enum ----
-
-  group('BundleArchivedFilter enum', () {
-    test('wireValue maps to correct strings', () {
-      expect(BundleArchivedFilter.trueValue.wireValue, 'true');
-      expect(BundleArchivedFilter.activeOnly.wireValue, 'only');
-      expect(BundleArchivedFilter.all.wireValue, 'all');
-    });
-
-    test('fromWire parses known values', () {
-      expect(BundleArchivedFilter.fromWire('only'), BundleArchivedFilter.activeOnly);
-      expect(BundleArchivedFilter.fromWire('all'), BundleArchivedFilter.all);
-    });
-
-    test('fromWire throws ArgumentError for unknown value', () {
-      expect(
-        () => BundleArchivedFilter.fromWire('1'),
         throwsA(isA<ArgumentError>()),
       );
     });

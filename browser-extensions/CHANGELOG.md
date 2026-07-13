@@ -2,6 +2,10 @@
 
 All notable changes to the shrtnr browser extensions are documented in this file.
 
+## 0.1.1
+
+- Bumped the `@oddbit/shrtnr` SDK dependency to `^2.0.0`. The extension only calls `links.create`, `links.qr`, and `links.list`, none of which changed, so behavior is identical. The bump keeps the extension aligned with the current API surface after the SDK dropped the removed bundles feature.
+
 ## 0.1.0 (2026-04-30)
 
 Initial release. Chrome and Firefox extensions that shorten the active tab into a self-hosted shrtnr deployment, copy the short URL to the clipboard, and offer a server-side QR code. Single source tree under `browser-extensions/`, two store artifacts via the same MV3 build (`dist/chrome.zip`, `dist/firefox.zip`).

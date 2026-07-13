@@ -55,7 +55,6 @@ The `fetch` option is useful for test mocking or custom TLS configurations.
 | `analytics(id, {range?})` | Click breakdown by country, device, referrer, etc. |
 | `timeline(id, {range?})` | Click counts bucketed over time |
 | `qr(id, {slug?, size?})` | QR code as SVG string |
-| `bundles(id)` | Bundles this link belongs to |
 
 ```ts
 // Shorten a URL
@@ -88,46 +87,16 @@ await client.slugs.disable(link.id, "spring-sale");
 const found = await client.slugs.lookup("spring-sale");
 ```
 
-### Bundles (`client.bundles`)
-
-Groups of related links with combined analytics.
-
-| Method | Description |
-|---|---|
-| `get(id, {range?})` | Get a bundle with click summary |
-| `list({archived?, range?})` | List bundles |
-| `create({name, description?, icon?, accent?})` | Create a bundle |
-| `update(id, {name?, description?, icon?, accent?})` | Update metadata |
-| `delete(id)` | Permanently delete |
-| `archive(id)` | Hide from default listing |
-| `unarchive(id)` | Restore an archived bundle |
-| `analytics(id, {range?})` | Combined click analytics |
-| `links(id)` | List links in the bundle |
-| `addLink(id, linkId)` | Add a link |
-| `removeLink(id, linkId)` | Remove a link |
-
-```ts
-// Create a bundle and add links to it
-const bundle = await client.bundles.create({ name: "Spring 2026", accent: "green" });
-await client.bundles.addLink(bundle.id, linkA.id);
-await client.bundles.addLink(bundle.id, linkB.id);
-
-// Combined analytics for the last 7 days
-const stats = await client.bundles.analytics(bundle.id, { range: "7d" });
-console.log(stats.totalClicks);
-```
-
 ## Models
 
 All model fields use camelCase. The SDK converts snake_case JSON from the wire automatically.
 
 Key types exported from `@oddbit/shrtnr`:
 
-- `Link`, `Slug`, `Bundle`, `BundleWithSummary`
+- `Link`, `Slug`
 - `ClickStats`, `TimelineData`, `NameCount`, `TimelineBucket`
 - `TimelineRange` (`"24h" | "7d" | "30d" | "90d" | "1y" | "all"`)
-- `BundleAccent` (`"orange" | "red" | "green" | "blue" | "purple"`)
-- Request body types: `CreateLinkBody`, `UpdateLinkBody`, `AddSlugBody`, `CreateBundleBody`, `UpdateBundleBody`
+- Request body types: `CreateLinkBody`, `UpdateLinkBody`, `AddSlugBody`
 
 ## Errors
 

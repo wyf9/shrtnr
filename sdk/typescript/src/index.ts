@@ -6,12 +6,8 @@ export type { ShrtnrClientConfig } from "./client";
 export { ShrtnrError } from "./errors";
 export type {
   TimelineRange,
-  BundleAccent,
   Slug,
   Link,
-  Bundle,
-  BundleTopLink,
-  BundleWithSummary,
   NameCount,
   DateCount,
   SlugCount,
@@ -19,11 +15,8 @@ export type {
   TimelineBucket,
   TimelineData,
   DeletedResult,
-  AddedResult,
   RemovedResult,
   CreateLinkBody,
   UpdateLinkBody,
   AddSlugBody,
-  CreateBundleBody,
-  UpdateBundleBody,
 } from "./models";

@@ -1,7 +1,7 @@
 # Copyright 2026 Oddbit (https://oddbit.id)
 # SPDX-License-Identifier: Apache-2.0
 
-"""Shared fixtures and factory helpers for the shrtnr SDK 1.0 test suite."""
+"""Shared fixtures and factory helpers for the shrtnr SDK test suite."""
 
 from __future__ import annotations
 
@@ -60,46 +60,6 @@ def make_link_dict(
     }
     if delta_pct is not None:
         d["delta_pct"] = delta_pct
-    return d
-
-
-def make_bundle_dict(
-    *,
-    bundle_id: int = 42,
-    name: str = "Campaign",
-    description: str | None = None,
-    icon: str | None = None,
-    accent: str = "orange",
-    archived_at: int | None = None,
-    created_via: str | None = "sdk",
-    created_by: str = "owner@example.com",
-    created_at: int = 1700000000,
-    updated_at: int = 1700000000,
-) -> dict[str, Any]:
-    return {
-        "id": bundle_id,
-        "name": name,
-        "description": description,
-        "icon": icon,
-        "accent": accent,
-        "archived_at": archived_at,
-        "created_via": created_via,
-        "created_by": created_by,
-        "created_at": created_at,
-        "updated_at": updated_at,
-    }
-
-
-def make_bundle_with_summary_dict(**kwargs: Any) -> dict[str, Any]:
-    d = make_bundle_dict(**kwargs)
-    d.update(
-        {
-            "link_count": 0,
-            "total_clicks": 0,
-            "sparkline": [],
-            "top_links": [],
-        }
-    )
     return d
 
 

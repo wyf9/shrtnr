@@ -24,7 +24,6 @@ vi.mock("@oddbit/shrtnr", async () => {
     ShrtnrClient: class {
       links = mockedClient.links;
       slugs = {};
-      bundles = {};
     },
     ShrtnrError,
   };

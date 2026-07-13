@@ -12,21 +12,15 @@
 /// );
 ///
 /// final link = await client.links.create(url: 'https://example.com');
-/// await client.bundles.archive(7);
+/// await client.links.disable(7);
 /// client.close();
 /// ```
 library;
 
-export 'src/client.dart' show ShrtnrClient, LinksResource, SlugsResource, BundlesResource;
+export 'src/client.dart' show ShrtnrClient, LinksResource, SlugsResource;
 export 'src/errors.dart' show ShrtnrError;
 export 'src/models.dart'
     show
-        AddedResult,
-        Bundle,
-        BundleAccent,
-        BundleArchivedFilter,
-        BundleTopLink,
-        BundleWithSummary,
         ClickStats,
         DateCount,
         DeletedResult,

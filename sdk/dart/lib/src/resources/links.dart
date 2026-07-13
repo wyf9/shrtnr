@@ -119,12 +119,4 @@ class LinksResource {
       },
     );
   }
-
-  /// List bundles that contain this link.
-  Future<List<Bundle>> bundles(int id) async {
-    final json = await _http.requestJson('GET', '/_/api/links/$id/bundles');
-    return (json! as List<dynamic>)
-        .map((dynamic e) => Bundle.fromJson(e as Map<String, dynamic>))
-        .toList(growable: false);
-  }
 }

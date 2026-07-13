@@ -4,11 +4,9 @@
 import 'package:http/http.dart' as http;
 
 import 'base_client.dart';
-import 'resources/bundles.dart';
 import 'resources/links.dart';
 import 'resources/slugs.dart';
 
-export 'resources/bundles.dart' show BundlesResource;
 export 'resources/links.dart' show LinksResource;
 export 'resources/slugs.dart' show SlugsResource;
 
@@ -23,7 +21,7 @@ export 'resources/slugs.dart' show SlugsResource;
 /// );
 ///
 /// final link = await client.links.create(url: 'https://example.com');
-/// await client.bundles.archive(7);
+/// await client.links.disable(7);
 /// client.close();
 /// ```
 class ShrtnrClient {
@@ -45,7 +43,6 @@ class ShrtnrClient {
         ) {
     links = LinksResource(_base);
     slugs = SlugsResource(_base);
-    bundles = BundlesResource(_base);
   }
 
   final ShrtnrBaseClient _base;
@@ -55,9 +52,6 @@ class ShrtnrClient {
 
   /// Slug lookup and management methods.
   late final SlugsResource slugs;
-
-  /// Bundle management and analytics methods.
-  late final BundlesResource bundles;
 
   /// Closes the underlying HTTP client.
   ///

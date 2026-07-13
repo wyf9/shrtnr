@@ -4,8 +4,8 @@
 """Python SDK for the shrtnr URL shortener API.
 
 Exposes a synchronous :class:`Shrtnr` and asynchronous :class:`AsyncShrtnr`
-client. Each provides resource-grouped access via ``client.links``,
-``client.slugs``, and ``client.bundles``. See README.md for usage.
+client. Each provides resource-grouped access via ``client.links`` and
+``client.slugs``. See README.md for usage.
 """
 
 from importlib.metadata import PackageNotFoundError
@@ -14,11 +14,6 @@ from importlib.metadata import version as _pkg_version
 from .client import AsyncShrtnr, Shrtnr
 from .errors import ShrtnrError
 from .models import (
-    AddedResult,
-    Bundle,
-    BundleAccent,
-    BundleTopLink,
-    BundleWithSummary,
     ClickStats,
     DateCount,
     DeletedResult,
@@ -39,12 +34,7 @@ except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 
 __all__ = [
-    "AddedResult",
     "AsyncShrtnr",
-    "Bundle",
-    "BundleAccent",
-    "BundleTopLink",
-    "BundleWithSummary",
     "ClickStats",
     "DateCount",
     "DeletedResult",

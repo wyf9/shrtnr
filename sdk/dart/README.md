@@ -57,7 +57,6 @@ closed by `client.close()`.
 | `analytics(id, {range?})` | Click breakdown by country, device, referrer, etc. |
 | `timeline(id, {range?})` | Click counts bucketed over time |
 | `qr(id, {slug?, size?})` | QR code as SVG string |
-| `bundles(id)` | Bundles this link belongs to |
 
 ```dart
 // Shorten a URL
@@ -90,35 +89,6 @@ await client.slugs.disable(link.id, 'spring-sale');
 final found = await client.slugs.lookup('spring-sale');
 ```
 
-### Bundles (`client.bundles`)
-
-Groups of related links with combined analytics.
-
-| Method | Description |
-|---|---|
-| `get(id, {range?})` | Get a bundle with click summary |
-| `list({archived?, range?})` | List bundles |
-| `create({name, description?, icon?, accent?})` | Create a bundle |
-| `update(id, {name?, description?, icon?, accent?})` | Update metadata |
-| `delete(id)` | Permanently delete |
-| `archive(id)` | Hide from default listing |
-| `unarchive(id)` | Restore an archived bundle |
-| `analytics(id, {range?})` | Combined click analytics |
-| `links(id)` | List links in the bundle |
-| `addLink(id, linkId)` | Add a link |
-| `removeLink(id, linkId)` | Remove a link |
-
-```dart
-// Create a bundle and add links to it
-final bundle = await client.bundles.create(name: 'Spring 2026', accent: 'green');
-await client.bundles.addLink(bundle.id, linkA.id);
-await client.bundles.addLink(bundle.id, linkB.id);
-
-// Combined analytics for the last 7 days
-final stats = await client.bundles.analytics(bundle.id, range: '7d');
-print(stats.totalClicks);
-```
-
 ## Models
 
 All model fields use camelCase. The SDK maps snake_case JSON from the wire automatically
@@ -126,12 +96,12 @@ inside each `fromJson` factory.
 
 Key types exported from `package:shrtnr/shrtnr.dart`:
 
-- `Link`, `Slug`, `Bundle`, `BundleWithSummary`, `BundleTopLink`
+- `Link`, `Slug`
 - `ClickStats`, `TimelineData`, `TimelineBucket`, `TimelineSummary`, `NameCount`
-- `DateClickCount`, `SlugClickCount`
-- `DeletedResult`, `AddedResult`, `RemovedResult`
+- `DateCount`, `SlugCount`
+- `DeletedResult`, `RemovedResult`
 
-Timestamp fields (`createdAt`, `expiresAt`, `disabledAt`, `archivedAt`, `updatedAt`) are
+Timestamp fields (`createdAt`, `expiresAt`, `disabledAt`) are
 plain `int` Unix seconds, matching the wire format exactly.
 
 ## Errors

@@ -1,9 +1,9 @@
 # Copyright 2026 Oddbit (https://oddbit.id)
 # SPDX-License-Identifier: Apache-2.0
 
-"""Sync client tests for the shrtnr SDK 1.0 surface.
+"""Sync client tests for the shrtnr SDK surface.
 
-Covers all 27 resource methods plus auth, errors, and URL edge cases.
+Covers all 15 resource methods plus auth, errors, and URL edge cases.
 """
 
 from __future__ import annotations
@@ -15,13 +15,10 @@ import pytest
 import respx
 
 from shrtnr import Shrtnr, ShrtnrError
-from shrtnr.models import Bundle, BundleWithSummary
 
 from .conftest import (
     API_KEY,
     BASE_URL,
-    make_bundle_dict,
-    make_bundle_with_summary_dict,
     make_click_stats_dict,
     make_link_dict,
     make_slug_dict,
@@ -291,19 +288,6 @@ def test_links_qr_with_slug_and_size(client: Shrtnr) -> None:
     assert "size=200" in url
 
 
-# ---- links.bundles ----
-
-
-@respx.mock
-def test_links_bundles(client: Shrtnr) -> None:
-    route = respx.get(f"{BASE_URL}/_/api/links/7/bundles").mock(
-        return_value=httpx.Response(200, json=[make_bundle_dict()]),
-    )
-    bundles = client.links.bundles(7)
-    assert len(bundles) == 1
-    assert route.called
-
-
 # ---- slugs.lookup ----
 
 
@@ -384,177 +368,6 @@ def test_slugs_remove(client: Shrtnr) -> None:
     assert route.calls[0].request.method == "DELETE"
 
 
-# ---- bundles.get ----
-
-
-@respx.mock
-def test_bundles_get(client: Shrtnr) -> None:
-    route = respx.get(f"{BASE_URL}/_/api/bundles/42").mock(
-        return_value=httpx.Response(200, json=make_bundle_with_summary_dict()),
-    )
-    b = client.bundles.get(42)
-    assert b.id == 42
-    assert route.calls[0].request.method == "GET"
-
-
-@respx.mock
-def test_bundles_get_with_range(client: Shrtnr) -> None:
-    route = respx.get(f"{BASE_URL}/_/api/bundles/42?range=7d").mock(
-        return_value=httpx.Response(200, json=make_bundle_with_summary_dict()),
-    )
-    client.bundles.get(42, range="7d")
-    assert route.called
-
-
-# ---- bundles.list ----
-
-
-@respx.mock
-def test_bundles_list(client: Shrtnr) -> None:
-    route = respx.get(f"{BASE_URL}/_/api/bundles").mock(
-        return_value=httpx.Response(200, json=[make_bundle_with_summary_dict()]),
-    )
-    bundles = client.bundles.list()
-    assert len(bundles) == 1
-    assert route.called
-
-
-@respx.mock
-def test_bundles_list_with_archived(client: Shrtnr) -> None:
-    route = respx.get(
-        url__regex=rf"^{BASE_URL}/_/api/bundles\?archived=all",
-    ).mock(return_value=httpx.Response(200, json=[]))
-    client.bundles.list(archived="all")
-    assert route.called
-
-
-# ---- bundles.create ----
-
-
-@respx.mock
-def test_bundles_create(client: Shrtnr) -> None:
-    route = respx.post(f"{BASE_URL}/_/api/bundles").mock(
-        return_value=httpx.Response(201, json=make_bundle_dict(name="B", accent="blue")),
-    )
-    b = client.bundles.create(name="B", accent="blue")
-    assert b.name == "B"
-    body = json.loads(route.calls[0].request.content)
-    assert body == {"name": "B", "accent": "blue"}
-
-
-# ---- bundles.update ----
-
-
-@respx.mock
-def test_bundles_update(client: Shrtnr) -> None:
-    route = respx.put(f"{BASE_URL}/_/api/bundles/42").mock(
-        return_value=httpx.Response(200, json=make_bundle_dict(description="edited")),
-    )
-    client.bundles.update(42, description="edited")
-    body = json.loads(route.calls[0].request.content)
-    assert body == {"description": "edited"}
-
-
-# ---- bundles.delete ----
-
-
-@respx.mock
-def test_bundles_delete(client: Shrtnr) -> None:
-    route = respx.delete(f"{BASE_URL}/_/api/bundles/42").mock(
-        return_value=httpx.Response(200, json={"deleted": True}),
-    )
-    result = client.bundles.delete(42)
-    assert result.deleted is True
-    assert route.calls[0].request.method == "DELETE"
-
-
-# ---- bundles.archive ----
-
-
-@respx.mock
-def test_bundles_archive(client: Shrtnr) -> None:
-    route = respx.post(f"{BASE_URL}/_/api/bundles/42/archive").mock(
-        return_value=httpx.Response(200, json=make_bundle_dict(archived_at=1)),
-    )
-    b = client.bundles.archive(42)
-    assert b.archived_at == 1
-    assert route.calls[0].request.method == "POST"
-
-
-# ---- bundles.unarchive ----
-
-
-@respx.mock
-def test_bundles_unarchive(client: Shrtnr) -> None:
-    route = respx.post(f"{BASE_URL}/_/api/bundles/42/unarchive").mock(
-        return_value=httpx.Response(200, json=make_bundle_dict()),
-    )
-    client.bundles.unarchive(42)
-    assert route.calls[0].request.method == "POST"
-
-
-# ---- bundles.analytics ----
-
-
-@respx.mock
-def test_bundles_analytics(client: Shrtnr) -> None:
-    route = respx.get(f"{BASE_URL}/_/api/bundles/42/analytics").mock(
-        return_value=httpx.Response(200, json=make_click_stats_dict(total_clicks=99)),
-    )
-    stats = client.bundles.analytics(42)
-    assert stats.total_clicks == 99
-    assert route.called
-
-
-@respx.mock
-def test_bundles_analytics_with_range(client: Shrtnr) -> None:
-    route = respx.get(f"{BASE_URL}/_/api/bundles/42/analytics?range=7d").mock(
-        return_value=httpx.Response(200, json=make_click_stats_dict()),
-    )
-    client.bundles.analytics(42, range="7d")
-    assert route.called
-
-
-# ---- bundles.links ----
-
-
-@respx.mock
-def test_bundles_links(client: Shrtnr) -> None:
-    route = respx.get(f"{BASE_URL}/_/api/bundles/42/links").mock(
-        return_value=httpx.Response(200, json=[make_link_dict()]),
-    )
-    links = client.bundles.links(42)
-    assert len(links) == 1
-    assert route.called
-
-
-# ---- bundles.add_link ----
-
-
-@respx.mock
-def test_bundles_add_link(client: Shrtnr) -> None:
-    route = respx.post(f"{BASE_URL}/_/api/bundles/42/links").mock(
-        return_value=httpx.Response(200, json={"added": True}),
-    )
-    result = client.bundles.add_link(42, 7)
-    assert result.added is True
-    body = json.loads(route.calls[0].request.content)
-    assert body == {"link_id": 7}
-
-
-# ---- bundles.remove_link ----
-
-
-@respx.mock
-def test_bundles_remove_link(client: Shrtnr) -> None:
-    route = respx.delete(f"{BASE_URL}/_/api/bundles/42/links/7").mock(
-        return_value=httpx.Response(200, json={"removed": True}),
-    )
-    result = client.bundles.remove_link(42, 7)
-    assert result.removed is True
-    assert route.calls[0].request.method == "DELETE"
-
-
 # ---- Context manager ----
 
 
@@ -563,46 +376,3 @@ def test_context_manager_closes_client() -> None:
     with Shrtnr(base_url=BASE_URL, api_key=API_KEY) as c:
         respx.get(f"{BASE_URL}/_/api/links").mock(return_value=httpx.Response(200, json=[]))
         c.links.list()
-
-
-# ---- Bundle.accent required field ----
-
-
-def test_bundle_from_dict_raises_on_missing_accent() -> None:
-    """Bundle.accent is required; a missing key must raise KeyError, not silently default."""
-    data = {
-        "id": 1,
-        "name": "test",
-        "description": None,
-        "icon": None,
-        # accent intentionally absent
-        "archived_at": None,
-        "created_via": None,
-        "created_by": "user@example.com",
-        "created_at": 1000000,
-        "updated_at": 1000000,
-    }
-    with pytest.raises(KeyError):
-        Bundle.from_dict(data)
-
-
-def test_bundle_with_summary_from_dict_raises_on_missing_accent() -> None:
-    """BundleWithSummary.accent is required; a missing key must raise KeyError."""
-    data = {
-        "id": 1,
-        "name": "test",
-        "description": None,
-        "icon": None,
-        # accent intentionally absent
-        "archived_at": None,
-        "created_via": None,
-        "created_by": "user@example.com",
-        "created_at": 1000000,
-        "updated_at": 1000000,
-        "link_count": 0,
-        "total_clicks": 0,
-        "sparkline": [],
-        "top_links": [],
-    }
-    with pytest.raises(KeyError):
-        BundleWithSummary.from_dict(data)

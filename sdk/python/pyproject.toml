@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "shrtnr"
-version = "1.0.1"
+version = "2.0.0"
 description = "SDK for the shrtnr URL shortener API"
 readme = "README.md"
 license = "Apache-2.0"
@@ -92,7 +92,7 @@ warn_redundant_casts = true
 warn_unreachable = true
 
 [tool.shrtnr]
-spec_hash = "sha256:3b6e9163bac619b9bbef7ba774b2cd06a9a968f1223b85ba302a018c4bee3b57"
+spec_hash = "sha256:f325eb0a5769061ee5638a497c164c6c15e66f9cece6dd1dd0e821b13be46c58"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

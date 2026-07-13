@@ -1,7 +1,7 @@
 # Copyright 2026 Oddbit (https://oddbit.id)
 # SPDX-License-Identifier: Apache-2.0
 
-"""Async client tests for the shrtnr SDK 1.0 surface.
+"""Async client tests for the shrtnr SDK surface.
 
 The sync tests cover the full method matrix. These tests confirm the async
 client speaks the same protocol (auth, errors, at least one method per
@@ -19,8 +19,6 @@ from shrtnr import AsyncShrtnr, ShrtnrError
 from .conftest import (
     API_KEY,
     BASE_URL,
-    make_bundle_dict,
-    make_bundle_with_summary_dict,
     make_click_stats_dict,
     make_link_dict,
     make_slug_dict,
@@ -172,15 +170,6 @@ async def test_async_links_qr(client: AsyncShrtnr) -> None:
     assert "<svg" in svg
 
 
-@respx.mock
-async def test_async_links_bundles(client: AsyncShrtnr) -> None:
-    respx.get(f"{BASE_URL}/_/api/links/7/bundles").mock(
-        return_value=httpx.Response(200, json=[make_bundle_dict()]),
-    )
-    bundles = await client.links.bundles(7)
-    assert len(bundles) == 1
-
-
 # ---- Slugs resource ----
 
 
@@ -232,108 +221,6 @@ async def test_async_slugs_remove(client: AsyncShrtnr) -> None:
         return_value=httpx.Response(200, json={"removed": True}),
     )
     result = await client.slugs.remove(1, "promo")
-    assert result.removed is True
-
-
-# ---- Bundles resource ----
-
-
-@respx.mock
-async def test_async_bundles_get(client: AsyncShrtnr) -> None:
-    respx.get(f"{BASE_URL}/_/api/bundles/42").mock(
-        return_value=httpx.Response(200, json=make_bundle_with_summary_dict()),
-    )
-    b = await client.bundles.get(42)
-    assert b.id == 42
-
-
-@respx.mock
-async def test_async_bundles_list(client: AsyncShrtnr) -> None:
-    respx.get(f"{BASE_URL}/_/api/bundles").mock(
-        return_value=httpx.Response(200, json=[make_bundle_with_summary_dict()]),
-    )
-    bundles = await client.bundles.list()
-    assert len(bundles) == 1
-
-
-@respx.mock
-async def test_async_bundles_create(client: AsyncShrtnr) -> None:
-    respx.post(f"{BASE_URL}/_/api/bundles").mock(
-        return_value=httpx.Response(201, json=make_bundle_dict(name="Async B")),
-    )
-    b = await client.bundles.create(name="Async B")
-    assert b.name == "Async B"
-
-
-@respx.mock
-async def test_async_bundles_update(client: AsyncShrtnr) -> None:
-    respx.put(f"{BASE_URL}/_/api/bundles/42").mock(
-        return_value=httpx.Response(200, json=make_bundle_dict()),
-    )
-    b = await client.bundles.update(42, name="Renamed")
-    assert b.id == 42
-
-
-@respx.mock
-async def test_async_bundles_delete(client: AsyncShrtnr) -> None:
-    respx.delete(f"{BASE_URL}/_/api/bundles/42").mock(
-        return_value=httpx.Response(200, json={"deleted": True}),
-    )
-    result = await client.bundles.delete(42)
-    assert result.deleted is True
-
-
-@respx.mock
-async def test_async_bundles_archive(client: AsyncShrtnr) -> None:
-    respx.post(f"{BASE_URL}/_/api/bundles/42/archive").mock(
-        return_value=httpx.Response(200, json=make_bundle_dict(archived_at=1)),
-    )
-    b = await client.bundles.archive(42)
-    assert b.archived_at == 1
-
-
-@respx.mock
-async def test_async_bundles_unarchive(client: AsyncShrtnr) -> None:
-    respx.post(f"{BASE_URL}/_/api/bundles/42/unarchive").mock(
-        return_value=httpx.Response(200, json=make_bundle_dict()),
-    )
-    b = await client.bundles.unarchive(42)
-    assert b.archived_at is None
-
-
-@respx.mock
-async def test_async_bundles_analytics(client: AsyncShrtnr) -> None:
-    respx.get(f"{BASE_URL}/_/api/bundles/42/analytics").mock(
-        return_value=httpx.Response(200, json=make_click_stats_dict(total_clicks=5)),
-    )
-    stats = await client.bundles.analytics(42)
-    assert stats.total_clicks == 5
-
-
-@respx.mock
-async def test_async_bundles_links(client: AsyncShrtnr) -> None:
-    respx.get(f"{BASE_URL}/_/api/bundles/42/links").mock(
-        return_value=httpx.Response(200, json=[make_link_dict()]),
-    )
-    links = await client.bundles.links(42)
-    assert len(links) == 1
-
-
-@respx.mock
-async def test_async_bundles_add_link(client: AsyncShrtnr) -> None:
-    respx.post(f"{BASE_URL}/_/api/bundles/42/links").mock(
-        return_value=httpx.Response(200, json={"added": True}),
-    )
-    result = await client.bundles.add_link(42, 7)
-    assert result.added is True
-
-
-@respx.mock
-async def test_async_bundles_remove_link(client: AsyncShrtnr) -> None:
-    respx.delete(f"{BASE_URL}/_/api/bundles/42/links/7").mock(
-        return_value=httpx.Response(200, json={"removed": True}),
-    )
-    result = await client.bundles.remove_link(42, 7)
     assert result.removed is True
 
 

@@ -72,7 +72,6 @@ with Shrtnr(base_url="...", api_key="sk_...") as client:
 | `analytics(id, *, range=None)` | Click breakdown by country, device, referrer, etc. |
 | `timeline(id, *, range=None)` | Click counts bucketed over time |
 | `qr(id, *, slug=None, size=None)` | QR code as SVG string |
-| `bundles(id)` | Bundles this link belongs to |
 
 ```python
 # Shorten a URL
@@ -105,46 +104,16 @@ client.slugs.disable(link.id, "spring-sale")
 found = client.slugs.lookup("spring-sale")
 ```
 
-### Bundles (`client.bundles`)
-
-Groups of related links with combined analytics.
-
-| Method | Description |
-|---|---|
-| `get(id, *, range=None)` | Get a bundle with click summary |
-| `list(*, archived=None, range=None)` | List bundles |
-| `create(*, name, description=None, icon=None, accent=None)` | Create a bundle |
-| `update(id, *, name=None, description=None, icon=None, accent=None)` | Update metadata |
-| `delete(id)` | Permanently delete |
-| `archive(id)` | Hide from default listing |
-| `unarchive(id)` | Restore an archived bundle |
-| `analytics(id, *, range=None)` | Combined click analytics |
-| `links(id)` | List links in the bundle |
-| `add_link(id, link_id)` | Add a link |
-| `remove_link(id, link_id)` | Remove a link |
-
-```python
-# Create a bundle and add links to it
-bundle = client.bundles.create(name="Spring 2026", accent="green")
-client.bundles.add_link(bundle.id, link_a.id)
-client.bundles.add_link(bundle.id, link_b.id)
-
-# Combined analytics for the last 7 days
-stats = client.bundles.analytics(bundle.id, range="7d")
-print(stats.total_clicks)
-```
-
 ## Models
 
 All model fields use snake_case, matching the wire format. Types are frozen dataclasses.
 
 Key types exported from `shrtnr`:
 
-- `Link`, `Slug`, `Bundle`, `BundleWithSummary`
+- `Link`, `Slug`
 - `ClickStats`, `TimelineData`, `NameCount`, `TimelineBucket`, `TimelineSummary`
-- `DeletedResult`, `AddedResult`, `RemovedResult`
+- `DeletedResult`, `RemovedResult`
 - `TimelineRange` (`Literal["24h", "7d", "30d", "90d", "1y", "all"]`)
-- `BundleAccent` (`Literal["orange", "red", "green", "blue", "purple"]`)
 
 ## Errors
 

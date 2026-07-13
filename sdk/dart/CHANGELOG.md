@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0
+
+Regenerated against the current OpenAPI spec (`sha256:f325eb0a`).
+
+### Breaking changes
+
+- Removed the `bundles` resource (`client.bundles`) and the `client.links.bundles(id)` method. The server dropped the bundles feature, so `/_/api/bundles/*` and `/_/api/links/{id}/bundles` no longer exist.
+- Removed the bundle types `Bundle`, `BundleWithSummary`, `BundleTopLink`, `BundleAccent`, `BundleArchivedFilter`, and the `AddedResult` result type.
+
 ## 1.0.1 (2026-04-30)
 
 Packaging and documentation only. No public surface changes.

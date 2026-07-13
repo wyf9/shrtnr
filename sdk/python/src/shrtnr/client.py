@@ -10,7 +10,6 @@ from types import TracebackType
 import httpx
 
 from ._base import DEFAULT_TIMEOUT
-from .resources.bundles import AsyncBundles, Bundles
 from .resources.links import AsyncLinks, Links
 from .resources.slugs import AsyncSlugs, Slugs
 
@@ -24,7 +23,7 @@ class Shrtnr:
 
         with Shrtnr(base_url="https://s.example.com", api_key="sk_...") as client:
             link = client.links.get(42)
-            client.bundles.archive(7)
+            client.links.disable(7)
     """
 
     def __init__(
@@ -42,7 +41,6 @@ class Shrtnr:
 
         self.links = Links(self._base_url, self._api_key, self._http)
         self.slugs = Slugs(self._base_url, self._api_key, self._http)
-        self.bundles = Bundles(self._base_url, self._api_key, self._http)
 
     # ---- context manager ----
 
@@ -71,7 +69,7 @@ class AsyncShrtnr:
 
         async with AsyncShrtnr(base_url="https://s.example.com", api_key="sk_...") as client:
             link = await client.links.get(42)
-            await client.bundles.archive(7)
+            await client.links.disable(7)
     """
 
     def __init__(
@@ -89,7 +87,6 @@ class AsyncShrtnr:
 
         self.links = AsyncLinks(self._base_url, self._api_key, self._http)
         self.slugs = AsyncSlugs(self._base_url, self._api_key, self._http)
-        self.bundles = AsyncBundles(self._base_url, self._api_key, self._http)
 
     # ---- context manager ----
 

@@ -5,40 +5,6 @@ import 'package:meta/meta.dart';
 
 // ---- Enum types ----
 
-/// Accent color applied to a bundle.
-///
-/// The [wireValue] getter returns the string sent over the wire.
-/// Use [fromWire] to parse a server response value.
-enum BundleAccent {
-  /// Orange accent.
-  orange,
-
-  /// Red accent.
-  red,
-
-  /// Green accent.
-  green,
-
-  /// Blue accent.
-  blue,
-
-  /// Purple accent.
-  purple;
-
-  /// The wire-format string for this accent.
-  String get wireValue => name;
-
-  /// Parses a wire-format string into a [BundleAccent].
-  ///
-  /// Throws [ArgumentError] if [value] is not a recognized accent.
-  static BundleAccent fromWire(String value) {
-    for (final v in BundleAccent.values) {
-      if (v.wireValue == value) return v;
-    }
-    throw ArgumentError.value(value, 'value', 'Unknown BundleAccent');
-  }
-}
-
 /// Time-range filter accepted by analytics and timeline endpoints.
 ///
 /// Dart identifiers cannot start with digits or contain hyphens, so each
@@ -82,42 +48,6 @@ enum TimelineRange {
       if (entry.value == value) return entry.key;
     }
     throw ArgumentError.value(value, 'value', 'Unknown TimelineRange');
-  }
-}
-
-/// Filter for archived-bundle visibility in [BundlesResource.list].
-///
-/// Dart identifiers cannot be the bare keywords `true` or `1`, so the enum
-/// uses [trueValue] and [activeOnly]. The wire value `"1"` is omitted because
-/// it is a semantic alias for `"true"`; use [trueValue] for both.
-enum BundleArchivedFilter {
-  /// Include archived bundles alongside active ones (wire: `"true"`). Also
-  /// covers the `"1"` alias from the spec; prefer this member for both.
-  trueValue,
-
-  /// Return only archived bundles (wire: `"only"`).
-  activeOnly,
-
-  /// Return all bundles regardless of archived status (wire: `"all"`).
-  all;
-
-  static const _wireValues = {
-    BundleArchivedFilter.trueValue: 'true',
-    BundleArchivedFilter.activeOnly: 'only',
-    BundleArchivedFilter.all: 'all',
-  };
-
-  /// The wire-format string for this filter.
-  String get wireValue => _wireValues[this]!;
-
-  /// Parses a wire-format string into a [BundleArchivedFilter].
-  ///
-  /// Throws [ArgumentError] if [value] is not a recognized filter.
-  static BundleArchivedFilter fromWire(String value) {
-    for (final entry in _wireValues.entries) {
-      if (entry.value == value) return entry.key;
-    }
-    throw ArgumentError.value(value, 'value', 'Unknown BundleArchivedFilter');
   }
 }
 
@@ -240,152 +170,6 @@ class Link {
   /// Click count change as a percentage versus the previous equivalent period.
   /// Absent when comparison data is unavailable.
   final double? deltaPct;
-}
-
-/// A collection of links grouped to show combined engagement.
-@immutable
-class Bundle {
-  /// Creates a bundle. Most callers should use [Bundle.fromJson].
-  const Bundle({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.icon,
-    required this.accent,
-    required this.archivedAt,
-    required this.createdVia,
-    required this.createdBy,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  /// Parses a bundle from its JSON representation.
-  factory Bundle.fromJson(Map<String, dynamic> json) => Bundle(
-        id: (json['id'] as num).toInt(),
-        name: json['name'] as String,
-        description: json['description'] as String?,
-        icon: json['icon'] as String?,
-        accent: BundleAccent.fromWire(json['accent'] as String),
-        archivedAt: (json['archived_at'] as num?)?.toInt(),
-        createdVia: json['created_via'] as String?,
-        createdBy: (json['created_by'] as String?) ?? '',
-        createdAt: ((json['created_at'] as num?) ?? 0).toInt(),
-        updatedAt: ((json['updated_at'] as num?) ?? 0).toInt(),
-      );
-
-  /// Unique bundle ID.
-  final int id;
-
-  /// Display name.
-  final String name;
-
-  /// Optional short description.
-  final String? description;
-
-  /// Optional Material Symbol icon name.
-  final String? icon;
-
-  /// Accent color applied to this bundle.
-  final BundleAccent accent;
-
-  /// Unix seconds when the bundle was archived, or null if active.
-  final int? archivedAt;
-
-  /// How the bundle was created. Null for legacy bundles.
-  final String? createdVia;
-
-  /// Identity (typically an email) of the creator.
-  final String createdBy;
-
-  /// Unix seconds when the bundle was created.
-  final int createdAt;
-
-  /// Unix seconds when the bundle was last modified.
-  final int updatedAt;
-}
-
-/// Bundle enriched with range-scoped summary data.
-@immutable
-class BundleWithSummary extends Bundle {
-  /// Creates a bundle summary. Most callers should use [BundleWithSummary.fromJson].
-  const BundleWithSummary({
-    required super.id,
-    required super.name,
-    required super.description,
-    required super.icon,
-    required super.accent,
-    required super.archivedAt,
-    required super.createdVia,
-    required super.createdBy,
-    required super.createdAt,
-    required super.updatedAt,
-    required this.linkCount,
-    required this.totalClicks,
-    required this.sparkline,
-    required this.topLinks,
-    this.deltaPct,
-  });
-
-  /// Parses a bundle summary from its JSON representation.
-  factory BundleWithSummary.fromJson(Map<String, dynamic> json) =>
-      BundleWithSummary(
-        id: (json['id'] as num).toInt(),
-        name: json['name'] as String,
-        description: json['description'] as String?,
-        icon: json['icon'] as String?,
-        accent: BundleAccent.fromWire(json['accent'] as String),
-        archivedAt: (json['archived_at'] as num?)?.toInt(),
-        createdVia: json['created_via'] as String?,
-        createdBy: (json['created_by'] as String?) ?? '',
-        createdAt: ((json['created_at'] as num?) ?? 0).toInt(),
-        updatedAt: ((json['updated_at'] as num?) ?? 0).toInt(),
-        linkCount: ((json['link_count'] as num?) ?? 0).toInt(),
-        totalClicks: ((json['total_clicks'] as num?) ?? 0).toInt(),
-        deltaPct: (json['delta_pct'] as num?)?.toDouble(),
-        sparkline: ((json['sparkline'] as List<dynamic>?) ?? const <dynamic>[])
-            .map((dynamic e) => (e as num).toInt())
-            .toList(growable: false),
-        topLinks:
-            ((json['top_links'] as List<dynamic>?) ?? const <dynamic>[])
-                .map((dynamic e) =>
-                    BundleTopLink.fromJson(e as Map<String, dynamic>))
-                .toList(growable: false),
-      );
-
-  /// Number of links in the bundle.
-  final int linkCount;
-
-  /// Combined clicks in the selected range.
-  final int totalClicks;
-
-  /// Click count change percentage versus the previous equivalent range.
-  /// Absent when comparison data is unavailable.
-  final double? deltaPct;
-
-  /// Bucketed click counts for sparkline display.
-  final List<int> sparkline;
-
-  /// Top member links by click count.
-  final List<BundleTopLink> topLinks;
-}
-
-/// Top-link entry preview shown in a [BundleWithSummary].
-@immutable
-class BundleTopLink {
-  /// Creates a top-link entry. Most callers should use [BundleTopLink.fromJson].
-  const BundleTopLink({required this.slug, required this.clickCount});
-
-  /// Parses a top-link entry from JSON.
-  factory BundleTopLink.fromJson(Map<String, dynamic> json) => BundleTopLink(
-        slug: (json['slug'] as String?) ?? '',
-        clickCount: ((json['click_count'] as num?) ?? 0).toInt(),
-      );
-
-  /// The slug of the link.
-  final String slug;
-
-  /// Clicks this link contributed in the current summary range.
-  final int clickCount;
 }
 
 // ---- Analytics models ----
@@ -650,21 +434,7 @@ class DeletedResult {
   final bool deleted;
 }
 
-/// Result of an add-link-to-bundle operation.
-@immutable
-class AddedResult {
-  /// Creates an added result.
-  const AddedResult({required this.added});
-
-  /// Parses an added result from JSON.
-  factory AddedResult.fromJson(Map<String, dynamic> json) =>
-      AddedResult(added: (json['added'] as bool?) ?? false);
-
-  /// True when the link was added.
-  final bool added;
-}
-
-/// Result of a remove-link-from-bundle or remove-slug operation.
+/// Result of a remove-slug operation.
 @immutable
 class RemovedResult {
   /// Creates a removed result.

@@ -56,11 +56,4 @@ describe("TS SDK e2e — live wrangler dev", () => {
     expect(removed.removed).toBe(true);
     await client.links.delete(link.id);
   });
-
-  it("bundle create/delete against live server", async () => {
-    const bundle = await client.bundles.create({ name: "ts e2e bundle" });
-    expect(bundle.name).toBe("ts e2e bundle");
-    const del = await client.bundles.delete(bundle.id);
-    expect(del.deleted).toBe(true);
-  });
 });

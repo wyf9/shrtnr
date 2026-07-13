@@ -76,17 +76,6 @@ def test_slug_mutations(client: Shrtnr) -> None:
         client.links.delete(link.id)
 
 
-@pytest.mark.e2e
-def test_bundle_lifecycle(client: Shrtnr) -> None:
-    """Create, archive, and delete a bundle against the live server."""
-    bundle = client.bundles.create(name="py e2e bundle")
-    assert bundle.name == "py e2e bundle"
-    archived = client.bundles.archive(bundle.id)
-    assert archived.archived_at is not None
-    result = client.bundles.delete(bundle.id)
-    assert result.deleted is True
-
-
 # ---------------------------------------------------------------------------
 # Async client
 # ---------------------------------------------------------------------------
@@ -116,15 +105,4 @@ async def test_async_link_lifecycle(async_client: AsyncShrtnr) -> None:
     fetched = await async_client.links.get(link.id)
     assert fetched.id == link.id
     result = await async_client.links.delete(link.id)
-    assert result.deleted is True
-
-
-@pytest.mark.e2e
-async def test_async_bundle_lifecycle(async_client: AsyncShrtnr) -> None:
-    """Create, archive, and delete a bundle using the async client."""
-    bundle = await async_client.bundles.create(name="py async e2e bundle")
-    assert bundle.name == "py async e2e bundle"
-    archived = await async_client.bundles.archive(bundle.id)
-    assert archived.archived_at is not None
-    result = await async_client.bundles.delete(bundle.id)
     assert result.deleted is True

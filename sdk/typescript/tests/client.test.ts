@@ -47,13 +47,6 @@ describe("Auth headers", () => {
     expect(headers["Authorization"]).toBe(`Bearer ${API_KEY}`);
   });
 
-  it("auth header appears on bundle requests too", async () => {
-    mockFetch(200, []);
-    await client().bundles.list();
-    const { init } = lastCall();
-    expect((init.headers as Record<string, string>)["Authorization"]).toBe(`Bearer ${API_KEY}`);
-  });
-
   it("auth header appears on slug requests too", async () => {
     mockFetch(200, { linkId: 1, slug: "test", isCustom: 1, isPrimary: 1, clickCount: 0, createdAt: 0, disabledAt: null });
     await client().slugs.lookup("test");
@@ -162,23 +155,6 @@ describe("Case transformation", () => {
     expect(body["expiresAt"]).toBeUndefined();
   });
 
-  it("converts camelCase bundle create body to snake_case", async () => {
-    mockFetch(201, { id: 1, name: "B", description: null, icon: null, accent: "orange", archived_at: null, created_via: null, created_by: "u", created_at: 1000, updated_at: 1000 });
-    await client().bundles.create({ name: "B", accent: "blue" });
-    const { init } = lastCall();
-    const body = JSON.parse(init.body as string) as Record<string, unknown>;
-    expect(body["name"]).toBe("B");
-    expect(body["accent"]).toBe("blue");
-  });
-
-  it("converts addLink linkId to link_id on the wire", async () => {
-    mockFetch(200, { added: true });
-    await client().bundles.addLink(5, 99);
-    const { init } = lastCall();
-    const body = JSON.parse(init.body as string) as Record<string, unknown>;
-    expect(body["link_id"]).toBe(99);
-    expect(body["linkId"]).toBeUndefined();
-  });
 });
 
 // ============================================================
@@ -364,14 +340,6 @@ describe("links.qr", () => {
   });
 });
 
-describe("links.bundles", () => {
-  it("GETs /api/links/:id/bundles", async () => {
-    mockFetch(200, []);
-    await client().links.bundles(7);
-    expect(lastCall().url).toBe(`${BASE}/_/api/links/7/bundles`);
-  });
-});
-
 // ============================================================
 // 5. SlugsResource
 // ============================================================
@@ -438,172 +406,7 @@ describe("slugs.remove", () => {
 });
 
 // ============================================================
-// 6. BundlesResource
-// ============================================================
-
-const stubBundle = {
-  id: 42, name: "Test Bundle", description: null, icon: null,
-  accent: "orange", archived_at: null, created_via: null,
-  created_by: "user@example.com", created_at: 1000, updated_at: 1000,
-};
-
-const stubBundleWithSummary = {
-  ...stubBundle,
-  link_count: 3, total_clicks: 100, sparkline: [1, 2, 3],
-  top_links: [{ slug: "abc", click_count: 50 }],
-};
-
-describe("bundles.get", () => {
-  it("GETs /api/bundles/:id", async () => {
-    mockFetch(200, stubBundleWithSummary);
-    await client().bundles.get(42);
-    expect(lastCall().url).toBe(`${BASE}/_/api/bundles/42`);
-  });
-
-  it("appends range when provided", async () => {
-    mockFetch(200, stubBundleWithSummary);
-    await client().bundles.get(42, { range: "90d" });
-    expect(lastCall().url).toBe(`${BASE}/_/api/bundles/42?range=90d`);
-  });
-
-  it("maps snake_case fields to camelCase", async () => {
-    mockFetch(200, stubBundleWithSummary);
-    const b = await client().bundles.get(42);
-    expect(b.linkCount).toBe(3);
-    expect(b.totalClicks).toBe(100);
-    expect(b.archivedAt).toBeNull();
-    expect(b.topLinks[0].clickCount).toBe(50);
-  });
-});
-
-describe("bundles.list", () => {
-  it("GETs /api/bundles", async () => {
-    mockFetch(200, []);
-    await client().bundles.list();
-    expect(lastCall().url).toBe(`${BASE}/_/api/bundles`);
-  });
-
-  it("appends archived when provided", async () => {
-    mockFetch(200, []);
-    await client().bundles.list({ archived: "all" });
-    expect(lastCall().url).toBe(`${BASE}/_/api/bundles?archived=all`);
-  });
-
-  it("appends range when provided", async () => {
-    mockFetch(200, []);
-    await client().bundles.list({ range: "1y" });
-    expect(lastCall().url).toBe(`${BASE}/_/api/bundles?range=1y`);
-  });
-});
-
-describe("bundles.create", () => {
-  it("POSTs /api/bundles", async () => {
-    mockFetch(201, stubBundle);
-    await client().bundles.create({ name: "New Bundle" });
-    const { url, init } = lastCall();
-    expect(url).toBe(`${BASE}/_/api/bundles`);
-    expect(init.method).toBe("POST");
-    expect(JSON.parse(init.body as string)).toEqual({ name: "New Bundle" });
-  });
-});
-
-describe("bundles.update", () => {
-  it("PUTs /api/bundles/:id", async () => {
-    mockFetch(200, stubBundle);
-    await client().bundles.update(42, { description: "Updated" });
-    const { url, init } = lastCall();
-    expect(url).toBe(`${BASE}/_/api/bundles/42`);
-    expect(init.method).toBe("PUT");
-  });
-});
-
-describe("bundles.delete", () => {
-  it("DELETEs /api/bundles/:id and returns {deleted: boolean}", async () => {
-    mockFetch(200, { deleted: true });
-    const result = await client().bundles.delete(42);
-    expect(result.deleted).toBe(true);
-    const { url, init } = lastCall();
-    expect(url).toBe(`${BASE}/_/api/bundles/42`);
-    expect(init.method).toBe("DELETE");
-  });
-});
-
-describe("bundles.archive", () => {
-  it("POSTs /api/bundles/:id/archive", async () => {
-    mockFetch(200, { ...stubBundle, archived_at: 9999 });
-    await client().bundles.archive(42);
-    const { url, init } = lastCall();
-    expect(url).toBe(`${BASE}/_/api/bundles/42/archive`);
-    expect(init.method).toBe("POST");
-  });
-});
-
-describe("bundles.unarchive", () => {
-  it("POSTs /api/bundles/:id/unarchive", async () => {
-    mockFetch(200, stubBundle);
-    await client().bundles.unarchive(42);
-    const { url, init } = lastCall();
-    expect(url).toBe(`${BASE}/_/api/bundles/42/unarchive`);
-    expect(init.method).toBe("POST");
-  });
-});
-
-describe("bundles.analytics", () => {
-  const stubStats = {
-    total_clicks: 10,
-    countries: [], referrers: [], referrer_hosts: [],
-    devices: [], os: [], browsers: [],
-    link_modes: [], channels: [], clicks_over_time: [], slug_clicks: [],
-    num_countries: 1, num_referrers: 0, num_referrer_hosts: 0,
-    num_os: 2, num_browsers: 1,
-  };
-
-  it("GETs /api/bundles/:id/analytics", async () => {
-    mockFetch(200, stubStats);
-    await client().bundles.analytics(42);
-    expect(lastCall().url).toBe(`${BASE}/_/api/bundles/42/analytics`);
-  });
-
-  it("appends range when provided", async () => {
-    mockFetch(200, stubStats);
-    await client().bundles.analytics(42, { range: "all" });
-    expect(lastCall().url).toBe(`${BASE}/_/api/bundles/42/analytics?range=all`);
-  });
-});
-
-describe("bundles.links", () => {
-  it("GETs /api/bundles/:id/links", async () => {
-    mockFetch(200, []);
-    await client().bundles.links(42);
-    expect(lastCall().url).toBe(`${BASE}/_/api/bundles/42/links`);
-  });
-});
-
-describe("bundles.addLink", () => {
-  it("POSTs /api/bundles/:id/links with link_id and returns {added: boolean}", async () => {
-    mockFetch(200, { added: true });
-    const result = await client().bundles.addLink(42, 7);
-    expect(result.added).toBe(true);
-    const { url, init } = lastCall();
-    expect(url).toBe(`${BASE}/_/api/bundles/42/links`);
-    expect(init.method).toBe("POST");
-    expect(JSON.parse(init.body as string)).toEqual({ link_id: 7 });
-  });
-});
-
-describe("bundles.removeLink", () => {
-  it("DELETEs /api/bundles/:id/links/:linkId and returns {removed: boolean}", async () => {
-    mockFetch(200, { removed: true });
-    const result = await client().bundles.removeLink(42, 7);
-    expect(result.removed).toBe(true);
-    const { url, init } = lastCall();
-    expect(url).toBe(`${BASE}/_/api/bundles/42/links/7`);
-    expect(init.method).toBe("DELETE");
-  });
-});
-
-// ============================================================
-// 7. Base URL normalization
+// 6. Base URL normalization
 // ============================================================
 
 describe("Base URL normalization", () => {
@@ -623,7 +426,7 @@ describe("Base URL normalization", () => {
 });
 
 // ============================================================
-// 8. Package surface
+// 7. Package surface
 // ============================================================
 
 describe("Package surface", () => {
@@ -635,7 +438,7 @@ describe("Package surface", () => {
     expect(c.health).toBeUndefined();
     expect(typeof c.links).toBe("object");
     expect(typeof c.slugs).toBe("object");
-    expect(typeof c.bundles).toBe("object");
+    expect(c.bundles).toBeUndefined();
   });
 
   it("does not publish an internal admin entrypoint in package.json", async () => {

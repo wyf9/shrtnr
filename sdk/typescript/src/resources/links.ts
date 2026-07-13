@@ -3,7 +3,6 @@
 
 import { HttpClient } from "../internal/http";
 import {
-  Bundle,
   ClickStats,
   CreateLinkBody,
   DeletedResult,
@@ -75,10 +74,5 @@ export class LinksResource {
       slug: options.slug,
       size: options.size,
     });
-  }
-
-  /** List bundles that contain this link. */
-  bundles(id: number): Promise<Bundle[]> {
-    return this.http.request("GET", `/_/api/links/${id}/bundles`);
   }
 }

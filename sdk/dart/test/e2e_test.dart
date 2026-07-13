@@ -66,12 +66,5 @@ void main() {
         await client.links.delete(link.id);
       }
     });
-
-    test('bundle create/delete against live server', () async {
-      final bundle = await client.bundles.create(name: 'dart e2e bundle');
-      expect(bundle.name, 'dart e2e bundle');
-      final result = await client.bundles.delete(bundle.id);
-      expect(result.deleted, isTrue);
-    });
   });
 }

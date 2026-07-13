@@ -5,8 +5,6 @@
 
 export type TimelineRange = "24h" | "7d" | "30d" | "90d" | "1y" | "all";
 
-export type BundleAccent = "orange" | "red" | "green" | "blue" | "purple";
-
 // ---- Core models ----
 
 export interface Slug {
@@ -30,33 +28,6 @@ export interface Link {
   slugs: Slug[];
   totalClicks: number;
   deltaPct?: number;
-}
-
-export interface Bundle {
-  id: number;
-  name: string;
-  description: string | null;
-  icon: string | null;
-  accent: BundleAccent;
-  archivedAt: number | null;
-  createdVia: string | null;
-  createdBy: string;
-  createdAt: number;
-  updatedAt: number;
-}
-
-/// A top-link entry preview shown in a BundleWithSummary.
-export interface BundleTopLink {
-  slug: string;
-  clickCount: number;
-}
-
-export interface BundleWithSummary extends Bundle {
-  linkCount: number;
-  totalClicks: number;
-  deltaPct?: number;
-  sparkline: number[];
-  topLinks: BundleTopLink[];
 }
 
 // ---- Analytics models ----
@@ -135,20 +106,6 @@ export interface AddSlugBody {
   slug: string;
 }
 
-export interface CreateBundleBody {
-  name: string;
-  description?: string | null;
-  icon?: string | null;
-  accent?: BundleAccent;
-}
-
-export interface UpdateBundleBody {
-  name?: string;
-  description?: string | null;
-  icon?: string | null;
-  accent?: BundleAccent;
-}
-
 // ---- Result types ----
 
 /// Result of a delete operation.
@@ -156,12 +113,7 @@ export interface DeletedResult {
   deleted: boolean;
 }
 
-/// Result of an add-link-to-bundle operation.
-export interface AddedResult {
-  added: boolean;
-}
-
-/// Result of a remove-link-from-bundle or remove-slug operation.
+/// Result of a remove-slug operation.
 export interface RemovedResult {
   removed: boolean;
 }

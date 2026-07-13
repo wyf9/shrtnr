@@ -16,7 +16,6 @@ from typing import Any, Literal
 # ---- Enum type aliases ----
 
 TimelineRange = Literal["24h", "7d", "30d", "90d", "1y", "all"]
-BundleAccent = Literal["orange", "red", "green", "blue", "purple"]
 
 
 # ---- Core models ----
@@ -73,87 +72,6 @@ class Link:
             created_by=str(data["created_by"]),
             slugs=[Slug.from_dict(s) for s in data.get("slugs", [])],
             total_clicks=int(data.get("total_clicks", 0)),
-            delta_pct=float(delta) if delta is not None else None,
-        )
-
-
-@dataclass(frozen=True)
-class Bundle:
-    id: int
-    name: str
-    description: str | None
-    icon: str | None
-    accent: BundleAccent
-    archived_at: int | None
-    created_via: str | None
-    created_by: str
-    created_at: int
-    updated_at: int
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Bundle:
-        archived = data.get("archived_at")
-        return cls(
-            id=int(data["id"]),
-            name=str(data["name"]),
-            description=data.get("description"),
-            icon=data.get("icon"),
-            accent=data["accent"],
-            archived_at=int(archived) if archived is not None else None,
-            created_via=data.get("created_via"),
-            created_by=str(data["created_by"]),
-            created_at=int(data["created_at"]),
-            updated_at=int(data["updated_at"]),
-        )
-
-
-@dataclass(frozen=True)
-class BundleTopLink:
-    slug: str
-    click_count: int
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> BundleTopLink:
-        return cls(slug=str(data["slug"]), click_count=int(data["click_count"]))
-
-
-@dataclass(frozen=True)
-class BundleWithSummary:
-    id: int
-    name: str
-    description: str | None
-    icon: str | None
-    accent: BundleAccent
-    archived_at: int | None
-    created_via: str | None
-    created_by: str
-    created_at: int
-    updated_at: int
-    link_count: int
-    total_clicks: int
-    sparkline: list[int]
-    top_links: list[BundleTopLink]
-    delta_pct: float | None = None
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> BundleWithSummary:
-        delta = data.get("delta_pct")
-        archived = data.get("archived_at")
-        return cls(
-            id=int(data["id"]),
-            name=str(data["name"]),
-            description=data.get("description"),
-            icon=data.get("icon"),
-            accent=data["accent"],
-            archived_at=int(archived) if archived is not None else None,
-            created_via=data.get("created_via"),
-            created_by=str(data["created_by"]),
-            created_at=int(data["created_at"]),
-            updated_at=int(data["updated_at"]),
-            link_count=int(data.get("link_count", 0)),
-            total_clicks=int(data.get("total_clicks", 0)),
-            sparkline=[int(x) for x in data.get("sparkline", [])],
-            top_links=[BundleTopLink.from_dict(x) for x in data.get("top_links", [])],
             delta_pct=float(delta) if delta is not None else None,
         )
 
@@ -286,15 +204,6 @@ class DeletedResult:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> DeletedResult:
         return cls(deleted=bool(data.get("deleted", False)))
-
-
-@dataclass(frozen=True)
-class AddedResult:
-    added: bool
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> AddedResult:
-        return cls(added=bool(data.get("added", False)))
 
 
 @dataclass(frozen=True)
