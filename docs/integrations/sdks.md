@@ -1,23 +1,22 @@
 # SDKs
 
-Shorten URLs, manage links, and read analytics from your own code. shrtnr provides three official SDKs, all generated from the same OpenAPI spec so their interfaces stay consistent.
+Shorten URLs, manage links, and read analytics from your own code. shrtnr provides two official SDKs, both generated from the same OpenAPI spec so their interfaces stay consistent.
 
 | Language | Package | Notes |
 |---|---|---|
-| TypeScript / JavaScript | [`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm-readme) | See `sdk/typescript/README.md` |
+| TypeScript / JavaScript | [`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme) | See `sdk/typescript/README.md` |
 | Python (sync + async, on httpx) | [`shrtnr`](https://oddb.it/shrtnr-pypi-readme) | See `sdk/python/README.md` |
-| Dart / Flutter | [`shrtnr`](https://oddb.it/shrtnr-pub-readme) | See `sdk/dart/README.md` |
 
 All SDKs authenticate with an [API key](/api/overview) as a Bearer token. Create API keys in the admin UI under **API Keys**.
 
 ## TypeScript
 
 ```bash
-npm install @oddbit/shrtnr
+npm install @wyf9/shrtnr
 ```
 
 ```ts
-import { ShrtnrClient } from "@oddbit/shrtnr";
+import { ShrtnrClient } from "@wyf9/shrtnr";
 
 const client = new ShrtnrClient({
   baseUrl: "https://your-shrtnr.example.com",
@@ -38,13 +37,13 @@ console.log(stats.totalClicks, stats.countries, stats.browsers);
 ## Python
 
 ```bash
-pip install shrtnr
+pip install wshrtnr
 ```
 
 Synchronous:
 
 ```python
-from shrtnr import Shrtnr
+from wshrtnr import Shrtnr
 
 client = Shrtnr(base_url="https://your-shrtnr.example.com", api_key="sk_your_api_key")
 
@@ -56,7 +55,7 @@ Async:
 
 ```python
 import asyncio
-from shrtnr import AsyncShrtnr
+from wshrtnr import AsyncShrtnr
 
 async def main():
     async with AsyncShrtnr(base_url="https://your-shrtnr.example.com", api_key="sk_...") as client:
@@ -66,29 +65,9 @@ async def main():
 asyncio.run(main())
 ```
 
-## Dart / Flutter
-
-```bash
-dart pub add shrtnr
-```
-
-```dart
-import 'package:shrtnr/shrtnr.dart';
-
-final client = ShrtnrClient(
-  baseUrl: 'https://your-shrtnr.example.com',
-  apiKey: 'sk_your_api_key',
-);
-
-final link = await client.links.create(url: 'https://example.com/very-long-path');
-print(link.slugs.first.slug); // 'a3x9'
-
-client.close();
-```
-
 ## Resources and methods
 
-All three SDKs expose consistent resource groups:
+Both SDKs expose consistent resource groups:
 
 ### Links (`client.links`)
 
@@ -118,7 +97,7 @@ All three SDKs expose consistent resource groups:
 Every SDK throws a language-appropriate error type on 4xx/5xx responses (`ShrtnrError` in TypeScript); network failures use `status: 0`:
 
 ```ts
-import { ShrtnrError } from "@oddbit/shrtnr";
+import { ShrtnrError } from "@wyf9/shrtnr";
 
 try {
   await client.links.get(99999);

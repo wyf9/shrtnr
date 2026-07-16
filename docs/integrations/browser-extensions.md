@@ -73,7 +73,7 @@ bun run dev:firefox   # esbuild watch mode, output dist/firefox/
 - Firefox: `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → pick `dist/firefox/manifest.json`.
 
 ::: tip Dependency
-The extension depends on the **published** `@oddbit/shrtnr` from npm, like any external consumer. It never imports the local `sdk/typescript` source. SDK changes ship to npm first; the extension picks them up on the next version bump.
+The extension depends on the **published** `@wyf9/shrtnr` from npm, like any external consumer. It never imports the local `sdk/typescript` source. SDK changes ship to npm first; the extension picks them up on the next version bump.
 :::
 
 ## Architecture

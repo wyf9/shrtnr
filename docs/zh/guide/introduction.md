@@ -10,7 +10,7 @@
 - **零月费**：默认运行在 Cloudflare 免费额度内。
 - **数据自持**：你拥有自己的数据、域名和短链，随时可以导出或迁移。
 
-只需一次点击即可部署，随后你就得到完整的管理 UI、点击分析、TypeScript / Python / Dart 三套 SDK，以及供 AI 助手使用的 MCP 服务器，全部来自同一个 Worker。
+只需一次点击即可部署，随后你就得到完整的管理 UI、点击分析、TypeScript / Python 两套 SDK，以及供 AI 助手使用的 MCP 服务器，全部来自同一个 Worker。
 
 ## 关于本 Fork
 

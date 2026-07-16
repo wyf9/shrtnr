@@ -35,7 +35,7 @@ features:
     details: 内置 MCP 服务器，通过 Cloudflare Access OAuth 授权，让 Claude、Copilot 等 AI 助手直接创建和管理短链。
   - icon: 🧩
     title: 多端 SDK
-    details: 提供 TypeScript、Python、Dart/Flutter 官方 SDK，以及 Chrome / Firefox 浏览器扩展。
+    details: 提供 TypeScript、Python 官方 SDK，以及 Chrome / Firefox 浏览器扩展。
   - icon: 🔐
     title: 你掌控一切
     details: 自托管、开源、Apache 2.0 许可。你拥有自己的数据、域名和短链。管理 API 支持带作用域的 Bearer Token。
@@ -52,7 +52,7 @@ features:
 
 大多数短链接服务要么把你锁定在按点击计费的 SaaS 中，要么要求你运行一台 VPS。shrtnr 运行在 Cloudflare Workers + D1 免费额度上，你拥有自己的数据、域名和短链。
 
-只需一次点击即可完成部署，随后你便获得完整的管理界面、点击分析、TypeScript / Python / Dart 三套 SDK，以及供 AI 助手使用的 MCP 服务器。
+只需一次点击即可完成部署，随后你便获得完整的管理界面、点击分析、TypeScript / Python 两套 SDK，以及供 AI 助手使用的 MCP 服务器。
 
 ## 下一步
 

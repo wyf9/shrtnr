@@ -1,7 +1,7 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 //
-// CI-side smoke test for build artifacts. Runs after `yarn build` and
+// CI-side smoke test for build artifacts. Runs after `bun run build` and
 // asserts: each target manifest parses, every file it references exists,
 // the zip archives exist and are within a reasonable size budget.
 

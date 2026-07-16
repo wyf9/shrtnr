@@ -30,7 +30,7 @@ curl https://your-shrtnr.example.com/_/api/links \
 - **OpenAPI 3.1 规范**（JSON）：部署上的 **`/_/api/openapi.json`**
 
 ::: tip 规范是唯一事实来源
-SDK（[TypeScript](/zh/integrations/sdks)、Python、Dart）在 API 变更时从该规范重新生成。请以 `/_/api/openapi.json` 为准，而非硬编码端点细节。
+SDK（[TypeScript](/zh/integrations/sdks)、Python）在 API 变更时从该规范重新生成。请以 `/_/api/openapi.json` 为准，而非硬编码端点细节。
 :::
 
 ## 资源分组

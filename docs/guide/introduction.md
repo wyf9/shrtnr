@@ -10,7 +10,7 @@ Most URL shorteners either lock you into a SaaS with per-click pricing or requir
 - **Zero monthly cost**: it runs within the Cloudflare free tier by default.
 - **You own your data**: you own your data, domain, and short links, and can export or migrate at any time.
 
-It takes one click to deploy. You then get a full admin UI, click analytics, TypeScript / Python / Dart SDKs, and an MCP server for AI assistants, all from the same Worker.
+It takes one click to deploy. You then get a full admin UI, click analytics, TypeScript / Python SDKs, and an MCP server for AI assistants, all from the same Worker.
 
 ## About this fork
 

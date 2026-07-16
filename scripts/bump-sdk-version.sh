@@ -8,17 +8,16 @@
 # Usage: bump-sdk-version.sh <sdk> <version>
 #
 # Arguments:
-#   <sdk>      one of: npm | python | pub
+#   <sdk>      one of: npm | python
 #   <version>  new semver string, e.g. 0.7.3
 #
 # Side effects:
-#   - Updates the manifest (sdk/typescript/package.json,
-#     sdk/python/pyproject.toml, or sdk/dart/pubspec.yaml).
+#   - Updates the manifest (sdk/typescript/package.json or
+#     sdk/python/pyproject.toml).
 #   - Prepends a new section to the matching CHANGELOG.md with a placeholder
 #     body ("TODO: fill in release notes.").
-#   - Refreshes the lockfile if the SDK has one (yarn for npm, dart pub get
-#     for pub; nothing for python — add it manually if/when a lockfile is
-#     introduced).
+#   - Refreshes the lockfile if the SDK has one (bun for npm; nothing for
+#     python — add it manually if/when a lockfile is introduced).
 #   - Prints a git diff and suggests the next step.
 #
 # Does NOT commit, tag, push, or open a PR. Raising the PR is the caller's
@@ -28,7 +27,7 @@ set -euo pipefail
 
 if [ "$#" -ne 2 ]; then
   echo "usage: $0 <sdk> <version>" >&2
-  echo "  sdk: npm | python | pub" >&2
+  echo "  sdk: npm | python" >&2
   exit 2
 fi
 
@@ -46,13 +45,8 @@ case "$SDK" in
     CHANGELOG="sdk/python/CHANGELOG.md"
     TAG_PREFIX="py-v"
     ;;
-  pub)
-    MANIFEST="sdk/dart/pubspec.yaml"
-    CHANGELOG="sdk/dart/CHANGELOG.md"
-    TAG_PREFIX="pub-v"
-    ;;
   *)
-    echo "unknown sdk: $SDK (expected npm | python | pub)" >&2
+    echo "unknown sdk: $SDK (expected npm | python)" >&2
     exit 1
     ;;
 esac
@@ -99,10 +93,6 @@ if count != 1:
 path.write_text(updated)
 PY
     ;;
-  pubspec.yaml)
-    sed -i.bak -E "s/^version: .*/version: $NEW_VERSION/" "$MANIFEST"
-    rm "$MANIFEST.bak"
-    ;;
   pyproject.toml)
     sed -i.bak -E "s/^version *= *\"[^\"]+\"/version = \"$NEW_VERSION\"/" "$MANIFEST"
     rm "$MANIFEST.bak"
@@ -130,26 +120,13 @@ mv "$TMP_CHANGELOG" "$CHANGELOG"
 # blocked bump, and the developer needs to know why their tooling broke.
 case "$SDK" in
   npm)
-    if [ -f sdk/typescript/yarn.lock ]; then
-      if ! command -v yarn >/dev/null 2>&1; then
-        echo "warning: yarn not on PATH; skipping lockfile refresh for npm" >&2
+    if [ -f sdk/typescript/bun.lock ]; then
+      if ! command -v bun >/dev/null 2>&1; then
+        echo "warning: bun not on PATH; skipping lockfile refresh for npm" >&2
       else
-        echo "refreshing sdk/typescript/yarn.lock..."
-        (cd sdk/typescript && yarn install --silent) || {
-          echo "yarn install failed; fix the lockfile before committing" >&2
-          exit 1
-        }
-      fi
-    fi
-    ;;
-  pub)
-    if [ -f sdk/dart/pubspec.lock ]; then
-      if ! command -v dart >/dev/null 2>&1; then
-        echo "warning: dart not on PATH; skipping lockfile refresh for pub" >&2
-      else
-        echo "refreshing sdk/dart/pubspec.lock..."
-        (cd sdk/dart && dart pub get) || {
-          echo "dart pub get failed; fix the lockfile before committing" >&2
+        echo "refreshing sdk/typescript/bun.lock..."
+        (cd sdk/typescript && bun install --silent) || {
+          echo "bun install failed; fix the lockfile before committing" >&2
           exit 1
         }
       fi
@@ -169,9 +146,4 @@ echo "next steps:"
 echo "  1. edit $CHANGELOG and replace the TODO placeholder"
 echo "  2. git add $MANIFEST $CHANGELOG"
 echo "  3. git commit -m \"Release $SDK $NEW_VERSION: <short summary>\""
-if [ "$SDK" = "pub" ]; then
-  echo "  4. git tag ${TAG_PREFIX}${NEW_VERSION}"
-  echo "  5. git push origin main ${TAG_PREFIX}${NEW_VERSION}"
-else
-  echo "  4. gh pr create  (or push to main — CI tags after publish)"
-fi
+echo "  4. gh pr create  (or push to main — CI tags after publish)"

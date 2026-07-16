@@ -213,11 +213,9 @@ const id: Translations = {
   "settings.sdksDesc":
     "Kelola tautan dari kode Anda sendiri. Buat, perbarui, nonaktifkan, dan baca analitik klik secara programatik.",
   "settings.sdkTsLang": "TypeScript",
-  "settings.sdkTsPkg": "npm: @oddbit/shrtnr",
+  "settings.sdkTsPkg": "npm: @wyf9/shrtnr",
   "settings.sdkPythonLang": "Python",
   "settings.sdkPythonPkg": "PyPI: shrtnr",
-  "settings.sdkDartLang": "Dart",
-  "settings.sdkDartPkg": "pub.dev: shrtnr",
   "settings.mcpTitle": "MCP Server",
   "settings.mcpDesc":
     "Berikan asisten AI akses ke tautan Anda. Bekerja dengan Claude Desktop dan GitHub Copilot di VS Code.",

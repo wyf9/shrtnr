@@ -8,19 +8,19 @@ description: >
 
 inputs:
   sdk:
-    description: Which SDK manifest to verify (typescript | python | dart).
+    description: Which SDK manifest to verify (typescript | python).
     required: true
 
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@v6
+    - uses: oven-sh/setup-bun@v2
       with:
-        node-version: 24
+        bun-version: latest
 
     - name: Install root dependencies
       shell: bash
-      run: yarn install --frozen-lockfile
+      run: bun install --frozen-lockfile
 
     - name: Compare recorded vs current spec hash
       shell: bash
@@ -47,14 +47,8 @@ runs:
               }
             ' "$MANIFEST" | sed 's/^sha256://')
             ;;
-          dart)
-            MANIFEST=sdk/dart/pubspec.yaml
-            # Hash lives in a leading comment, not a top-level key, to avoid
-            # a pana score deduction for unknown manifest fields.
-            RECORDED=$(grep '^# x-spec-hash:' "$MANIFEST" | awk '{print $3}' | sed 's/^sha256://')
-            ;;
           *)
-            echo "::error::unknown sdk input: $SDK (expected typescript | python | dart)"
+            echo "::error::unknown sdk input: $SDK (expected typescript | python)"
             exit 1
             ;;
         esac
@@ -72,9 +66,9 @@ runs:
           echo "it is about to ship for. Resolve before re-running:"
           echo ""
           echo "  - If the spec change does not affect the SDK surface, bump"
-          echo "    the recorded hash on all three SDK manifests (this happens"
-          echo "    on every app version bump because info.version flows into"
-          echo "    the spec). See CLAUDE.md > 'Spec hash'."
+            echo "    the recorded hash on both SDK manifests (this happens"
+            echo "    on every app version bump because info.version flows into"
+            echo "    the spec). See CLAUDE.md > 'Spec hash'."
           echo "  - If the spec change does affect the SDK surface, regenerate"
           echo "    the SDK and bump both the SDK version and the recorded hash."
           exit 1

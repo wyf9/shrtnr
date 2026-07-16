@@ -210,11 +210,9 @@ const en = {
   "settings.sdksDesc":
     "Manage links from your own code. Create, update, disable, and read click analytics programmatically.",
   "settings.sdkTsLang": "TypeScript",
-  "settings.sdkTsPkg": "npm: @oddbit/shrtnr",
+  "settings.sdkTsPkg": "npm: @wyf9/shrtnr",
   "settings.sdkPythonLang": "Python",
   "settings.sdkPythonPkg": "PyPI: shrtnr",
-  "settings.sdkDartLang": "Dart",
-  "settings.sdkDartPkg": "pub.dev: shrtnr",
   "settings.mcpTitle": "MCP Server",
   "settings.mcpDesc":
     "Give AI assistants access to your links. Works with Claude Desktop and GitHub Copilot in VS Code.",

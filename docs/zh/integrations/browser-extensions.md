@@ -73,7 +73,7 @@ bun run dev:firefox   # esbuild 监听模式，输出 dist/firefox/
 - Firefox：`about:debugging#/runtime/this-firefox` → 临时载入附加组件 → 选择 `dist/firefox/manifest.json`。
 
 ::: tip 依赖关系
-扩展依赖 npm 上**已发布**的 `@oddbit/shrtnr`，与任何外部使用者一样。它不会引用本地 `sdk/typescript` 源码。SDK 变更先发布到 npm，扩展在下次版本更新时再拾取。
+扩展依赖 npm 上**已发布**的 `@wyf9/shrtnr`，与任何外部使用者一样。它不会引用本地 `sdk/typescript` 源码。SDK 变更先发布到 npm，扩展在下次版本更新时再拾取。
 :::
 
 ## 架构

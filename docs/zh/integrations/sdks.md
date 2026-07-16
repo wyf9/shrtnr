@@ -1,23 +1,22 @@
 # SDK
 
-从你自己的代码里短链 URL、管理链接、读取分析数据。shrtnr 提供三套官方 SDK，均从同一份 OpenAPI 规范生成，保持接口一致。
+从你自己的代码里短链 URL、管理链接、读取分析数据。shrtnr 提供两套官方 SDK，均从同一份 OpenAPI 规范生成，保持接口一致。
 
 | 语言 | 包名 | 说明 |
 |---|---|---|
-| TypeScript / JavaScript | [`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm-readme) | 详见 `sdk/typescript/README.md` |
+| TypeScript / JavaScript | [`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme) | 详见 `sdk/typescript/README.md` |
 | Python（同步 + 异步，基于 httpx） | [`shrtnr`](https://oddb.it/shrtnr-pypi-readme) | 详见 `sdk/python/README.md` |
-| Dart / Flutter | [`shrtnr`](https://oddb.it/shrtnr-pub-readme) | 详见 `sdk/dart/README.md` |
 
 所有 SDK 都使用 [API Key](/zh/api/overview) 进行 Bearer Token 认证。API Key 在管理 UI 的 **API Keys** 中创建。
 
 ## TypeScript
 
 ```bash
-npm install @oddbit/shrtnr
+npm install @wyf9/shrtnr
 ```
 
 ```ts
-import { ShrtnrClient } from "@oddbit/shrtnr";
+import { ShrtnrClient } from "@wyf9/shrtnr";
 
 const client = new ShrtnrClient({
   baseUrl: "https://your-shrtnr.example.com",
@@ -38,13 +37,13 @@ console.log(stats.totalClicks, stats.countries, stats.browsers);
 ## Python
 
 ```bash
-pip install shrtnr
+pip install wshrtnr
 ```
 
 同步用法：
 
 ```python
-from shrtnr import Shrtnr
+from wshrtnr import Shrtnr
 
 client = Shrtnr(base_url="https://your-shrtnr.example.com", api_key="sk_your_api_key")
 
@@ -56,7 +55,7 @@ print(link.slugs[0].slug)  # "a3x9"
 
 ```python
 import asyncio
-from shrtnr import AsyncShrtnr
+from wshrtnr import AsyncShrtnr
 
 async def main():
     async with AsyncShrtnr(base_url="https://your-shrtnr.example.com", api_key="sk_...") as client:
@@ -66,29 +65,9 @@ async def main():
 asyncio.run(main())
 ```
 
-## Dart / Flutter
-
-```bash
-dart pub add shrtnr
-```
-
-```dart
-import 'package:shrtnr/shrtnr.dart';
-
-final client = ShrtnrClient(
-  baseUrl: 'https://your-shrtnr.example.com',
-  apiKey: 'sk_your_api_key',
-);
-
-final link = await client.links.create(url: 'https://example.com/very-long-path');
-print(link.slugs.first.slug); // 'a3x9'
-
-client.close();
-```
-
 ## 资源与方法
 
-三套 SDK 都提供一致的资源分组：
+两套 SDK 都提供一致的资源分组：
 
 ### Links (`client.links`)
 
@@ -118,7 +97,7 @@ client.close();
 各 SDK 都会在 4xx/5xx 响应时抛出错误类型（TypeScript 为 `ShrtnrError`），网络失败时 `status` 为 `0`：
 
 ```ts
-import { ShrtnrError } from "@oddbit/shrtnr";
+import { ShrtnrError } from "@wyf9/shrtnr";
 
 try {
   await client.links.get(99999);

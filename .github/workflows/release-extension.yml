@@ -66,20 +66,20 @@ jobs:
             browser-extensions/CHANGELOG.md \
             /tmp/release-notes.md
 
-      - uses: actions/setup-node@v6
+      - uses: oven-sh/setup-bun@v2
         if: steps.version.outputs.should_run == 'true'
         with:
-          node-version: 24
+          bun-version: latest
 
       - name: Install + test + build
         if: steps.version.outputs.should_run == 'true'
         working-directory: browser-extensions
         run: |
-          yarn install --frozen-lockfile
-          yarn test
-          yarn build
-          node scripts/verify-build.mjs
-          yarn lint:firefox
+          bun install --frozen-lockfile
+          bun run test
+          bun run build
+          bun run verify-build
+          bun run lint:firefox
 
       - name: Upload to Chrome Web Store
         if: steps.version.outputs.should_run == 'true'

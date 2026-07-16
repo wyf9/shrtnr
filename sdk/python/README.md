@@ -1,20 +1,20 @@
-# shrtnr
+# wshrtnr
 
 Python SDK for [shrtnr](https://oddb.it/shrtnr-website-pypi), a self-hosted URL shortener on Cloudflare Workers. Create short links, manage slugs, and read click analytics.
 
-[![PyPI](https://img.shields.io/pypi/v/shrtnr)](https://pypi.org/project/shrtnr/)
-[![license](https://img.shields.io/pypi/l/shrtnr)](https://www.apache.org/licenses/LICENSE-2.0)
+[![PyPI](https://img.shields.io/pypi/v/wshrtnr)](https://pypi.org/project/wshrtnr/)
+[![license](https://img.shields.io/pypi/l/wshrtnr)](https://www.apache.org/licenses/LICENSE-2.0)
 
 ## Install
 
 ```bash
-pip install shrtnr
+pip install wshrtnr
 ```
 
 ## Quick start
 
 ```python
-from shrtnr import Shrtnr
+from wshrtnr import Shrtnr
 
 client = Shrtnr(base_url="https://your-shrtnr.example.com", api_key="sk_your_api_key")
 
@@ -26,7 +26,7 @@ Async usage:
 
 ```python
 import asyncio
-from shrtnr import AsyncShrtnr
+from wshrtnr import AsyncShrtnr
 
 async def main():
     async with AsyncShrtnr(base_url="https://your-shrtnr.example.com", api_key="sk_...") as client:
@@ -121,7 +121,7 @@ Every 4xx/5xx response raises `ShrtnrError`. Network failures also raise `Shrtnr
 `status=0`.
 
 ```python
-from shrtnr import ShrtnrError
+from wshrtnr import ShrtnrError
 
 try:
     client.links.get(99999)

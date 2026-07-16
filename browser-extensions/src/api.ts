@@ -1,12 +1,12 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 //
-// Thin wrapper over @oddbit/shrtnr that reads config from storage,
+// Thin wrapper over @wyf9/shrtnr that reads config from storage,
 // guards against internal browser URLs, and maps SDK errors into the
 // extension's ErrorCategory taxonomy. The popup and options pages
 // import only from here — never from the SDK directly.
 
-import { ShrtnrClient, ShrtnrError } from "@oddbit/shrtnr";
+import { ShrtnrClient, ShrtnrError } from "@wyf9/shrtnr";
 import { getConfig, type Config } from "./storage";
 import { ExtensionError, categorizeStatus } from "./errors";
 import { QR_SIZE_PX } from "./constants";

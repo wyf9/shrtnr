@@ -93,13 +93,18 @@ jobs:
         if: steps.version.outputs.should_run == 'true'
         run: npm install -g --force npm@latest
 
+      - uses: oven-sh/setup-bun@v2
+        if: steps.version.outputs.should_run == 'true'
+        with:
+          bun-version: latest
+
       - name: Install + build + test
         if: steps.version.outputs.should_run == 'true'
         working-directory: sdk/typescript
         run: |
-          yarn install --frozen-lockfile
-          yarn build
-          yarn test
+          bun install --frozen-lockfile
+          bun run build
+          bun run test
 
       - name: npm publish
         if: steps.version.outputs.should_run == 'true'

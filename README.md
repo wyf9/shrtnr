@@ -9,7 +9,6 @@
 
 [![npm](https://img.shields.io/npm/v/%40oddbit%2Fshrtnr?label=npm&color=cb3837&logo=npm)](https://oddb.it/shrtnr-npm-readme)
 [![PyPI](https://img.shields.io/pypi/v/shrtnr?label=pypi&color=3775a9&logo=pypi&logoColor=white)](https://oddb.it/shrtnr-pypi-readme)
-[![pub.dev](https://img.shields.io/pub/v/shrtnr?label=pub.dev&color=0175c2&logo=dart&logoColor=white)](https://oddb.it/shrtnr-pub-readme)
 
 > A free, self-hosted URL shortener with built-in AI integration, click analytics, an admin dashboard. Runs on Cloudflare's free tier. Zero servers, zero monthly cost.
 
@@ -19,7 +18,7 @@
 
 Most URL shorteners either lock you into a SaaS with per-click pricing or require you to run a VPS. shrtnr runs on Cloudflare Workers + D1, both free tier. You own your data, your domain, and your short links.
 
-It takes one click to deploy. You get a full admin UI, click analytics, SDKs for TypeScript, Python, and Dart, and an MCP server for AI assistants: all from a single Cloudflare Worker.
+It takes one click to deploy. You get a full admin UI, click analytics, SDKs for TypeScript and Python, and an MCP server for AI assistants: all from a single Cloudflare Worker.
 
 [**shrtnr**](https://oddb.it/shrtnr-info) is built by [**Oddbit**](https://oddb.it/website), a senior-led studio shipping Cloudflare, Firebase, Flutter, and AI integrations for funded startups and scale-ups. See what else we build at [oddbit.id](https://oddb.it/website).
 
@@ -52,7 +51,7 @@ It takes one click to deploy. You get a full admin UI, click analytics, SDKs for
 - **Admin dashboard** for link management, analytics charts, and QR code generation
 - **Multi-language admin UI** with English, Indonesian, and Swedish built in
 - **API key authentication** with scoped Bearer tokens for programmatic access
-- **SDKs** for TypeScript ([`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm-readme)), Python ([`shrtnr`](https://oddb.it/shrtnr-pypi-readme)), and Dart/Flutter ([`shrtnr`](https://oddb.it/shrtnr-pub-readme))
+- **SDKs** for TypeScript ([`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme)) and Python ([`shrtnr`](https://oddb.it/shrtnr-pypi-readme))
 - **Built-in MCP server** at `/_/mcp` with OAuth via Cloudflare Access, so Claude, Copilot, and other AI assistants can shorten URLs
 - **One-click deploy** with automatic database provisioning and migrations
 
@@ -80,7 +79,7 @@ After the initial deploy, apply the database migrations immediately:
 
 ```bash
 cd shrtnr
-yarn install
+bun install
 npx wrangler d1 migrations apply DB --remote
 ```
 
@@ -97,11 +96,11 @@ To automate this, copy `.github/workflows/migrate.yml` from the source repo into
 ```bash
 git clone https://github.com/oddbit/shrtnr
 cd shrtnr
-yarn install
-yarn wrangler-login
-yarn db:create
-yarn deploy
-yarn db:migrate:remote
+bun install
+bun run wrangler-login
+bun run db:create
+bun run deploy
+bun run db:migrate:remote
 ```
 
 ### Continuous deployment
@@ -116,7 +115,7 @@ Cloudflare [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/buil
 - `CLOUDFLARE_API_TOKEN`: a Cloudflare API token with **Workers Scripts: Edit** and **D1: Edit** permissions
 - `CLOUDFLARE_ACCOUNT_ID`: your Cloudflare account ID (visible in the dashboard URL or the right sidebar of any zone page)
 
-Without these secrets, you can still deploy: Workers Builds handles the code, and you run `yarn db:migrate:remote` manually when pushing schema changes.
+Without these secrets, you can still deploy: Workers Builds handles the code, and you run `bun run db:migrate:remote` manually when pushing schema changes.
 
 ## Access Control
 
@@ -187,9 +186,8 @@ Rules run on unmatched public paths before the single-segment short-slug fallbac
 
 Shorten URLs, manage links, and read analytics from your own code.
 
-- TypeScript/JavaScript: [`@oddbit/shrtnr`](https://oddb.it/shrtnr-npm-readme). Details in [sdk/typescript/README.md](sdk/typescript/README.md).
+- TypeScript/JavaScript: [`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme). Details in [sdk/typescript/README.md](sdk/typescript/README.md).
 - Python: [`shrtnr`](https://oddb.it/shrtnr-pypi-readme). Sync and async clients on httpx. Details in [sdk/python/README.md](sdk/python/README.md).
-- Dart/Flutter: [`shrtnr`](https://oddb.it/shrtnr-pub-readme). Details in [sdk/dart/README.md](sdk/dart/README.md).
 
 ### MCP Server (AI Integration)
 
@@ -237,7 +235,7 @@ Add both domains in the Cloudflare dashboard:
 ```bash
 npx wrangler secret put MCP_ACCESS_AUD    # AUD tag from the MCP Access application
 npx wrangler secret put ACCESS_JWKS_URL   # https://<your-team>.cloudflareaccess.com/cdn-cgi/access/certs
-yarn deploy
+bun run deploy
 ```
 
 **3. Disable "Block AI bots" for your domain.** Cloudflare's managed bot rule blocks requests from AI assistants (Claude, Copilot, etc.) at the edge before they reach your Worker. MCP clients connect from cloud infrastructure that Cloudflare classifies as AI bot traffic. If this rule is active, the OAuth handshake completes but the MCP connection itself is silently dropped.
@@ -308,24 +306,24 @@ Authentication is determined by route prefix:
 | `/_/admin/*` | None built in | Admin UI and admin-only API. Protect externally (see [Access Control](#access-control)). Not callable with API keys. |
 | `/_/health` | Public | Health check. |
 
-For full endpoint shapes, parameters, and example payloads, see the live API reference at **`/_/api/docs`** on your deployment, or fetch the OpenAPI 3.1 spec directly at **`/_/api/openapi.json`**. The spec is the source of truth: SDKs ([TypeScript](sdk/typescript/README.md), [Python](sdk/python/README.md), [Dart](sdk/dart/README.md)) regenerate from it when the API changes.
+For full endpoint shapes, parameters, and example payloads, see the live API reference at **`/_/api/docs`** on your deployment, or fetch the OpenAPI 3.1 spec directly at **`/_/api/openapi.json`**. The spec is the source of truth: SDKs ([TypeScript](sdk/typescript/README.md), [Python](sdk/python/README.md)) regenerate from it when the API changes.
 
 ## Development
 
 ```bash
-yarn install
-yarn db:migrate         # apply migrations to local D1
-yarn test
-yarn dev
+bun install
+bun run db:migrate         # apply migrations to local D1
+bun run test
+bun run dev
 ```
 
 ### SDK development
 
 ```bash
-cd sdk
-yarn install
-yarn test
-yarn build
+cd sdk/typescript
+bun install
+bun run test
+bun run build
 ```
 
 ## Related resources

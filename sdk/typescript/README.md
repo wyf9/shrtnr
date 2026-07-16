@@ -1,22 +1,22 @@
-# @oddbit/shrtnr
+# @wyf9/shrtnr
 
 TypeScript SDK for [shrtnr](https://oddb.it/shrtnr-website-npm), a self-hosted URL shortener on Cloudflare Workers. Create short links, manage slugs, and read click analytics.
 
-[![npm](https://img.shields.io/npm/v/@oddbit/shrtnr)](https://www.npmjs.com/package/@oddbit/shrtnr)
-[![license](https://img.shields.io/npm/l/@oddbit/shrtnr)](https://www.apache.org/licenses/LICENSE-2.0)
+[![npm](https://img.shields.io/npm/v/@wyf9/shrtnr)](https://www.npmjs.com/package/@wyf9/shrtnr)
+[![license](https://img.shields.io/npm/l/@wyf9/shrtnr)](https://www.apache.org/licenses/LICENSE-2.0)
 
 ## Install
 
 ```bash
 npm install @oddbit/shrtnr
 # or
-yarn add @oddbit/shrtnr
+bun add @wyf9/shrtnr
 ```
 
 ## Quick start
 
 ```ts
-import { ShrtnrClient } from "@oddbit/shrtnr";
+import { ShrtnrClient } from "@wyf9/shrtnr";
 
 const client = new ShrtnrClient({
   baseUrl: "https://your-shrtnr.example.com",
@@ -91,7 +91,7 @@ const found = await client.slugs.lookup("spring-sale");
 
 All model fields use camelCase. The SDK converts snake_case JSON from the wire automatically.
 
-Key types exported from `@oddbit/shrtnr`:
+Key types exported from `@wyf9/shrtnr`:
 
 - `Link`, `Slug`
 - `ClickStats`, `TimelineData`, `NameCount`, `TimelineBucket`
@@ -103,7 +103,7 @@ Key types exported from `@oddbit/shrtnr`:
 Every 4xx/5xx response throws `ShrtnrError`. Network failures also throw `ShrtnrError` with `status: 0`.
 
 ```ts
-import { ShrtnrError } from "@oddbit/shrtnr";
+import { ShrtnrError } from "@wyf9/shrtnr";
 
 try {
   await client.links.get(99999);

@@ -9,8 +9,8 @@
  * and no whitespace, ready for hashing or comparison.
  *
  * Usage:
- *   yarn emit-spec          -> prints to stdout
- *   yarn emit-spec > out.json
+ *   bun run emit-spec          -> prints to stdout
+ *   bun run emit-spec > out.json
  */
 
 import { createRequire } from "module";

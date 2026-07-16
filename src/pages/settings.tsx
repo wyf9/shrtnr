@@ -289,18 +289,6 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   <span class="icon">open_in_new</span>
                 </a>
               </li>
-              <li>
-                <a
-                  href="https://oddb.it/shrtnr-pub-app"
-                  target="_blank"
-                  rel="noopener"
-                  class="integration-sdk-link"
-                >
-                  <span class="integration-sdk-lang">{t("settings.sdkDartLang")}</span>
-                  <span class="integration-sdk-pkg">{t("settings.sdkDartPkg")}</span>
-                  <span class="icon">open_in_new</span>
-                </a>
-              </li>
             </ul>
           </div>
           <a

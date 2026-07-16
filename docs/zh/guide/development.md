@@ -50,7 +50,7 @@ bun run test:watch    # 监听模式
 
 ## SDK 开发
 
-SDK 位于 `sdk/` 下的独立目录中（`typescript/`、`python/`、`dart/`）：
+SDK 位于 `sdk/` 下的独立目录中（`typescript/`、`python/`）：
 
 ```bash
 cd sdk/typescript
@@ -62,7 +62,7 @@ bun run build
 ::: tip SDK 一致性
 - 对任一 SDK 的改动都需要评估并同步到其他 SDK。
 - 所有 SDK 的 README 保持同步，仅按语言习惯做必要调整。
-- 每个 SDK 记录其最后一次针对的 OpenAPI 规范的 SHA-256（spec hash）。API 变更会同时使三个哈希过期。
+- 每个 SDK 记录其最后一次针对的 OpenAPI 规范的 SHA-256（spec hash）。API 变更会同时使两个哈希过期。
 :::
 
 详细的贡献与发布约定见 [贡献指南](/zh/contributing/guidelines) 与 [发布流程](/zh/contributing/releases)。

@@ -35,7 +35,7 @@ browser-extensions/
     popup/                toolbar popup (Preact)
     options/              full-page settings (Preact)
     components/           shared form + CTA banner
-    api.ts                wrapper around @oddbit/shrtnr
+    api.ts                wrapper around @wyf9/shrtnr
     storage.ts            chrome.storage.sync wrapper
     errors.ts             ErrorCategory + ExtensionError
     i18n/                 en / id / sv translations
@@ -49,22 +49,22 @@ browser-extensions/
   tests/                  Vitest specs for storage, api, i18n, popup, options
 ```
 
-The extension depends on the **published** `@oddbit/shrtnr` from npm — same as any external consumer. It never imports the local `sdk/typescript` source. SDK changes ship to npm first; the extension picks them up on the next version bump.
+The extension depends on the **published** `@wyf9/shrtnr` from npm — same as any external consumer. It never imports the local `sdk/typescript` source. SDK changes ship to npm first; the extension picks them up on the next version bump.
 
 ## Development
 
 ```bash
 cd browser-extensions
-yarn install
-yarn test          # all unit + component tests
-yarn build         # produces dist/{chrome,firefox}/ and dist/{chrome,firefox}.zip
+bun install
+bun run test          # all unit + component tests
+bun run build         # produces dist/{chrome,firefox}/ and dist/{chrome,firefox}.zip
 ```
 
 ### Watch mode
 
 ```bash
-yarn dev:chrome    # esbuild watch mode, output dist/chrome/
-yarn dev:firefox   # esbuild watch mode, output dist/firefox/
+bun run dev:chrome    # esbuild watch mode, output dist/chrome/
+bun run dev:firefox   # esbuild watch mode, output dist/firefox/
 ```
 
 In Chrome: `chrome://extensions/` → enable Developer mode → Load unpacked → pick `dist/chrome`.
@@ -73,8 +73,8 @@ In Firefox: `about:debugging#/runtime/this-firefox` → Load Temporary Add-on �
 ### Tests
 
 ```bash
-yarn test          # one-shot
-yarn test:watch    # watch mode
+bun run test          # one-shot
+bun run test:watch    # watch mode
 ```
 
 The test suite covers:
@@ -89,7 +89,7 @@ The chrome.* API is mocked in `tests/setup.ts` with an in-memory storage backend
 ### Linting Firefox build for AMO
 
 ```bash
-yarn lint:firefox
+bun run lint:firefox
 ```
 
 Runs `web-ext lint` against `dist/firefox/`. Two known warnings are expected: both report `innerHTML` usage from Preact's runtime, which is internal to the framework and not user-controlled. AMO accepts these.
@@ -97,7 +97,7 @@ Runs `web-ext lint` against `dist/firefox/`. Two known warnings are expected: bo
 ### Regenerating icons
 
 ```bash
-yarn icons    # not in package.json; invoke directly
+# not in package.json; invoke directly
 node scripts/generate-icons.mjs
 ```
 
@@ -136,7 +136,7 @@ The API key has the same blast radius as a session token. `chrome.storage.sync` 
 A bump of `browser-extensions/package.json` on `main` triggers `.github/workflows/release-extension.yml`, which:
 
 1. Reads the new version, computes tag `ext-v$VERSION`, exits early if the tag already exists or the manifest was not touched in the push.
-2. `yarn install --frozen-lockfile && yarn test && yarn build && yarn lint:firefox`.
+2. `bun install --frozen-lockfile && bun run test && bun run build && bun run lint:firefox`.
 3. Uploads `dist/chrome.zip` to the Chrome Web Store via `chrome-webstore-upload-cli`.
 4. Uploads `dist/firefox.zip` to AMO via `web-ext sign`.
 5. Tags `ext-v$VERSION` and creates a GitHub release with the changelog section.
@@ -156,9 +156,9 @@ Three languages, mirroring the admin app: English, Indonesian, Swedish. English 
 ## Related
 
 - [shrtnr server](https://github.com/oddbit/shrtnr) — the Cloudflare Worker the extension talks to
-- [`@oddbit/shrtnr` (npm)](https://oddb.it/shrtnr-npm-readme) — TypeScript SDK the extension depends on
+- [`@wyf9/shrtnr` (npm)](https://oddb.it/shrtnr-npm-readme) — TypeScript SDK the extension depends on
 - [`shrtnr` (PyPI)](https://oddb.it/shrtnr-pypi-readme) — Python SDK
-- [`shrtnr` (pub.dev)](https://oddb.it/shrtnr-pub-readme) — Dart SDK
+
 
 ## Attribution
 

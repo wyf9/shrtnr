@@ -8,7 +8,6 @@
 #
 # Auto-detects format from the file's basename:
 #   package.json   -> node JSON.parse(...).version
-#   pubspec.yaml   -> grep ^version:
 #   pyproject.toml -> grep ^version =
 #
 # Prints the version to stdout. Exits non-zero with an error on stderr if
@@ -38,9 +37,6 @@ case "$(basename "$MANIFEST")" in
       const v = JSON.parse(require('fs').readFileSync('$MANIFEST','utf8')).version;
       if (v) process.stdout.write(v);
     ")
-    ;;
-  pubspec.yaml)
-    VERSION=$(grep '^version:' "$MANIFEST" | head -n1 | awk '{print $2}' | tr -d '"')
     ;;
   pyproject.toml)
     VERSION=$(sed -nE 's/^version *= *"([^"]+)".*/\1/p' "$MANIFEST" | head -n1)

@@ -35,7 +35,7 @@ features:
     details: A built-in MCP server, authorized via Cloudflare Access OAuth, lets Claude, Copilot, and other AI assistants create and manage short links.
   - icon: 🧩
     title: SDKs and extensions
-    details: Official SDKs for TypeScript, Python, and Dart/Flutter, plus Chrome and Firefox browser extensions.
+    details: Official SDKs for TypeScript and Python, plus Chrome and Firefox browser extensions.
   - icon: 🔐
     title: You own everything
     details: Self-hosted, open-source, Apache 2.0. You own your data, domain, and short links. The management API uses scoped Bearer tokens.
@@ -52,7 +52,7 @@ features:
 
 Most URL shorteners either lock you into a SaaS with per-click pricing or require you to run a VPS. shrtnr runs on the Cloudflare Workers + D1 free tier. You own your data, your domain, and your short links.
 
-It takes one click to deploy. You then get a full admin UI, click analytics, SDKs for TypeScript, Python, and Dart, and an MCP server for AI assistants, all from a single Worker.
+It takes one click to deploy. You then get a full admin UI, click analytics, SDKs for TypeScript and Python, and an MCP server for AI assistants, all from a single Worker.
 
 ## Next steps
 

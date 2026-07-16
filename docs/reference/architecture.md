@@ -29,7 +29,7 @@ shrtnr/
 ├── migrations/             D1 database migrations
 ├── public/                 Static assets (icons, logos, manifest)
 ├── scripts/                Build and release scripts
-├── sdk/                    Official SDKs (typescript / python / dart)
+├── sdk/                    Official SDKs (typescript / python)
 ├── browser-extensions/     Chrome / Firefox extensions
 ├── docs/                   This documentation site (VitePress)
 └── wrangler.jsonc          Cloudflare Worker configuration

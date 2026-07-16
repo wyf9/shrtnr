@@ -213,11 +213,9 @@ const sv: Translations = {
   "settings.sdksDesc":
     "Hantera länkar från din egen kod. Skapa, uppdatera, inaktivera och läs klickanalys programmatiskt.",
   "settings.sdkTsLang": "TypeScript",
-  "settings.sdkTsPkg": "npm: @oddbit/shrtnr",
+  "settings.sdkTsPkg": "npm: @wyf9/shrtnr",
   "settings.sdkPythonLang": "Python",
   "settings.sdkPythonPkg": "PyPI: shrtnr",
-  "settings.sdkDartLang": "Dart",
-  "settings.sdkDartPkg": "pub.dev: shrtnr",
   "settings.mcpTitle": "MCP Server",
   "settings.mcpDesc":
     "Ge AI-assistenter åtkomst till dina länkar. Fungerar med Claude Desktop och GitHub Copilot i VS Code.",

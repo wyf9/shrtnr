@@ -6,11 +6,11 @@ Run before bumping `package.json` and tagging `ext-v*`.
 
 ```bash
 cd browser-extensions
-yarn install --frozen-lockfile
-yarn test
-yarn build
-yarn lint:firefox
-node scripts/verify-build.mjs
+bun install --frozen-lockfile
+bun run test
+bun run build
+bun run lint:firefox
+bun run verify-build
 ```
 
 All must exit 0. Two `UNSAFE_VAR_ASSIGNMENT` warnings from `web-ext lint` are expected (Preact's runtime). `errors=0` is required.

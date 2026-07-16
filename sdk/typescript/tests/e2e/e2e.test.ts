@@ -5,7 +5,7 @@
 // `wrangler dev` instance. Requires:
 //   SHRTNR_TEST_URL        base URL of the running dev server
 //   SHRTNR_TEST_API_KEY    a create+read API key minted by the harness
-// Default `yarn test` excludes this path via vitest.config.ts, so this
+// Default `bun run test` excludes this path via vitest.config.ts, so this
 // suite only runs via the dedicated vitest.e2e.config.ts used by the
 // harness. If either env var is missing at runtime, beforeAll throws so
 // a misconfigured harness can't pass silently.
@@ -21,7 +21,7 @@ describe("TS SDK e2e — live wrangler dev", () => {
 
   beforeAll(() => {
     // Fail hard rather than skip. These tests only run via the explicit
-    // tests/e2e/ path (default `yarn test` excludes this folder), so missing
+    // tests/e2e/ path (default `bun run test` excludes this folder), so missing
     // env vars at this point means the harness is misconfigured. A silent
     // skip would hide it behind a green CI check.
     if (!BASE_URL || !API_KEY) {

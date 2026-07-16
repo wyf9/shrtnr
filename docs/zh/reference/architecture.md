@@ -29,7 +29,7 @@ shrtnr/
 ├── migrations/             D1 数据库迁移
 ├── public/                 静态资源（图标、logo、manifest）
 ├── scripts/                构建与发布脚本
-├── sdk/                    官方 SDK（typescript / python / dart）
+├── sdk/                    官方 SDK（typescript / python）
 ├── browser-extensions/     Chrome / Firefox 扩展
 ├── docs/                   本文档站点 (VitePress)
 └── wrangler.jsonc          Cloudflare Worker 配置

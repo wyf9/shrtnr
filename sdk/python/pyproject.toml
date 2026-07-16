@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "shrtnr"
+name = "wshrtnr"
 version = "2.0.0"
 description = "SDK for the shrtnr URL shortener API"
 readme = "README.md"

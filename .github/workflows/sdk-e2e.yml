@@ -25,22 +25,20 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v6
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
+          bun-version: latest
 
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
-      - uses: dart-lang/setup-dart@v1
-
       - name: Install root dependencies
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Install TypeScript SDK dependencies
         working-directory: sdk/typescript
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Install Python SDK dev dependencies
         working-directory: sdk/python
@@ -48,10 +46,6 @@ jobs:
           python -m venv .venv
           .venv/bin/pip install --upgrade pip
           .venv/bin/pip install -e '.[dev]'
-
-      - name: Install Dart SDK dependencies
-        working-directory: sdk/dart
-        run: dart pub get
 
       - name: Run cross-SDK e2e harness
         run: scripts/test-sdks-e2e.sh

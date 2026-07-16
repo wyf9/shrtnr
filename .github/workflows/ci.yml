@@ -20,20 +20,20 @@ concurrency:
 
 jobs:
   worker:
-    name: Worker (yarn test)
+    name: Worker (bun test)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
+          bun-version: latest
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Typecheck
-        run: yarn tsc --noEmit
+        run: bun run tsc --noEmit
       - name: Run vitest suite
-        run: yarn test --run
+        run: bun run test --run
 
   sdk-typescript:
     name: SDK — TypeScript
@@ -41,18 +41,18 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
+          bun-version: latest
       - name: Install dependencies
         working-directory: sdk/typescript
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Test
         working-directory: sdk/typescript
-        run: yarn test
+        run: bun run test
       - name: Build
         working-directory: sdk/typescript
-        run: yarn build
+        run: bun run build
 
   sdk-python:
     name: SDK — Python
@@ -83,52 +83,33 @@ jobs:
         working-directory: sdk/python
         run: pytest
 
-  sdk-dart:
-    name: SDK — Dart
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dart-lang/setup-dart@v1
-      - name: Install dependencies
-        working-directory: sdk/dart
-        run: dart pub get
-      - name: Analyze
-        working-directory: sdk/dart
-        run: dart analyze --fatal-infos
-      - name: Test
-        working-directory: sdk/dart
-        # Unit tier only. E2e tests have `@Tags(['e2e'])` and run separately
-        # via scripts/test-sdks-e2e.sh against a live wrangler dev.
-        run: dart test --exclude-tags e2e
-
   browser-extension:
     name: Browser extension
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
+          bun-version: latest
       - name: Install dependencies
         working-directory: browser-extensions
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Test
         working-directory: browser-extensions
-        run: yarn test
+        run: bun run test
       - name: Build
         working-directory: browser-extensions
-        run: yarn build
+        run: bun run build
       - name: Verify build artifacts
         working-directory: browser-extensions
-        run: node scripts/verify-build.mjs
+        run: bun run verify-build
       - name: Lint Firefox build (web-ext)
         working-directory: browser-extensions
         # web-ext lint emits warnings (notably for Preact's runtime use of
         # innerHTML) without failing. We only fail on errors=0; warnings are
         # surfaced in the log for review.
-        run: yarn lint:firefox
+        run: bun run lint:firefox
 
   sdk-spec-drift:
     name: SDK spec hash parity
@@ -136,11 +117,11 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
+          bun-version: latest
       - name: Install root dependencies
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Compute current spec hash
         id: current
         run: |
@@ -175,19 +156,6 @@ jobs:
           ' sdk/python/pyproject.toml | sed 's/^sha256://')
           if [ "$recorded" != "$CURRENT" ]; then
             echo "::error file=sdk/python/pyproject.toml::Python SDK [tool.shrtnr] spec_hash is stale"
-            echo "  recorded: sha256:$recorded"
-            echo "  current:  sha256:$CURRENT"
-            echo "Resolve by regenerating the SDK against the current spec and bumping the hash, or by updating the hash if the spec change does not affect the SDK surface (see CLAUDE.md)."
-            exit 1
-          fi
-      - name: Check Dart SDK manifest hash
-        env:
-          CURRENT: ${{ steps.current.outputs.hash }}
-        run: |
-          # Hash is stored as a leading comment to avoid a pana score deduction for unknown top-level keys.
-          recorded=$(grep '^# x-spec-hash:' sdk/dart/pubspec.yaml | awk '{print $3}' | sed 's/^sha256://')
-          if [ "$recorded" != "$CURRENT" ]; then
-            echo "::error file=sdk/dart/pubspec.yaml::Dart SDK x-spec-hash is stale"
             echo "  recorded: sha256:$recorded"
             echo "  current:  sha256:$CURRENT"
             echo "Resolve by regenerating the SDK against the current spec and bumping the hash, or by updating the hash if the spec change does not affect the SDK surface (see CLAUDE.md)."

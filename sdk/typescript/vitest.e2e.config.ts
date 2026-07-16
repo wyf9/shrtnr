@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 // Dedicated e2e config. The default vitest.config.ts excludes
-// **/tests/e2e/** so plain `yarn test` runs unit tests only. The
+// **/tests/e2e/** so plain `bun run test` runs unit tests only. The
 // scripts/test-sdks-e2e.sh harness loads this config explicitly, which
 // includes tests/e2e/ instead of excluding it.
 //

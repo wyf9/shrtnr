@@ -14,12 +14,10 @@
 #   scripts/test-sdks-e2e.sh            # run all SDKs
 #   scripts/test-sdks-e2e.sh ts         # TypeScript only
 #   scripts/test-sdks-e2e.sh python     # Python only
-#   scripts/test-sdks-e2e.sh dart       # Dart only
 #
 # Requirements:
-#   - yarn + node (wrangler dev)
+#   - bun + node (wrangler dev)
 #   - python3 with sdk/python/.venv created (cd sdk/python && python3 -m venv .venv && .venv/bin/pip install -e '.[dev]')
-#   - dart
 #   - openssl, shasum (or sha256sum) — present on macOS and ubuntu-latest
 
 set -euo pipefail
@@ -29,7 +27,7 @@ URL="http://127.0.0.1:${PORT}"
 IDENTITY="e2e@shrtnr.test"
 
 if [ "$#" -eq 0 ]; then
-  SDKS=(ts python dart)
+  SDKS=(ts python)
 else
   SDKS=("$@")
 fi
@@ -72,8 +70,8 @@ echo "==> seeding API key in local D1 (identity=$IDENTITY, scope=create,read)"
 npx --no-install wrangler d1 execute DB --local --command "DELETE FROM api_keys WHERE identity = '$IDENTITY'; INSERT INTO api_keys (identity, title, key_prefix, key_hash, scope, created_at) VALUES ('$IDENTITY', 'e2e', '$PREFIX', '$HASH', 'create,read', $NOW);" >/dev/null
 
 echo "==> starting wrangler dev on :${PORT}"
-# Spawn wrangler directly (not via `yarn dev`) so $! is the real server
-# PID. Going through yarn makes $! yarn's PID; the trap on EXIT then
+# Spawn wrangler directly (not via `bun run dev`) so $! is the real server
+# PID. Going through bun makes $! bun's PID; the trap on EXIT then
 # signals yarn, which may or may not forward to wrangler on hard kills,
 # leaving wrangler orphaned on port $PORT + holding the D1 lock.
 npx --no-install wrangler dev --port "$PORT" >"$WRANGLER_LOG" 2>&1 &
@@ -113,9 +111,9 @@ run_sdk() {
     ts|typescript|npm)
       # Uses the dedicated e2e config (include tests/e2e, no exclude) so
       # it doesn't collide with the default config that hides tests/e2e
-      # from `yarn test`. No --passWithNoTests: a zero-test outcome
+      # from `bun run test`. No --passWithNoTests: a zero-test outcome
       # means tests/e2e got excluded by config drift — fail loudly.
-      (cd sdk/typescript && yarn install --frozen-lockfile --silent >/dev/null && yarn vitest run --config vitest.e2e.config.ts) || status=$?
+      (cd sdk/typescript && bun install --frozen-lockfile --silent >/dev/null && bun run vitest run --config vitest.e2e.config.ts) || status=$?
       ;;
     python|py)
       if [ ! -x sdk/python/.venv/bin/pytest ]; then
@@ -124,9 +122,6 @@ run_sdk() {
       else
         (cd sdk/python && .venv/bin/pytest -m e2e) || status=$?
       fi
-      ;;
-    dart|pub)
-      (cd sdk/dart && dart pub get && dart test --tags e2e) || status=$?
       ;;
     *)
       echo "!! unknown sdk: $sdk" >&2

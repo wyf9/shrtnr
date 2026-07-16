@@ -3,7 +3,7 @@
 //
 // Regenerates assets/icon-{16,32,48,128}.png from assets/icon.svg.
 //
-// Uses sharp if installed (`yarn add -D sharp`); otherwise falls back to
+// Uses sharp if installed (`bun add -D sharp`); otherwise falls back to
 // the system `magick` binary (ImageMagick). Manual one-shot tool — the
 // build pipeline does not call this; the PNGs are checked in.
 

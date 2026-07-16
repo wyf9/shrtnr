@@ -30,7 +30,7 @@ The public API uses [`@hono/zod-openapi`](https://github.com/honojs/middleware/t
 - **OpenAPI 3.1 spec** (JSON): **`/_/api/openapi.json`** on your deployment
 
 ::: tip The spec is the source of truth
-The SDKs ([TypeScript](/integrations/sdks), Python, Dart) regenerate from this spec when the API changes. Treat `/_/api/openapi.json` as authoritative instead of hardcoding endpoint details.
+The SDKs ([TypeScript](/integrations/sdks), Python) regenerate from this spec when the API changes. Treat `/_/api/openapi.json` as authoritative instead of hardcoding endpoint details.
 :::
 
 ## Resource groups

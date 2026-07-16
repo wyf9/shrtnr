@@ -50,7 +50,7 @@ bun run test:watch    # watch mode
 
 ## SDK development
 
-The SDKs live in separate directories under `sdk/` (`typescript/`, `python/`, `dart/`):
+The SDKs live in separate directories under `sdk/` (`typescript/`, `python/`):
 
 ```bash
 cd sdk/typescript
@@ -62,7 +62,7 @@ bun run build
 ::: tip SDK parity
 - Any change to one SDK must be evaluated and applied to the others.
 - All SDK READMEs stay in lockstep, adjusted only for language idioms.
-- Each SDK records the SHA-256 of the OpenAPI spec it was last generated against (spec hash). An API change stales all three hashes.
+- Each SDK records the SHA-256 of the OpenAPI spec it was last generated against (spec hash). An API change stales both hashes.
 :::
 
 For detailed contribution and release conventions, see [Contribution Guidelines](/contributing/guidelines) and [Releases](/contributing/releases).
