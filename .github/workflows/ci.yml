@@ -76,9 +76,9 @@ jobs:
         run: |
           ruff check .
           ruff format --check .
-      - name: Typecheck (mypy --strict)
+      - name: Typecheck (ty)
         working-directory: sdk/python
-        run: mypy --strict src/shrtnr
+        run: ty src/wshrtnr
       - name: Test (pytest)
         working-directory: sdk/python
         run: pytest
