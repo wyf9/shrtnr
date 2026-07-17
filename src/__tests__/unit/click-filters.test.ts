@@ -53,6 +53,60 @@ async function seedClicksMixed(slug: string): Promise<void> {
   });
 }
 
+// A fixture with one AI-search click plus two "real" clicks.
+async function seedClicksWithAiSearch(slug: string): Promise<void> {
+  await ClickRepository.record(env.DB, slug, {
+    referrerHost: "pub.dev",
+    country: "US",
+    isBot: 0,
+    isSelfReferrer: 0,
+    isAiSearch: 0,
+  });
+  await ClickRepository.record(env.DB, slug, {
+    referrerHost: "github.com",
+    country: "SE",
+    isBot: 0,
+    isSelfReferrer: 0,
+    isAiSearch: 0,
+  });
+  await ClickRepository.record(env.DB, slug, {
+    referrerHost: "chatgpt.com",
+    country: "NL",
+    isBot: 0,
+    isSelfReferrer: 0,
+    isAiSearch: 1,
+  });
+}
+
+describe("ClickRepository.getStats: excludeAiSearches", () => {
+  it("excludeAiSearches=true drops AI-search clicks from totals and breakdowns", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ai1" });
+    await seedClicksWithAiSearch(link.slugs[0].slug);
+
+    const raw = await ClickRepository.getStats(env.DB, link.id);
+    expect(raw.total_clicks).toBe(3);
+
+    const filtered = await ClickRepository.getStats(env.DB, link.id, undefined, {
+      excludeAiSearches: true,
+    });
+    expect(filtered.total_clicks).toBe(2);
+    expect(filtered.referrer_hosts.map((r) => r.name)).not.toContain("chatgpt.com");
+    expect(filtered.countries.find((c) => c.name === "NL")).toBeUndefined();
+  });
+
+  it("leaves AI-search clicks in place when the filter is off", async () => {
+    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ai2" });
+    await seedClicksWithAiSearch(link.slugs[0].slug);
+
+    const stats = await ClickRepository.getStats(env.DB, link.id, undefined, {
+      excludeBots: true,
+      excludeSelfReferrers: true,
+    });
+    expect(stats.total_clicks).toBe(3);
+    expect(stats.referrer_hosts.map((r) => r.name)).toContain("chatgpt.com");
+  });
+});
+
 describe("ClickRepository.getStats: ClickFilters", () => {
   it("no filter passed: all clicks counted everywhere", async () => {
     const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f1a" });

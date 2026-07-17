@@ -36,10 +36,6 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({
     ? "/oddbit-logotype-white.svg"
     : "/oddbit-logotype-mint-green.svg";
 
-  const brandLogotype = currentTheme === "light"
-    ? "/logotype-black.svg"
-    : "/logotype-white.svg";
-
   const navItems = [
     { id: "dashboard", href: "/_/admin/dashboard", icon: "dashboard", label: t("nav.dashboard") },
     { id: "links", href: "/_/admin/links", icon: "link", label: t("nav.links") },
@@ -76,7 +72,9 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({
       <body data-page={active}>
         <nav class="sidebar">
           <div class="sidebar-brand">
-            <img src={brandLogotype} alt="shrtnr." />
+            <span class="brand-logotype" role="img" aria-label="shrtnr.">
+              shrtnr<span class="brand-logotype-dot">.</span>
+            </span>
           </div>
           <div class="sidebar-nav">
             {navItems.map((item) => (
@@ -120,7 +118,9 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({
               <span class="icon">menu</span>
             </button>
             <div class="mobile-brand">
-              <img src={brandLogotype} alt="shrtnr." />
+              <span class="brand-logotype" role="img" aria-label="shrtnr.">
+                shrtnr<span class="brand-logotype-dot">.</span>
+              </span>
             </div>
           </div>
 

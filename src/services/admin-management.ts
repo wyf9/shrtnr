@@ -3,7 +3,7 @@
 
 import { ApiKeyRepository, SettingRepository } from "../db";
 import type { ApiKeyRow, ClickFilters } from "../db";
-import { DEFAULT_SLUG_LENGTH } from "../constants";
+import { DEFAULT_SLUG_LENGTH, REDIRECT_CACHE_TAG } from "../constants";
 import { validateSlugLength } from "../slugs";
 import { parseDynamicRedirectRules, matchDynamicRedirect } from "../redirect-rules";
 import { Env, TimelineRange } from "../types";
@@ -11,6 +11,18 @@ import { ServiceResult, ok, fail } from "./result";
 
 const VALID_RANGES: TimelineRange[] = ["24h", "7d", "30d", "90d", "1y", "all"];
 const DEFAULT_RANGE: TimelineRange = "30d";
+
+type CachePurgeContext = Pick<ExecutionContext, "waitUntil" | "cache">;
+
+/**
+ * Drop every cached redirect response by purging the shared cache tag that
+ * `handleRedirect` attaches to all of them. No-op when the runtime does not
+ * expose a cache-purge binding (e.g. local dev without the feature).
+ */
+function purgeAllRedirectCache(ctx: CachePurgeContext | undefined): void {
+  if (!ctx?.cache) return;
+  ctx.waitUntil(ctx.cache.purge({ tags: [REDIRECT_CACHE_TAG] }).then(() => undefined));
+}
 
 function isValidRange(v: unknown): v is TimelineRange {
   return typeof v === "string" && (VALID_RANGES as string[]).includes(v);
@@ -86,6 +98,7 @@ export type AppSettings = {
   default_range: TimelineRange;
   filter_bots: boolean;
   filter_self_referrers: boolean;
+  filter_ai_searches: boolean;
   root_redirect_url: string | null;
   redirect_cache_enabled: boolean;
   dynamic_redirect_strict_match: boolean;
@@ -117,13 +130,14 @@ export async function getAppSettings(
   env: Env,
   identity: string,
 ): Promise<ServiceResult<AppSettings>> {
-  const [slugLength, theme, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch] = await Promise.all([
+  const [slugLength, theme, lang, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch] = await Promise.all([
     SettingRepository.get(env.DB, identity, "slug_default_length"),
     SettingRepository.get(env.DB, identity, "theme"),
     SettingRepository.get(env.DB, identity, "lang"),
     SettingRepository.get(env.DB, identity, "default_range"),
     SettingRepository.get(env.DB, identity, "filter_bots"),
     SettingRepository.get(env.DB, identity, "filter_self_referrers"),
+    SettingRepository.get(env.DB, identity, "filter_ai_searches"),
     SettingRepository.get(env.DB, "anonymous", "root_redirect_url"),
     SettingRepository.get(env.DB, "anonymous", "redirect_cache_enabled"),
     SettingRepository.get(env.DB, "anonymous", "dynamic_redirect_strict_match"),
@@ -135,6 +149,7 @@ export async function getAppSettings(
     default_range: isValidRange(defaultRange) ? defaultRange : DEFAULT_RANGE,
     filter_bots: parseBoolSetting(filterBots, true),
     filter_self_referrers: parseBoolSetting(filterSelfReferrers, true),
+    filter_ai_searches: parseBoolSetting(filterAiSearches, true),
     root_redirect_url: normalizeRootRedirectUrl(rootRedirectUrl),
     redirect_cache_enabled: parseBoolSetting(redirectCacheEnabled, false),
     dynamic_redirect_strict_match: parseBoolSetting(dynamicRedirectStrictMatch, false),
@@ -151,10 +166,12 @@ export async function updateAppSettings(
     default_range?: TimelineRange | null | "";
     filter_bots?: boolean;
     filter_self_referrers?: boolean;
+    filter_ai_searches?: boolean;
     root_redirect_url?: string | null;
     redirect_cache_enabled?: boolean;
     dynamic_redirect_strict_match?: boolean;
   },
+  ctx?: CachePurgeContext,
 ): Promise<ServiceResult<AppSettings>> {
   if (body.slug_default_length !== undefined) {
     const err = validateSlugLength(body.slug_default_length);
@@ -188,6 +205,12 @@ export async function updateAppSettings(
     }
     await SettingRepository.set(env.DB, identity, "filter_self_referrers", String(body.filter_self_referrers));
   }
+  if (body.filter_ai_searches !== undefined) {
+    if (typeof body.filter_ai_searches !== "boolean") {
+      return fail(400, "filter_ai_searches must be a boolean");
+    }
+    await SettingRepository.set(env.DB, identity, "filter_ai_searches", String(body.filter_ai_searches));
+  }
   if (body.root_redirect_url !== undefined) {
     if (body.root_redirect_url === null || body.root_redirect_url.trim() === "") {
       await SettingRepository.set(env.DB, "anonymous", "root_redirect_url", "");
@@ -204,6 +227,14 @@ export async function updateAppSettings(
       return fail(400, "redirect_cache_enabled must be a boolean");
     }
     await SettingRepository.set(env.DB, "anonymous", "redirect_cache_enabled", String(body.redirect_cache_enabled));
+    // Turning the cache off must also drop every already-cached redirect.
+    // Otherwise clients keep replaying the long-lived 301 straight from the
+    // edge, the Worker never runs, and click analytics stay broken until the
+    // year-long TTL expires. Purge all redirect responses so tracking resumes
+    // immediately.
+    if (body.redirect_cache_enabled === false) {
+      purgeAllRedirectCache(ctx);
+    }
   }
   if (body.dynamic_redirect_strict_match !== undefined) {
     if (typeof body.dynamic_redirect_strict_match !== "boolean") {
@@ -213,6 +244,16 @@ export async function updateAppSettings(
   }
 
   return getAppSettings(env, identity);
+}
+
+/**
+ * Manually drop every cached redirect. Exposed as an admin action so operators
+ * can force stale 301s out of the edge cache without waiting for the TTL, for
+ * example after noticing analytics undercounting.
+ */
+export async function purgeRedirectCache(ctx?: CachePurgeContext): Promise<ServiceResult<{ ok: true }>> {
+  purgeAllRedirectCache(ctx);
+  return ok({ ok: true });
 }
 
 export async function isRedirectCacheEnabled(env: Env): Promise<boolean> {
@@ -252,10 +293,11 @@ export async function getDynamicRedirect(env: Env, requestUrl: string): Promise<
  */
 export async function resolveClickFilters(env: Env, identity: string): Promise<ClickFilters> {
   const result = await getAppSettings(env, identity);
-  if (!result.ok) return { excludeBots: true, excludeSelfReferrers: true };
+  if (!result.ok) return { excludeBots: true, excludeSelfReferrers: true, excludeAiSearches: true };
   return {
     excludeBots: result.data.filter_bots,
     excludeSelfReferrers: result.data.filter_self_referrers,
+    excludeAiSearches: result.data.filter_ai_searches,
   };
 }
 

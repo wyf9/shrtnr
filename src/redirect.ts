@@ -5,9 +5,10 @@ import { recordClick } from "./services/link-management";
 import { isRedirectCacheEnabled } from "./services/admin-management";
 import { SlugCache } from "./kv";
 import { SlugRepository } from "./db";
-import { parseDeviceType, parseBrowser, parseOS, isBot } from "./ua";
+import { parseDeviceType, parseBrowser, parseOS, isBot, isAiSearch } from "./ua";
 import { notFoundResponse } from "./404";
 import { ClickData, Env } from "./types";
+import { REDIRECT_CACHE_TAG, redirectCacheTag } from "./constants";
 import { computeVisitorFingerprint } from "./fingerprint";
 import { isBareOriginSelfReferrer, normalizeHost, parseReferrerHost } from "./referrer";
 
@@ -82,6 +83,7 @@ export async function handleRedirect(
     userAgent: ua || null,
     isBot: isBot(ua) ? 1 : 0,
     isSelfReferrer: selfReferrer ? 1 : 0,
+    isAiSearch: isAiSearch(ua) ? 1 : 0,
     visitorFp,
   };
 
@@ -91,7 +93,9 @@ export async function handleRedirect(
   const headers = new Headers({ Location: new URL(entry.url).toString() });
   if (await isRedirectCacheEnabled(env)) {
     headers.set("Cache-Control", "public, max-age=31536000, stale-while-revalidate=604800");
-    headers.set("Cache-Tag", `redirect:${normalizedSlug}`);
+    // Tag with both a per-slug tag (for targeted purges on edit/disable) and a
+    // shared tag so disabling the cache can purge every redirect in one call.
+    headers.set("Cache-Tag", `${REDIRECT_CACHE_TAG},${redirectCacheTag(normalizedSlug)}`);
   } else {
     headers.set("Cache-Control", "no-store");
   }

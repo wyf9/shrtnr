@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseDeviceType, parseBrowser, parseCliClient, parseOS, isBot } from "../../ua";
+import { parseDeviceType, parseBrowser, parseCliClient, parseOS, isBot, isAiSearch } from "../../ua";
 
 describe("parseDeviceType", () => {
   it("should detect Mobile Safari as mobile", () => {
@@ -421,5 +421,59 @@ describe("isBot", () => {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
       )
     ).toBe(false);
+  });
+
+  it("flags Google-Extended AI training crawler as bot", () => {
+    expect(isBot("Google-Extended")).toBe(true);
+  });
+
+  it("flags anthropic-ai AI training crawler as bot", () => {
+    expect(isBot("anthropic-ai")).toBe(true);
+  });
+
+  it("flags cohere-ai AI training crawler as bot", () => {
+    expect(isBot("cohere-ai")).toBe(true);
+  });
+
+  it("flags Amazonbot AI crawler as bot", () => {
+    expect(isBot("Mozilla/5.0 (compatible; Amazonbot/0.1; +https://developer.amazon.com/support/amazonbot)")).toBe(true);
+  });
+
+  it("flags Meta-ExternalAgent AI crawler as bot", () => {
+    expect(isBot("meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)")).toBe(true);
+  });
+});
+
+describe("isAiSearch", () => {
+  it("flags ChatGPT-User (live user-triggered fetch) as an AI search", () => {
+    expect(isAiSearch("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0")).toBe(true);
+  });
+
+  it("flags Perplexity-User as an AI search", () => {
+    expect(isAiSearch("Mozilla/5.0 (compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)")).toBe(true);
+  });
+
+  it("flags Claude-User as an AI search", () => {
+    expect(isAiSearch("Mozilla/5.0 (compatible; Claude-User/1.0; +Claude-User@anthropic.com)")).toBe(true);
+  });
+
+  it("flags OAI-SearchBot as an AI search", () => {
+    expect(isAiSearch("Mozilla/5.0 (compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot)")).toBe(true);
+  });
+
+  it("does not flag a normal desktop browser as an AI search", () => {
+    expect(
+      isAiSearch(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      )
+    ).toBe(false);
+  });
+
+  it("does not flag GPTBot (a training crawler) as an AI search", () => {
+    expect(isAiSearch("Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)")).toBe(false);
+  });
+
+  it("does not flag an empty UA as an AI search", () => {
+    expect(isAiSearch("")).toBe(false);
   });
 });

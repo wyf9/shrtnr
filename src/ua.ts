@@ -23,6 +23,37 @@ export function parseOS(ua: string): string {
   return "other";
 }
 
+// AI model-training and content-ingestion crawlers. Most already carry a
+// "bot"/"crawl"/"spider" token and match BOT_PATTERNS, but several identify
+// with tokens that do not (Google-Extended, anthropic-ai, cohere-ai, ...), so
+// list them explicitly to guarantee the bot filter catches AI crawler traffic.
+// These pull pages to build datasets; they are distinct from the live,
+// user-triggered AI searches handled by AI_SEARCH_PATTERNS below.
+const AI_CRAWLER_TOKENS = [
+  "gptbot",
+  "ccbot",
+  "claudebot",
+  "anthropic-ai",
+  "google-extended",
+  "applebot-extended",
+  "bytespider",
+  "meta-externalagent",
+  "facebookbot",
+  "amazonbot",
+  "cohere-ai",
+  "cohere-training-data-crawler",
+  "perplexitybot",
+  "diffbot",
+  "omgili",
+  "omgilibot",
+  "img2dataset",
+  "timpibot",
+  "youbot",
+  "imagesiftbot",
+  "petalbot",
+  "scrapy",
+];
+
 const BOT_PATTERNS = new RegExp(
   [
     "bot\\b",
@@ -50,6 +81,7 @@ const BOT_PATTERNS = new RegExp(
     "selenium",
     "lighthouse",
     "pagespeed",
+    ...AI_CRAWLER_TOKENS,
   ].join("|"),
   "i",
 );
@@ -57,6 +89,38 @@ const BOT_PATTERNS = new RegExp(
 export function isBot(ua: string): boolean {
   if (!ua || ua.trim() === "") return true;
   return BOT_PATTERNS.test(ua);
+}
+
+// Live AI searches and assistant fetches triggered when a person asks an AI
+// tool (or an agent acting on their behalf) to look something up, distinct
+// from the training crawlers above. These come from real prompts, so the
+// dashboard filters them separately from generic bot traffic.
+const AI_SEARCH_PATTERNS = new RegExp(
+  [
+    "chatgpt-user",
+    "oai-searchbot",
+    "perplexity-user",
+    "claude-user",
+    "claude-web",
+    "claude-searchbot",
+    "duckassistbot",
+    "meta-externalfetcher",
+    "google-cloudvertexbot",
+    "gemini-user",
+    "bingbot-assistant",
+  ].join("|"),
+  "i",
+);
+
+/**
+ * True when the request comes from an AI assistant or AI search performing a
+ * live lookup on behalf of a user or agent (for example ChatGPT-User,
+ * Perplexity-User, Claude-User). Training crawlers such as GPTBot are handled
+ * by {@link isBot}, not here.
+ */
+export function isAiSearch(ua: string): boolean {
+  if (!ua) return false;
+  return AI_SEARCH_PATTERNS.test(ua);
 }
 
 // Command-line tools, HTTP libraries, and API clients. These do not identify as

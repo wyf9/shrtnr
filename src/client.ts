@@ -793,6 +793,22 @@ AdminClient.setFilterSelfReferrers = function (checked) {
   });
 }
 
+AdminClient.setFilterAiSearches = function (checked) {
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ filter_ai_searches: Boolean(checked) }) }).then(function(res) {
+    if (res.ok) {
+      AdminClient.toast(AdminClient.t('client.settingsSaved'));
+    } else {
+      return res.json().then(function(data) {
+        AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
+      }).catch(function() {
+        AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
+      });
+    }
+  }).catch(function(err) {
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
+  });
+}
+
 AdminClient.setRedirectCache = function (checked) {
   AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ redirect_cache_enabled: Boolean(checked) }) }).then(function(res) {
     if (res.ok) {
@@ -806,6 +822,22 @@ AdminClient.setRedirectCache = function (checked) {
     }
   }).catch(function(err) {
     AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
+  });
+}
+
+AdminClient.purgeRedirectCache = function () {
+  AdminClient.api('/cache/purge', { method: 'POST' }).then(function(res) {
+    if (res.ok) {
+      AdminClient.toast(AdminClient.t('client.cachePurged'));
+    } else {
+      return res.json().then(function(data) {
+        AdminClient.toast(data.error || AdminClient.t('client.cachePurgeError'), 'error');
+      }).catch(function() {
+        AdminClient.toast(AdminClient.t('client.cachePurgeError'), 'error');
+      });
+    }
+  }).catch(function(err) {
+    AdminClient.toast(AdminClient.t('client.cachePurgeError'), 'error');
   });
 }
 

@@ -10,6 +10,7 @@
 export type ClickFilters = {
   excludeBots?: boolean;
   excludeSelfReferrers?: boolean;
+  excludeAiSearches?: boolean;
 };
 
 /**
@@ -21,6 +22,7 @@ export function clickFilterSql(filters?: ClickFilters, alias = ""): string {
   const parts: string[] = [];
   if (filters?.excludeBots) parts.push(`${prefix}is_bot = 0`);
   if (filters?.excludeSelfReferrers) parts.push(`${prefix}is_self_referrer = 0`);
+  if (filters?.excludeAiSearches) parts.push(`${prefix}is_ai_search = 0`);
   return parts.length ? " AND " + parts.join(" AND ") : "";
 }
 

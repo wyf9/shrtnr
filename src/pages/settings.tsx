@@ -18,6 +18,7 @@ type Props = {
   defaultRange: TimelineRange;
   filterBots: boolean;
   filterSelfReferrers: boolean;
+  filterAiSearches: boolean;
   rootRedirectUrl: string;
   redirectCacheEnabled: boolean;
   dynamicRedirectStrictMatch: boolean;
@@ -26,7 +27,7 @@ type Props = {
   userEmail?: string | null;
 };
 
-export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch, t, mcpConfigured, userEmail }) => {
+export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch, t, mcpConfigured, userEmail }) => {
   const combos = Math.pow(RANDOM_CHARSET.length, Math.max(slugLength, MIN_SLUG_LENGTH));
   const comboHint =
     slugLength < MIN_SLUG_LENGTH
@@ -190,6 +191,22 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   <span class="toggle-thumb"></span>
                 </label>
               </div>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-label">{t("settings.filterAiSearches")}</div>
+                  <div class="toggle-hint">{t("settings.filterAiSearchesHint")}</div>
+                </div>
+                <label class="toggle-switch">
+                  <input
+                    type="checkbox"
+                    id="filter-ai-searches-toggle"
+                    checked={filterAiSearches}
+                    onchange="AdminClient.setFilterAiSearches(this.checked)"
+                  />
+                  <span class="toggle-track"></span>
+                  <span class="toggle-thumb"></span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -211,6 +228,15 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   <span class="toggle-track"></span>
                   <span class="toggle-thumb"></span>
                 </label>
+              </div>
+              <div class="setting-action-row">
+                <div class="setting-action-copy">
+                  <div class="toggle-label">{t("settings.purgeCache")}</div>
+                  <div class="toggle-hint">{t("settings.purgeCacheHint")}</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="AdminClient.purgeRedirectCache()">
+                  <span class="icon">cached</span> {t("settings.purgeCacheButton")}
+                </button>
               </div>
             </div>
           </div>

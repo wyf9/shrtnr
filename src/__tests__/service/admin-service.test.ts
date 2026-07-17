@@ -135,6 +135,27 @@ describe("admin-management service", () => {
     }
   });
 
+  it("returns filter_ai_searches=true by default", async () => {
+    const settings = await getAppSettings(env as any, TEST_IDENTITY);
+    expect(settings.ok).toBe(true);
+    if (settings.ok) expect(settings.data.filter_ai_searches).toBe(true);
+  });
+
+  it("persists filter_ai_searches when toggled off and back on", async () => {
+    const off = await updateAppSettings(env as any, TEST_IDENTITY, { filter_ai_searches: false });
+    expect(off.ok).toBe(true);
+    if (off.ok) expect(off.data.filter_ai_searches).toBe(false);
+
+    const on = await updateAppSettings(env as any, TEST_IDENTITY, { filter_ai_searches: true });
+    if (on.ok) expect(on.data.filter_ai_searches).toBe(true);
+  });
+
+  it("rejects non-boolean filter_ai_searches", async () => {
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, { filter_ai_searches: "nope" as any });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(400);
+  });
+
   it("persists a valid root_redirect_url", async () => {
     const updated = await updateAppSettings(env as any, TEST_IDENTITY, { root_redirect_url: "https://example.com/root" });
     expect(updated.ok).toBe(true);

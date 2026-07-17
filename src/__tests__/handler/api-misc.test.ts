@@ -179,6 +179,13 @@ describe("Routing", () => {
     expect(body.redirect_cache_enabled).toBe(true);
   });
 
+  it("POST /_/admin/api/cache/purge should succeed", async () => {
+    const res = await SELF.fetch(authed("/_/admin/api/cache/purge", { method: "POST" }));
+    expect(res.status).toBe(200);
+    const body = await res.json() as { ok: boolean };
+    expect(body.ok).toBe(true);
+  });
+
   it("GET /_/admin should redirect to /_/admin/dashboard", async () => {
     const res = await SELF.fetch(unauthed("/_/admin"), { redirect: "manual" });
     expect(res.status).toBe(302);
@@ -288,7 +295,9 @@ describe("Redirect", () => {
     const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
     expect(res.status).toBe(301);
     expect(res.headers.get("Cache-Control")).toBe("public, max-age=31536000, stale-while-revalidate=604800");
-    expect(res.headers.get("Cache-Tag")).toBe(`redirect:${slug}`);
+    // Every cached redirect carries the shared "redirect" tag (so disabling the
+    // cache can purge all of them at once) plus its per-slug tag.
+    expect(res.headers.get("Cache-Tag")).toBe(`redirect,redirect:${slug}`);
   });
 
   it("should return 404 for a non-existent slug", async () => {

@@ -76,6 +76,13 @@ export interface ClickData {
    * to display it.
    */
   isSelfReferrer?: number;
+  /**
+   * 1 when the click came from a live AI search or assistant fetch
+   * (e.g. `ChatGPT-User`, `Perplexity-User`, `Claude-User`) triggered by a
+   * person or agent, as opposed to an AI training crawler (which is flagged
+   * via `isBot`). The query layer decides whether to hide these.
+   */
+  isAiSearch?: number;
   /** Silent daily-rotated visitor fingerprint; not exposed in any UI. */
   visitorFp?: string | null;
 }

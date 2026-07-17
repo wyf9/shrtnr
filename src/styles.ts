@@ -240,9 +240,14 @@ body { font-family: var(--font-family-body); background: var(--color-canvas); co
 [data-theme="light"] .stat-row .bar { background: var(--color-surface-interactive); }
 [data-theme="oddbit"] .sidebar-oddbit a, :root .sidebar-oddbit a { color: var(--color-success); }
 .sidebar-oddbit img { width: 80px; height: auto; }
-.sidebar-brand img { height: 2rem; }
 .sidebar-oddbit a img { height: 1.25rem; width: auto; }
-.mobile-brand img { height: 1.5rem; }
+/* Wordmark rendered as text: "shrtnr" in the theme's foreground colour with a
+   trailing accent-coloured dot sitting at the bottom-right. Replaces the old
+   SVG logotype. */
+.brand-logotype { display: inline-block; font-family: var(--font-family-display); font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: var(--color-text); user-select: none; }
+.brand-logotype-dot { color: var(--color-accent); }
+.sidebar-brand .brand-logotype { font-size: 1.6rem; }
+.mobile-brand .brand-logotype { font-size: 1.25rem; }
 .sidebar-oddbit .copyright { font-size: 0.65rem; color: var(--color-text-muted); margin-top: 0.25rem; opacity: 0.5; }
 /* Main */
 .main { margin-left: 240px; flex: 1; padding: 2rem 2.5rem; min-height: 100vh; }
@@ -696,7 +701,16 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
 
 /* Slug length row (number input + save) */
 .slug-length-row { display: flex; gap: 0.75rem; align-items: center; }
-#slug-length-input { width: 80px; }
+/* Let the input flex and the button keep its intrinsic size so localized
+   button labels (e.g. Chinese "保存") never wrap onto a second line. */
+.slug-length-row .form-input { flex: 1 1 auto; min-width: 0; }
+.slug-length-row .btn { flex: 0 0 auto; white-space: nowrap; }
+#slug-length-input { width: 80px; flex: 0 0 auto; }
+/* Row pairing a description with an action button (e.g. purge cache). */
+.setting-action-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-top: 0.75rem; margin-top: 0.25rem; border-top: 1px solid var(--color-border); }
+.setting-action-row .toggle-label { font-size: 0.9rem; color: var(--color-text); }
+.setting-action-row .toggle-hint { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.2rem; }
+.setting-action-row .btn { flex: 0 0 auto; white-space: nowrap; }
 .settings-rule-editor { min-height: 9.5rem; resize: vertical; font-family: var(--font-family-mono); font-size: 0.8rem; line-height: 1.45; }
 .form-hint { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.4rem; }
 .form-group-flush { margin-bottom: 0; }

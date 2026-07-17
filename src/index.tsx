@@ -56,7 +56,7 @@ import {
   handleEnableSlug,
   handleRemoveSlug,
 } from "./api/slugs";
-import { handleGetSettings, handleUpdateSettings } from "./api/settings";
+import { handleGetSettings, handleUpdateSettings, handlePurgeRedirectCache } from "./api/settings";
 import { handleGetRedirectRules, handleUpdateRedirectRules } from "./api/redirects";
 import { handleListKeys, handleCreateKey, handleDeleteKey } from "./api/keys";
 import {
@@ -169,13 +169,14 @@ async function getPageData(c: { env: Env; req: { raw: Request } }, identity: str
   const defaultRange: TimelineRange = settings?.default_range ?? "30d";
   const filterBots = settings?.filter_bots ?? true;
   const filterSelfReferrers = settings?.filter_self_referrers ?? true;
+  const filterAiSearches = settings?.filter_ai_searches ?? true;
   const rootRedirectUrl = settings?.root_redirect_url ?? "";
   const redirectCacheEnabled = settings?.redirect_cache_enabled ?? false;
   const dynamicRedirectStrictMatch = settings?.dynamic_redirect_strict_match ?? false;
   const dynamicRedirectRules = await getDynamicRedirectRules(c.env);
   const t = createTranslateFn(lang);
   const translations = getTranslations(lang);
-  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch, dynamicRedirectRules, t, translations };
+  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch, dynamicRedirectRules, t, translations };
 }
 
 // ---- Admin pages ----
@@ -294,12 +295,12 @@ app.get("/_/admin/keys", async (c) => {
 
 app.get("/_/admin/settings", async (c) => {
   const identity = c.var.identity;
-  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch } = await getPageData(c, identity);
+  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch } = await getPageData(c, identity);
   const mcpConfigured = Boolean(c.env.MCP_ACCESS_AUD && c.env.ACCESS_JWKS_URL);
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="settings" theme={theme} t={t} lang={lang} translations={translations}>
-        <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} rootRedirectUrl={rootRedirectUrl} redirectCacheEnabled={redirectCacheEnabled} dynamicRedirectStrictMatch={dynamicRedirectStrictMatch} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
+        <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} filterAiSearches={filterAiSearches} rootRedirectUrl={rootRedirectUrl} redirectCacheEnabled={redirectCacheEnabled} dynamicRedirectStrictMatch={dynamicRedirectStrictMatch} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
     </Layout>,
   );
 });
@@ -425,7 +426,8 @@ app.get("/_/admin/api/links/:id/qr", (c) => {
 
 // Settings
 app.get("/_/admin/api/settings", (c) => handleGetSettings(c.env, c.var.identity));
-app.put("/_/admin/api/settings", (c) => handleUpdateSettings(c.req.raw, c.env, c.var.identity));
+app.put("/_/admin/api/settings", (c) => handleUpdateSettings(c.req.raw, c.env, c.var.identity, c.executionCtx));
+app.post("/_/admin/api/cache/purge", (c) => handlePurgeRedirectCache(c.executionCtx));
 
 // Redirect Rules
 app.get("/_/admin/api/redirects", (c) => handleGetRedirectRules(c.env));

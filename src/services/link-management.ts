@@ -4,7 +4,7 @@
 import { LinkRepository, SlugRepository, ClickRepository, SettingRepository } from "../db";
 import type { ClickFilters } from "../db";
 import { SlugCache } from "../kv";
-import { DEFAULT_SLUG_LENGTH } from "../constants";
+import { DEFAULT_SLUG_LENGTH, redirectCacheTag } from "../constants";
 import { generateUniqueSlug, validateSlugLength, validateCustomSlug } from "../slugs";
 import { ClickData, ClickStats, DashboardStats, Env, LinkWithSlugs, Slug, TimelineData, TimelineRange } from "../types";
 import { normalizeUrl } from "../normalize-url";
@@ -15,10 +15,6 @@ import { rangeToSinceTs } from "./trends";
 export type { ServiceResult };
 
 type CachePurgeContext = Pick<ExecutionContext, "waitUntil" | "cache">;
-
-function redirectCacheTag(slug: string): string {
-  return `redirect:${slug.toLowerCase()}`;
-}
 
 function purgeRedirectCache(ctx: CachePurgeContext | undefined, slugs: string[]): void {
   if (!ctx?.cache || slugs.length === 0) return;
