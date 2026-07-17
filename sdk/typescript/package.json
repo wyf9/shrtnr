@@ -1,8 +1,8 @@
 {
   "name": "@wyf9/shrtnr",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "SDK for the shrtnr URL shortener API",
-  "homepage": "https://oddb.it/shrtnr-website-npm",
+  "homepage": "https://shrtnr.p.wyf9.top",
   "license": "Apache-2.0",
   "packageManager": "bun@1.3.10",
   "main": "dist/index.js",
@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oddbit/shrtnr.git",
+    "url": "git+https://github.com/wyf9/shrtnr.git",
     "directory": "sdk/typescript"
   },
   "keywords": [

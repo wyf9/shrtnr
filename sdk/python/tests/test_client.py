@@ -14,7 +14,7 @@ import httpx
 import pytest
 import respx
 
-from shrtnr import Shrtnr, ShrtnrError
+from wshrtnr import Shrtnr, ShrtnrError
 
 from .conftest import (
     API_KEY,

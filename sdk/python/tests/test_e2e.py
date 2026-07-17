@@ -18,7 +18,7 @@ from collections.abc import AsyncIterator
 
 import pytest
 
-from shrtnr import AsyncShrtnr, Shrtnr
+from wshrtnr import AsyncShrtnr, Shrtnr
 
 BASE_URL = os.environ.get("SHRTNR_TEST_URL")
 API_KEY = os.environ.get("SHRTNR_TEST_API_KEY")

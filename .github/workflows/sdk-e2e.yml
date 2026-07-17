@@ -33,6 +33,8 @@ jobs:
         with:
           python-version: '3.12'
 
+      - uses: astral-sh/setup-uv@v5
+
       - name: Install root dependencies
         run: bun install --frozen-lockfile
 
@@ -42,10 +44,7 @@ jobs:
 
       - name: Install Python SDK dev dependencies
         working-directory: sdk/python
-        run: |
-          python -m venv .venv
-          .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install -e '.[dev]'
+        run: uv sync --frozen
 
       - name: Run cross-SDK e2e harness
         run: scripts/test-sdks-e2e.sh

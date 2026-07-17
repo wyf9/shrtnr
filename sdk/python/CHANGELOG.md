@@ -2,6 +2,10 @@
 
 All notable changes to the SDK are documented in this file.
 
+## 3.0.0
+
+Revised for the wyf9/shrtnr fork (e.g. removal of the bundles function).
+
 ## 2.0.0
 
 Regenerated against the current OpenAPI spec (`sha256:f325eb0a`).

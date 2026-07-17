@@ -17,7 +17,7 @@
 #
 # Requirements:
 #   - bun + node (wrangler dev)
-#   - python3 with sdk/python/.venv created (cd sdk/python && python3 -m venv .venv && .venv/bin/pip install -e '.[dev]')
+#   - python3 with sdk/python/.venv created (cd sdk/python && uv sync --frozen)
 #   - openssl, shasum (or sha256sum) — present on macOS and ubuntu-latest
 
 set -euo pipefail
@@ -117,7 +117,7 @@ run_sdk() {
       ;;
     python|py)
       if [ ! -x sdk/python/.venv/bin/pytest ]; then
-        echo "!! sdk/python/.venv/bin/pytest missing. run: cd sdk/python && python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'" >&2
+        echo "!! sdk/python/.venv/bin/pytest missing. run: cd sdk/python && uv sync --frozen" >&2
         status=1
       else
         (cd sdk/python && .venv/bin/pytest -m e2e) || status=$?

@@ -29,7 +29,7 @@ from .models import (
 )
 
 try:
-    __version__ = _pkg_version("shrtnr")
+    __version__ = _pkg_version("wshrtnr")
 except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 

@@ -157,7 +157,7 @@ Three languages, mirroring the admin app: English, Indonesian, Swedish. English 
 
 - [shrtnr server](https://github.com/oddbit/shrtnr) — the Cloudflare Worker the extension talks to
 - [`@wyf9/shrtnr` (npm)](https://oddb.it/shrtnr-npm-readme) — TypeScript SDK the extension depends on
-- [`shrtnr` (PyPI)](https://oddb.it/shrtnr-pypi-readme) — Python SDK
+- [`wshrtnr` (PyPI)](https://oddb.it/shrtnr-pypi-readme) — Python SDK
 
 
 ## Attribution
