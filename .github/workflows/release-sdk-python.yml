@@ -84,11 +84,6 @@ jobs:
             sdk/python/CHANGELOG.md \
             /tmp/release-notes.md
 
-      - uses: actions/setup-python@v6
-        if: steps.version.outputs.should_run == 'true'
-        with:
-          python-version: '3.12'
-
       - uses: astral-sh/setup-uv@v5
         if: steps.version.outputs.should_run == 'true'
 
@@ -96,7 +91,7 @@ jobs:
         if: steps.version.outputs.should_run == 'true'
         working-directory: sdk/python
         run: |
-          uv sync --frozen
+          uv sync --frozen --extra pytest
           uv run pytest
           uv build
 
