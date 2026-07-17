@@ -64,9 +64,11 @@ type Props = {
   lang: string;
   identity: string;
   initialRange: TimelineRange;
+  /** True when this link is served from the redirect cache, so its click stats undercount. */
+  isCached?: boolean;
 };
 
-export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, initialRange }) => {
+export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, initialRange, isCached }) => {
   const now = Math.floor(Date.now() / 1000);
   const isExpired = !!(link.expires_at && link.expires_at < now);
   const isOwner = identity === link.created_by;
@@ -144,6 +146,12 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
         </div>
       </div>
 
+      {isCached && (
+        <div class="warning-banner" role="status">
+          <span class="icon">info</span>
+          <span>{t("linkDetail.cachedInaccurate")}</span>
+        </div>
+      )}
 
       <div class="detail-hero">
         <div class="left">

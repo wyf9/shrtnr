@@ -21,13 +21,16 @@ type Props = {
   filterAiSearches: boolean;
   rootRedirectUrl: string;
   redirectCacheEnabled: boolean;
+  redirectCacheDurationDays: number;
+  redirectCacheThresholdClicks: number;
+  redirectCacheThresholdWindowDays: number;
   dynamicRedirectStrictMatch: boolean;
   t: TranslateFn;
   mcpConfigured: boolean;
   userEmail?: string | null;
 };
 
-export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch, t, mcpConfigured, userEmail }) => {
+export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, redirectCacheDurationDays, redirectCacheThresholdClicks, redirectCacheThresholdWindowDays, dynamicRedirectStrictMatch, t, mcpConfigured, userEmail }) => {
   const combos = Math.pow(RANDOM_CHARSET.length, Math.max(slugLength, MIN_SLUG_LENGTH));
   const comboHint =
     slugLength < MIN_SLUG_LENGTH
@@ -228,6 +231,49 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   <span class="toggle-track"></span>
                   <span class="toggle-thumb"></span>
                 </label>
+              </div>
+              <div class="setting-field-row">
+                <div class="setting-action-copy">
+                  <div class="toggle-label">{t("settings.redirectCacheDuration")}</div>
+                  <div class="toggle-hint">{t("settings.redirectCacheDurationHint")}</div>
+                </div>
+                <div class="setting-field-input">
+                  <input
+                    class="form-input form-input-sm"
+                    type="number"
+                    min="1"
+                    id="redirect-cache-duration-input"
+                    value={String(redirectCacheDurationDays)}
+                  />
+                  <span class="setting-field-unit">{t("settings.unitDays")}</span>
+                </div>
+              </div>
+              <div class="setting-field-row">
+                <div class="setting-action-copy">
+                  <div class="toggle-label">{t("settings.redirectCacheThreshold")}</div>
+                  <div class="toggle-hint">{t("settings.redirectCacheThresholdHint")}</div>
+                </div>
+                <div class="setting-field-input">
+                  <input
+                    class="form-input form-input-sm"
+                    type="number"
+                    min="0"
+                    id="redirect-cache-threshold-clicks-input"
+                    value={String(redirectCacheThresholdClicks)}
+                  />
+                  <span class="setting-field-unit">/</span>
+                  <input
+                    class="form-input form-input-sm"
+                    type="number"
+                    min="0"
+                    id="redirect-cache-threshold-window-input"
+                    value={String(redirectCacheThresholdWindowDays)}
+                  />
+                  <span class="setting-field-unit">{t("settings.unitDays")}</span>
+                  <button class="btn btn-secondary btn-sm" onclick="AdminClient.saveRedirectCacheTuning()">
+                    {t("settings.save")}
+                  </button>
+                </div>
               </div>
               <div class="setting-action-row">
                 <div class="setting-action-copy">

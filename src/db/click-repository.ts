@@ -55,6 +55,20 @@ export class ClickRepository {
       .run();
   }
 
+  /**
+   * Raw click count for a single slug since `sinceTs` (unix seconds). Used by
+   * the redirect handler to decide whether a slug is hot enough to cache, so it
+   * intentionally counts every click (bots included) because caching is about
+   * request volume, not filtered analytics.
+   */
+  static async countSince(db: D1Database, slug: string, sinceTs: number): Promise<number> {
+    const row = await db
+      .prepare("SELECT COUNT(*) as cnt FROM clicks WHERE slug = ? AND clicked_at >= ?")
+      .bind(slug, Math.floor(sinceTs))
+      .first<{ cnt: number }>();
+    return row?.cnt ?? 0;
+  }
+
   static async getStats(db: D1Database, linkId: number, range?: TimelineRange, filters?: ClickFilters): Promise<ClickStats> {
     const slugRows = await db
       .prepare("SELECT slug FROM slugs WHERE link_id = ?")

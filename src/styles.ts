@@ -669,6 +669,9 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
 .links-table .col-clicks { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .links-table .col-clicks-cell { display: inline-flex; align-items: center; gap: 0.5rem; justify-content: flex-end; }
 .links-table .col-clicks-value { font-size: 1.125rem; font-weight: 700; color: var(--color-text); font-family: var(--font-family-body); }
+/* Cached links undercount clicks: dim the value and hint at it on hover. */
+.links-table .col-clicks-value-cached { color: var(--color-text-subtle); display: inline-flex; align-items: center; gap: 0.25rem; cursor: help; }
+.links-table .col-clicks-value-cached .icon { font-size: 14px; opacity: 0.7; }
 .links-table .col-date { color: var(--color-text-muted); font-size: 0.8rem; white-space: nowrap; }
 .links-table .col-date-cell { display: inline-flex; align-items: center; gap: 0.5rem; }
 .links-table .col-disabled-badge { margin-left: 0.4rem; }
@@ -711,6 +714,14 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
 .setting-action-row .toggle-label { font-size: 0.9rem; color: var(--color-text); }
 .setting-action-row .toggle-hint { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.2rem; }
 .setting-action-row .btn { flex: 0 0 auto; white-space: nowrap; }
+/* Row pairing a description with numeric inputs (e.g. cache duration/threshold). */
+.setting-field-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-top: 0.75rem; margin-top: 0.25rem; border-top: 1px solid var(--color-border); }
+.setting-field-row .toggle-label { font-size: 0.9rem; color: var(--color-text); }
+.setting-field-row .toggle-hint { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.2rem; }
+.setting-field-input { display: flex; align-items: center; gap: 0.4rem; flex: 0 0 auto; }
+.setting-field-input .form-input { width: 5.5rem; flex: 0 0 auto; }
+.setting-field-input .btn { flex: 0 0 auto; white-space: nowrap; }
+.setting-field-unit { font-size: 0.8rem; color: var(--color-text-muted); }
 .settings-rule-editor { min-height: 9.5rem; resize: vertical; font-family: var(--font-family-mono); font-size: 0.8rem; line-height: 1.45; }
 .form-hint { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.4rem; }
 .form-group-flush { margin-bottom: 0; }

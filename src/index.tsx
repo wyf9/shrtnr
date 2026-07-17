@@ -30,6 +30,7 @@ import {
   getDynamicRedirect,
   getRootRedirectUrl,
   resolveClickFilters,
+  resolveCachedSlugs,
   getDashboardStats,
   getLinkAnalytics,
   listLinks,
@@ -37,7 +38,12 @@ import {
   searchLinks,
   listAllApiKeys,
 } from "./services";
-import { DEFAULT_SLUG_LENGTH } from "./constants";
+import {
+  DEFAULT_SLUG_LENGTH,
+  DEFAULT_REDIRECT_CACHE_DURATION_DAYS,
+  DEFAULT_REDIRECT_CACHE_THRESHOLD_CLICKS,
+  DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS,
+} from "./constants";
 import { createTranslateFn, getTranslations } from "./i18n";
 import { handleHealth } from "./api/health";
 import {
@@ -172,11 +178,14 @@ async function getPageData(c: { env: Env; req: { raw: Request } }, identity: str
   const filterAiSearches = settings?.filter_ai_searches ?? true;
   const rootRedirectUrl = settings?.root_redirect_url ?? "";
   const redirectCacheEnabled = settings?.redirect_cache_enabled ?? false;
+  const redirectCacheDurationDays = settings?.redirect_cache_duration_days ?? DEFAULT_REDIRECT_CACHE_DURATION_DAYS;
+  const redirectCacheThresholdClicks = settings?.redirect_cache_threshold_clicks ?? DEFAULT_REDIRECT_CACHE_THRESHOLD_CLICKS;
+  const redirectCacheThresholdWindowDays = settings?.redirect_cache_threshold_window_days ?? DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS;
   const dynamicRedirectStrictMatch = settings?.dynamic_redirect_strict_match ?? false;
   const dynamicRedirectRules = await getDynamicRedirectRules(c.env);
   const t = createTranslateFn(lang);
   const translations = getTranslations(lang);
-  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch, dynamicRedirectRules, t, translations };
+  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, redirectCacheDurationDays, redirectCacheThresholdClicks, redirectCacheThresholdWindowDays, dynamicRedirectStrictMatch, dynamicRedirectRules, t, translations };
 }
 
 // ---- Admin pages ----
@@ -231,6 +240,12 @@ app.get("/_/admin/links", async (c) => {
     ? await searchLinks(c.env, searchQuery, { includeOwner: true, withDeltaRange: range, filters, range })
     : await listLinks(c.env, { withDeltaRange: range, filters, range });
   const links = linksResult.ok ? linksResult.data : [];
+  // Which links are served from the redirect cache (so their click totals may
+  // undercount). A link counts as cached when any of its slugs is cached.
+  const cachedSlugs = await resolveCachedSlugs(c.env, links.flatMap((l) => l.slugs.map((s) => s.slug)));
+  const cachedLinkIds = new Set(
+    links.filter((l) => l.slugs.some((s) => cachedSlugs.has(s.slug))).map((l) => l.id),
+  );
   const sort = c.req.query("sort") || "recent";
   const page = parseInt(c.req.query("page") || "1", 10) || 1;
   const perPage = parseInt(c.req.query("per_page") || "25", 10) || 25;
@@ -251,6 +266,7 @@ app.get("/_/admin/links", async (c) => {
         filter={filter}
         range={range}
         searchQuery={searchQuery}
+        cachedLinkIds={cachedLinkIds}
         t={t}
         lang={lang}
       />
@@ -274,9 +290,11 @@ app.get("/_/admin/links/:id", async (c) => {
     link_modes: [], channels: [], clicks_over_time: [], slug_clicks: [],
     num_countries: 0, num_referrers: 0, num_referrer_hosts: 0, num_os: 0, num_browsers: 0,
   };
+  const cachedSlugs = await resolveCachedSlugs(c.env, linkResult.data.slugs.map((s) => s.slug));
+  const isCached = linkResult.data.slugs.some((s) => cachedSlugs.has(s.slug));
   return c.html(
     <Layout active="links" theme={theme} t={t} lang={lang} translations={translations}>
-      <LinkDetailPage link={linkResult.data} analytics={analytics}  t={t} lang={lang} identity={identity} initialRange={initialRange} />
+      <LinkDetailPage link={linkResult.data} analytics={analytics} isCached={isCached} t={t} lang={lang} identity={identity} initialRange={initialRange} />
     </Layout>,
   );
 });
@@ -295,12 +313,12 @@ app.get("/_/admin/keys", async (c) => {
 
 app.get("/_/admin/settings", async (c) => {
   const identity = c.var.identity;
-  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, dynamicRedirectStrictMatch } = await getPageData(c, identity);
+  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, redirectCacheDurationDays, redirectCacheThresholdClicks, redirectCacheThresholdWindowDays, dynamicRedirectStrictMatch } = await getPageData(c, identity);
   const mcpConfigured = Boolean(c.env.MCP_ACCESS_AUD && c.env.ACCESS_JWKS_URL);
   const userEmail = c.var.user?.email ?? null;
   return c.html(
     <Layout active="settings" theme={theme} t={t} lang={lang} translations={translations}>
-        <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} filterAiSearches={filterAiSearches} rootRedirectUrl={rootRedirectUrl} redirectCacheEnabled={redirectCacheEnabled} dynamicRedirectStrictMatch={dynamicRedirectStrictMatch} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
+        <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} filterAiSearches={filterAiSearches} rootRedirectUrl={rootRedirectUrl} redirectCacheEnabled={redirectCacheEnabled} redirectCacheDurationDays={redirectCacheDurationDays} redirectCacheThresholdClicks={redirectCacheThresholdClicks} redirectCacheThresholdWindowDays={redirectCacheThresholdWindowDays} dynamicRedirectStrictMatch={dynamicRedirectStrictMatch} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
     </Layout>,
   );
 });
@@ -427,7 +445,7 @@ app.get("/_/admin/api/links/:id/qr", (c) => {
 // Settings
 app.get("/_/admin/api/settings", (c) => handleGetSettings(c.env, c.var.identity));
 app.put("/_/admin/api/settings", (c) => handleUpdateSettings(c.req.raw, c.env, c.var.identity, c.executionCtx));
-app.post("/_/admin/api/cache/purge", (c) => handlePurgeRedirectCache(c.executionCtx));
+app.post("/_/admin/api/cache/purge", (c) => handlePurgeRedirectCache(c.env, c.executionCtx));
 
 // Redirect Rules
 app.get("/_/admin/api/redirects", (c) => handleGetRedirectRules(c.env));

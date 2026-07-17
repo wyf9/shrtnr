@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { recordClick } from "./services/link-management";
-import { isRedirectCacheEnabled } from "./services/admin-management";
-import { SlugCache } from "./kv";
-import { SlugRepository } from "./db";
+import { getRedirectCacheConfig } from "./services/admin-management";
+import { SlugCache, RedirectCacheMarker } from "./kv";
+import { SlugRepository, ClickRepository } from "./db";
 import { parseDeviceType, parseBrowser, parseOS, isBot, isAiSearch } from "./ua";
 import { notFoundResponse } from "./404";
 import { ClickData, Env } from "./types";
@@ -91,11 +91,32 @@ export async function handleRedirect(
 
   // 6. Redirect
   const headers = new Headers({ Location: new URL(entry.url).toString() });
-  if (await isRedirectCacheEnabled(env)) {
-    headers.set("Cache-Control", "public, max-age=31536000, stale-while-revalidate=604800");
+
+  // Decide whether to cache this redirect. Caching trades click-tracking
+  // accuracy for CPU: while a redirect is cached, repeat visits are served from
+  // the edge and never reach the Worker, so their clicks go unrecorded. To keep
+  // that tradeoff worthwhile, only cache links that are hot enough to matter.
+  const cacheConfig = await getRedirectCacheConfig(env);
+  let shouldCache = false;
+  if (cacheConfig.enabled) {
+    if (cacheConfig.cacheAll) {
+      shouldCache = true;
+    } else {
+      const sinceTs = Math.floor(Date.now() / 1000) - cacheConfig.thresholdWindowDays * 86400;
+      const recentClicks = await ClickRepository.countSince(env.DB, normalizedSlug, sinceTs);
+      shouldCache = recentClicks >= cacheConfig.thresholdClicks;
+    }
+  }
+
+  if (shouldCache) {
+    const maxAge = cacheConfig.durationDays * 86400;
+    headers.set("Cache-Control", `public, max-age=${maxAge}, stale-while-revalidate=604800`);
     // Tag with both a per-slug tag (for targeted purges on edit/disable) and a
     // shared tag so disabling the cache can purge every redirect in one call.
     headers.set("Cache-Tag", `${REDIRECT_CACHE_TAG},${redirectCacheTag(normalizedSlug)}`);
+    // Record that this slug is now served from cache so the admin UI can flag
+    // its analytics as approximate. The marker expires with the cache.
+    ctx.waitUntil(RedirectCacheMarker.mark(env.SLUG_KV, normalizedSlug, maxAge));
   } else {
     headers.set("Cache-Control", "no-store");
   }

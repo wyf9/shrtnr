@@ -28,6 +28,8 @@ type Props = {
   filter: LinksFilter;
   range: TimelineRange;
   searchQuery?: string;
+  /** Ids of links whose clicks undercount because they are served from cache. */
+  cachedLinkIds?: Set<number>;
   t: TranslateFn;
   lang: string;
 };
@@ -40,6 +42,7 @@ export const LinksPage: FC<Props> = ({
   filter,
   range,
   searchQuery,
+  cachedLinkIds,
   t,
   lang,
 }) => {
@@ -218,6 +221,7 @@ export const LinksPage: FC<Props> = ({
                       || link.slugs.find((s) => s.is_custom)
                       || link.slugs[0];
                     const disabled = isLinkDisabled(link);
+                    const cached = cachedLinkIds?.has(link.id) ?? false;
                     const href = `/_/admin/links/${link.id}`;
                     return (
                       <tr
@@ -256,7 +260,17 @@ export const LinksPage: FC<Props> = ({
                         </td>
                         <td data-label={t("links.colClicksRange", { range: rangeLabel })} class="col-clicks">
                           <span class="col-clicks-cell">
-                            <span class="col-clicks-value">{fmtNumber(link.total_clicks, lang)}</span>
+                            {cached ? (
+                              <span
+                                class="col-clicks-value col-clicks-value-cached"
+                                title={t("links.cachedInaccurate")}
+                              >
+                                {fmtNumber(link.total_clicks, lang)}
+                                <span class="icon icon-xs">info</span>
+                              </span>
+                            ) : (
+                              <span class="col-clicks-value">{fmtNumber(link.total_clicks, lang)}</span>
+                            )}
                           </span>
                         </td>
                         <td data-label={t("links.colCreated")} class="col-date">

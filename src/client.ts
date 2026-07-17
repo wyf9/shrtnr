@@ -841,6 +841,33 @@ AdminClient.purgeRedirectCache = function () {
   });
 }
 
+AdminClient.saveRedirectCacheTuning = function () {
+  var durationEl = document.getElementById('redirect-cache-duration-input');
+  var clicksEl = document.getElementById('redirect-cache-threshold-clicks-input');
+  var windowEl = document.getElementById('redirect-cache-threshold-window-input');
+  if (!durationEl || !clicksEl || !windowEl) return;
+  var duration = parseInt(durationEl.value, 10);
+  var clicks = parseInt(clicksEl.value, 10);
+  var windowDays = parseInt(windowEl.value, 10);
+  if (isNaN(duration) || duration < 1) { AdminClient.toast(AdminClient.t('client.cacheDurationError'), 'error'); return; }
+  if (isNaN(clicks) || clicks < 0 || isNaN(windowDays) || windowDays < 0) { AdminClient.toast(AdminClient.t('client.settingsError'), 'error'); return; }
+  // Both zero caches every link; both positive gates by traffic. Reject one zero.
+  if ((clicks === 0) !== (windowDays === 0)) { AdminClient.toast(AdminClient.t('client.cacheThresholdPairError'), 'error'); return; }
+  AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ redirect_cache_duration_days: duration, redirect_cache_threshold_clicks: clicks, redirect_cache_threshold_window_days: windowDays }) }).then(function(res) {
+    if (res.ok) {
+      AdminClient.toast(AdminClient.t('client.settingsSaved'));
+    } else {
+      return res.json().then(function(data) {
+        AdminClient.toast(data.error || AdminClient.t('client.settingsError'), 'error');
+      }).catch(function() {
+        AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
+      });
+    }
+  }).catch(function() {
+    AdminClient.toast(AdminClient.t('client.settingsError'), 'error');
+  });
+}
+
 AdminClient.setDynamicRedirectStrictMatch = function (checked) {
   AdminClient.api('/settings', { method: 'PUT', body: JSON.stringify({ dynamic_redirect_strict_match: Boolean(checked) }) }).then(function(res) {
     if (res.ok) {

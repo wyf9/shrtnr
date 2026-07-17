@@ -26,6 +26,9 @@ export async function handleUpdateSettings(request: Request, env: Env, identity:
     filter_ai_searches?: boolean;
     root_redirect_url?: string | null;
     redirect_cache_enabled?: boolean;
+    redirect_cache_duration_days?: number;
+    redirect_cache_threshold_clicks?: number;
+    redirect_cache_threshold_window_days?: number;
     dynamic_redirect_strict_match?: boolean;
   };
 
@@ -38,6 +41,6 @@ export async function handleUpdateSettings(request: Request, env: Env, identity:
   return fromServiceResult(await updateAppSettings(env, identity, body as any, ctx));
 }
 
-export async function handlePurgeRedirectCache(ctx?: CachePurgeContext): Promise<Response> {
-  return fromServiceResult(await purgeRedirectCache(ctx));
+export async function handlePurgeRedirectCache(env: Env, ctx?: CachePurgeContext): Promise<Response> {
+  return fromServiceResult(await purgeRedirectCache(env, ctx));
 }

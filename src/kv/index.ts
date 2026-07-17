@@ -2,3 +2,4 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export { SlugCache, type SlugCacheEntry } from "./slug-cache";
+export { RedirectCacheMarker } from "./redirect-cache-marker";

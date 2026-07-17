@@ -156,6 +156,83 @@ describe("admin-management service", () => {
     if (!result.ok) expect(result.status).toBe(400);
   });
 
+  it("returns redirect cache tuning defaults (90d duration, 50000/7d threshold)", async () => {
+    const settings = await getAppSettings(env as any, TEST_IDENTITY);
+    expect(settings.ok).toBe(true);
+    if (settings.ok) {
+      expect(settings.data.redirect_cache_duration_days).toBe(90);
+      expect(settings.data.redirect_cache_threshold_clicks).toBe(50000);
+      expect(settings.data.redirect_cache_threshold_window_days).toBe(7);
+    }
+  });
+
+  it("persists a valid redirect cache duration", async () => {
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { redirect_cache_duration_days: 30 });
+    expect(updated.ok).toBe(true);
+    if (updated.ok) expect(updated.data.redirect_cache_duration_days).toBe(30);
+  });
+
+  it("rejects a redirect cache duration below 1 day", async () => {
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, { redirect_cache_duration_days: 0 });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(400);
+  });
+
+  it("accepts a threshold with both parts zero (cache all)", async () => {
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, {
+      redirect_cache_threshold_clicks: 0,
+      redirect_cache_threshold_window_days: 0,
+    });
+    expect(updated.ok).toBe(true);
+    if (updated.ok) {
+      expect(updated.data.redirect_cache_threshold_clicks).toBe(0);
+      expect(updated.data.redirect_cache_threshold_window_days).toBe(0);
+    }
+  });
+
+  it("accepts a threshold with both parts positive", async () => {
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, {
+      redirect_cache_threshold_clicks: 1000,
+      redirect_cache_threshold_window_days: 3,
+    });
+    expect(updated.ok).toBe(true);
+    if (updated.ok) {
+      expect(updated.data.redirect_cache_threshold_clicks).toBe(1000);
+      expect(updated.data.redirect_cache_threshold_window_days).toBe(3);
+    }
+  });
+
+  it("rejects a threshold where only the window is zero", async () => {
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      redirect_cache_threshold_clicks: 1000,
+      redirect_cache_threshold_window_days: 0,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(400);
+  });
+
+  it("rejects a threshold where only the click count is zero", async () => {
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      redirect_cache_threshold_clicks: 0,
+      redirect_cache_threshold_window_days: 7,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(400);
+  });
+
+  it("rejects a partial threshold update that would leave exactly one part zero", async () => {
+    // Start from cache-all (both zero), then set only clicks positive.
+    await updateAppSettings(env as any, TEST_IDENTITY, {
+      redirect_cache_threshold_clicks: 0,
+      redirect_cache_threshold_window_days: 0,
+    });
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      redirect_cache_threshold_clicks: 500,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(400);
+  });
+
   it("persists a valid root_redirect_url", async () => {
     const updated = await updateAppSettings(env as any, TEST_IDENTITY, { root_redirect_url: "https://example.com/root" });
     expect(updated.ok).toBe(true);

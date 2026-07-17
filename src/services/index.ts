@@ -30,6 +30,7 @@ export {
   getRootRedirectUrl,
   getDynamicRedirect,
   resolveClickFilters,
+  resolveCachedSlugs,
 } from "./admin-management";
 
 export type { ServiceResult } from "./result";

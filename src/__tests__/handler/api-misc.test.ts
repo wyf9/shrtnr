@@ -274,12 +274,19 @@ describe("Redirect", () => {
     expect(res.headers.get("Cache-Control")).toBe("no-store");
   });
 
-  it("should set long cache headers when redirect cache is enabled", async () => {
+  it("should set cache headers with the configured duration when caching every link", async () => {
+    // Threshold 0/0 caches every link regardless of traffic; duration 30 days
+    // controls max-age.
     await SELF.fetch(
       authed("/_/admin/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ redirect_cache_enabled: true }),
+        body: JSON.stringify({
+          redirect_cache_enabled: true,
+          redirect_cache_duration_days: 30,
+          redirect_cache_threshold_clicks: 0,
+          redirect_cache_threshold_window_days: 0,
+        }),
       }),
     );
     const createRes = await SELF.fetch(
@@ -294,10 +301,38 @@ describe("Redirect", () => {
 
     const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
     expect(res.status).toBe(301);
-    expect(res.headers.get("Cache-Control")).toBe("public, max-age=31536000, stale-while-revalidate=604800");
+    expect(res.headers.get("Cache-Control")).toBe(`public, max-age=${30 * 86400}, stale-while-revalidate=604800`);
     // Every cached redirect carries the shared "redirect" tag (so disabling the
     // cache can purge all of them at once) plus its per-slug tag.
     expect(res.headers.get("Cache-Tag")).toBe(`redirect,redirect:${slug}`);
+  });
+
+  it("should NOT cache a cold link that is below the click threshold", async () => {
+    await SELF.fetch(
+      authed("/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          redirect_cache_enabled: true,
+          redirect_cache_threshold_clicks: 50000,
+          redirect_cache_threshold_window_days: 7,
+        }),
+      }),
+    );
+    const createRes = await SELF.fetch(
+      authed("/_/admin/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "https://cold-destination.com" }),
+      })
+    );
+    const created = await createRes.json() as any;
+    const slug = created.slugs[0].slug;
+
+    const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+    expect(res.headers.get("Cache-Tag")).toBeNull();
   });
 
   it("should return 404 for a non-existent slug", async () => {
