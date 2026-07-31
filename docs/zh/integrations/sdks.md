@@ -5,7 +5,7 @@
 | 语言 | 包名 | 说明 |
 |---|---|---|
 | TypeScript / JavaScript | [`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme) | 详见 `sdk/typescript/README.md` |
-| Python（同步 + 异步，基于 httpx） | [`shrtnr`](https://oddb.it/shrtnr-pypi-readme) | 详见 `sdk/python/README.md` |
+| Python（同步 + 异步，基于 httpx） | [`wshrtnr`](https://oddb.it/shrtnr-pypi-readme) | 详见 `sdk/python/README.md` |
 
 所有 SDK 都使用 [API Key](/zh/api/overview) 进行 Bearer Token 认证。API Key 在管理 UI 的 **API Keys** 中创建。
 

@@ -90,7 +90,13 @@ export async function handleRedirect(
   ctx.waitUntil(recordClick(env, normalizedSlug, data));
 
   // 6. Redirect
-  const headers = new Headers({ Location: new URL(entry.url).toString() });
+  let redirectUrl: string;
+  try {
+    redirectUrl = new URL(entry.url).toString();
+  } catch {
+    return notFoundResponse();
+  }
+  const headers = new Headers({ Location: redirectUrl });
 
   // Decide whether to cache this redirect. Caching trades click-tracking
   // accuracy for CPU: while a redirect is cached, repeat visits are served from

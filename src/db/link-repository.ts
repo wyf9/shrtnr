@@ -15,8 +15,9 @@ import { SlugClickCountOptions, slugClickCountSql } from "./filters";
  */
 export type LinkRepoOptions = SlugClickCountOptions;
 
-function slugSelect(opts?: LinkRepoOptions): string {
-  return `s.*, ${slugClickCountSql(opts)}`;
+function slugSelect(opts?: LinkRepoOptions): { sql: string; binds: number[] } {
+  const result = slugClickCountSql(opts);
+  return { sql: `s.*, ${result.sql}`, binds: result.binds };
 }
 
 function assembleLink(link: Link, slugs: Slug[]): LinkWithSlugs {
@@ -30,7 +31,8 @@ function assembleLink(link: Link, slugs: Slug[]): LinkWithSlugs {
 export class LinkRepository {
   static async list(db: D1Database, opts?: LinkRepoOptions): Promise<LinkWithSlugs[]> {
     const links = await db.prepare("SELECT * FROM links ORDER BY created_at DESC").all<Link>();
-    const slugs = await db.prepare(`SELECT ${slugSelect(opts)} FROM slugs s ORDER BY is_custom ASC, created_at ASC`).all<Slug>();
+    const slugSel = slugSelect(opts);
+    const slugs = await db.prepare(`SELECT ${slugSel.sql} FROM slugs s ORDER BY is_custom ASC, created_at ASC`).bind(...slugSel.binds).all<Slug>();
 
     return (links.results ?? []).map((link) => {
       const linkSlugs = (slugs.results ?? []).filter((s) => s.link_id === link.id);
@@ -42,9 +44,10 @@ export class LinkRepository {
     const link = await db.prepare("SELECT * FROM links WHERE id = ?").bind(id).first<Link>();
     if (!link) return null;
 
+    const slugSel = slugSelect(opts);
     const slugs = await db
-      .prepare(`SELECT ${slugSelect(opts)} FROM slugs s WHERE link_id = ? ORDER BY is_custom ASC, created_at ASC`)
-      .bind(id)
+      .prepare(`SELECT ${slugSel.sql} FROM slugs s WHERE link_id = ? ORDER BY is_custom ASC, created_at ASC`)
+      .bind(...slugSel.binds, id)
       .all<Slug>();
 
     return assembleLink(link, slugs.results ?? []);

@@ -67,7 +67,7 @@ Workflow on an API change:
 Both registries use OIDC trusted publishing; no long-lived tokens are stored anywhere.
 
 - **npm**: package page for `@wyf9/shrtnr` → Settings → Trusted publishers. Publisher: GitHub Actions, repo `oddbit/shrtnr`, workflow `release-sdk-npm.yml`.
-- **PyPI**: <https://pypi.org/manage/account/publishing/> → add a pending publisher. Project `shrtnr`, owner `oddbit`, workflow `release-sdk-python.yml`.
+- **PyPI**: <https://pypi.org/manage/account/publishing/> → add a pending publisher. Project `wshrtnr`, owner `oddbit`, workflow `release-sdk-python.yml`.
 
 ## Adding a future SDK
 

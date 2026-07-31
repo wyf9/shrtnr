@@ -67,7 +67,7 @@ API 变更时的流程：
 两个注册表都使用 OIDC 可信发布，任何地方都不存储长期令牌。
 
 - **npm**：`@wyf9/shrtnr` 的包页面 → Settings → Trusted publishers。Publisher: GitHub Actions，仓库 `oddbit/shrtnr`，工作流 `release-sdk-npm.yml`。
-- **PyPI**：<https://pypi.org/manage/account/publishing/> → 添加 pending publisher。项目 `shrtnr`，owner `oddbit`，工作流 `release-sdk-python.yml`。
+- **PyPI**：<https://pypi.org/manage/account/publishing/> → 添加 pending publisher。项目 `wshrtnr`，owner `oddbit`，工作流 `release-sdk-python.yml`。
 
 ## 新增一套 SDK
 

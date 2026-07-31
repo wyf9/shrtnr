@@ -30,7 +30,7 @@ shrtnr 在一个 Cloudflare Worker 中提供了完整的短链接服务能力。
 ## 集成与认证
 
 - **API Key 认证**：带作用域的 Bearer Token，用于程序化访问。可在管理 UI 的 **API Keys** 中创建。
-- **SDK**：TypeScript ([`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme)) 和 Python ([`shrtnr`](https://oddb.it/shrtnr-pypi-readme))。详见 [SDK](/zh/integrations/sdks)。
+- **SDK**：TypeScript ([`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme)) 和 Python ([`wshrtnr`](https://oddb.it/shrtnr-pypi-readme))。详见 [SDK](/zh/integrations/sdks)。
 - **内置 MCP 服务器**：位于 `/_/mcp`，通过 Cloudflare Access OAuth 授权，让 Claude、Copilot 等 AI 助手创建和管理短链。详见 [MCP 服务器](/zh/integrations/mcp)。
 - **浏览器扩展**：Chrome / Firefox 扩展，一键短链当前标签页。详见 [浏览器扩展](/zh/integrations/browser-extensions)。
 - **OpenAPI 规范**：公开 API 在 `/_/api/openapi.json` 暴露 OpenAPI 3.1 规范，并在 `/_/api/docs` 提供内嵌的 Scalar API 参考。

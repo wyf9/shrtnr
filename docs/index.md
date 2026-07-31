@@ -43,7 +43,7 @@ features:
 
 ## What is shrtnr
 
-**shrtnr** is a free, open-source, self-hosted URL shortener built on Cloudflare Workers + D1. It ships with a full admin UI, click analytics, SDKs in three languages, and an MCP server for AI assistants, all from a single Cloudflare Worker.
+**shrtnr** is a free, open-source, self-hosted URL shortener built on Cloudflare Workers + D1. It ships with a full admin UI, click analytics, SDKs in two languages, and an MCP server for AI assistants, all from a single Cloudflare Worker.
 
 > [!NOTE]
 > This repository is an **independently maintained fork** ([wyf9/shrtnr](https://github.com/wyf9/shrtnr)) that adds custom features and enhancements on top of the upstream [oddbit/shrtnr](https://github.com/oddbit/shrtnr). This documentation is written for this fork.

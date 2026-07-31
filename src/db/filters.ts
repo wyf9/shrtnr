@@ -37,16 +37,17 @@ export interface SlugClickCountOptions {
 }
 
 /**
- * SELECT-clause fragment that computes a per-slug `click_count` column,
- * optionally filtered by bot/self-referrer flags and lower-bounded by
- * `clicked_at >= sinceTs`. The fragment depends on the outer query aliasing
- * the slugs table as `s`.
+ * Builds a parameterized SELECT-clause subquery for per-slug click counts plus
+ * the bind arguments to pass alongside the outer query. Callers must spread the
+ * returned `binds` into their .bind(...) calls AFTER their own binds.
  */
-export function slugClickCountSql(opts?: SlugClickCountOptions): string {
-  let frag = "(SELECT COUNT(*) FROM clicks c WHERE c.slug = s.slug";
-  frag += clickFilterSql(opts?.filters, "c");
+export function slugClickCountSql(opts?: SlugClickCountOptions): { sql: string; binds: number[] } {
+  let sql = "(SELECT COUNT(*) FROM clicks c WHERE c.slug = s.slug";
+  sql += clickFilterSql(opts?.filters, "c");
+  const binds: number[] = [];
   if (opts?.sinceTs !== undefined) {
-    frag += ` AND c.clicked_at >= ${Math.floor(opts.sinceTs)}`;
+    sql += " AND c.clicked_at >= ?";
+    binds.push(Math.floor(opts.sinceTs));
   }
-  return frag + ") AS click_count";
+  return { sql: sql + ") AS click_count", binds };
 }

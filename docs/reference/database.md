@@ -57,6 +57,7 @@ Migration files live in `migrations/`, named by sequence number and applied in o
 | `0007_redirect_settings.sql` | Dynamic redirect rule settings |
 | `0008_pages.sql` | Custom pages support |
 | `0009_drop_bundles.sql` | Remove the bundles feature schema |
+| `0010_ai_search_flag.sql` | AI search click detection flag |
 
 ## Migration conventions
 

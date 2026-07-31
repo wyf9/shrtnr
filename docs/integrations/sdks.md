@@ -5,7 +5,7 @@ Shorten URLs, manage links, and read analytics from your own code. shrtnr provid
 | Language | Package | Notes |
 |---|---|---|
 | TypeScript / JavaScript | [`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme) | See `sdk/typescript/README.md` |
-| Python (sync + async, on httpx) | [`shrtnr`](https://oddb.it/shrtnr-pypi-readme) | See `sdk/python/README.md` |
+| Python (sync + async, on httpx) | [`wshrtnr`](https://oddb.it/shrtnr-pypi-readme) | See `sdk/python/README.md` |
 
 All SDKs authenticate with an [API key](/api/overview) as a Bearer token. Create API keys in the admin UI under **API Keys**.
 

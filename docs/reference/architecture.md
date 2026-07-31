@@ -82,7 +82,7 @@ MCP sessions are hosted by the Durable Object `MCP_OBJECT` (class `ShrtnrMCP`) d
 
 ## Internationalization (`src/i18n/`)
 
-All user-facing strings in admin pages/components go through `t()`, with translations in `en.ts`, `id.ts`, and `sv.ts`. English is the source of truth and the fallback.
+All user-facing strings in admin pages/components go through `t()`, with translations in `en.ts`, `id.ts`, `sv.ts`, and `zh.ts`. English is the source of truth and the fallback.
 
 ## Related files
 

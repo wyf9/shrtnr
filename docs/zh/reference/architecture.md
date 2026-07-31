@@ -82,7 +82,7 @@ MCP 会话由 `wrangler.jsonc` 中声明的 Durable Object `MCP_OBJECT`（类 `S
 
 ## 国际化 (`src/i18n/`)
 
-所有管理页面/组件中面向用户的字符串都经由 `t()` 处理，翻译存放于 `en.ts`、`id.ts`、`sv.ts`。英语是唯一事实来源与回退。
+所有管理页面/组件中面向用户的字符串都经由 `t()` 处理，翻译存放于 `en.ts`、`id.ts`、`sv.ts`、`zh.ts`。英语是唯一事实来源与回退。
 
 ## 相关文件
 

@@ -57,6 +57,7 @@ Cloudflare 一键部署不会复制 GitHub Actions 工作流，因此不会自�
 | `0007_redirect_settings.sql` | 动态重定向规则设置 |
 | `0008_pages.sql` | 自定义页面 (Pages) 支持 |
 | `0009_drop_bundles.sql` | 移除分组 (Bundles) 功能表结构 |
+| `0010_ai_search_flag.sql` | AI 搜索点击检测标记 |
 
 ## 迁移约定
 

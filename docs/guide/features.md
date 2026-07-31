@@ -30,7 +30,7 @@ shrtnr delivers a complete URL shortener in a single Cloudflare Worker.
 ## Integrations and auth
 
 - **API key authentication**: scoped Bearer tokens for programmatic access. Create keys in the admin UI under **API Keys**.
-- **SDKs**: TypeScript ([`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme)) and Python ([`shrtnr`](https://oddb.it/shrtnr-pypi-readme)). See [SDKs](/integrations/sdks).
+- **SDKs**: TypeScript ([`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme)) and Python ([`wshrtnr`](https://oddb.it/shrtnr-pypi-readme)). See [SDKs](/integrations/sdks).
 - **Built-in MCP server**: at `/_/mcp`, authorized via Cloudflare Access OAuth, so Claude, Copilot, and other AI assistants can create and manage short links. See [MCP Server](/integrations/mcp).
 - **Browser extensions**: Chrome / Firefox extensions to shorten the active tab in one click. See [Browser Extensions](/integrations/browser-extensions).
 - **OpenAPI spec**: the public API exposes an OpenAPI 3.1 spec at `/_/api/openapi.json` and an embedded Scalar API reference at `/_/api/docs`.
