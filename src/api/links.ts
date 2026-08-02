@@ -20,7 +20,10 @@ import {
   removeSlug,
 } from "../services/link-management";
 import { handleLinkQr } from "./qr";
-import { handlePublicLinkAnalytics, handlePublicLinkTimeline } from "./analytics";
+import {
+  handlePublicLinkAnalytics,
+  handlePublicLinkTimeline,
+} from "./analytics";
 import { fetchPageTitle } from "../title-fetch";
 import { fromServiceResult, json } from "./response";
 import { requireScope } from "./scope";
@@ -42,12 +45,30 @@ import {
 export const linksApp = createApiSubApp();
 
 const errorResponses = {
-  400: { description: "Validation error.", content: { "application/json": { schema: ErrorResponseSchema } } },
-  401: { description: "Missing or invalid bearer token.", content: { "application/json": { schema: ErrorResponseSchema } } },
-  403: { description: "Scope insufficient.", content: { "application/json": { schema: ErrorResponseSchema } } },
-  404: { description: "Not found.", content: { "application/json": { schema: ErrorResponseSchema } } },
-  409: { description: "Conflict.", content: { "application/json": { schema: ErrorResponseSchema } } },
-  500: { description: "Server error.", content: { "application/json": { schema: ErrorResponseSchema } } },
+  400: {
+    description: "Validation error.",
+    content: { "application/json": { schema: ErrorResponseSchema } },
+  },
+  401: {
+    description: "Missing or invalid bearer token.",
+    content: { "application/json": { schema: ErrorResponseSchema } },
+  },
+  403: {
+    description: "Scope insufficient.",
+    content: { "application/json": { schema: ErrorResponseSchema } },
+  },
+  404: {
+    description: "Not found.",
+    content: { "application/json": { schema: ErrorResponseSchema } },
+  },
+  409: {
+    description: "Conflict.",
+    content: { "application/json": { schema: ErrorResponseSchema } },
+  },
+  500: {
+    description: "Server error.",
+    content: { "application/json": { schema: ErrorResponseSchema } },
+  },
 };
 
 // ---- POST / (create link) ----
@@ -62,8 +83,14 @@ const createLinkRoute = createRoute({
     body: { content: { "application/json": { schema: CreateLinkBodySchema } } },
   },
   responses: {
-    200: { description: "Existing link returned (duplicate URL).", content: { "application/json": { schema: LinkSchema } } },
-    201: { description: "Created.", content: { "application/json": { schema: LinkSchema } } },
+    200: {
+      description: "Existing link returned (duplicate URL).",
+      content: { "application/json": { schema: LinkSchema } },
+    },
+    201: {
+      description: "Created.",
+      content: { "application/json": { schema: LinkSchema } },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -73,20 +100,40 @@ const createLinkRoute = createRoute({
 });
 
 linksApp.openapi(createLinkRoute, async (c) => {
-  const body = c.req.valid("json") as { url: string; label?: string; slug_length?: number; custom_slug?: string; expires_at?: number; allow_duplicate?: boolean };
+  const body = c.req.valid("json") as {
+    url: string;
+    label?: string;
+    slug_length?: number;
+    custom_slug?: string;
+    expires_at?: number;
+    allow_duplicate?: boolean;
+  };
   const via = c.req.header("X-Client") === "sdk" ? "sdk" : "api";
-  const result = await createLink(c.env, { ...body, created_via: via, created_by: c.var.auth.identity });
+  const result = await createLink(c.env, {
+    ...body,
+    created_via: via,
+    created_by: c.var.auth.identity,
+  });
   if (result.ok && result.status === 201 && !body.label) {
-    c.executionCtx.waitUntil(autoLabelLink(c.env.DB, result.data.id, result.data.url, fetchPageTitle));
+    c.executionCtx.waitUntil(
+      autoLabelLink(c.env.DB, result.data.id, result.data.url, fetchPageTitle),
+    );
   }
   return fromServiceResult(result) as never;
 });
 
 // ---- GET / (list links) ----
 
-const listLinksQuery = z.object({
-  owner: z.string().optional().openapi({ description: "Filter to links created by this owner identity." }),
-}).merge(RangeQuerySchema);
+const listLinksQuery = z
+  .object({
+    owner: z
+      .string()
+      .optional()
+      .openapi({
+        description: "Filter to links created by this owner identity.",
+      }),
+  })
+  .merge(RangeQuerySchema);
 
 const listLinksRoute = createRoute({
   method: "get",
@@ -96,7 +143,10 @@ const listLinksRoute = createRoute({
   middleware: [requireScope("read")] as const,
   request: { query: listLinksQuery },
   responses: {
-    200: { description: "OK.", content: { "application/json": { schema: z.array(LinkSchema) } } },
+    200: {
+      description: "OK.",
+      content: { "application/json": { schema: z.array(LinkSchema) } },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -105,9 +155,14 @@ const listLinksRoute = createRoute({
 });
 
 linksApp.openapi(listLinksRoute, async (c) => {
-  const { owner, range } = c.req.valid("query") as { owner?: string; range?: TimelineRange };
+  const { owner, range } = c.req.valid("query") as {
+    owner?: string;
+    range?: TimelineRange;
+  };
   const opts = range ? { range, withDeltaRange: range } : undefined;
-  const result = owner ? await listLinksByOwner(c.env, owner, opts) : await listLinks(c.env, opts);
+  const result = owner
+    ? await listLinksByOwner(c.env, owner, opts)
+    : await listLinks(c.env, opts);
   return fromServiceResult(result) as never;
 });
 
@@ -121,7 +176,10 @@ const getLinkRoute = createRoute({
   middleware: [requireScope("read")] as const,
   request: { params: IdParamSchema, query: RangeQuerySchema },
   responses: {
-    200: { description: "OK.", content: { "application/json": { schema: LinkSchema } } },
+    200: {
+      description: "OK.",
+      content: { "application/json": { schema: LinkSchema } },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -130,11 +188,17 @@ const getLinkRoute = createRoute({
   },
 });
 
-linksApp.openapi(getLinkRoute, async (c) => {
-  const { id } = c.req.valid("param") as { id: number };
-  const { range } = c.req.valid("query") as { range?: TimelineRange };
-  return fromServiceResult(await getLink(c.env, id, range ? { range } : undefined)) as never;
-}, paramHook);
+linksApp.openapi(
+  getLinkRoute,
+  async (c) => {
+    const { id } = c.req.valid("param") as { id: number };
+    const { range } = c.req.valid("query") as { range?: TimelineRange };
+    return fromServiceResult(
+      await getLink(c.env, id, range ? { range } : undefined),
+    ) as never;
+  },
+  paramHook,
+);
 
 // ---- PUT /:id (update link) ----
 
@@ -149,7 +213,10 @@ const updateLinkRoute = createRoute({
     body: { content: { "application/json": { schema: UpdateLinkBodySchema } } },
   },
   responses: {
-    200: { description: "Updated.", content: { "application/json": { schema: LinkSchema } } },
+    200: {
+      description: "Updated.",
+      content: { "application/json": { schema: LinkSchema } },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -157,11 +224,21 @@ const updateLinkRoute = createRoute({
   },
 });
 
-linksApp.openapi(updateLinkRoute, async (c) => {
-  const { id } = c.req.valid("param") as { id: number };
-  const body = c.req.valid("json") as { url?: string; label?: string | null; expires_at?: number | null };
-  return fromServiceResult(await updateLink(c.env, id, body, c.executionCtx)) as never;
-}, paramHook);
+linksApp.openapi(
+  updateLinkRoute,
+  async (c) => {
+    const { id } = c.req.valid("param") as { id: number };
+    const body = c.req.valid("json") as {
+      url?: string;
+      label?: string | null;
+      expires_at?: number | null;
+    };
+    return fromServiceResult(
+      await updateLink(c.env, id, body, c.executionCtx),
+    ) as never;
+  },
+  paramHook,
+);
 
 // ---- POST /:id/disable ----
 
@@ -173,17 +250,26 @@ const disableLinkRoute = createRoute({
   middleware: [requireScope("create")] as const,
   request: { params: IdParamSchema },
   responses: {
-    200: { description: "Disabled.", content: { "application/json": { schema: LinkSchema } } },
+    200: {
+      description: "Disabled.",
+      content: { "application/json": { schema: LinkSchema } },
+    },
     401: errorResponses[401],
     403: errorResponses[403],
     404: errorResponses[404],
   },
 });
 
-linksApp.openapi(disableLinkRoute, async (c) => {
-  const { id } = c.req.valid("param") as { id: number };
-  return fromServiceResult(await disableLink(c.env, id, c.var.auth.identity, c.executionCtx)) as never;
-}, paramHook);
+linksApp.openapi(
+  disableLinkRoute,
+  async (c) => {
+    const { id } = c.req.valid("param") as { id: number };
+    return fromServiceResult(
+      await disableLink(c.env, id, c.var.auth.identity, c.executionCtx),
+    ) as never;
+  },
+  paramHook,
+);
 
 // ---- POST /:id/enable ----
 
@@ -195,17 +281,26 @@ const enableLinkRoute = createRoute({
   middleware: [requireScope("create")] as const,
   request: { params: IdParamSchema },
   responses: {
-    200: { description: "Enabled.", content: { "application/json": { schema: LinkSchema } } },
+    200: {
+      description: "Enabled.",
+      content: { "application/json": { schema: LinkSchema } },
+    },
     401: errorResponses[401],
     403: errorResponses[403],
     404: errorResponses[404],
   },
 });
 
-linksApp.openapi(enableLinkRoute, async (c) => {
-  const { id } = c.req.valid("param") as { id: number };
-  return fromServiceResult(await enableLink(c.env, id, c.var.auth.identity, c.executionCtx)) as never;
-}, paramHook);
+linksApp.openapi(
+  enableLinkRoute,
+  async (c) => {
+    const { id } = c.req.valid("param") as { id: number };
+    return fromServiceResult(
+      await enableLink(c.env, id, c.var.auth.identity, c.executionCtx),
+    ) as never;
+  },
+  paramHook,
+);
 
 // ---- DELETE /:id ----
 
@@ -217,7 +312,12 @@ const deleteLinkRoute = createRoute({
   middleware: [requireScope("create")] as const,
   request: { params: IdParamSchema },
   responses: {
-    200: { description: "Deleted.", content: { "application/json": { schema: z.object({ deleted: z.boolean() }) } } },
+    200: {
+      description: "Deleted.",
+      content: {
+        "application/json": { schema: z.object({ deleted: z.boolean() }) },
+      },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -225,10 +325,16 @@ const deleteLinkRoute = createRoute({
   },
 });
 
-linksApp.openapi(deleteLinkRoute, async (c) => {
-  const { id } = c.req.valid("param") as { id: number };
-  return fromServiceResult(await deleteLink(c.env, id, c.var.auth.identity, c.executionCtx)) as never;
-}, paramHook);
+linksApp.openapi(
+  deleteLinkRoute,
+  async (c) => {
+    const { id } = c.req.valid("param") as { id: number };
+    return fromServiceResult(
+      await deleteLink(c.env, id, c.var.auth.identity, c.executionCtx),
+    ) as never;
+  },
+  paramHook,
+);
 
 // ---- POST /:id/slugs (add custom slug) ----
 
@@ -243,7 +349,10 @@ const addSlugRoute = createRoute({
     body: { content: { "application/json": { schema: AddSlugBodySchema } } },
   },
   responses: {
-    201: { description: "Slug added.", content: { "application/json": { schema: SlugSchema } } },
+    201: {
+      description: "Slug added.",
+      content: { "application/json": { schema: SlugSchema } },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -252,17 +361,23 @@ const addSlugRoute = createRoute({
   },
 });
 
-linksApp.openapi(addSlugRoute, async (c) => {
-  const { id } = c.req.valid("param") as { id: number };
-  const { slug } = c.req.valid("json") as { slug: string };
-  return fromServiceResult(await addCustomSlugToLink(c.env, id, { slug }, c.executionCtx)) as never;
-}, paramHook);
+linksApp.openapi(
+  addSlugRoute,
+  async (c) => {
+    const { id } = c.req.valid("param") as { id: number };
+    const { slug } = c.req.valid("json") as { slug: string };
+    return fromServiceResult(
+      await addCustomSlugToLink(c.env, id, { slug }, c.executionCtx),
+    ) as never;
+  },
+  paramHook,
+);
 
 // ---- Slug-scoped param schema ----
 
-const LinkSlugParamsSchema = IdParamSchema
-  .extend({ slug: SlugParamSchema.shape.slug })
-  .openapi("LinkSlugParams");
+const LinkSlugParamsSchema = IdParamSchema.extend({
+  slug: SlugParamSchema.shape.slug,
+}).openapi("LinkSlugParams");
 
 // ---- POST /:id/slugs/:slug/disable ----
 
@@ -274,7 +389,10 @@ const disableSlugRoute = createRoute({
   middleware: [requireScope("create")] as const,
   request: { params: LinkSlugParamsSchema },
   responses: {
-    200: { description: "Disabled.", content: { "application/json": { schema: SlugSchema } } },
+    200: {
+      description: "Disabled.",
+      content: { "application/json": { schema: SlugSchema } },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -282,10 +400,16 @@ const disableSlugRoute = createRoute({
   },
 });
 
-linksApp.openapi(disableSlugRoute, async (c) => {
-  const { id, slug } = c.req.valid("param") as { id: number; slug: string };
-  return fromServiceResult(await disableSlug(c.env, id, slug, c.var.auth.identity, c.executionCtx)) as never;
-}, paramHook);
+linksApp.openapi(
+  disableSlugRoute,
+  async (c) => {
+    const { id, slug } = c.req.valid("param") as { id: number; slug: string };
+    return fromServiceResult(
+      await disableSlug(c.env, id, slug, c.var.auth.identity, c.executionCtx),
+    ) as never;
+  },
+  paramHook,
+);
 
 // ---- POST /:id/slugs/:slug/enable ----
 
@@ -297,7 +421,10 @@ const enableSlugRoute = createRoute({
   middleware: [requireScope("create")] as const,
   request: { params: LinkSlugParamsSchema },
   responses: {
-    200: { description: "Enabled.", content: { "application/json": { schema: SlugSchema } } },
+    200: {
+      description: "Enabled.",
+      content: { "application/json": { schema: SlugSchema } },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -305,10 +432,16 @@ const enableSlugRoute = createRoute({
   },
 });
 
-linksApp.openapi(enableSlugRoute, async (c) => {
-  const { id, slug } = c.req.valid("param") as { id: number; slug: string };
-  return fromServiceResult(await enableSlug(c.env, id, slug, c.var.auth.identity, c.executionCtx)) as never;
-}, paramHook);
+linksApp.openapi(
+  enableSlugRoute,
+  async (c) => {
+    const { id, slug } = c.req.valid("param") as { id: number; slug: string };
+    return fromServiceResult(
+      await enableSlug(c.env, id, slug, c.var.auth.identity, c.executionCtx),
+    ) as never;
+  },
+  paramHook,
+);
 
 // ---- DELETE /:id/slugs/:slug ----
 
@@ -320,7 +453,12 @@ const removeSlugRoute = createRoute({
   middleware: [requireScope("create")] as const,
   request: { params: LinkSlugParamsSchema },
   responses: {
-    200: { description: "Removed.", content: { "application/json": { schema: z.object({ removed: z.boolean() }) } } },
+    200: {
+      description: "Removed.",
+      content: {
+        "application/json": { schema: z.object({ removed: z.boolean() }) },
+      },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -328,10 +466,16 @@ const removeSlugRoute = createRoute({
   },
 });
 
-linksApp.openapi(removeSlugRoute, async (c) => {
-  const { id, slug } = c.req.valid("param") as { id: number; slug: string };
-  return fromServiceResult(await removeSlug(c.env, id, slug, c.var.auth.identity, c.executionCtx)) as never;
-}, paramHook);
+linksApp.openapi(
+  removeSlugRoute,
+  async (c) => {
+    const { id, slug } = c.req.valid("param") as { id: number; slug: string };
+    return fromServiceResult(
+      await removeSlug(c.env, id, slug, c.var.auth.identity, c.executionCtx),
+    ) as never;
+  },
+  paramHook,
+);
 
 // ---- GET /:id/qr ----
 
@@ -344,10 +488,22 @@ const linkQrRoute = createRoute({
   request: {
     params: IdParamSchema,
     query: z.object({
-      slug: z.string().regex(/^[a-zA-Z0-9._~-]+$/).optional()
-        .openapi({ description: "Optional specific slug. Defaults to the link's primary slug." }),
-      size: z.string().regex(/^\d+$/).optional()
-        .openapi({ description: "PNG dimensions in pixels (square). Default per server config." }),
+      slug: z
+        .string()
+        .regex(/^[a-zA-Z0-9._~-]+$/)
+        .optional()
+        .openapi({
+          description:
+            "Optional specific slug. Defaults to the link's primary slug.",
+        }),
+      size: z
+        .string()
+        .regex(/^\d+$/)
+        .optional()
+        .openapi({
+          description:
+            "PNG dimensions in pixels (square). Default per server config.",
+        }),
     }),
   },
   responses: {
@@ -362,10 +518,14 @@ const linkQrRoute = createRoute({
   },
 });
 
-linksApp.openapi(linkQrRoute, async (c) => {
-  const { id } = c.req.valid("param") as { id: number };
-  return (await handleLinkQr(c.req.raw, c.env, id)) as never;
-}, paramHook);
+linksApp.openapi(
+  linkQrRoute,
+  async (c) => {
+    const { id } = c.req.valid("param") as { id: number };
+    return (await handleLinkQr(c.req.raw, c.env, id)) as never;
+  },
+  paramHook,
+);
 
 // ---- GET /:id/analytics ----
 
@@ -377,7 +537,10 @@ const linkAnalyticsRoute = createRoute({
   middleware: [requireScope("read")] as const,
   request: { params: IdParamSchema, query: RangeQuerySchema },
   responses: {
-    200: { description: "OK", content: { "application/json": { schema: ClickStatsSchema } } },
+    200: {
+      description: "OK",
+      content: { "application/json": { schema: ClickStatsSchema } },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -386,11 +549,15 @@ const linkAnalyticsRoute = createRoute({
   },
 });
 
-linksApp.openapi(linkAnalyticsRoute, async (c) => {
-  const { id } = c.req.valid("param") as { id: number };
-  const { range } = c.req.valid("query") as { range?: string };
-  return (await handlePublicLinkAnalytics(c.env, id, range)) as never;
-}, paramHook);
+linksApp.openapi(
+  linkAnalyticsRoute,
+  async (c) => {
+    const { id } = c.req.valid("param") as { id: number };
+    const { range } = c.req.valid("query") as { range?: string };
+    return (await handlePublicLinkAnalytics(c.env, id, range)) as never;
+  },
+  paramHook,
+);
 
 // ---- GET /:id/timeline ----
 
@@ -402,7 +569,10 @@ const linkTimelineRoute = createRoute({
   middleware: [requireScope("read")] as const,
   request: { params: IdParamSchema, query: RangeQuerySchema },
   responses: {
-    200: { description: "OK", content: { "application/json": { schema: TimelineDataSchema } } },
+    200: {
+      description: "OK",
+      content: { "application/json": { schema: TimelineDataSchema } },
+    },
     400: errorResponses[400],
     401: errorResponses[401],
     403: errorResponses[403],
@@ -411,19 +581,29 @@ const linkTimelineRoute = createRoute({
   },
 });
 
-linksApp.openapi(linkTimelineRoute, async (c) => {
-  const { id } = c.req.valid("param") as { id: number };
-  const { range } = c.req.valid("query") as { range?: string };
-  return (await handlePublicLinkTimeline(c.env, id, range)) as never;
-}, paramHook);
+linksApp.openapi(
+  linkTimelineRoute,
+  async (c) => {
+    const { id } = c.req.valid("param") as { id: number };
+    const { range } = c.req.valid("query") as { range?: string };
+    return (await handlePublicLinkTimeline(c.env, id, range)) as never;
+  },
+  paramHook,
+);
 
 // ---- Named exports consumed by admin routes in index.tsx (pending migration in later tasks) ----
 
-export async function handleGetLinkBySlug(env: Env, slug: string): Promise<Response> {
+export async function handleGetLinkBySlug(
+  env: Env,
+  slug: string,
+): Promise<Response> {
   return fromServiceResult(await getLinkBySlug(env, slug.toLowerCase()));
 }
 
-export async function handleListLinks(env: Env, owner?: string): Promise<Response> {
+export async function handleListLinks(
+  env: Env,
+  owner?: string,
+): Promise<Response> {
   if (owner) return fromServiceResult(await listLinksByOwner(env, owner));
   return fromServiceResult(await listLinks(env));
 }
@@ -432,7 +612,13 @@ export async function handleGetLink(env: Env, id: number): Promise<Response> {
   return fromServiceResult(await getLink(env, id));
 }
 
-export async function handleCreateLink(request: Request, env: Env, createdVia?: string, createdBy?: string, ctx?: ExecutionContext): Promise<Response> {
+export async function handleCreateLink(
+  request: Request,
+  env: Env,
+  createdVia?: string,
+  createdBy?: string,
+  ctx?: ExecutionContext,
+): Promise<Response> {
   let body: {
     url?: string;
     label?: string;
@@ -448,16 +634,27 @@ export async function handleCreateLink(request: Request, env: Env, createdVia?: 
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  const result = await createLink(env, { ...body, created_via: createdVia, created_by: createdBy });
+  const result = await createLink(env, {
+    ...body,
+    created_via: createdVia,
+    created_by: createdBy,
+  });
 
   if (result.ok && result.status === 201 && !body.label && ctx) {
-    ctx.waitUntil(autoLabelLink(env.DB, result.data.id, result.data.url, fetchPageTitle));
+    ctx.waitUntil(
+      autoLabelLink(env.DB, result.data.id, result.data.url, fetchPageTitle),
+    );
   }
 
   return fromServiceResult(result);
 }
 
-export async function handleUpdateLink(request: Request, env: Env, id: number, ctx?: ExecutionContext): Promise<Response> {
+export async function handleUpdateLink(
+  request: Request,
+  env: Env,
+  id: number,
+  ctx?: ExecutionContext,
+): Promise<Response> {
   let body: { url?: string; label?: string | null; expires_at?: number | null };
 
   try {
@@ -469,14 +666,29 @@ export async function handleUpdateLink(request: Request, env: Env, id: number, c
   return fromServiceResult(await updateLink(env, id, body, ctx));
 }
 
-export async function handleDisableLink(env: Env, id: number, identity: string, ctx?: ExecutionContext): Promise<Response> {
+export async function handleDisableLink(
+  env: Env,
+  id: number,
+  identity: string,
+  ctx?: ExecutionContext,
+): Promise<Response> {
   return fromServiceResult(await disableLink(env, id, identity, ctx));
 }
 
-export async function handleEnableLink(env: Env, id: number, identity: string, ctx?: ExecutionContext): Promise<Response> {
+export async function handleEnableLink(
+  env: Env,
+  id: number,
+  identity: string,
+  ctx?: ExecutionContext,
+): Promise<Response> {
   return fromServiceResult(await enableLink(env, id, identity, ctx));
 }
 
-export async function handleDeleteLink(env: Env, id: number, identity: string, ctx?: ExecutionContext): Promise<Response> {
+export async function handleDeleteLink(
+  env: Env,
+  id: number,
+  identity: string,
+  ctx?: ExecutionContext,
+): Promise<Response> {
   return fromServiceResult(await deleteLink(env, id, identity, ctx));
 }

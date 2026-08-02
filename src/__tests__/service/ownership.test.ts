@@ -97,7 +97,12 @@ describe("Slug ownership: disable", () => {
     const refreshed = await LinkRepository.getById(env.DB, link.id);
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
 
-    const result = await disableSlug(env as any, link.id, customSlug.slug, OWNER);
+    const result = await disableSlug(
+      env as any,
+      link.id,
+      customSlug.slug,
+      OWNER,
+    );
     expect(result.ok).toBe(true);
   });
 
@@ -107,7 +112,12 @@ describe("Slug ownership: disable", () => {
     const refreshed = await LinkRepository.getById(env.DB, link.id);
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
 
-    const result = await disableSlug(env as any, link.id, customSlug.slug, OTHER);
+    const result = await disableSlug(
+      env as any,
+      link.id,
+      customSlug.slug,
+      OTHER,
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.status).toBe(403);
@@ -123,7 +133,12 @@ describe("Slug ownership: enable", () => {
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
     await disableSlug(env as any, link.id, customSlug.slug, OWNER);
 
-    const result = await enableSlug(env as any, link.id, customSlug.slug, OWNER);
+    const result = await enableSlug(
+      env as any,
+      link.id,
+      customSlug.slug,
+      OWNER,
+    );
     expect(result.ok).toBe(true);
   });
 
@@ -134,7 +149,12 @@ describe("Slug ownership: enable", () => {
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
     await disableSlug(env as any, link.id, customSlug.slug, OWNER);
 
-    const result = await enableSlug(env as any, link.id, customSlug.slug, OTHER);
+    const result = await enableSlug(
+      env as any,
+      link.id,
+      customSlug.slug,
+      OTHER,
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.status).toBe(403);
@@ -149,7 +169,12 @@ describe("Slug ownership: remove", () => {
     const refreshed = await LinkRepository.getById(env.DB, link.id);
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
 
-    const result = await removeSlug(env as any, link.id, customSlug.slug, OWNER);
+    const result = await removeSlug(
+      env as any,
+      link.id,
+      customSlug.slug,
+      OWNER,
+    );
     expect(result.ok).toBe(true);
   });
 
@@ -159,7 +184,12 @@ describe("Slug ownership: remove", () => {
     const refreshed = await LinkRepository.getById(env.DB, link.id);
     const customSlug = refreshed!.slugs.find((s) => s.is_custom === 1)!;
 
-    const result = await removeSlug(env as any, link.id, customSlug.slug, OTHER);
+    const result = await removeSlug(
+      env as any,
+      link.id,
+      customSlug.slug,
+      OTHER,
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.status).toBe(403);
@@ -170,7 +200,9 @@ describe("Slug ownership: remove", () => {
 describe("Collaboration: adding slugs", () => {
   it("non-owner can add a custom slug to another user's link", async () => {
     const link = await createOwnedLink();
-    const result = await addCustomSlugToLink(env as any, link.id, { slug: "collab-slug" });
+    const result = await addCustomSlugToLink(env as any, link.id, {
+      slug: "collab-slug",
+    });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.slug).toBe("collab-slug");
@@ -215,7 +247,10 @@ describe("Link disable via expires_at", () => {
 describe("UI search includes created_by", () => {
   it("finds a link when searching by owner email with includeOwner", async () => {
     await createOwnedLink(OWNER);
-    await createLink(env as any, { url: "https://other.com", created_by: OTHER });
+    await createLink(env as any, {
+      url: "https://other.com",
+      created_by: OTHER,
+    });
 
     const result = await searchLinks(env as any, OWNER, { includeOwner: true });
     expect(result.ok).toBe(true);
@@ -228,7 +263,9 @@ describe("UI search includes created_by", () => {
   it("finds links by partial owner email match", async () => {
     await createOwnedLink(OWNER);
 
-    const result = await searchLinks(env as any, "owner@", { includeOwner: true });
+    const result = await searchLinks(env as any, "owner@", {
+      includeOwner: true,
+    });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data).toHaveLength(1);
@@ -249,8 +286,15 @@ describe("UI search includes created_by", () => {
 describe("List links by owner", () => {
   it("returns only links owned by the specified identity", async () => {
     await createOwnedLink(OWNER);
-    await createLink(env as any, { url: "https://second.com", created_by: OWNER, allow_duplicate: true });
-    await createLink(env as any, { url: "https://other.com", created_by: OTHER });
+    await createLink(env as any, {
+      url: "https://second.com",
+      created_by: OWNER,
+      allow_duplicate: true,
+    });
+    await createLink(env as any, {
+      url: "https://other.com",
+      created_by: OTHER,
+    });
 
     const result = await listLinksByOwner(env as any, OWNER);
     expect(result.ok).toBe(true);

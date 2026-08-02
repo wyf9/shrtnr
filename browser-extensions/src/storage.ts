@@ -17,7 +17,8 @@ type Subscriber = (config: Config | null) => void;
 function parseConfig(raw: unknown): Config | null {
   if (raw == null || typeof raw !== "object") return null;
   const r = raw as Record<string, unknown>;
-  if (typeof r.baseUrl !== "string" || typeof r.apiKey !== "string") return null;
+  if (typeof r.baseUrl !== "string" || typeof r.apiKey !== "string")
+    return null;
   if (!r.baseUrl || !r.apiKey) return null;
   return { baseUrl: r.baseUrl, apiKey: r.apiKey };
 }
@@ -35,7 +36,9 @@ function normalize(input: Config): Config {
     throw new Error(`baseUrl is not a valid URL: ${input.baseUrl}`);
   }
   if (url.protocol !== "https:" && url.protocol !== "http:") {
-    throw new Error(`baseUrl protocol must be http or https, got ${url.protocol}`);
+    throw new Error(
+      `baseUrl protocol must be http or https, got ${url.protocol}`,
+    );
   }
 
   return { baseUrl: url.origin, apiKey };

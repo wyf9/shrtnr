@@ -24,15 +24,15 @@ When `ACCESS_AUD` is unset (the default in local dev), the Worker skips JWT veri
 
 ## Common scripts
 
-| Script | Description |
-|---|---|
-| `bun run dev` | Start the local dev server |
-| `bun run deploy` | Deploy to Cloudflare |
-| `bun run test` | Run tests once (`vitest run`) |
-| `bun run test:watch` | Run tests in watch mode |
-| `bun run db:migrate:local` | Apply migrations to the local D1 |
-| `bun run db:migrate:remote` | Apply migrations to the remote D1 |
-| `bun run emit-spec` | Emit the OpenAPI spec (`scripts/emit-spec.ts`) |
+| Script                      | Description                                    |
+| --------------------------- | ---------------------------------------------- |
+| `bun run dev`               | Start the local dev server                     |
+| `bun run deploy`            | Deploy to Cloudflare                           |
+| `bun run test`              | Run tests once (`vitest run`)                  |
+| `bun run test:watch`        | Run tests in watch mode                        |
+| `bun run db:migrate:local`  | Apply migrations to the local D1               |
+| `bun run db:migrate:remote` | Apply migrations to the remote D1              |
+| `bun run emit-spec`         | Emit the OpenAPI spec (`scripts/emit-spec.ts`) |
 
 ## Testing
 
@@ -44,9 +44,10 @@ bun run test:watch    # watch mode
 ```
 
 ::: warning Testing conventions
+
 - Write tests for every requested behavior or change.
 - Never modify or remove tests to accommodate code changes.
-:::
+  :::
 
 ## SDK development
 
@@ -60,10 +61,11 @@ bun run build
 ```
 
 ::: tip SDK parity
+
 - Any change to one SDK must be evaluated and applied to the others.
 - All SDK READMEs stay in lockstep, adjusted only for language idioms.
 - Each SDK records the SHA-256 of the OpenAPI spec it was last generated against (spec hash). An API change stales both hashes.
-:::
+  :::
 
 For detailed contribution and release conventions, see [Contribution Guidelines](/contributing/guidelines) and [Releases](/contributing/releases).
 

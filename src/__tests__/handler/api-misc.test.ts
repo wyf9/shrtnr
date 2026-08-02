@@ -51,8 +51,10 @@ describe("Routing", () => {
       authed("/_/admin/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ root_redirect_url: "https://example.com/welcome" }),
-      })
+        body: JSON.stringify({
+          root_redirect_url: "https://example.com/welcome",
+        }),
+      }),
     );
     const res = await SELF.fetch(unauthed("/"), { redirect: "manual" });
     expect(res.status).toBe(302);
@@ -69,9 +71,13 @@ describe("Routing", () => {
         }),
       }),
     );
-    const res = await SELF.fetch(unauthed("/mail/jane@example.com"), { redirect: "manual" });
+    const res = await SELF.fetch(unauthed("/mail/jane@example.com"), {
+      redirect: "manual",
+    });
     expect(res.status).toBe(302);
-    expect(res.headers.get("Location")).toBe("https://siiway.org/go/mail?email=jane@example.com");
+    expect(res.headers.get("Location")).toBe(
+      "https://siiway.org/go/mail?email=jane@example.com",
+    );
   });
 
   it("GET dynamic splat path should follow configured redirect rule", async () => {
@@ -84,9 +90,13 @@ describe("Routing", () => {
         }),
       }),
     );
-    const res = await SELF.fetch(unauthed("/a/team/core"), { redirect: "manual" });
+    const res = await SELF.fetch(unauthed("/a/team/core"), {
+      redirect: "manual",
+    });
     expect(res.status).toBe(302);
-    expect(res.headers.get("Location")).toBe("https://siiway.org/about/team/core");
+    expect(res.headers.get("Location")).toBe(
+      "https://siiway.org/about/team/core",
+    );
   });
 
   it("GET path without trailing slash should not be shadowed by a splat rule", async () => {
@@ -95,14 +105,19 @@ describe("Routing", () => {
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://siiway.org/mail", custom_slug: "m" }),
+        body: JSON.stringify({
+          url: "https://siiway.org/mail",
+          custom_slug: "m",
+        }),
       }),
     );
     await SELF.fetch(
       authed("/_/admin/api/redirects", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rules: "/m/* https://siiway.org/zh/members/:splat" }),
+        body: JSON.stringify({
+          rules: "/m/* https://siiway.org/zh/members/:splat",
+        }),
       }),
     );
 
@@ -112,9 +127,13 @@ describe("Routing", () => {
     expect(staticRes.headers.get("Location")).toBe("https://siiway.org/mail");
 
     // /m/alice still follows the dynamic splat rule.
-    const dynamicRes = await SELF.fetch(unauthed("/m/alice"), { redirect: "manual" });
+    const dynamicRes = await SELF.fetch(unauthed("/m/alice"), {
+      redirect: "manual",
+    });
     expect(dynamicRes.status).toBe(302);
-    expect(dynamicRes.headers.get("Location")).toBe("https://siiway.org/zh/members/alice");
+    expect(dynamicRes.headers.get("Location")).toBe(
+      "https://siiway.org/zh/members/alice",
+    );
   });
 
   it("strict dynamic redirect matching rejects empty splat captures", async () => {
@@ -138,21 +157,25 @@ describe("Routing", () => {
     expect(emptyRes.status).toBe(404);
 
     // Non-empty splat still matches under strict mode.
-    const filledRes = await SELF.fetch(unauthed("/a/team"), { redirect: "manual" });
+    const filledRes = await SELF.fetch(unauthed("/a/team"), {
+      redirect: "manual",
+    });
     expect(filledRes.status).toBe(302);
-    expect(filledRes.headers.get("Location")).toBe("https://siiway.org/about/team");
+    expect(filledRes.headers.get("Location")).toBe(
+      "https://siiway.org/about/team",
+    );
   });
 
   it("GET /_/health should return ok without auth", async () => {
     const res = await SELF.fetch(unauthed("/_/health"));
     expect(res.status).toBe(200);
-    const body = await res.json() as { status: string };
+    const body = (await res.json()) as { status: string };
     expect(body.status).toBe("ok");
   });
 
   it("GET /_/health should include version string", async () => {
     const res = await SELF.fetch(unauthed("/_/health"));
-    const body = await res.json() as { version: string };
+    const body = (await res.json()) as { version: string };
     expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
@@ -163,7 +186,7 @@ describe("Routing", () => {
 
   it("GET /_/admin/api/settings should return redirect cache disabled by default", async () => {
     const res = await SELF.fetch(authed("/_/admin/api/settings"));
-    const body = await res.json() as { redirect_cache_enabled: boolean };
+    const body = (await res.json()) as { redirect_cache_enabled: boolean };
     expect(body.redirect_cache_enabled).toBe(false);
   });
 
@@ -175,14 +198,16 @@ describe("Routing", () => {
         body: JSON.stringify({ redirect_cache_enabled: true }),
       }),
     );
-    const body = await res.json() as { redirect_cache_enabled: boolean };
+    const body = (await res.json()) as { redirect_cache_enabled: boolean };
     expect(body.redirect_cache_enabled).toBe(true);
   });
 
   it("POST /_/admin/api/cache/purge should succeed", async () => {
-    const res = await SELF.fetch(authed("/_/admin/api/cache/purge", { method: "POST" }));
+    const res = await SELF.fetch(
+      authed("/_/admin/api/cache/purge", { method: "POST" }),
+    );
     expect(res.status).toBe(200);
-    const body = await res.json() as { ok: boolean };
+    const body = (await res.json()) as { ok: boolean };
     expect(body.ok).toBe(true);
   });
 
@@ -264,9 +289,9 @@ describe("Redirect", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://destination.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slug = created.slugs[0].slug;
     const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
     expect(res.status).toBe(301);
@@ -294,14 +319,16 @@ describe("Redirect", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://cached-destination.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slug = created.slugs[0].slug;
 
     const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
     expect(res.status).toBe(301);
-    expect(res.headers.get("Cache-Control")).toBe(`public, max-age=${30 * 86400}, stale-while-revalidate=604800`);
+    expect(res.headers.get("Cache-Control")).toBe(
+      `public, max-age=${30 * 86400}, stale-while-revalidate=604800`,
+    );
     // Every cached redirect carries the shared "redirect" tag (so disabling the
     // cache can purge all of them at once) plus its per-slug tag.
     expect(res.headers.get("Cache-Tag")).toBe(`redirect,redirect:${slug}`);
@@ -324,9 +351,9 @@ describe("Redirect", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://cold-destination.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slug = created.slugs[0].slug;
 
     const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
@@ -347,9 +374,9 @@ describe("Redirect", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com", expires_at: past }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slug = created.slugs[0].slug;
     const res = await SELF.fetch(unauthed(`/${slug}`));
     expect(res.status).toBe(404);
@@ -361,10 +388,13 @@ describe("Redirect", () => {
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", expires_at: future }),
-      })
+        body: JSON.stringify({
+          url: "https://example.com",
+          expires_at: future,
+        }),
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slug = created.slugs[0].slug;
     const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
     expect(res.status).toBe(301);
@@ -376,9 +406,9 @@ describe("Redirect", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slug = created.slugs[0].slug;
     const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
     expect(res.status).toBe(301);
@@ -390,9 +420,9 @@ describe("Redirect", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slug = created.slugs[0].slug;
     // Set expires_at to a past timestamp (avoids same-second race with disableLink)
     const past = Math.floor(Date.now() / 1000) - 60;
@@ -401,7 +431,7 @@ describe("Redirect", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ expires_at: past }),
-      })
+      }),
     );
     // Redirect should now 404
     const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
@@ -414,20 +444,20 @@ describe("Redirect", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slug = created.slugs[0].slug;
     // Disable then enable
     await SELF.fetch(
-      authed(`/_/admin/api/links/${created.id}/disable`, { method: "POST" })
+      authed(`/_/admin/api/links/${created.id}/disable`, { method: "POST" }),
     );
     await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ expires_at: null }),
-      })
+      }),
     );
     const res = await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
     expect(res.status).toBe(301);
@@ -438,7 +468,7 @@ describe("Redirect", () => {
 describe("Settings API", () => {
   it("GET /_/admin/api/settings should return slug_default_length", async () => {
     const res = await SELF.fetch(authed("/_/admin/api/settings"));
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.slug_default_length).toBe(3);
   });
 
@@ -448,9 +478,9 @@ describe("Settings API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug_default_length: 5 }),
-      })
+      }),
     );
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.slug_default_length).toBe(5);
   });
 
@@ -460,14 +490,14 @@ describe("Settings API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug_default_length: 2 }),
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
 
   it("GET /_/admin/api/settings should return 30d default_range when unset", async () => {
     const res = await SELF.fetch(authed("/_/admin/api/settings"));
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.default_range).toBe("30d");
   });
 
@@ -477,9 +507,9 @@ describe("Settings API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ default_range: "7d" }),
-      })
+      }),
     );
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.default_range).toBe("7d");
   });
 
@@ -489,7 +519,7 @@ describe("Settings API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ default_range: "nope" }),
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
@@ -500,9 +530,9 @@ describe("Settings API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ root_redirect_url: "https://example.com/root" }),
-      })
+      }),
     );
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.root_redirect_url).toBe("https://example.com/root");
   });
 
@@ -512,13 +542,14 @@ describe("Settings API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ root_redirect_url: "javascript:alert(1)" }),
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
 
   it("PUT /_/admin/api/redirects should update rules", async () => {
-    const rules = "/tasks/:task https://git.siiway.org/siiway/tasks/issues/:task";
+    const rules =
+      "/tasks/:task https://git.siiway.org/siiway/tasks/issues/:task";
     const res = await SELF.fetch(
       authed("/_/admin/api/redirects", {
         method: "PUT",
@@ -526,7 +557,7 @@ describe("Settings API", () => {
         body: JSON.stringify({ rules }),
       }),
     );
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.rules).toBe(rules);
   });
 
@@ -547,7 +578,7 @@ describe("Settings API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ default_range: "7d" }),
-      })
+      }),
     );
     const res = await SELF.fetch(authed("/_/admin/dashboard"));
     expect(res.status).toBe(200);
@@ -561,7 +592,7 @@ describe("Settings API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ default_range: "7d" }),
-      })
+      }),
     );
     const res = await SELF.fetch(authed("/_/admin/dashboard?range=90d"));
     const html = await res.text();
@@ -588,16 +619,16 @@ describe("Settings API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug_default_length: 6 }),
-      })
+      }),
     );
     const res = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     const autoSlug = body.slugs.find((s: any) => s.is_custom === 0);
     expect(autoSlug.slug).toHaveLength(6);
   });
@@ -611,12 +642,14 @@ describe("Analytics API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
-    const res = await SELF.fetch(authed(`/_/admin/api/links/${created.id}/analytics`));
+    const created = (await createRes.json()) as any;
+    const res = await SELF.fetch(
+      authed(`/_/admin/api/links/${created.id}/analytics`),
+    );
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.total_clicks).toBe(0);
     expect(body.countries).toEqual([]);
   });
@@ -624,7 +657,7 @@ describe("Analytics API", () => {
   it("GET /_/admin/api/dashboard should return dashboard stats", async () => {
     const res = await SELF.fetch(authed("/_/admin/api/dashboard"));
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(typeof body.total_links).toBe("number");
     expect(typeof body.total_clicks).toBe("number");
     expect(Array.isArray(body.recent_links)).toBe(true);
@@ -636,19 +669,24 @@ describe("Analytics API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://target.example.com" }),
-      })
+      }),
     );
     expect(createRes.status).toBe(201);
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slug = created.slugs[0].slug;
     // top_links is ranked by clicks within the range window, so the link
     // must be clicked at least once to appear. Use a browser UA so the click
     // is not flagged as a bot (default analytics filters exclude bot traffic).
-    await SELF.fetch(unauthed(`/${slug}`, {
-      headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" },
-    }));
+    await SELF.fetch(
+      unauthed(`/${slug}`, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        },
+      }),
+    );
     const res = await SELF.fetch(authed("/_/admin/api/dashboard"));
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(Array.isArray(body.top_links)).toBe(true);
     expect(body.top_links.length).toBeGreaterThan(0);
     expect(body.top_links[0].url).toBe("https://target.example.com");
@@ -660,17 +698,17 @@ describe("Analytics API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://noclicks.example.com" }),
-      })
+      }),
     );
     const res = await SELF.fetch(authed("/_/admin/api/dashboard"));
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(Array.isArray(body.top_links)).toBe(true);
     expect(body.top_links.length).toBe(0);
   });
 
   it("GET /_/admin/api/dashboard top_countries should return country codes", async () => {
     const res = await SELF.fetch(authed("/_/admin/api/dashboard"));
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(Array.isArray(body.top_countries)).toBe(true);
   });
 });
@@ -683,7 +721,7 @@ describe("Invalid JSON Bodies", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: "not json",
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
@@ -694,7 +732,7 @@ describe("Invalid JSON Bodies", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: "not json",
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
@@ -705,7 +743,7 @@ describe("Invalid JSON Bodies", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: "not json",
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
@@ -724,7 +762,7 @@ describe("Nonexistent Resources", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "orphan" }),
-      })
+      }),
     );
     expect(res.status).toBe(404);
   });
@@ -735,13 +773,15 @@ describe("Nonexistent Resources", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://nowhere.com" }),
-      })
+      }),
     );
     expect(res.status).toBe(404);
   });
 
   it("DELETE /_/admin/api/keys/:id for nonexistent key should return 404", async () => {
-    const res = await SELF.fetch(authed("/_/admin/api/keys/99999", { method: "DELETE" }));
+    const res = await SELF.fetch(
+      authed("/_/admin/api/keys/99999", { method: "DELETE" }),
+    );
     expect(res.status).toBe(404);
   });
 });

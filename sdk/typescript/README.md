@@ -23,7 +23,9 @@ const client = new ShrtnrClient({
   apiKey: "sk_your_api_key",
 });
 
-const link = await client.links.create({ url: "https://example.com/very-long-path" });
+const link = await client.links.create({
+  url: "https://example.com/very-long-path",
+});
 console.log(link.slugs[0].slug); // "a3x9"
 ```
 
@@ -32,9 +34,9 @@ console.log(link.slugs[0].slug); // "a3x9"
 ```ts
 new ShrtnrClient({
   baseUrl: "https://your-shrtnr.example.com", // required
-  apiKey: "sk_...",                            // required; from the admin dashboard
-  fetch: customFetch,                          // optional; inject a custom HTTP client
-})
+  apiKey: "sk_...", // required; from the admin dashboard
+  fetch: customFetch, // optional; inject a custom HTTP client
+});
 ```
 
 The `fetch` option is useful for test mocking or custom TLS configurations.
@@ -43,22 +45,25 @@ The `fetch` option is useful for test mocking or custom TLS configurations.
 
 ### Links (`client.links`)
 
-| Method | Description |
-|---|---|
-| `get(id, {range?})` | Get a link with click count |
-| `list({owner?, range?})` | List all links |
-| `create({url, label?, slugLength?, expiresAt?, allowDuplicate?})` | Create a short link |
-| `update(id, {url?, label?, expiresAt?})` | Update URL, label, or expiry |
-| `disable(id)` | Stop redirecting |
-| `enable(id)` | Resume redirecting |
-| `delete(id)` | Permanently delete |
-| `analytics(id, {range?})` | Click breakdown by country, device, referrer, etc. |
-| `timeline(id, {range?})` | Click counts bucketed over time |
-| `qr(id, {slug?, size?})` | QR code as SVG string |
+| Method                                                            | Description                                        |
+| ----------------------------------------------------------------- | -------------------------------------------------- |
+| `get(id, {range?})`                                               | Get a link with click count                        |
+| `list({owner?, range?})`                                          | List all links                                     |
+| `create({url, label?, slugLength?, expiresAt?, allowDuplicate?})` | Create a short link                                |
+| `update(id, {url?, label?, expiresAt?})`                          | Update URL, label, or expiry                       |
+| `disable(id)`                                                     | Stop redirecting                                   |
+| `enable(id)`                                                      | Resume redirecting                                 |
+| `delete(id)`                                                      | Permanently delete                                 |
+| `analytics(id, {range?})`                                         | Click breakdown by country, device, referrer, etc. |
+| `timeline(id, {range?})`                                          | Click counts bucketed over time                    |
+| `qr(id, {slug?, size?})`                                          | QR code as SVG string                              |
 
 ```ts
 // Shorten a URL
-const link = await client.links.create({ url: "https://example.com", label: "Landing page" });
+const link = await client.links.create({
+  url: "https://example.com",
+  label: "Landing page",
+});
 
 // Get a 7-day click count
 const fresh = await client.links.get(link.id, { range: "7d" });
@@ -70,13 +75,13 @@ console.log(stats.totalClicks, stats.countries, stats.browsers);
 
 ### Slugs (`client.slugs`)
 
-| Method | Description |
-|---|---|
-| `lookup(slug)` | Find a link by slug |
-| `add(linkId, slug)` | Add a custom slug |
-| `disable(linkId, slug)` | Disable a slug |
-| `enable(linkId, slug)` | Re-enable a slug |
-| `remove(linkId, slug)` | Remove a slug |
+| Method                  | Description         |
+| ----------------------- | ------------------- |
+| `lookup(slug)`          | Find a link by slug |
+| `add(linkId, slug)`     | Add a custom slug   |
+| `disable(linkId, slug)` | Disable a slug      |
+| `enable(linkId, slug)`  | Re-enable a slug    |
+| `remove(linkId, slug)`  | Remove a slug       |
 
 ```ts
 // Add a campaign slug then disable it when the campaign ends
@@ -109,9 +114,9 @@ try {
   await client.links.get(99999);
 } catch (err) {
   if (err instanceof ShrtnrError) {
-    console.error(err.status);        // 404
+    console.error(err.status); // 404
     console.error(err.serverMessage); // "not found"
-    console.error(err.message);       // "shrtnr API error (HTTP 404): not found"
+    console.error(err.message); // "shrtnr API error (HTTP 404): not found"
   }
 }
 ```

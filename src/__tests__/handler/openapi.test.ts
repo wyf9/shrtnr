@@ -33,7 +33,11 @@ describe("OpenAPI surface", () => {
     const res = await SELF.fetch("https://shrtnr.test/_/api/openapi.json");
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type") ?? "").toMatch(/application\/json/);
-    const doc = await res.json() as { openapi: string; info: { title: string; version: string }; paths: Record<string, unknown> };
+    const doc = (await res.json()) as {
+      openapi: string;
+      info: { title: string; version: string };
+      paths: Record<string, unknown>;
+    };
     expect(doc.openapi).toBe("3.1.0");
     expect(doc.info.title).toBe("shrtnr API");
     expect(doc.info.version).toMatch(/^\d+\.\d+\.\d+/);
@@ -63,7 +67,7 @@ describe("OpenAPI strict validation", () => {
       }),
     );
     expect(res.status).toBe(400);
-    const body = await res.json() as { error?: string };
+    const body = (await res.json()) as { error?: string };
     expect(typeof body.error).toBe("string");
     expect(body.error).toMatch(/banana/i);
   });
@@ -84,32 +88,47 @@ describe("OpenAPI strict validation", () => {
 describe("paramHook handles body and query failures", () => {
   it("PUT /_/api/links/:id with an unknown body field returns 400 + {error: string}", async () => {
     const key = await createApiKey("create");
-    const createRes = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url: "https://example.com" }),
-    }));
-    const created = await createRes.json() as { id: number };
+    const createRes = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: "https://example.com" }),
+      }),
+    );
+    const created = (await createRes.json()) as { id: number };
     const id = created.id;
 
-    const res = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}`, {
-      method: "PUT",
-      headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url: "https://example.com/new", banana: "yellow" }),
-    }));
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: "https://example.com/new",
+          banana: "yellow",
+        }),
+      }),
+    );
     expect(res.status).toBe(400);
-    const body = await res.json() as { error?: string };
+    const body = (await res.json()) as { error?: string };
     expect(typeof body.error).toBe("string");
     expect(body.error).toMatch(/banana/i);
   });
 
   it("GET /_/api/links/:id?range=invalid returns 400 + {error: string}", async () => {
     const key = await createApiKey("read");
-    const res = await SELF.fetch(new Request("https://shrtnr.test/_/api/links/1?range=99d", {
-      headers: { "Authorization": `Bearer ${key}` },
-    }));
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links/1?range=99d", {
+        headers: { Authorization: `Bearer ${key}` },
+      }),
+    );
     expect(res.status).toBe(400);
-    const body = await res.json() as { error?: string };
+    const body = (await res.json()) as { error?: string };
     expect(typeof body.error).toBe("string");
     expect(body.error).toMatch(/range/i);
   });
@@ -117,20 +136,34 @@ describe("paramHook handles body and query failures", () => {
 
 describe("slug body validation matches service-layer rules", () => {
   async function createLink(key: string): Promise<number> {
-    const res = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url: "https://example.com/slug-test" }),
-    }));
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: "https://example.com/slug-test" }),
+      }),
+    );
     return ((await res.json()) as { id: number }).id;
   }
 
-  async function postSlug(key: string, id: number, slug: string): Promise<Response> {
-    return SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ slug }),
-    }));
+  async function postSlug(
+    key: string,
+    id: number,
+    slug: string,
+  ): Promise<Response> {
+    return SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ slug }),
+      }),
+    );
   }
 
   it.each([
@@ -169,11 +202,19 @@ describe("slug body validation matches service-layer rules", () => {
 describe("expires_at must be non-negative", () => {
   it("POST /_/api/links rejects a negative expires_at with 400 + {error: string}", async () => {
     const key = await createApiKey("create");
-    const res = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url: "https://example.com/expires-neg", expires_at: -1 }),
-    }));
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: "https://example.com/expires-neg",
+          expires_at: -1,
+        }),
+      }),
+    );
     expect(res.status).toBe(400);
     const body = (await res.json()) as { error?: string };
     expect(typeof body.error).toBe("string");
@@ -182,18 +223,28 @@ describe("expires_at must be non-negative", () => {
 
   it("PUT /_/api/links/:id rejects a negative expires_at with 400 + {error: string}", async () => {
     const key = await createApiKey("create");
-    const createRes = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url: "https://example.com/expires-neg-put" }),
-    }));
+    const createRes = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: "https://example.com/expires-neg-put" }),
+      }),
+    );
     const id = ((await createRes.json()) as { id: number }).id;
 
-    const res = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}`, {
-      method: "PUT",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ expires_at: -1 }),
-    }));
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ expires_at: -1 }),
+      }),
+    );
     expect(res.status).toBe(400);
     const body = (await res.json()) as { error?: string };
     expect(typeof body.error).toBe("string");
@@ -281,7 +332,9 @@ describe("OpenAPI runtime parity", () => {
         if (res.status === 404) {
           const ct = res.headers.get("Content-Type") ?? "";
           if (!ct.includes("application/json")) {
-            issues.push(`${m} ${fullPath} -> 404 (no route, ct=${ct || "<none>"})`);
+            issues.push(
+              `${m} ${fullPath} -> 404 (no route, ct=${ct || "<none>"})`,
+            );
           }
         }
       }

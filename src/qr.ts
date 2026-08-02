@@ -29,7 +29,7 @@ export function makeQR(text: string): boolean[][] | null {
         if (dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6) {
           const edge = dr === 0 || dr === 6 || dc === 0 || dc === 6;
           const inner = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
-          grid[rr][cc] = (edge || inner) ? 1 : 0;
+          grid[rr][cc] = edge || inner ? 1 : 0;
         }
       }
     }
@@ -41,15 +41,24 @@ export function makeQR(text: string): boolean[][] | null {
 
   for (let i = 8; i < size - 8; i++) {
     reserved[6][i] = 1;
-    grid[6][i] = (i % 2 === 0) ? 1 : 0;
+    grid[6][i] = i % 2 === 0 ? 1 : 0;
     reserved[i][6] = 1;
-    grid[i][6] = (i % 2 === 0) ? 1 : 0;
+    grid[i][6] = i % 2 === 0 ? 1 : 0;
   }
 
   if (ver >= 2) {
     const alignTable: (number | number[])[] = [
-      6, [0, 0], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34],
-      [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50],
+      6,
+      [0, 0],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
     ];
     const aligns = alignTable[ver];
     if (Array.isArray(aligns)) {
@@ -64,7 +73,12 @@ export function makeQR(text: string): boolean[][] | null {
               const cc = ac + dc;
               if (rr >= 0 && rr < size && cc >= 0 && cc < size) {
                 reserved[rr][cc] = 1;
-                grid[rr][cc] = (Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0)) ? 1 : 0;
+                grid[rr][cc] =
+                  Math.abs(dr) === 2 ||
+                  Math.abs(dc) === 2 ||
+                  (dr === 0 && dc === 0)
+                    ? 1
+                    : 0;
               }
             }
           }
@@ -105,7 +119,8 @@ export function makeQR(text: string): boolean[][] | null {
   }
 
   const dataBytes: number[] = [];
-  for (let i = 0; i < bits.length; i += 8) dataBytes.push(parseInt(bits.slice(i, i + 8), 2));
+  for (let i = 0; i < bits.length; i += 8)
+    dataBytes.push(parseInt(bits.slice(i, i + 8), 2));
   const eccBytes = rsEncode(dataBytes, numEcc);
   const allBytes = dataBytes.concat(eccBytes);
 

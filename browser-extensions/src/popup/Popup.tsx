@@ -7,7 +7,12 @@
 
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { getConfig } from "../storage";
-import { shortenUrl, getQrSvg, isShortenable, type ShortenResult } from "../api";
+import {
+  shortenUrl,
+  getQrSvg,
+  isShortenable,
+  type ShortenResult,
+} from "../api";
 import { ExtensionError, logError, type ErrorCategory } from "../errors";
 import { copyText } from "../clipboard";
 import { COPY_CONFIRM_DURATION_MS } from "../constants";
@@ -25,11 +30,19 @@ type State =
       qr: { visible: boolean; svg: string | null; loading: boolean };
       copyStatus: "fresh" | "stale" | "failed";
     }
-  | { kind: "error"; category: ErrorCategory; serverMessage?: string; baseUrl?: string };
+  | {
+      kind: "error";
+      category: ErrorCategory;
+      serverMessage?: string;
+      baseUrl?: string;
+    };
 
 async function getActiveTabUrl(): Promise<string | null> {
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
     return tab?.url ?? null;
   } catch {
     return null;
@@ -74,17 +87,28 @@ export function Popup() {
 
   async function runFlow() {
     setState({ kind: "loading" });
-    const [config, tabUrl] = await Promise.all([getConfig(), getActiveTabUrl()]);
+    const [config, tabUrl] = await Promise.all([
+      getConfig(),
+      getActiveTabUrl(),
+    ]);
     if (!config) {
       setState({ kind: "not-configured" });
       return;
     }
     if (!tabUrl) {
-      setState({ kind: "error", category: "unparseable-url", baseUrl: config.baseUrl });
+      setState({
+        kind: "error",
+        category: "unparseable-url",
+        baseUrl: config.baseUrl,
+      });
       return;
     }
     if (!isShortenable(tabUrl)) {
-      setState({ kind: "error", category: "internal-page", baseUrl: config.baseUrl });
+      setState({
+        kind: "error",
+        category: "internal-page",
+        baseUrl: config.baseUrl,
+      });
       return;
     }
     try {
@@ -114,7 +138,11 @@ export function Popup() {
         });
       } else {
         logError("server", undefined);
-        setState({ kind: "error", category: "server", baseUrl: config.baseUrl });
+        setState({
+          kind: "error",
+          category: "server",
+          baseUrl: config.baseUrl,
+        });
       }
     }
   }
@@ -245,7 +273,12 @@ function SuccessView({
     <section class="popup-state popup-state-success">
       <div class="short-url-wrap">
         <span class="field-label">{t("popup.shortUrlLabel")}</span>
-        <a class="short-url" href={link.shortUrl} target="_blank" rel="noopener noreferrer">
+        <a
+          class="short-url"
+          href={link.shortUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {link.shortUrl}
         </a>
       </div>
@@ -262,10 +295,18 @@ function SuccessView({
       )}
 
       <div class="popup-actions">
-        <button type="button" class="button button-primary" onClick={onCopyAgain}>
+        <button
+          type="button"
+          class="button button-primary"
+          onClick={onCopyAgain}
+        >
           {copyStatus === "fresh" ? t("popup.copied") : t("popup.copy")}
         </button>
-        <button type="button" class="button button-secondary" onClick={onToggleQr}>
+        <button
+          type="button"
+          class="button button-secondary"
+          onClick={onToggleQr}
+        >
           {qr.visible ? t("popup.qrHide") : t("popup.qrShow")}
         </button>
       </div>
@@ -286,10 +327,19 @@ function SuccessView({
       )}
 
       <footer class="popup-footer">
-        <a class="link" href={adminUrl} target="_blank" rel="noopener noreferrer">
+        <a
+          class="link"
+          href={adminUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {t("popup.viewInAdmin")}
         </a>
-        <button type="button" class="button button-text" onClick={onOpenSettings}>
+        <button
+          type="button"
+          class="button button-text"
+          onClick={onOpenSettings}
+        >
           {t("popup.openSettings")}
         </button>
       </footer>
@@ -311,7 +361,8 @@ function ErrorView({
   const messageKey = categoryToMessageKey(state.category);
   const params: Record<string, string> = {};
   if (state.baseUrl) params.host = hostFromBaseUrl(state.baseUrl);
-  if (state.category === "validation" && state.serverMessage) params.message = state.serverMessage;
+  if (state.category === "validation" && state.serverMessage)
+    params.message = state.serverMessage;
 
   const showRetry =
     state.category === "network" ||
@@ -336,12 +387,20 @@ function ErrorView({
           </button>
         )}
         {showSettings && (
-          <button type="button" class="button button-secondary" onClick={onOpenSettings}>
+          <button
+            type="button"
+            class="button button-secondary"
+            onClick={onOpenSettings}
+          >
             {t("popup.openSettings")}
           </button>
         )}
         {!showRetry && !showSettings && (
-          <button type="button" class="button button-text" onClick={onOpenSettings}>
+          <button
+            type="button"
+            class="button button-text"
+            onClick={onOpenSettings}
+          >
             {t("popup.openSettings")}
           </button>
         )}

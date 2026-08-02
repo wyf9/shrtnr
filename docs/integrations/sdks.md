@@ -2,10 +2,10 @@
 
 Shorten URLs, manage links, and read analytics from your own code. shrtnr provides two official SDKs, both generated from the same OpenAPI spec so their interfaces stay consistent.
 
-| Language | Package | Notes |
-|---|---|---|
-| TypeScript / JavaScript | [`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme) | See `sdk/typescript/README.md` |
-| Python (sync + async, on httpx) | [`wshrtnr`](https://oddb.it/shrtnr-pypi-readme) | See `sdk/python/README.md` |
+| Language                        | Package                                             | Notes                          |
+| ------------------------------- | --------------------------------------------------- | ------------------------------ |
+| TypeScript / JavaScript         | [`@wyf9/shrtnr`](https://oddb.it/shrtnr-npm-readme) | See `sdk/typescript/README.md` |
+| Python (sync + async, on httpx) | [`wshrtnr`](https://oddb.it/shrtnr-pypi-readme)     | See `sdk/python/README.md`     |
 
 All SDKs authenticate with an [API key](/api/overview) as a Bearer token. Create API keys in the admin UI under **API Keys**.
 
@@ -23,7 +23,9 @@ const client = new ShrtnrClient({
   apiKey: "sk_your_api_key",
 });
 
-const link = await client.links.create({ url: "https://example.com/very-long-path" });
+const link = await client.links.create({
+  url: "https://example.com/very-long-path",
+});
 console.log(link.slugs[0].slug); // "a3x9"
 
 // Get a 7-day click count
@@ -71,26 +73,26 @@ Both SDKs expose consistent resource groups:
 
 ### Links (`client.links`)
 
-| Method | Description |
-|---|---|
-| `get(id, {range?})` | Get a link with click count |
-| `list({owner?, range?})` | List all links |
-| `create({url, label?, slugLength?, expiresAt?, allowDuplicate?})` | Create a short link |
-| `update(id, {url?, label?, expiresAt?})` | Update URL, label, or expiry |
-| `disable(id)` / `enable(id)` | Stop / resume redirecting |
-| `delete(id)` | Permanently delete |
-| `analytics(id, {range?})` | Click breakdown by country, device, referrer, etc. |
-| `timeline(id, {range?})` | Click counts bucketed over time |
-| `qr(id, {slug?, size?})` | QR code as an SVG string |
+| Method                                                            | Description                                        |
+| ----------------------------------------------------------------- | -------------------------------------------------- |
+| `get(id, {range?})`                                               | Get a link with click count                        |
+| `list({owner?, range?})`                                          | List all links                                     |
+| `create({url, label?, slugLength?, expiresAt?, allowDuplicate?})` | Create a short link                                |
+| `update(id, {url?, label?, expiresAt?})`                          | Update URL, label, or expiry                       |
+| `disable(id)` / `enable(id)`                                      | Stop / resume redirecting                          |
+| `delete(id)`                                                      | Permanently delete                                 |
+| `analytics(id, {range?})`                                         | Click breakdown by country, device, referrer, etc. |
+| `timeline(id, {range?})`                                          | Click counts bucketed over time                    |
+| `qr(id, {slug?, size?})`                                          | QR code as an SVG string                           |
 
 ### Slugs (`client.slugs`)
 
-| Method | Description |
-|---|---|
-| `lookup(slug)` | Find a link by slug |
-| `add(linkId, slug)` | Add a custom slug |
+| Method                           | Description             |
+| -------------------------------- | ----------------------- |
+| `lookup(slug)`                   | Find a link by slug     |
+| `add(linkId, slug)`              | Add a custom slug       |
 | `disable / enable(linkId, slug)` | Disable / enable a slug |
-| `remove(linkId, slug)` | Remove a slug |
+| `remove(linkId, slug)`           | Remove a slug           |
 
 ## Error handling
 
@@ -103,7 +105,7 @@ try {
   await client.links.get(99999);
 } catch (err) {
   if (err instanceof ShrtnrError) {
-    console.error(err.status);        // 404
+    console.error(err.status); // 404
     console.error(err.serverMessage); // "not found"
   }
 }

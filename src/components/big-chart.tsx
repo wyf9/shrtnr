@@ -67,7 +67,11 @@ export const BigChart: FC<BigChartProps> = ({ values, range, t, id }) => {
     pts.push([x, y]);
   }
 
-  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+  const line = pts
+    .map(
+      (p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`,
+    )
+    .join(" ");
   const lastX = n > 1 ? PAD.l + innerW : pts[0][0];
   const baseY = PAD.t + innerH;
   const area = `${line} L${lastX.toFixed(1)},${baseY} L${PAD.l},${baseY} Z`;
@@ -80,8 +84,16 @@ export const BigChart: FC<BigChartProps> = ({ values, range, t, id }) => {
     <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.45" />
-          <stop offset="100%" stop-color="var(--color-accent)" stop-opacity="0" />
+          <stop
+            offset="0%"
+            stop-color="var(--color-accent)"
+            stop-opacity="0.45"
+          />
+          <stop
+            offset="100%"
+            stop-color="var(--color-accent)"
+            stop-opacity="0"
+          />
         </linearGradient>
       </defs>
       {grid.map((g, gi) => {

@@ -43,10 +43,10 @@ When `ACCESS_AUD` is set, the Worker validates the JWT signature and audience cl
 
 ## Related Worker secrets
 
-| Secret | Purpose |
-|---|---|
-| `ACCESS_AUD` | AUD tag of the admin application, enabling JWT verification on admin requests |
-| `ACCESS_JWKS_URL` | JWKS certificate URL for Cloudflare Access |
-| `MCP_ACCESS_AUD` | AUD tag of the MCP Access application, see [MCP Server](/integrations/mcp) |
+| Secret            | Purpose                                                                       |
+| ----------------- | ----------------------------------------------------------------------------- |
+| `ACCESS_AUD`      | AUD tag of the admin application, enabling JWT verification on admin requests |
+| `ACCESS_JWKS_URL` | JWKS certificate URL for Cloudflare Access                                    |
+| `MCP_ACCESS_AUD`  | AUD tag of the MCP Access application, see [MCP Server](/integrations/mcp)    |
 
 The relevant implementation lives in `src/access.ts` and `src/auth.ts`.

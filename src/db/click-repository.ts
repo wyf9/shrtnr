@@ -1,15 +1,36 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-import { ClickData, ClickStats, DashboardStats, LinkWithSlugs, TimelineBucket, TimelineData, TimelineRange } from "../types";
+import {
+  ClickData,
+  ClickStats,
+  DashboardStats,
+  LinkWithSlugs,
+  TimelineBucket,
+  TimelineData,
+  TimelineRange,
+} from "../types";
 import { LinkRepository } from "./link-repository";
 import { RANGE_SECONDS, computeDelta } from "../services/trends";
 import { ClickFilters, clickFilterSql } from "./filters";
 
-export type BreakdownDimension = "country" | "referrer_host" | "device_type" | "os" | "browser" | "link_mode" | "channel";
+export type BreakdownDimension =
+  | "country"
+  | "referrer_host"
+  | "device_type"
+  | "os"
+  | "browser"
+  | "link_mode"
+  | "channel";
 
 const VALID_DIMENSIONS = new Set<BreakdownDimension>([
-  "country", "referrer_host", "device_type", "os", "browser", "link_mode", "channel",
+  "country",
+  "referrer_host",
+  "device_type",
+  "os",
+  "browser",
+  "link_mode",
+  "channel",
 ]);
 
 export type { ClickFilters } from "./filters";
@@ -61,15 +82,26 @@ export class ClickRepository {
    * intentionally counts every click (bots included) because caching is about
    * request volume, not filtered analytics.
    */
-  static async countSince(db: D1Database, slug: string, sinceTs: number): Promise<number> {
+  static async countSince(
+    db: D1Database,
+    slug: string,
+    sinceTs: number,
+  ): Promise<number> {
     const row = await db
-      .prepare("SELECT COUNT(*) as cnt FROM clicks WHERE slug = ? AND clicked_at >= ?")
+      .prepare(
+        "SELECT COUNT(*) as cnt FROM clicks WHERE slug = ? AND clicked_at >= ?",
+      )
       .bind(slug, Math.floor(sinceTs))
       .first<{ cnt: number }>();
     return row?.cnt ?? 0;
   }
 
-  static async getStats(db: D1Database, linkId: number, range?: TimelineRange, filters?: ClickFilters): Promise<ClickStats> {
+  static async getStats(
+    db: D1Database,
+    linkId: number,
+    range?: TimelineRange,
+    filters?: ClickFilters,
+  ): Promise<ClickStats> {
     const slugRows = await db
       .prepare("SELECT slug FROM slugs WHERE link_id = ?")
       .bind(linkId)
@@ -78,9 +110,21 @@ export class ClickRepository {
 
     const empty: ClickStats = {
       total_clicks: 0,
-      countries: [], referrers: [], referrer_hosts: [], devices: [], os: [], browsers: [],
-      link_modes: [], channels: [], clicks_over_time: [], slug_clicks: [],
-      num_countries: 0, num_referrers: 0, num_referrer_hosts: 0, num_os: 0, num_browsers: 0,
+      countries: [],
+      referrers: [],
+      referrer_hosts: [],
+      devices: [],
+      os: [],
+      browsers: [],
+      link_modes: [],
+      channels: [],
+      clicks_over_time: [],
+      slug_clicks: [],
+      num_countries: 0,
+      num_referrers: 0,
+      num_referrer_hosts: 0,
+      num_os: 0,
+      num_browsers: 0,
     };
     if (slugs.length === 0) return empty;
 
@@ -90,7 +134,13 @@ export class ClickRepository {
 
     if (range && range !== "all") {
       const now = Math.floor(Date.now() / 1000);
-      const seconds: Record<string, number> = { "24h": 86400, "7d": 7 * 86400, "30d": 30 * 86400, "90d": 90 * 86400, "1y": 365 * 86400 };
+      const seconds: Record<string, number> = {
+        "24h": 86400,
+        "7d": 7 * 86400,
+        "30d": 30 * 86400,
+        "90d": 90 * 86400,
+        "1y": 365 * 86400,
+      };
       const sinceTs = now - (seconds[range] ?? 0);
       where += ` AND clicked_at >= ?`;
       binds.push(sinceTs);
@@ -99,30 +149,121 @@ export class ClickRepository {
     where += clickFilterSql(filters);
 
     const [
-      totalRow, countries, referrers, referrerHosts, devices, osList, browsers,
-      linkModes, channels, timeline, slugClicks,
-      numCountriesRow, numReferrersRow, numHostsRow, numOsRow, numBrowsersRow,
+      totalRow,
+      countries,
+      referrers,
+      referrerHosts,
+      devices,
+      osList,
+      browsers,
+      linkModes,
+      channels,
+      timeline,
+      slugClicks,
+      numCountriesRow,
+      numReferrersRow,
+      numHostsRow,
+      numOsRow,
+      numBrowsersRow,
     ] = await Promise.all([
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where}`).bind(...binds).first<{ cnt: number }>(),
-      db.prepare(`SELECT country as name, COUNT(*) as count FROM clicks WHERE ${where} AND country IS NOT NULL GROUP BY country ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
+      db
+        .prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where}`)
+        .bind(...binds)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT country as name, COUNT(*) as count FROM clicks WHERE ${where} AND country IS NOT NULL GROUP BY country ORDER BY count DESC LIMIT 10`,
+        )
+        .bind(...binds)
+        .all<{ name: string; count: number }>(),
       // Sources panel: hide app-scheme Referer values like
       // `android-app://com.linkedin.android/` from the raw-URL breakdown. The
       // brand attribution lives in the Domains panel via referrer_host; the
       // raw row stays in the DB for forensics and future re-attribution.
-      db.prepare(`SELECT referrer as name, COUNT(*) as count FROM clicks WHERE ${where} AND referrer IS NOT NULL AND referrer NOT LIKE 'android-app://%' AND referrer NOT LIKE 'ios-app://%' GROUP BY referrer ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
-      db.prepare(`SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE ${where} AND referrer_host IS NOT NULL GROUP BY referrer_host ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
-      db.prepare(`SELECT device_type as name, COUNT(*) as count FROM clicks WHERE ${where} AND device_type IS NOT NULL GROUP BY device_type ORDER BY count DESC`).bind(...binds).all<{ name: string; count: number }>(),
-      db.prepare(`SELECT os as name, COUNT(*) as count FROM clicks WHERE ${where} AND os IS NOT NULL GROUP BY os ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
-      db.prepare(`SELECT browser as name, COUNT(*) as count FROM clicks WHERE ${where} AND browser IS NOT NULL GROUP BY browser ORDER BY count DESC LIMIT 10`).bind(...binds).all<{ name: string; count: number }>(),
-      db.prepare(`SELECT link_mode as name, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY link_mode ORDER BY count DESC`).bind(...binds).all<{ name: string; count: number }>(),
-      db.prepare(`SELECT channel as name, COUNT(*) as count FROM clicks WHERE ${where} AND channel IS NOT NULL GROUP BY channel ORDER BY count DESC`).bind(...binds).all<{ name: string; count: number }>(),
-      db.prepare(`SELECT date(clicked_at, 'unixepoch') as date, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY date ORDER BY date DESC LIMIT 30`).bind(...binds).all<{ date: string; count: number }>(),
-      db.prepare(`SELECT slug, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY slug`).bind(...binds).all<{ slug: string; count: number }>(),
-      db.prepare(`SELECT COUNT(DISTINCT country) as cnt FROM clicks WHERE ${where} AND country IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(DISTINCT referrer) as cnt FROM clicks WHERE ${where} AND referrer IS NOT NULL AND referrer NOT LIKE 'android-app://%' AND referrer NOT LIKE 'ios-app://%'`).bind(...binds).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE ${where} AND referrer_host IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(DISTINCT os) as cnt FROM clicks WHERE ${where} AND os IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(DISTINCT browser) as cnt FROM clicks WHERE ${where} AND browser IS NOT NULL`).bind(...binds).first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT referrer as name, COUNT(*) as count FROM clicks WHERE ${where} AND referrer IS NOT NULL AND referrer NOT LIKE 'android-app://%' AND referrer NOT LIKE 'ios-app://%' GROUP BY referrer ORDER BY count DESC LIMIT 10`,
+        )
+        .bind(...binds)
+        .all<{ name: string; count: number }>(),
+      db
+        .prepare(
+          `SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE ${where} AND referrer_host IS NOT NULL GROUP BY referrer_host ORDER BY count DESC LIMIT 10`,
+        )
+        .bind(...binds)
+        .all<{ name: string; count: number }>(),
+      db
+        .prepare(
+          `SELECT device_type as name, COUNT(*) as count FROM clicks WHERE ${where} AND device_type IS NOT NULL GROUP BY device_type ORDER BY count DESC`,
+        )
+        .bind(...binds)
+        .all<{ name: string; count: number }>(),
+      db
+        .prepare(
+          `SELECT os as name, COUNT(*) as count FROM clicks WHERE ${where} AND os IS NOT NULL GROUP BY os ORDER BY count DESC LIMIT 10`,
+        )
+        .bind(...binds)
+        .all<{ name: string; count: number }>(),
+      db
+        .prepare(
+          `SELECT browser as name, COUNT(*) as count FROM clicks WHERE ${where} AND browser IS NOT NULL GROUP BY browser ORDER BY count DESC LIMIT 10`,
+        )
+        .bind(...binds)
+        .all<{ name: string; count: number }>(),
+      db
+        .prepare(
+          `SELECT link_mode as name, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY link_mode ORDER BY count DESC`,
+        )
+        .bind(...binds)
+        .all<{ name: string; count: number }>(),
+      db
+        .prepare(
+          `SELECT channel as name, COUNT(*) as count FROM clicks WHERE ${where} AND channel IS NOT NULL GROUP BY channel ORDER BY count DESC`,
+        )
+        .bind(...binds)
+        .all<{ name: string; count: number }>(),
+      db
+        .prepare(
+          `SELECT date(clicked_at, 'unixepoch') as date, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY date ORDER BY date DESC LIMIT 30`,
+        )
+        .bind(...binds)
+        .all<{ date: string; count: number }>(),
+      db
+        .prepare(
+          `SELECT slug, COUNT(*) as count FROM clicks WHERE ${where} GROUP BY slug`,
+        )
+        .bind(...binds)
+        .all<{ slug: string; count: number }>(),
+      db
+        .prepare(
+          `SELECT COUNT(DISTINCT country) as cnt FROM clicks WHERE ${where} AND country IS NOT NULL`,
+        )
+        .bind(...binds)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT COUNT(DISTINCT referrer) as cnt FROM clicks WHERE ${where} AND referrer IS NOT NULL AND referrer NOT LIKE 'android-app://%' AND referrer NOT LIKE 'ios-app://%'`,
+        )
+        .bind(...binds)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE ${where} AND referrer_host IS NOT NULL`,
+        )
+        .bind(...binds)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT COUNT(DISTINCT os) as cnt FROM clicks WHERE ${where} AND os IS NOT NULL`,
+        )
+        .bind(...binds)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT COUNT(DISTINCT browser) as cnt FROM clicks WHERE ${where} AND browser IS NOT NULL`,
+        )
+        .bind(...binds)
+        .first<{ cnt: number }>(),
     ]);
 
     return {
@@ -162,7 +303,13 @@ export class ClickRepository {
     const empty: TimelineData = {
       range,
       buckets: [],
-      summary: { last_24h: 0, last_7d: 0, last_30d: 0, last_90d: 0, last_1y: 0 },
+      summary: {
+        last_24h: 0,
+        last_7d: 0,
+        last_30d: 0,
+        last_90d: 0,
+        last_1y: 0,
+      },
     };
     if (slugs.length === 0) return empty;
 
@@ -177,11 +324,36 @@ export class ClickRepository {
     const t90d = ts - 90 * 86400;
     const t1y = ts - 365 * 86400;
     const [last24h, last7d, last30d, last90d, last1y] = await Promise.all([
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...slugs, t24h).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...slugs, t7d).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...slugs, t30d).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...slugs, t90d).first<{ cnt: number }>(),
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`).bind(...slugs, t1y).first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`,
+        )
+        .bind(...slugs, t24h)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`,
+        )
+        .bind(...slugs, t7d)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`,
+        )
+        .bind(...slugs, t30d)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`,
+        )
+        .bind(...slugs, t90d)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT COUNT(*) as cnt FROM clicks WHERE ${where} AND clicked_at >= ?`,
+        )
+        .bind(...slugs, t1y)
+        .first<{ cnt: number }>(),
     ]);
 
     const summary = {
@@ -256,11 +428,14 @@ export class ClickRepository {
       .bind(...binds)
       .all<{ label: string; count: number }>();
 
-    const dataMap = new Map((rows.results ?? []).map((r) => [r.label, r.count]));
+    const dataMap = new Map(
+      (rows.results ?? []).map((r) => [r.label, r.count]),
+    );
 
-    const buckets = range === "all"
-      ? fillBucketsAll(dataMap, ts, allEarliest, allKind)
-      : fillBuckets(range, dataMap, ts, sinceTs);
+    const buckets =
+      range === "all"
+        ? fillBucketsAll(dataMap, ts, allEarliest, allKind)
+        : fillBuckets(range, dataMap, ts, sinceTs);
 
     return { range, buckets, summary };
   }
@@ -270,13 +445,21 @@ export class ClickRepository {
     range: TimelineRange,
     limit: number,
     filters?: ClickFilters,
-  ): Promise<{ link_id: number; clicks: number; url: string; label: string | null }[]> {
+  ): Promise<
+    { link_id: number; clicks: number; url: string; label: string | null }[]
+  > {
     let where = "1=1";
     const binds: number[] = [];
 
     if (range && range !== "all") {
       const now = Math.floor(Date.now() / 1000);
-      const seconds: Record<string, number> = { "24h": 86400, "7d": 7 * 86400, "30d": 30 * 86400, "90d": 90 * 86400, "1y": 365 * 86400 };
+      const seconds: Record<string, number> = {
+        "24h": 86400,
+        "7d": 7 * 86400,
+        "30d": 30 * 86400,
+        "90d": 90 * 86400,
+        "1y": 365 * 86400,
+      };
       where = "c.clicked_at >= ?";
       binds.push(now - (seconds[range] ?? 0));
     }
@@ -295,7 +478,12 @@ export class ClickRepository {
          LIMIT ?`,
       )
       .bind(...binds, limit)
-      .all<{ link_id: number; clicks: number; url: string; label: string | null }>();
+      .all<{
+        link_id: number;
+        clicks: number;
+        url: string;
+        label: string | null;
+      }>();
 
     return rows.results ?? [];
   }
@@ -314,7 +502,13 @@ export class ClickRepository {
 
     if (range && range !== "all") {
       const now = Math.floor(Date.now() / 1000);
-      const seconds: Record<string, number> = { "24h": 86400, "7d": 7 * 86400, "30d": 30 * 86400, "90d": 90 * 86400, "1y": 365 * 86400 };
+      const seconds: Record<string, number> = {
+        "24h": 86400,
+        "7d": 7 * 86400,
+        "30d": 30 * 86400,
+        "90d": 90 * 86400,
+        "1y": 365 * 86400,
+      };
       where += " AND clicked_at >= ?";
       binds.push(now - (seconds[range] ?? 0));
     }
@@ -346,7 +540,13 @@ export class ClickRepository {
 
     if (range && range !== "all") {
       const now = Math.floor(Date.now() / 1000);
-      const seconds: Record<string, number> = { "24h": 86400, "7d": 7 * 86400, "30d": 30 * 86400, "90d": 90 * 86400, "1y": 365 * 86400 };
+      const seconds: Record<string, number> = {
+        "24h": 86400,
+        "7d": 7 * 86400,
+        "30d": 30 * 86400,
+        "90d": 90 * 86400,
+        "1y": 365 * 86400,
+      };
       where = "clicked_at >= ?";
       binds.push(now - (seconds[range] ?? 0));
     }
@@ -384,7 +584,13 @@ export class ClickRepository {
 
     if (range && range !== "all") {
       const now = Math.floor(Date.now() / 1000);
-      const seconds: Record<string, number> = { "24h": 86400, "7d": 7 * 86400, "30d": 30 * 86400, "90d": 90 * 86400, "1y": 365 * 86400 };
+      const seconds: Record<string, number> = {
+        "24h": 86400,
+        "7d": 7 * 86400,
+        "30d": 30 * 86400,
+        "90d": 90 * 86400,
+        "1y": 365 * 86400,
+      };
       where += " AND clicked_at >= ?";
       binds.push(now - (seconds[range] ?? 0));
     }
@@ -411,7 +617,11 @@ export class ClickRepository {
     linkId: number,
     range: TimelineRange,
     filters?: ClickFilters,
-  ): Promise<{ total_clicks: number; top_country: string | null; top_referrer: string | null }> {
+  ): Promise<{
+    total_clicks: number;
+    top_country: string | null;
+    top_referrer: string | null;
+  }> {
     const slugRows = await db
       .prepare("SELECT slug FROM slugs WHERE link_id = ?")
       .bind(linkId)
@@ -428,7 +638,13 @@ export class ClickRepository {
 
     if (range && range !== "all") {
       const now = Math.floor(Date.now() / 1000);
-      const seconds: Record<string, number> = { "24h": 86400, "7d": 7 * 86400, "30d": 30 * 86400, "90d": 90 * 86400, "1y": 365 * 86400 };
+      const seconds: Record<string, number> = {
+        "24h": 86400,
+        "7d": 7 * 86400,
+        "30d": 30 * 86400,
+        "90d": 90 * 86400,
+        "1y": 365 * 86400,
+      };
       where += " AND clicked_at >= ?";
       binds.push(now - (seconds[range] ?? 0));
     }
@@ -436,9 +652,22 @@ export class ClickRepository {
     where += clickFilterSql(filters);
 
     const [totalRow, topCountry, topReferrer] = await Promise.all([
-      db.prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where}`).bind(...binds).first<{ cnt: number }>(),
-      db.prepare(`SELECT country as name FROM clicks WHERE ${where} AND country IS NOT NULL GROUP BY country ORDER BY COUNT(*) DESC LIMIT 1`).bind(...binds).first<{ name: string }>(),
-      db.prepare(`SELECT referrer_host as name FROM clicks WHERE ${where} AND referrer_host IS NOT NULL GROUP BY referrer_host ORDER BY COUNT(*) DESC LIMIT 1`).bind(...binds).first<{ name: string }>(),
+      db
+        .prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${where}`)
+        .bind(...binds)
+        .first<{ cnt: number }>(),
+      db
+        .prepare(
+          `SELECT country as name FROM clicks WHERE ${where} AND country IS NOT NULL GROUP BY country ORDER BY COUNT(*) DESC LIMIT 1`,
+        )
+        .bind(...binds)
+        .first<{ name: string }>(),
+      db
+        .prepare(
+          `SELECT referrer_host as name FROM clicks WHERE ${where} AND referrer_host IS NOT NULL GROUP BY referrer_host ORDER BY COUNT(*) DESC LIMIT 1`,
+        )
+        .bind(...binds)
+        .first<{ name: string }>(),
     ]);
 
     return {
@@ -474,9 +703,15 @@ export class ClickRepository {
     if (range === "all") {
       const whereParts = [linkFilter].filter(Boolean);
       let whereClause = whereParts.join(" AND ");
-      whereClause = whereClause ? whereClause + filterFrag : filterFrag.replace(/^ AND /, "");
+      whereClause = whereClause
+        ? whereClause + filterFrag
+        : filterFrag.replace(/^ AND /, "");
       const row = await db
-        .prepare(whereClause ? `SELECT COUNT(*) as cnt FROM clicks WHERE ${whereClause}` : `SELECT COUNT(*) as cnt FROM clicks`)
+        .prepare(
+          whereClause
+            ? `SELECT COUNT(*) as cnt FROM clicks WHERE ${whereClause}`
+            : `SELECT COUNT(*) as cnt FROM clicks`,
+        )
         .bind(...linkBinds)
         .first<{ cnt: number }>();
       return { current: row?.cnt ?? 0, previous: 0 };
@@ -489,11 +724,15 @@ export class ClickRepository {
     const baseWhere = linkFilter ? `${linkFilter} AND ` : "";
     const [cur, prev] = await Promise.all([
       db
-        .prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${baseWhere}clicked_at >= ?${filterFrag}`)
+        .prepare(
+          `SELECT COUNT(*) as cnt FROM clicks WHERE ${baseWhere}clicked_at >= ?${filterFrag}`,
+        )
         .bind(...linkBinds, currStart)
         .first<{ cnt: number }>(),
       db
-        .prepare(`SELECT COUNT(*) as cnt FROM clicks WHERE ${baseWhere}clicked_at >= ? AND clicked_at < ?${filterFrag}`)
+        .prepare(
+          `SELECT COUNT(*) as cnt FROM clicks WHERE ${baseWhere}clicked_at >= ? AND clicked_at < ?${filterFrag}`,
+        )
         .bind(...linkBinds, prevStart, currStart)
         .first<{ cnt: number }>(),
     ]);
@@ -529,7 +768,9 @@ export class ClickRepository {
         .bind(currStart)
         .first<{ cnt: number }>(),
       db
-        .prepare("SELECT COUNT(*) as cnt FROM links WHERE created_at >= ? AND created_at < ?")
+        .prepare(
+          "SELECT COUNT(*) as cnt FROM links WHERE created_at >= ? AND created_at < ?",
+        )
         .bind(prevStart, currStart)
         .first<{ cnt: number }>(),
     ]);
@@ -625,7 +866,6 @@ export class ClickRepository {
     return fillSparkline(rows.results ?? [], spec, range, ts);
   }
 
-
   /**
    * Enriches links with delta_pct for the selected range.
    * Done in one query per link to keep the dashboard lightweight.
@@ -640,7 +880,13 @@ export class ClickRepository {
     if (range === "all") return links;
     const results = await Promise.all(
       links.map(async (link) => {
-        const { current, previous } = await this.getPeriodClicks(db, range, now, link.id, filters);
+        const { current, previous } = await this.getPeriodClicks(
+          db,
+          range,
+          now,
+          link.id,
+          filters,
+        );
         return { ...link, delta_pct: computeDelta(current, previous) };
       }),
     );
@@ -683,12 +929,19 @@ export class ClickRepository {
         .all<{ link_id: number; cnt: number }>(),
     ]);
 
-    const curMap = new Map((curRows.results ?? []).map((r) => [r.link_id, r.cnt]));
-    const prevMap = new Map((prevRows.results ?? []).map((r) => [r.link_id, r.cnt]));
+    const curMap = new Map(
+      (curRows.results ?? []).map((r) => [r.link_id, r.cnt]),
+    );
+    const prevMap = new Map(
+      (prevRows.results ?? []).map((r) => [r.link_id, r.cnt]),
+    );
 
     return links.map((link) => ({
       ...link,
-      delta_pct: computeDelta(curMap.get(link.id) ?? 0, prevMap.get(link.id) ?? 0),
+      delta_pct: computeDelta(
+        curMap.get(link.id) ?? 0,
+        prevMap.get(link.id) ?? 0,
+      ),
     }));
   }
 
@@ -703,21 +956,49 @@ export class ClickRepository {
     const filterFrag = clickFilterSql(filters);
     const filterFragC = clickFilterSql(filters, "c");
 
-    const countryQuery = since !== null
-      ? db.prepare(`SELECT country as name, COUNT(*) as count FROM clicks WHERE country IS NOT NULL AND clicked_at >= ?${filterFrag} GROUP BY country ORDER BY count DESC LIMIT 5`).bind(since)
-      : db.prepare(`SELECT country as name, COUNT(*) as count FROM clicks WHERE country IS NOT NULL${filterFrag} GROUP BY country ORDER BY count DESC LIMIT 5`);
+    const countryQuery =
+      since !== null
+        ? db
+            .prepare(
+              `SELECT country as name, COUNT(*) as count FROM clicks WHERE country IS NOT NULL AND clicked_at >= ?${filterFrag} GROUP BY country ORDER BY count DESC LIMIT 5`,
+            )
+            .bind(since)
+        : db.prepare(
+            `SELECT country as name, COUNT(*) as count FROM clicks WHERE country IS NOT NULL${filterFrag} GROUP BY country ORDER BY count DESC LIMIT 5`,
+          );
 
-    const referrerQuery = since !== null
-      ? db.prepare(`SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE referrer_host IS NOT NULL AND clicked_at >= ?${filterFrag} GROUP BY referrer_host ORDER BY count DESC LIMIT 5`).bind(since)
-      : db.prepare(`SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE referrer_host IS NOT NULL${filterFrag} GROUP BY referrer_host ORDER BY count DESC LIMIT 5`);
+    const referrerQuery =
+      since !== null
+        ? db
+            .prepare(
+              `SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE referrer_host IS NOT NULL AND clicked_at >= ?${filterFrag} GROUP BY referrer_host ORDER BY count DESC LIMIT 5`,
+            )
+            .bind(since)
+        : db.prepare(
+            `SELECT referrer_host as name, COUNT(*) as count FROM clicks WHERE referrer_host IS NOT NULL${filterFrag} GROUP BY referrer_host ORDER BY count DESC LIMIT 5`,
+          );
 
-    const numReferrersQuery = since !== null
-      ? db.prepare(`SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE referrer_host IS NOT NULL AND clicked_at >= ?${filterFrag}`).bind(since)
-      : db.prepare(`SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE referrer_host IS NOT NULL${filterFrag}`);
+    const numReferrersQuery =
+      since !== null
+        ? db
+            .prepare(
+              `SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE referrer_host IS NOT NULL AND clicked_at >= ?${filterFrag}`,
+            )
+            .bind(since)
+        : db.prepare(
+            `SELECT COUNT(DISTINCT referrer_host) as cnt FROM clicks WHERE referrer_host IS NOT NULL${filterFrag}`,
+          );
 
-    const topLinksQuery = since !== null
-      ? db.prepare(`SELECT s.link_id as link_id, COUNT(*) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug WHERE c.clicked_at >= ?${filterFragC} GROUP BY s.link_id ORDER BY cnt DESC LIMIT 5`).bind(since)
-      : db.prepare(`SELECT s.link_id as link_id, COUNT(*) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug${filterFragC ? " WHERE " + filterFragC.replace(/^ AND /, "") : ""} GROUP BY s.link_id ORDER BY cnt DESC LIMIT 5`);
+    const topLinksQuery =
+      since !== null
+        ? db
+            .prepare(
+              `SELECT s.link_id as link_id, COUNT(*) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug WHERE c.clicked_at >= ?${filterFragC} GROUP BY s.link_id ORDER BY cnt DESC LIMIT 5`,
+            )
+            .bind(since)
+        : db.prepare(
+            `SELECT s.link_id as link_id, COUNT(*) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug${filterFragC ? " WHERE " + filterFragC.replace(/^ AND /, "") : ""} GROUP BY s.link_id ORDER BY cnt DESC LIMIT 5`,
+          );
 
     const [
       clicks,
@@ -749,7 +1030,13 @@ export class ClickRepository {
       this.getClickedLinksPeriods(db, range, ts, filters),
     ]);
 
-    const withDeltas = await this.attachLinkDeltas(db, recentLinks, range, ts, filters);
+    const withDeltas = await this.attachLinkDeltas(
+      db,
+      recentLinks,
+      range,
+      ts,
+      filters,
+    );
     const linkById = new Map(withDeltas.map((l) => [l.id, l]));
     const topLinks = (topLinkRows.results ?? [])
       .map((r) => {
@@ -760,9 +1047,10 @@ export class ClickRepository {
 
     const daySpan = await this.getDaySpan(db, range, ts);
     const clicksPerDay = daySpan > 0 ? Math.round(clicks.current / daySpan) : 0;
-    const clicksPerDayDelta = range === "all"
-      ? undefined
-      : computeDelta(clicks.current, clicks.previous);
+    const clicksPerDayDelta =
+      range === "all"
+        ? undefined
+        : computeDelta(clicks.current, clicks.previous);
 
     return {
       range,
@@ -776,7 +1064,10 @@ export class ClickRepository {
       num_domains: domainCount,
       num_countries: countryCount,
       clicked_links: clickedLinkCounts.current,
-      clicked_links_delta: computeDelta(clickedLinkCounts.current, clickedLinkCounts.previous),
+      clicked_links_delta: computeDelta(
+        clickedLinkCounts.current,
+        clickedLinkCounts.previous,
+      ),
       timeline: spark,
       timeline_links: sparkLinks,
       timeline_clicked_links: sparkClickedLinks,
@@ -821,7 +1112,9 @@ export class ClickRepository {
     const ts = now ?? Math.floor(Date.now() / 1000);
 
     if (range === "all") {
-      const rows = await db.prepare("SELECT url FROM links").all<{ url: string }>();
+      const rows = await db
+        .prepare("SELECT url FROM links")
+        .all<{ url: string }>();
       return countDistinctHosts(rows.results ?? []);
     }
 
@@ -847,9 +1140,13 @@ export class ClickRepository {
     const filterFrag = clickFilterSql(filters, "c");
 
     if (range === "all") {
-      const where = filterFrag ? " WHERE " + filterFrag.replace(/^ AND /, "") : "";
+      const where = filterFrag
+        ? " WHERE " + filterFrag.replace(/^ AND /, "")
+        : "";
       const row = await db
-        .prepare(`SELECT COUNT(DISTINCT s.link_id) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug${where}`)
+        .prepare(
+          `SELECT COUNT(DISTINCT s.link_id) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug${where}`,
+        )
         .first<{ cnt: number }>();
       return { current: row?.cnt ?? 0, previous: 0 };
     }
@@ -860,11 +1157,15 @@ export class ClickRepository {
 
     const [cur, prev] = await Promise.all([
       db
-        .prepare(`SELECT COUNT(DISTINCT s.link_id) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug WHERE c.clicked_at >= ?${filterFrag}`)
+        .prepare(
+          `SELECT COUNT(DISTINCT s.link_id) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug WHERE c.clicked_at >= ?${filterFrag}`,
+        )
         .bind(currStart)
         .first<{ cnt: number }>(),
       db
-        .prepare(`SELECT COUNT(DISTINCT s.link_id) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug WHERE c.clicked_at >= ? AND c.clicked_at < ?${filterFrag}`)
+        .prepare(
+          `SELECT COUNT(DISTINCT s.link_id) as cnt FROM clicks c JOIN slugs s ON c.slug = s.slug WHERE c.clicked_at >= ? AND c.clicked_at < ?${filterFrag}`,
+        )
         .bind(prevStart, currStart)
         .first<{ cnt: number }>(),
     ]);
@@ -886,17 +1187,21 @@ export class ClickRepository {
 
     if (range === "all") {
       const row = await db
-        .prepare(`SELECT COUNT(DISTINCT country) as cnt FROM clicks WHERE country IS NOT NULL${filterFrag}`)
+        .prepare(
+          `SELECT COUNT(DISTINCT country) as cnt FROM clicks WHERE country IS NOT NULL${filterFrag}`,
+        )
         .first<{ cnt: number }>();
       return row?.cnt ?? 0;
     }
 
     const currStart = ts - RANGE_SECONDS[range];
     const row = await db
-      .prepare(`SELECT COUNT(DISTINCT country) as cnt FROM clicks WHERE country IS NOT NULL AND clicked_at >= ?${filterFrag}`)
+      .prepare(
+        `SELECT COUNT(DISTINCT country) as cnt FROM clicks WHERE country IS NOT NULL AND clicked_at >= ?${filterFrag}`,
+      )
       .bind(currStart)
       .first<{ cnt: number }>();
-         return row?.cnt ?? 0;
+    return row?.cnt ?? 0;
   }
 }
 
@@ -1102,7 +1407,10 @@ function fillBucketsAll(
     const label = `${y}-${pad2(m)}`;
     buckets.push({ label, count: dataMap.get(label) ?? 0 });
     m++;
-    if (m > 12) { m = 1; y++; }
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
   }
   return buckets;
 }

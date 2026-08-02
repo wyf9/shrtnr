@@ -13,7 +13,8 @@ apiRouter.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
   type: "http",
   scheme: "bearer",
   bearerFormat: "sk_*",
-  description: "API key issued from the admin dashboard. Pass as `Authorization: Bearer sk_...`.",
+  description:
+    "API key issued from the admin dashboard. Pass as `Authorization: Bearer sk_...`.",
 });
 
 apiRouter.doc31("/openapi.json", {
@@ -26,7 +27,10 @@ apiRouter.doc31("/openapi.json", {
       "Authenticate with an API key issued from the admin dashboard. " +
       "Built and maintained by Oddbit (https://oddbit.id).",
     contact: { name: "Oddbit", url: "https://oddbit.id" },
-    license: { name: "Apache 2.0", url: "https://www.apache.org/licenses/LICENSE-2.0" },
+    license: {
+      name: "Apache 2.0",
+      url: "https://www.apache.org/licenses/LICENSE-2.0",
+    },
   },
   servers: [{ url: "/" }],
   security: [{ bearerAuth: [] }],

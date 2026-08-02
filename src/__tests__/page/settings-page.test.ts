@@ -75,18 +75,24 @@ describe("Settings page redirect cache toggle", () => {
     const res = await SELF.fetch(req("/_/admin/settings"));
     const html = await res.text();
     expect(html).toContain('id="redirect-cache-toggle"');
-    expect(inputTag(html, "redirect-cache-toggle")).not.toMatch(/\schecked(?:=|\s|\/?>)/);
+    expect(inputTag(html, "redirect-cache-toggle")).not.toMatch(
+      /\schecked(?:=|\s|\/?>)/,
+    );
   });
 
   it("checks the redirect cache toggle when enabled", async () => {
-    await SELF.fetch(new Request("https://shrtnr.test/_/admin/api/settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ redirect_cache_enabled: true }),
-    }));
+    await SELF.fetch(
+      new Request("https://shrtnr.test/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ redirect_cache_enabled: true }),
+      }),
+    );
     const res = await SELF.fetch(req("/_/admin/settings"));
     const html = await res.text();
-    expect(inputTag(html, "redirect-cache-toggle")).toMatch(/\schecked(?:=|\s|\/?>)/);
+    expect(inputTag(html, "redirect-cache-toggle")).toMatch(
+      /\schecked(?:=|\s|\/?>)/,
+    );
   });
 });
 
@@ -98,11 +104,13 @@ describe("Dashboard redirect cache warning", () => {
   });
 
   it("renders the analytics warning when redirect cache is enabled", async () => {
-    await SELF.fetch(new Request("https://shrtnr.test/_/admin/api/settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ redirect_cache_enabled: true }),
-    }));
+    await SELF.fetch(
+      new Request("https://shrtnr.test/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ redirect_cache_enabled: true }),
+      }),
+    );
     const res = await SELF.fetch(req("/_/admin/dashboard"));
     const html = await res.text();
     expect(html).toContain('id="redirect-cache-analytics-warning"');
@@ -111,9 +119,7 @@ describe("Dashboard redirect cache warning", () => {
 });
 
 function comboHint(html: string): string {
-  return (
-    html.match(/id="slug-combo-hint"[^>]*>([^<]*)</)?.[1] ?? ""
-  );
+  return html.match(/id="slug-combo-hint"[^>]*>([^<]*)</)?.[1] ?? "";
 }
 
 describe("Settings page slug length combinations hint", () => {
@@ -125,22 +131,26 @@ describe("Settings page slug length combinations hint", () => {
   });
 
   it("shows an 'infinite' hint when the stored slug length exceeds 25", async () => {
-    await SELF.fetch(new Request("https://shrtnr.test/_/admin/api/settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug_default_length: 30 }),
-    }));
+    await SELF.fetch(
+      new Request("https://shrtnr.test/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug_default_length: 30 }),
+      }),
+    );
     const res = await SELF.fetch(req("/_/admin/settings"));
     const hint = comboHint(await res.text());
     expect(hint).toBe("Practically infinite possible combinations");
   });
 
   it("still shows the exact count at the 25 boundary", async () => {
-    await SELF.fetch(new Request("https://shrtnr.test/_/admin/api/settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug_default_length: 25 }),
-    }));
+    await SELF.fetch(
+      new Request("https://shrtnr.test/_/admin/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug_default_length: 25 }),
+      }),
+    );
     const res = await SELF.fetch(req("/_/admin/settings"));
     const hint = comboHint(await res.text());
     expect(hint).not.toContain("infinite");

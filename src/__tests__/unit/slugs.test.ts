@@ -51,13 +51,21 @@ describe("validateRandomSlug", () => {
   });
 
   it("should reject slugs starting with underscore", () => {
-    expect(validateRandomSlug("_abc")).toBe("Slug must not start with underscore");
+    expect(validateRandomSlug("_abc")).toBe(
+      "Slug must not start with underscore",
+    );
   });
 
   it("should reject slugs with non-alphanumeric characters", () => {
-    expect(validateRandomSlug("ab-c")).toBe("Slug must contain only alphanumeric characters");
-    expect(validateRandomSlug("ab c")).toBe("Slug must contain only alphanumeric characters");
-    expect(validateRandomSlug("ab.c")).toBe("Slug must contain only alphanumeric characters");
+    expect(validateRandomSlug("ab-c")).toBe(
+      "Slug must contain only alphanumeric characters",
+    );
+    expect(validateRandomSlug("ab c")).toBe(
+      "Slug must contain only alphanumeric characters",
+    );
+    expect(validateRandomSlug("ab.c")).toBe(
+      "Slug must contain only alphanumeric characters",
+    );
   });
 
   it("should accept valid lowercase slugs", () => {
@@ -92,15 +100,17 @@ describe("validateCustomSlug", () => {
 
   it("should reject slugs that do not start with alphanumeric", () => {
     expect(validateCustomSlug("-slug")).toBe(
-      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -"
+      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -",
     );
     expect(validateCustomSlug(".slug")).toBe(
-      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -"
+      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -",
     );
   });
 
   it("should reject slugs starting with underscore", () => {
-    expect(validateCustomSlug("_slug")).toBe("Slug must not start with underscore");
+    expect(validateCustomSlug("_slug")).toBe(
+      "Slug must not start with underscore",
+    );
   });
 
   it("should reject empty slugs", () => {
@@ -109,10 +119,10 @@ describe("validateCustomSlug", () => {
 
   it("should reject slugs that do not end with alphanumeric", () => {
     expect(validateCustomSlug("slug-")).toBe(
-      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -"
+      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -",
     );
     expect(validateCustomSlug("slug.")).toBe(
-      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -"
+      "Custom slug must start and end with a letter or number; allowed symbols in the middle: . _ ~ -",
     );
   });
 });
@@ -130,8 +140,12 @@ describe("validateSlugLength", () => {
   });
 
   it("should reject lengths above 128", () => {
-    expect(validateSlugLength(129)).toBe("Slug length must be an integer <= 128");
-    expect(validateSlugLength(1000)).toBe("Slug length must be an integer <= 128");
+    expect(validateSlugLength(129)).toBe(
+      "Slug length must be an integer <= 128",
+    );
+    expect(validateSlugLength(1000)).toBe(
+      "Slug length must be an integer <= 128",
+    );
   });
 
   it("should accept valid lengths", () => {

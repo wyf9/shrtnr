@@ -50,15 +50,15 @@ bun run db:migrate:remote # apply migrations to the remote database
 
 The corresponding npm scripts are defined in `package.json`:
 
-| Script | Command |
-|---|---|
-| `dev` | `wrangler dev` |
-| `deploy` | `wrangler deploy` |
-| `wrangler-login` | `wrangler login` |
-| `db:create` | `wrangler d1 create shrtnr-db` |
-| `db:migrate:local` | `wrangler d1 migrations apply DB --local` |
+| Script              | Command                                    |
+| ------------------- | ------------------------------------------ |
+| `dev`               | `wrangler dev`                             |
+| `deploy`            | `wrangler deploy`                          |
+| `wrangler-login`    | `wrangler login`                           |
+| `db:create`         | `wrangler d1 create shrtnr-db`             |
+| `db:migrate:local`  | `wrangler d1 migrations apply DB --local`  |
 | `db:migrate:remote` | `wrangler d1 migrations apply DB --remote` |
-| `secret:put` | `wrangler secret put` |
+| `secret:put`        | `wrangler secret put`                      |
 
 ## Bindings and configuration
 

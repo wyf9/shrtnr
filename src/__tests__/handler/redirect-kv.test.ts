@@ -20,7 +20,11 @@ beforeEach(resetData);
 describe("Redirect with KV cache", () => {
   it("redirects via KV when entry is cached", async () => {
     // Create in D1 (for click FK) and override KV with a different URL to prove KV is used
-    await LinkRepository.create(env.DB, { url: "https://d1-url.com", slug: "cached", createdBy: DEV_IDENTITY });
+    await LinkRepository.create(env.DB, {
+      url: "https://d1-url.com",
+      slug: "cached",
+      createdBy: DEV_IDENTITY,
+    });
     await SlugCache.put(env.SLUG_KV, "cached", {
       url: "https://kv-url.com/page",
       disabled_at: null,
@@ -33,7 +37,11 @@ describe("Redirect with KV cache", () => {
   });
 
   it("falls back to D1 on KV miss and populates KV", async () => {
-    await LinkRepository.create(env.DB, { url: "https://d1-target.com/page", slug: "d1only", createdBy: DEV_IDENTITY });
+    await LinkRepository.create(env.DB, {
+      url: "https://d1-target.com/page",
+      slug: "d1only",
+      createdBy: DEV_IDENTITY,
+    });
 
     // KV is empty
     expect(await SlugCache.get(env.SLUG_KV, "d1only")).toBeNull();
@@ -49,7 +57,11 @@ describe("Redirect with KV cache", () => {
   });
 
   it("returns 404 for a disabled slug from KV", async () => {
-    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "disabled", createdBy: DEV_IDENTITY });
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "disabled",
+      createdBy: DEV_IDENTITY,
+    });
     await SlugCache.put(env.SLUG_KV, "disabled", {
       url: "https://example.com",
       disabled_at: 1700000000,
@@ -62,7 +74,11 @@ describe("Redirect with KV cache", () => {
 
   it("returns 404 for an expired slug from KV", async () => {
     const past = Math.floor(Date.now() / 1000) - 3600;
-    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "expired", createdBy: DEV_IDENTITY });
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "expired",
+      createdBy: DEV_IDENTITY,
+    });
     await SlugCache.put(env.SLUG_KV, "expired", {
       url: "https://example.com",
       disabled_at: null,
@@ -79,7 +95,11 @@ describe("Redirect with KV cache", () => {
   });
 
   it("is case-insensitive for slug lookup in KV", async () => {
-    await LinkRepository.create(env.DB, { url: "https://example.com/page", slug: "myslug", createdBy: DEV_IDENTITY });
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com/page",
+      slug: "myslug",
+      createdBy: DEV_IDENTITY,
+    });
     await SlugCache.put(env.SLUG_KV, "myslug", {
       url: "https://example.com/page",
       disabled_at: null,
@@ -102,7 +122,7 @@ describe("KV write-through on mutations", () => {
       }),
     );
     expect(res.status).toBe(201);
-    const body = await res.json() as { slugs: { slug: string }[] };
+    const body = (await res.json()) as { slugs: { slug: string }[] };
     const slug = body.slugs[0].slug;
 
     const cached = await SlugCache.get(env.SLUG_KV, slug);
@@ -113,7 +133,11 @@ describe("KV write-through on mutations", () => {
   });
 
   it("populates KV when a custom slug is added", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com/page", slug: "abc", createdBy: DEV_IDENTITY });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com/page",
+      slug: "abc",
+      createdBy: DEV_IDENTITY,
+    });
 
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/admin/api/links/${link.id}/slugs`, {
@@ -130,8 +154,16 @@ describe("KV write-through on mutations", () => {
   });
 
   it("updates KV when link URL changes", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://old.com/page", slug: "abc", createdBy: DEV_IDENTITY });
-    await SlugCache.put(env.SLUG_KV, "abc", { url: "https://old.com/page", disabled_at: null, expires_at: null });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://old.com/page",
+      slug: "abc",
+      createdBy: DEV_IDENTITY,
+    });
+    await SlugCache.put(env.SLUG_KV, "abc", {
+      url: "https://old.com/page",
+      disabled_at: null,
+      expires_at: null,
+    });
 
     await SELF.fetch(
       new Request(`https://shrtnr.test/_/admin/api/links/${link.id}`, {
@@ -146,7 +178,11 @@ describe("KV write-through on mutations", () => {
   });
 
   it("updates KV when a link is disabled", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdBy: DEV_IDENTITY });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+      createdBy: DEV_IDENTITY,
+    });
 
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/admin/api/links/${link.id}/disable`, {
@@ -161,7 +197,11 @@ describe("KV write-through on mutations", () => {
   });
 
   it("updates KV when a link is re-enabled", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdBy: DEV_IDENTITY });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+      createdBy: DEV_IDENTITY,
+    });
     await LinkRepository.disable(env.DB, link.id);
 
     await SELF.fetch(
@@ -176,13 +216,20 @@ describe("KV write-through on mutations", () => {
   });
 
   it("updates KV when a slug is disabled", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdBy: DEV_IDENTITY });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+      createdBy: DEV_IDENTITY,
+    });
     await SlugRepository.addCustom(env.DB, link.id, "my-custom");
 
     await SELF.fetch(
-      new Request(`https://shrtnr.test/_/admin/api/links/${link.id}/slugs/my-custom/disable`, {
-        method: "POST",
-      }),
+      new Request(
+        `https://shrtnr.test/_/admin/api/links/${link.id}/slugs/my-custom/disable`,
+        {
+          method: "POST",
+        },
+      ),
     );
 
     const cached = await SlugCache.get(env.SLUG_KV, "my-custom");
@@ -191,14 +238,21 @@ describe("KV write-through on mutations", () => {
   });
 
   it("updates KV when a slug is re-enabled", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdBy: DEV_IDENTITY });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+      createdBy: DEV_IDENTITY,
+    });
     await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     await SlugRepository.disable(env.DB, "my-custom");
 
     await SELF.fetch(
-      new Request(`https://shrtnr.test/_/admin/api/links/${link.id}/slugs/my-custom/enable`, {
-        method: "POST",
-      }),
+      new Request(
+        `https://shrtnr.test/_/admin/api/links/${link.id}/slugs/my-custom/enable`,
+        {
+          method: "POST",
+        },
+      ),
     );
 
     const cached = await SlugCache.get(env.SLUG_KV, "my-custom");
@@ -207,14 +261,25 @@ describe("KV write-through on mutations", () => {
   });
 
   it("deletes from KV when a slug is removed", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdBy: DEV_IDENTITY });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+      createdBy: DEV_IDENTITY,
+    });
     await SlugRepository.addCustom(env.DB, link.id, "my-custom");
-    await SlugCache.put(env.SLUG_KV, "my-custom", { url: "https://example.com", disabled_at: null, expires_at: null });
+    await SlugCache.put(env.SLUG_KV, "my-custom", {
+      url: "https://example.com",
+      disabled_at: null,
+      expires_at: null,
+    });
 
     await SELF.fetch(
-      new Request(`https://shrtnr.test/_/admin/api/links/${link.id}/slugs/my-custom`, {
-        method: "DELETE",
-      }),
+      new Request(
+        `https://shrtnr.test/_/admin/api/links/${link.id}/slugs/my-custom`,
+        {
+          method: "DELETE",
+        },
+      ),
     );
 
     const cached = await SlugCache.get(env.SLUG_KV, "my-custom");
@@ -222,7 +287,11 @@ describe("KV write-through on mutations", () => {
   });
 
   it("deletes all slugs from KV when a link is deleted", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdBy: DEV_IDENTITY });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+      createdBy: DEV_IDENTITY,
+    });
     await SlugRepository.addCustom(env.DB, link.id, "custom-one");
 
     await SELF.fetch(

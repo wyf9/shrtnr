@@ -1,12 +1,30 @@
 // Copyright 2026 Oddbit (https://oddbit.id)
 // SPDX-License-Identifier: Apache-2.0
 
-import { LinkRepository, SlugRepository, ClickRepository, SettingRepository } from "../db";
+import {
+  LinkRepository,
+  SlugRepository,
+  ClickRepository,
+  SettingRepository,
+} from "../db";
 import type { ClickFilters } from "../db";
 import { SlugCache } from "../kv";
 import { DEFAULT_SLUG_LENGTH, redirectCacheTag } from "../constants";
-import { generateUniqueSlug, validateSlugLength, validateCustomSlug } from "../slugs";
-import { ClickData, ClickStats, DashboardStats, Env, LinkWithSlugs, Slug, TimelineData, TimelineRange } from "../types";
+import {
+  generateUniqueSlug,
+  validateSlugLength,
+  validateCustomSlug,
+} from "../slugs";
+import {
+  ClickData,
+  ClickStats,
+  DashboardStats,
+  Env,
+  LinkWithSlugs,
+  Slug,
+  TimelineData,
+  TimelineRange,
+} from "../types";
 import { normalizeUrl } from "../normalize-url";
 import { ServiceResult, ok, fail } from "./result";
 import { resolveClickFilters } from "./admin-management";
@@ -16,9 +34,16 @@ export type { ServiceResult };
 
 type CachePurgeContext = Pick<ExecutionContext, "waitUntil" | "cache">;
 
-function purgeRedirectCache(ctx: CachePurgeContext | undefined, slugs: string[]): void {
+function purgeRedirectCache(
+  ctx: CachePurgeContext | undefined,
+  slugs: string[],
+): void {
   if (!ctx?.cache || slugs.length === 0) return;
-  ctx.waitUntil(ctx.cache.purge({ tags: slugs.map(redirectCacheTag) }).then(() => undefined));
+  ctx.waitUntil(
+    ctx.cache
+      .purge({ tags: slugs.map(redirectCacheTag) })
+      .then(() => undefined),
+  );
 }
 
 export interface ListLinksOptions {
@@ -30,11 +55,23 @@ export interface ListLinksOptions {
   range?: TimelineRange;
 }
 
-export async function listLinks(env: Env, opts?: ListLinksOptions): Promise<ServiceResult<LinkWithSlugs[]>> {
+export async function listLinks(
+  env: Env,
+  opts?: ListLinksOptions,
+): Promise<ServiceResult<LinkWithSlugs[]>> {
   const sinceTs = rangeToSinceTs(opts?.range);
-  const links = await LinkRepository.list(env.DB, { filters: opts?.filters, sinceTs });
+  const links = await LinkRepository.list(env.DB, {
+    filters: opts?.filters,
+    sinceTs,
+  });
   if (!opts?.withDeltaRange) return ok(links);
-  const enriched = await ClickRepository.attachLinkDeltasBulk(env.DB, links, opts.withDeltaRange, undefined, opts.filters);
+  const enriched = await ClickRepository.attachLinkDeltasBulk(
+    env.DB,
+    links,
+    opts.withDeltaRange,
+    undefined,
+    opts.filters,
+  );
   return ok(enriched);
 }
 
@@ -43,25 +80,54 @@ export interface GetLinkOptions {
   range?: TimelineRange;
 }
 
-export async function getLink(env: Env, id: number, opts?: GetLinkOptions): Promise<ServiceResult<LinkWithSlugs>> {
+export async function getLink(
+  env: Env,
+  id: number,
+  opts?: GetLinkOptions,
+): Promise<ServiceResult<LinkWithSlugs>> {
   const sinceTs = rangeToSinceTs(opts?.range);
-  const link = await LinkRepository.getById(env.DB, id, { filters: opts?.filters, sinceTs });
+  const link = await LinkRepository.getById(env.DB, id, {
+    filters: opts?.filters,
+    sinceTs,
+  });
   if (!link) return fail(404, "Link not found");
   if (!opts?.range || opts.range === "all") return ok(link);
-  const [enriched] = await ClickRepository.attachLinkDeltasBulk(env.DB, [link], opts.range, undefined, opts.filters);
+  const [enriched] = await ClickRepository.attachLinkDeltasBulk(
+    env.DB,
+    [link],
+    opts.range,
+    undefined,
+    opts.filters,
+  );
   return ok(enriched);
 }
 
-export async function getLinkBySlug(env: Env, slug: string, opts?: GetLinkOptions): Promise<ServiceResult<LinkWithSlugs>> {
+export async function getLinkBySlug(
+  env: Env,
+  slug: string,
+  opts?: GetLinkOptions,
+): Promise<ServiceResult<LinkWithSlugs>> {
   const sinceTs = rangeToSinceTs(opts?.range);
-  const link = await LinkRepository.getBySlug(env.DB, slug, { filters: opts?.filters, sinceTs });
+  const link = await LinkRepository.getBySlug(env.DB, slug, {
+    filters: opts?.filters,
+    sinceTs,
+  });
   if (!link) return fail(404, "Link not found");
   return ok(link);
 }
 
 export async function createLink(
   env: Env,
-  body: { url?: string; label?: string; slug_length?: number; custom_slug?: string; expires_at?: number; created_via?: string; created_by?: string; allow_duplicate?: boolean },
+  body: {
+    url?: string;
+    label?: string;
+    slug_length?: number;
+    custom_slug?: string;
+    expires_at?: number;
+    created_via?: string;
+    created_by?: string;
+    allow_duplicate?: boolean;
+  },
 ): Promise<ServiceResult<LinkWithSlugs>> {
   if (!body.url || typeof body.url !== "string") {
     return fail(400, "url is required");
@@ -81,7 +147,10 @@ export async function createLink(
   if (!body.allow_duplicate) {
     const existing = await LinkRepository.findByUrl(env.DB, body.url);
     if (existing.length > 0) {
-      return ok(existing[0], 200, { duplicate: true, duplicate_count: existing.length });
+      return ok(existing[0], 200, {
+        duplicate: true,
+        duplicate_count: existing.length,
+      });
     }
   }
 
@@ -130,7 +199,11 @@ export async function createLink(
     slugLength = body.slug_length;
   } else {
     const identity = body.created_by ?? "anonymous";
-    const dbDefault = await SettingRepository.get(env.DB, identity, "slug_default_length");
+    const dbDefault = await SettingRepository.get(
+      env.DB,
+      identity,
+      "slug_default_length",
+    );
     slugLength = parseInt(dbDefault ?? String(DEFAULT_SLUG_LENGTH), 10);
   }
 
@@ -191,15 +264,24 @@ export async function updateLink(
       }),
     ),
   );
-  purgeRedirectCache(ctx, link.slugs.map((s) => s.slug));
+  purgeRedirectCache(
+    ctx,
+    link.slugs.map((s) => s.slug),
+  );
 
   return ok(link);
 }
 
-export async function disableLink(env: Env, id: number, identity: string, ctx?: CachePurgeContext): Promise<ServiceResult<LinkWithSlugs>> {
+export async function disableLink(
+  env: Env,
+  id: number,
+  identity: string,
+  ctx?: CachePurgeContext,
+): Promise<ServiceResult<LinkWithSlugs>> {
   const link = await LinkRepository.getById(env.DB, id);
   if (!link) return fail(404, "Link not found");
-  if (link.created_by !== identity) return fail(403, "Only the link owner can disable this link");
+  if (link.created_by !== identity)
+    return fail(403, "Only the link owner can disable this link");
   const disabled = await LinkRepository.disable(env.DB, id);
 
   await Promise.all(
@@ -211,15 +293,24 @@ export async function disableLink(env: Env, id: number, identity: string, ctx?: 
       }),
     ),
   );
-  purgeRedirectCache(ctx, disabled!.slugs.map((s) => s.slug));
+  purgeRedirectCache(
+    ctx,
+    disabled!.slugs.map((s) => s.slug),
+  );
 
   return ok(disabled!);
 }
 
-export async function enableLink(env: Env, id: number, identity: string, ctx?: CachePurgeContext): Promise<ServiceResult<LinkWithSlugs>> {
+export async function enableLink(
+  env: Env,
+  id: number,
+  identity: string,
+  ctx?: CachePurgeContext,
+): Promise<ServiceResult<LinkWithSlugs>> {
   const link = await LinkRepository.getById(env.DB, id);
   if (!link) return fail(404, "Link not found");
-  if (link.created_by !== identity) return fail(403, "Only the link owner can enable this link");
+  if (link.created_by !== identity)
+    return fail(403, "Only the link owner can enable this link");
   const enabled = await LinkRepository.update(env.DB, id, { expires_at: null });
 
   await Promise.all(
@@ -231,16 +322,26 @@ export async function enableLink(env: Env, id: number, identity: string, ctx?: C
       }),
     ),
   );
-  purgeRedirectCache(ctx, enabled!.slugs.map((s) => s.slug));
+  purgeRedirectCache(
+    ctx,
+    enabled!.slugs.map((s) => s.slug),
+  );
 
   return ok(enabled!);
 }
 
-export async function deleteLink(env: Env, id: number, identity: string, ctx?: CachePurgeContext): Promise<ServiceResult<{ deleted: boolean }>> {
+export async function deleteLink(
+  env: Env,
+  id: number,
+  identity: string,
+  ctx?: CachePurgeContext,
+): Promise<ServiceResult<{ deleted: boolean }>> {
   const link = await LinkRepository.getById(env.DB, id);
   if (!link) return fail(404, "Link not found");
-  if (link.created_by !== identity) return fail(403, "Only the link owner can delete this link");
-  if (link.total_clicks > 0) return fail(400, "Cannot delete a link with clicks, disable it instead");
+  if (link.created_by !== identity)
+    return fail(403, "Only the link owner can delete this link");
+  if (link.total_clicks > 0)
+    return fail(400, "Cannot delete a link with clicks, disable it instead");
 
   const slugsToDelete = link.slugs.map((s) => s.slug);
   await LinkRepository.delete(env.DB, id);
@@ -284,7 +385,6 @@ export async function addCustomSlugToLink(
   return ok(slug, 201);
 }
 
-
 export async function setSlugPrimary(
   env: Env,
   linkId: number,
@@ -309,11 +409,16 @@ export async function disableSlug(
 ): Promise<ServiceResult<Slug>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
-  if (link.created_by !== identity) return fail(403, "Only the link owner can disable slugs on this link");
+  if (link.created_by !== identity)
+    return fail(403, "Only the link owner can disable slugs on this link");
 
   const slugObj = link.slugs.find((s) => s.slug === slug);
   if (!slugObj) return fail(404, "Slug not found on this link");
-  if (!slugObj.is_custom) return fail(400, "Cannot disable the system-generated slug; only custom slugs can be disabled. Disable the whole link instead.");
+  if (!slugObj.is_custom)
+    return fail(
+      400,
+      "Cannot disable the system-generated slug; only custom slugs can be disabled. Disable the whole link instead.",
+    );
 
   const disabled = await SlugRepository.disable(env.DB, slug);
 
@@ -336,7 +441,8 @@ export async function enableSlug(
 ): Promise<ServiceResult<Slug>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
-  if (link.created_by !== identity) return fail(403, "Only the link owner can enable slugs on this link");
+  if (link.created_by !== identity)
+    return fail(403, "Only the link owner can enable slugs on this link");
 
   const slugObj = link.slugs.find((s) => s.slug === slug);
   if (!slugObj) return fail(404, "Slug not found on this link");
@@ -362,12 +468,15 @@ export async function removeSlug(
 ): Promise<ServiceResult<{ removed: boolean }>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
-  if (link.created_by !== identity) return fail(403, "Only the link owner can remove slugs on this link");
+  if (link.created_by !== identity)
+    return fail(403, "Only the link owner can remove slugs on this link");
 
   const slugObj = link.slugs.find((s) => s.slug === slug);
   if (!slugObj) return fail(404, "Slug not found on this link");
-  if (link.slugs.length <= 1) return fail(400, "Cannot remove the last remaining slug on a link");
-  if (slugObj.click_count > 0) return fail(400, "Cannot remove a slug with clicks, disable it instead");
+  if (link.slugs.length <= 1)
+    return fail(400, "Cannot remove the last remaining slug on a link");
+  if (slugObj.click_count > 0)
+    return fail(400, "Cannot remove a slug with clicks, disable it instead");
 
   await SlugRepository.remove(env.DB, slug);
   await SlugCache.delete(env.SLUG_KV, slug);
@@ -376,13 +485,31 @@ export async function removeSlug(
   return ok({ removed: true });
 }
 
-export async function getLinkTimeline(env: Env, linkId: number, range: TimelineRange, filters?: ClickFilters): Promise<ServiceResult<TimelineData>> {
+export async function getLinkTimeline(
+  env: Env,
+  linkId: number,
+  range: TimelineRange,
+  filters?: ClickFilters,
+): Promise<ServiceResult<TimelineData>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
-  return ok(await ClickRepository.getTimeline(env.DB, linkId, range, undefined, filters));
+  return ok(
+    await ClickRepository.getTimeline(
+      env.DB,
+      linkId,
+      range,
+      undefined,
+      filters,
+    ),
+  );
 }
 
-export async function getLinkAnalytics(env: Env, linkId: number, range: TimelineRange | undefined, filters?: ClickFilters): Promise<ServiceResult<ClickStats>> {
+export async function getLinkAnalytics(
+  env: Env,
+  linkId: number,
+  range: TimelineRange | undefined,
+  filters?: ClickFilters,
+): Promise<ServiceResult<ClickStats>> {
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
   return ok(await ClickRepository.getStats(env.DB, linkId, range, filters));
@@ -394,13 +521,17 @@ export async function getDashboardStats(
   identity: string,
 ): Promise<ServiceResult<DashboardStats>> {
   const filters = await resolveClickFilters(env, identity);
-  return ok(await ClickRepository.getDashboardStats(env.DB, range, undefined, filters));
+  return ok(
+    await ClickRepository.getDashboardStats(env.DB, range, undefined, filters),
+  );
 }
 
 export async function findSlugForRedirect(
   env: Env,
   slug: string,
-): Promise<(import("../types").Slug & { url: string; expires_at: number | null }) | null> {
+): Promise<
+  (import("../types").Slug & { url: string; expires_at: number | null }) | null
+> {
   return SlugRepository.findByValue(env.DB, slug);
 }
 
@@ -420,15 +551,34 @@ export async function searchLinks(
     sinceTs,
   });
   if (!opts?.withDeltaRange) return ok(links);
-  const enriched = await ClickRepository.attachLinkDeltasBulk(env.DB, links, opts.withDeltaRange, undefined, opts.filters);
+  const enriched = await ClickRepository.attachLinkDeltasBulk(
+    env.DB,
+    links,
+    opts.withDeltaRange,
+    undefined,
+    opts.filters,
+  );
   return ok(enriched);
 }
 
-export async function listLinksByOwner(env: Env, owner: string, opts?: ListLinksOptions): Promise<ServiceResult<LinkWithSlugs[]>> {
+export async function listLinksByOwner(
+  env: Env,
+  owner: string,
+  opts?: ListLinksOptions,
+): Promise<ServiceResult<LinkWithSlugs[]>> {
   const sinceTs = rangeToSinceTs(opts?.range);
-  const links = await LinkRepository.findByOwner(env.DB, owner, { filters: opts?.filters, sinceTs });
+  const links = await LinkRepository.findByOwner(env.DB, owner, {
+    filters: opts?.filters,
+    sinceTs,
+  });
   if (!opts?.withDeltaRange) return ok(links);
-  const enriched = await ClickRepository.attachLinkDeltasBulk(env.DB, links, opts.withDeltaRange, undefined, opts.filters);
+  const enriched = await ClickRepository.attachLinkDeltasBulk(
+    env.DB,
+    links,
+    opts.withDeltaRange,
+    undefined,
+    opts.filters,
+  );
   return ok(enriched);
 }
 

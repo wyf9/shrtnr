@@ -15,7 +15,10 @@ let mockedClient: {
 
 vi.mock("@oddbit/shrtnr", async () => {
   class ShrtnrError extends Error {
-    constructor(public status: number, public serverMessage: string) {
+    constructor(
+      public status: number,
+      public serverMessage: string,
+    ) {
       super(`shrtnr API error (HTTP ${status}): ${serverMessage}`);
       this.name = "ShrtnrError";
     }
@@ -108,12 +111,16 @@ describe("api.shortenUrl", () => {
       slug: "abc",
       shortUrl: "https://x.com/abc",
     });
-    expect(mockedClient.links.create).toHaveBeenCalledWith({ url: "https://example.com/page" });
+    expect(mockedClient.links.create).toHaveBeenCalledWith({
+      url: "https://example.com/page",
+    });
   });
 
   it("throws when no config is saved", async () => {
     const { shortenUrl } = await import("../src/api");
-    await expect(shortenUrl("https://example.com/page")).rejects.toThrow(/not configured/i);
+    await expect(shortenUrl("https://example.com/page")).rejects.toThrow(
+      /not configured/i,
+    );
   });
 
   it("throws ExtensionError with correct category for each SDK error status", async () => {
@@ -134,7 +141,9 @@ describe("api.shortenUrl", () => {
     ];
 
     for (const [status, expectedCategory] of cases) {
-      mockedClient.links.create.mockRejectedValueOnce(new ShrtnrError(status, "msg"));
+      mockedClient.links.create.mockRejectedValueOnce(
+        new ShrtnrError(status, "msg"),
+      );
       await expect(shortenUrl("https://example.com")).rejects.toMatchObject({
         category: expectedCategory,
         status,
@@ -151,7 +160,10 @@ describe("api.getQrSvg", () => {
     const { getQrSvg } = await import("../src/api");
     const svg = await getQrSvg(42);
     expect(svg).toBe("<svg/>");
-    expect(mockedClient.links.qr).toHaveBeenCalledWith(42, expect.objectContaining({ size: "256" }));
+    expect(mockedClient.links.qr).toHaveBeenCalledWith(
+      42,
+      expect.objectContaining({ size: "256" }),
+    );
   });
 
   it("throws when no config is saved", async () => {
@@ -165,13 +177,17 @@ describe("api.testConnection", () => {
     setStorageItem("config", { baseUrl: "https://x.com", apiKey: "sk_abc" });
     mockedClient.links.list.mockResolvedValueOnce([]);
     const { testConnection } = await import("../src/api");
-    await expect(testConnection({ baseUrl: "https://x.com", apiKey: "sk_abc" })).resolves.toBeUndefined();
+    await expect(
+      testConnection({ baseUrl: "https://x.com", apiKey: "sk_abc" }),
+    ).resolves.toBeUndefined();
   });
 
   it("throws ExtensionError on auth failure", async () => {
     setStorageItem("config", { baseUrl: "https://x.com", apiKey: "sk_abc" });
     const { ShrtnrError } = await import("@oddbit/shrtnr");
-    mockedClient.links.list.mockRejectedValueOnce(new ShrtnrError(401, "bad key"));
+    mockedClient.links.list.mockRejectedValueOnce(
+      new ShrtnrError(401, "bad key"),
+    );
     const { testConnection } = await import("../src/api");
     await expect(
       testConnection({ baseUrl: "https://x.com", apiKey: "sk_abc" }),

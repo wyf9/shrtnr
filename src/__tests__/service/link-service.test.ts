@@ -26,7 +26,12 @@ describe("link-management service", () => {
   });
 
   it("uses configured default slug length when slug_length is omitted", async () => {
-    await SettingRepository.set(env.DB, "anonymous", "slug_default_length", "6");
+    await SettingRepository.set(
+      env.DB,
+      "anonymous",
+      "slug_default_length",
+      "6",
+    );
 
     const result = await createLink(env as any, { url: "https://example.com" });
 
@@ -41,7 +46,9 @@ describe("link-management service", () => {
   it("falls back to hardcoded default length when setting is missing", async () => {
     await env.DB.exec("DELETE FROM settings WHERE key = 'slug_default_length'");
 
-    const result = await createLink({ DB: env.DB } as any, { url: "https://example.com" });
+    const result = await createLink({ DB: env.DB } as any, {
+      url: "https://example.com",
+    });
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -59,8 +66,12 @@ describe("link-management service", () => {
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
-    await addCustomSlugToLink(env as any, created.data.id, { slug: "initial-custom" });
-    const result = await addCustomSlugToLink(env as any, created.data.id, { slug: "second-custom" });
+    await addCustomSlugToLink(env as any, created.data.id, {
+      slug: "initial-custom",
+    });
+    const result = await addCustomSlugToLink(env as any, created.data.id, {
+      slug: "second-custom",
+    });
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -106,16 +117,25 @@ describe("link-management service", () => {
   });
 
   it("prevents removing the last remaining slug", async () => {
-    const created = await createLink(env as any, { url: "https://example.com" });
+    const created = await createLink(env as any, {
+      url: "https://example.com",
+    });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
     const onlySlug = created.data.slugs[0].slug;
-    const result = await removeSlug(env as any, created.data.id, onlySlug, created.data.created_by);
+    const result = await removeSlug(
+      env as any,
+      created.data.id,
+      onlySlug,
+      created.data.created_by,
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.status).toBe(400);
-      expect(result.error).toBe("Cannot remove the last remaining slug on a link");
+      expect(result.error).toBe(
+        "Cannot remove the last remaining slug on a link",
+      );
     }
   });
 
@@ -130,7 +150,9 @@ describe("link-management service", () => {
   });
 
   it("rejects data: URL scheme", async () => {
-    const result = await createLink(env as any, { url: "data:text/html,<h1>hi</h1>" });
+    const result = await createLink(env as any, {
+      url: "data:text/html,<h1>hi</h1>",
+    });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -148,7 +170,9 @@ describe("link-management service", () => {
   });
 
   it("rejects ftp: URL scheme", async () => {
-    const result = await createLink(env as any, { url: "ftp://files.example.com/data" });
+    const result = await createLink(env as any, {
+      url: "ftp://files.example.com/data",
+    });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -167,11 +191,15 @@ describe("link-management service", () => {
   });
 
   it("rejects javascript: URL in update", async () => {
-    const created = await createLink(env as any, { url: "https://example.com" });
+    const created = await createLink(env as any, {
+      url: "https://example.com",
+    });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
-    const result = await updateLink(env as any, created.data.id, { url: "javascript:alert(1)" });
+    const result = await updateLink(env as any, created.data.id, {
+      url: "javascript:alert(1)",
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.status).toBe(400);
@@ -179,14 +207,18 @@ describe("link-management service", () => {
   });
 
   it("requires read scope semantics for get and create scope semantics for update", async () => {
-    const created = await createLink(env as any, { url: "https://example.com" });
+    const created = await createLink(env as any, {
+      url: "https://example.com",
+    });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
     const fetched = await getLink(env as any, created.data.id);
     expect(fetched.ok).toBe(true);
 
-    const updated = await updateLink(env as any, created.data.id, { label: "Updated" });
+    const updated = await updateLink(env as any, created.data.id, {
+      label: "Updated",
+    });
     expect(updated.ok).toBe(true);
     if (updated.ok) {
       expect(updated.data.label).toBe("Updated");
@@ -194,11 +226,15 @@ describe("link-management service", () => {
   });
 
   it("lowercases custom slug when added to existing link", async () => {
-    const created = await createLink(env as any, { url: "https://example.com" });
+    const created = await createLink(env as any, {
+      url: "https://example.com",
+    });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
-    const result = await addCustomSlugToLink(env as any, created.data.id, { slug: "My-Custom-Slug" });
+    const result = await addCustomSlugToLink(env as any, created.data.id, {
+      slug: "My-Custom-Slug",
+    });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.slug).toBe("my-custom-slug");
@@ -206,11 +242,15 @@ describe("link-management service", () => {
   });
 
   it("lowercases slug when adding custom slug to existing link", async () => {
-    const created = await createLink(env as any, { url: "https://example.com" });
+    const created = await createLink(env as any, {
+      url: "https://example.com",
+    });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
-    const result = await addCustomSlugToLink(env as any, created.data.id, { slug: "UPPER-CASE" });
+    const result = await addCustomSlugToLink(env as any, created.data.id, {
+      slug: "UPPER-CASE",
+    });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.slug).toBe("upper-case");
@@ -218,11 +258,15 @@ describe("link-management service", () => {
   });
 
   it("can get a link by its slug", async () => {
-    const created = await createLink(env as any, { url: "https://example.com" });
+    const created = await createLink(env as any, {
+      url: "https://example.com",
+    });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
-    await addCustomSlugToLink(env as any, created.data.id, { slug: "my-custom-slug" });
+    await addCustomSlugToLink(env as any, created.data.id, {
+      slug: "my-custom-slug",
+    });
 
     const fetched = await getLinkBySlug(env as any, "my-custom-slug");
     expect(fetched.ok).toBe(true);
@@ -244,13 +288,20 @@ describe("link-management service", () => {
 
 describe("autoLabelLink", () => {
   it("sets the label from page title when label is empty", async () => {
-    const created = await createLink(env as any, { url: "https://example.com" });
+    const created = await createLink(env as any, {
+      url: "https://example.com",
+    });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
     expect(created.data.label).toBeNull();
 
     const { autoLabelLink } = await import("../../services/link-management");
-    await autoLabelLink(env.DB, created.data.id, created.data.url, async () => "Example Domain");
+    await autoLabelLink(
+      env.DB,
+      created.data.id,
+      created.data.url,
+      async () => "Example Domain",
+    );
 
     const fetched = await getLink(env as any, created.data.id);
     expect(fetched.ok).toBe(true);
@@ -260,12 +311,20 @@ describe("autoLabelLink", () => {
   });
 
   it("skips update when label is already set", async () => {
-    const created = await createLink(env as any, { url: "https://example.com", label: "My Label" });
+    const created = await createLink(env as any, {
+      url: "https://example.com",
+      label: "My Label",
+    });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
     const { autoLabelLink } = await import("../../services/link-management");
-    await autoLabelLink(env.DB, created.data.id, created.data.url, async () => "Example Domain");
+    await autoLabelLink(
+      env.DB,
+      created.data.id,
+      created.data.url,
+      async () => "Example Domain",
+    );
 
     const fetched = await getLink(env as any, created.data.id);
     expect(fetched.ok).toBe(true);
@@ -275,12 +334,19 @@ describe("autoLabelLink", () => {
   });
 
   it("does nothing when title fetch returns null", async () => {
-    const created = await createLink(env as any, { url: "https://example.com" });
+    const created = await createLink(env as any, {
+      url: "https://example.com",
+    });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
     const { autoLabelLink } = await import("../../services/link-management");
-    await autoLabelLink(env.DB, created.data.id, created.data.url, async () => null);
+    await autoLabelLink(
+      env.DB,
+      created.data.id,
+      created.data.url,
+      async () => null,
+    );
 
     const fetched = await getLink(env as any, created.data.id);
     expect(fetched.ok).toBe(true);
@@ -292,14 +358,25 @@ describe("autoLabelLink", () => {
   it("does nothing when link does not exist", async () => {
     const { autoLabelLink } = await import("../../services/link-management");
     // Should not throw
-    await autoLabelLink(env.DB, 99999, "https://example.com", async () => "Title");
+    await autoLabelLink(
+      env.DB,
+      99999,
+      "https://example.com",
+      async () => "Title",
+    );
   });
 });
 
 describe("searchLinks service", () => {
   it("returns links matching a label query", async () => {
-    await createLink(env as any, { url: "https://oddbit.id", label: "Oddbit website" });
-    await createLink(env as any, { url: "https://example.com", label: "Some other site" });
+    await createLink(env as any, {
+      url: "https://oddbit.id",
+      label: "Oddbit website",
+    });
+    await createLink(env as any, {
+      url: "https://example.com",
+      label: "Some other site",
+    });
 
     const { searchLinks } = await import("../../services/link-management");
     const result = await searchLinks(env as any, "oddbit");
@@ -312,9 +389,13 @@ describe("searchLinks service", () => {
   });
 
   it("returns links matching a slug query", async () => {
-    const created = await createLink(env as any, { url: "https://oddbit.id/pricing" });
+    const created = await createLink(env as any, {
+      url: "https://oddbit.id/pricing",
+    });
     if (created.ok) {
-      await addCustomSlugToLink(env as any, created.data.id, { slug: "pricing-page" });
+      await addCustomSlugToLink(env as any, created.data.id, {
+        slug: "pricing-page",
+      });
     }
 
     const { searchLinks } = await import("../../services/link-management");
@@ -344,7 +425,9 @@ describe("URL normalization in createLink", () => {
   // This describe keeps a single integration assertion proving link-service
   // invokes normalizeUrl on the input before storage / dedupe.
   it("stores the normalized URL, not the original", async () => {
-    const result = await createLink(env as any, { url: "https://example.com/path/" });
+    const result = await createLink(env as any, {
+      url: "https://example.com/path/",
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 

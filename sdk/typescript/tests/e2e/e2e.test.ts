@@ -46,7 +46,9 @@ describe("TS SDK e2e — live wrangler dev", () => {
   });
 
   it("slug mutations work against live routes", async () => {
-    const link = await client.links.create({ url: "https://example.com/ts-slugs" });
+    const link = await client.links.create({
+      url: "https://example.com/ts-slugs",
+    });
     await client.slugs.add(link.id, "ts-e2e-slug");
     const disabled = await client.slugs.disable(link.id, "ts-e2e-slug");
     expect(disabled.disabledAt).not.toBeNull();

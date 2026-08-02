@@ -22,26 +22,26 @@
 
 ## 技术栈
 
-| 组件 | 用途 |
-|---|---|
-| [Cloudflare Workers](https://developers.cloudflare.com/workers/) | 运行时，处理所有请求（重定向、管理 UI、API、MCP） |
-| [Cloudflare D1](https://developers.cloudflare.com/d1/) | SQLite 数据库，存储链接、短码、点击事件、分组等 |
-| [Cloudflare KV](https://developers.cloudflare.com/kv/) | 短码到链接的高速查找缓存 |
-| [Hono](https://hono.dev/) | Web 框架，配合 `@hono/zod-openapi` 生成 API 规范 |
-| [Durable Objects](https://developers.cloudflare.com/durable-objects/) | 承载 MCP agent 会话 |
-| [Zod](https://zod.dev/) | 请求/响应模式校验，同时驱动 OpenAPI 规范生成 |
+| 组件                                                                  | 用途                                              |
+| --------------------------------------------------------------------- | ------------------------------------------------- |
+| [Cloudflare Workers](https://developers.cloudflare.com/workers/)      | 运行时，处理所有请求（重定向、管理 UI、API、MCP） |
+| [Cloudflare D1](https://developers.cloudflare.com/d1/)                | SQLite 数据库，存储链接、短码、点击事件、分组等   |
+| [Cloudflare KV](https://developers.cloudflare.com/kv/)                | 短码到链接的高速查找缓存                          |
+| [Hono](https://hono.dev/)                                             | Web 框架，配合 `@hono/zod-openapi` 生成 API 规范  |
+| [Durable Objects](https://developers.cloudflare.com/durable-objects/) | 承载 MCP agent 会话                               |
+| [Zod](https://zod.dev/)                                               | 请求/响应模式校验，同时驱动 OpenAPI 规范生成      |
 
 ## 请求路由概览
 
 应用根据路由前缀区分处理逻辑：
 
-| 路由 | 用途 | 认证 |
-|---|---|---|
-| `/<slug>` | 短链重定向 | 公开 |
-| `/_/admin/*` | 管理 UI 与管理 API | 需外部保护（见 [访问控制](/zh/guide/access-control)） |
-| `/_/api/*` | 公开的链接管理 API | Bearer Token |
-| `/_/mcp`（及 `mcp.<域名>`） | 面向 AI 助手的 MCP 端点 | OAuth（Cloudflare Access） |
-| `/_/health` | 健康检查 | 公开 |
+| 路由                        | 用途                    | 认证                                                  |
+| --------------------------- | ----------------------- | ----------------------------------------------------- |
+| `/<slug>`                   | 短链重定向              | 公开                                                  |
+| `/_/admin/*`                | 管理 UI 与管理 API      | 需外部保护（见 [访问控制](/zh/guide/access-control)） |
+| `/_/api/*`                  | 公开的链接管理 API      | Bearer Token                                          |
+| `/_/mcp`（及 `mcp.<域名>`） | 面向 AI 助手的 MCP 端点 | OAuth（Cloudflare Access）                            |
+| `/_/health`                 | 健康检查                | 公开                                                  |
 
 ## 接下来
 

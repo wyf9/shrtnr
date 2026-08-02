@@ -2,7 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, waitFor, fireEvent, cleanup } from "@testing-library/preact";
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  cleanup,
+} from "@testing-library/preact";
 import { setStorageItem, getClipboardMock } from "./setup";
 import { ExtensionError } from "../src/errors";
 
@@ -44,7 +50,9 @@ describe("Popup — not configured", () => {
   it("renders the deploy CTA when no config saved", async () => {
     await renderPopup();
     await waitFor(() => {
-      const link = screen.getByRole("link", { name: /deploy/i }) as HTMLAnchorElement;
+      const link = screen.getByRole("link", {
+        name: /deploy/i,
+      }) as HTMLAnchorElement;
       expect(link.href).toContain("oddb.it/shrtnr-deploy-ext");
     });
   });
@@ -79,7 +87,9 @@ describe("Popup — success", () => {
     const clipboard = getClipboardMock();
     await renderPopup();
     const findCopyButton = () =>
-      screen.getAllByRole("button").find((b) => /^(copy|copied)$/i.test(b.textContent?.trim() ?? ""));
+      screen
+        .getAllByRole("button")
+        .find((b) => /^(copy|copied)$/i.test(b.textContent?.trim() ?? ""));
     await waitFor(() => {
       expect(findCopyButton()).toBeTruthy();
     });
@@ -93,7 +103,9 @@ describe("Popup — success", () => {
   it("renders View in admin link to the right URL", async () => {
     await renderPopup();
     await waitFor(() => {
-      const link = screen.getByRole("link", { name: /admin/i }) as HTMLAnchorElement;
+      const link = screen.getByRole("link", {
+        name: /admin/i,
+      }) as HTMLAnchorElement;
       expect(link.href).toContain("/_/admin/links/42");
     });
   });
@@ -160,7 +172,9 @@ describe("Popup — error states", () => {
   });
 
   it("renders unauthorized error and Open settings recovery on 401", async () => {
-    mockedShorten.mockRejectedValue(new ExtensionError("unauthorized", "bad key", 401));
+    mockedShorten.mockRejectedValue(
+      new ExtensionError("unauthorized", "bad key", 401),
+    );
     await renderPopup();
     await waitFor(() => {
       expect(screen.getByText(/api key was rejected/i)).toBeTruthy();
@@ -186,7 +200,9 @@ describe("Popup — error states", () => {
   });
 
   it("renders validation error using server message directly", async () => {
-    mockedShorten.mockRejectedValue(new ExtensionError("validation", "URL too long", 422));
+    mockedShorten.mockRejectedValue(
+      new ExtensionError("validation", "URL too long", 422),
+    );
     await renderPopup();
     await waitFor(() => {
       expect(screen.getByText(/URL too long/i)).toBeTruthy();
@@ -202,7 +218,11 @@ describe("Popup — recovery", () => {
   it("Retry button re-runs the shorten flow", async () => {
     mockedShorten
       .mockRejectedValueOnce(new ExtensionError("network"))
-      .mockResolvedValueOnce({ id: 7, slug: "xyz", shortUrl: "https://x.com/xyz" });
+      .mockResolvedValueOnce({
+        id: 7,
+        slug: "xyz",
+        shortUrl: "https://x.com/xyz",
+      });
     await renderPopup();
     await waitFor(() => screen.getByRole("button", { name: /retry/i }));
     fireEvent.click(screen.getByRole("button", { name: /retry/i }));
@@ -212,7 +232,9 @@ describe("Popup — recovery", () => {
   });
 
   it("Open settings opens the options page", async () => {
-    mockedShorten.mockRejectedValue(new ExtensionError("unauthorized", "x", 401));
+    mockedShorten.mockRejectedValue(
+      new ExtensionError("unauthorized", "x", 401),
+    );
     await renderPopup();
     await waitFor(() => screen.getByRole("button", { name: /settings/i }));
     fireEvent.click(screen.getByRole("button", { name: /settings/i }));

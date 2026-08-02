@@ -2,7 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, it, expect } from "vitest";
-import { getConfig, setConfig, clearConfig, onConfigChange } from "../src/storage";
+import {
+  getConfig,
+  setConfig,
+  clearConfig,
+  onConfigChange,
+} from "../src/storage";
 import { setStorageItem } from "./setup";
 
 describe("storage.getConfig", () => {
@@ -22,7 +27,10 @@ describe("storage.getConfig", () => {
 
   it("returns the typed object when both fields present", async () => {
     setStorageItem("config", { baseUrl: "https://x.com", apiKey: "sk_x" });
-    expect(await getConfig()).toEqual({ baseUrl: "https://x.com", apiKey: "sk_x" });
+    expect(await getConfig()).toEqual({
+      baseUrl: "https://x.com",
+      apiKey: "sk_x",
+    });
   });
 
   it("returns null when stored shape is wrong (defensive)", async () => {
@@ -34,12 +42,18 @@ describe("storage.getConfig", () => {
 describe("storage.setConfig", () => {
   it("persists and getConfig returns the saved values", async () => {
     await setConfig({ baseUrl: "https://x.com", apiKey: "sk_abc" });
-    expect(await getConfig()).toEqual({ baseUrl: "https://x.com", apiKey: "sk_abc" });
+    expect(await getConfig()).toEqual({
+      baseUrl: "https://x.com",
+      apiKey: "sk_abc",
+    });
   });
 
   it("normalizes baseUrl with path to its origin", async () => {
     await setConfig({ baseUrl: "https://x.com/admin", apiKey: "sk_abc" });
-    expect(await getConfig()).toEqual({ baseUrl: "https://x.com", apiKey: "sk_abc" });
+    expect(await getConfig()).toEqual({
+      baseUrl: "https://x.com",
+      apiKey: "sk_abc",
+    });
   });
 
   it("strips trailing slash from baseUrl", async () => {
@@ -53,27 +67,27 @@ describe("storage.setConfig", () => {
   });
 
   it("rejects unparseable baseUrl", async () => {
-    await expect(setConfig({ baseUrl: "not a url", apiKey: "sk_abc" })).rejects.toThrow(
-      /baseUrl/i,
-    );
+    await expect(
+      setConfig({ baseUrl: "not a url", apiKey: "sk_abc" }),
+    ).rejects.toThrow(/baseUrl/i);
   });
 
   it("rejects baseUrl with non-http(s) protocol", async () => {
-    await expect(setConfig({ baseUrl: "ftp://x.com", apiKey: "sk_abc" })).rejects.toThrow(
-      /protocol/i,
-    );
+    await expect(
+      setConfig({ baseUrl: "ftp://x.com", apiKey: "sk_abc" }),
+    ).rejects.toThrow(/protocol/i);
   });
 
   it("rejects empty apiKey", async () => {
-    await expect(setConfig({ baseUrl: "https://x.com", apiKey: "" })).rejects.toThrow(
-      /apiKey/i,
-    );
+    await expect(
+      setConfig({ baseUrl: "https://x.com", apiKey: "" }),
+    ).rejects.toThrow(/apiKey/i);
   });
 
   it("rejects whitespace-only apiKey", async () => {
-    await expect(setConfig({ baseUrl: "https://x.com", apiKey: "   " })).rejects.toThrow(
-      /apiKey/i,
-    );
+    await expect(
+      setConfig({ baseUrl: "https://x.com", apiKey: "   " }),
+    ).rejects.toThrow(/apiKey/i);
   });
 });
 

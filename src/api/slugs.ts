@@ -14,7 +14,12 @@ import {
 } from "../services/link-management";
 import { json, fromServiceResult } from "./response";
 import { requireScope } from "./scope";
-import { ErrorResponseSchema, LinkSchema, SlugParamSchema, paramHook } from "./schemas";
+import {
+  ErrorResponseSchema,
+  LinkSchema,
+  SlugParamSchema,
+  paramHook,
+} from "./schemas";
 // ---- Legacy admin handlers (still consumed by admin routes in src/index.tsx) ----
 
 export async function handleAddCustomSlug(
@@ -32,7 +37,6 @@ export async function handleAddCustomSlug(
 
   return fromServiceResult(await addCustomSlugToLink(env, linkId, body, ctx));
 }
-
 
 export async function handleSetPrimarySlug(
   request: Request,
@@ -84,10 +88,22 @@ export async function handleRemoveSlug(
 export const slugsApp = createApiSubApp();
 
 const errorResponses = {
-  401: { description: "Missing or invalid bearer token.", content: { "application/json": { schema: ErrorResponseSchema } } },
-  403: { description: "Scope insufficient.", content: { "application/json": { schema: ErrorResponseSchema } } },
-  404: { description: "Slug not found.", content: { "application/json": { schema: ErrorResponseSchema } } },
-  500: { description: "Server error.", content: { "application/json": { schema: ErrorResponseSchema } } },
+  401: {
+    description: "Missing or invalid bearer token.",
+    content: { "application/json": { schema: ErrorResponseSchema } },
+  },
+  403: {
+    description: "Scope insufficient.",
+    content: { "application/json": { schema: ErrorResponseSchema } },
+  },
+  404: {
+    description: "Slug not found.",
+    content: { "application/json": { schema: ErrorResponseSchema } },
+  },
+  500: {
+    description: "Server error.",
+    content: { "application/json": { schema: ErrorResponseSchema } },
+  },
 };
 
 const getLinkBySlugRoute = createRoute({
@@ -98,12 +114,21 @@ const getLinkBySlugRoute = createRoute({
   middleware: [requireScope("read")] as const,
   request: { params: SlugParamSchema },
   responses: {
-    200: { description: "OK", content: { "application/json": { schema: LinkSchema } } },
+    200: {
+      description: "OK",
+      content: { "application/json": { schema: LinkSchema } },
+    },
     ...errorResponses,
   },
 });
 
-slugsApp.openapi(getLinkBySlugRoute, async (c) => {
-  const { slug } = c.req.valid("param") as { slug: string };
-  return fromServiceResult(await getLinkBySlug(c.env, slug.toLowerCase())) as never;
-}, paramHook);
+slugsApp.openapi(
+  getLinkBySlugRoute,
+  async (c) => {
+    const { slug } = c.req.valid("param") as { slug: string };
+    return fromServiceResult(
+      await getLinkBySlug(c.env, slug.toLowerCase()),
+    ) as never;
+  },
+  paramHook,
+);

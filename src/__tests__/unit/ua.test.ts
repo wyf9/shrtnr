@@ -1,44 +1,51 @@
 import { describe, it, expect } from "vitest";
-import { parseDeviceType, parseBrowser, parseCliClient, parseOS, isBot, isAiSearch } from "../../ua";
+import {
+  parseDeviceType,
+  parseBrowser,
+  parseCliClient,
+  parseOS,
+  isBot,
+  isAiSearch,
+} from "../../ua";
 
 describe("parseDeviceType", () => {
   it("should detect Mobile Safari as mobile", () => {
     expect(
       parseDeviceType(
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
-      )
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+      ),
     ).toBe("mobile");
   });
 
   it("should detect Android phone as mobile", () => {
     expect(
       parseDeviceType(
-        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-      )
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+      ),
     ).toBe("mobile");
   });
 
   it("should detect Chrome desktop as desktop", () => {
     expect(
       parseDeviceType(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBe("desktop");
   });
 
   it("should detect iPad as tablet", () => {
     expect(
       parseDeviceType(
-        "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1"
-      )
+        "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1",
+      ),
     ).toBe("tablet");
   });
 
   it("should detect Android tablet as tablet", () => {
     expect(
       parseDeviceType(
-        "Mozilla/5.0 (Linux; Android 14; SM-X710) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      )
+        "Mozilla/5.0 (Linux; Android 14; SM-X710) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBe("tablet");
   });
 
@@ -51,40 +58,40 @@ describe("parseBrowser", () => {
   it("should detect Chrome", () => {
     expect(
       parseBrowser(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBe("Chrome");
   });
 
   it("should detect Safari", () => {
     expect(
       parseBrowser(
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
-      )
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+      ),
     ).toBe("Safari");
   });
 
   it("should detect Firefox", () => {
     expect(
       parseBrowser(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+      ),
     ).toBe("Firefox");
   });
 
   it("should detect Edge (not Chrome)", () => {
     expect(
       parseBrowser(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+      ),
     ).toBe("Edge");
   });
 
   it("should detect Opera", () => {
     expect(
       parseBrowser(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0",
+      ),
     ).toBe("Opera");
   });
 
@@ -125,7 +132,9 @@ describe("parseBrowser", () => {
   });
 
   it("should detect node-fetch", () => {
-    expect(parseBrowser("node-fetch/1.0 (+https://github.com/bitinn/node-fetch)")).toBe("node-fetch");
+    expect(
+      parseBrowser("node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"),
+    ).toBe("node-fetch");
   });
 
   it("should detect HTTPie", () => {
@@ -137,15 +146,19 @@ describe("parseBrowser", () => {
   });
 
   it("should detect PowerShell", () => {
-    expect(parseBrowser("Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.3803")).toBe("PowerShell");
+    expect(
+      parseBrowser(
+        "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.3803",
+      ),
+    ).toBe("PowerShell");
   });
 
   it("should still prefer a real browser over CLI patterns", () => {
     // Chrome UA contains no CLI token; make sure browser matching wins first.
     expect(
       parseBrowser(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBe("Chrome");
   });
 });
@@ -154,8 +167,8 @@ describe("parseCliClient", () => {
   it("returns null for a normal browser UA", () => {
     expect(
       parseCliClient(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBeNull();
   });
 
@@ -168,56 +181,56 @@ describe("parseOS", () => {
   it("should detect iOS from iPhone UA", () => {
     expect(
       parseOS(
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
-      )
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+      ),
     ).toBe("ios");
   });
 
   it("should detect iOS from iPad UA", () => {
     expect(
       parseOS(
-        "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1"
-      )
+        "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1",
+      ),
     ).toBe("ios");
   });
 
   it("should detect Android", () => {
     expect(
       parseOS(
-        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-      )
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+      ),
     ).toBe("android");
   });
 
   it("should detect Windows", () => {
     expect(
       parseOS(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBe("windows");
   });
 
   it("should detect macOS", () => {
     expect(
       parseOS(
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
-      )
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+      ),
     ).toBe("macos");
   });
 
   it("should detect Linux (not Android)", () => {
     expect(
       parseOS(
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      )
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBe("linux");
   });
 
   it("should detect ChromeOS", () => {
     expect(
       parseOS(
-        "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      )
+        "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBe("chromeos");
   });
 
@@ -242,38 +255,44 @@ describe("isBot", () => {
   it("flags Googlebot as bot", () => {
     expect(
       isBot(
-        "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
-      )
+        "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      ),
     ).toBe(true);
   });
 
   it("flags Bingbot as bot", () => {
     expect(
       isBot(
-        "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"
-      )
+        "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+      ),
     ).toBe(true);
   });
 
   it("flags DuckDuckBot as bot", () => {
-    expect(isBot("DuckDuckBot/1.1; (+http://duckduckgo.com/duckduckbot.html)")).toBe(true);
+    expect(
+      isBot("DuckDuckBot/1.1; (+http://duckduckgo.com/duckduckbot.html)"),
+    ).toBe(true);
   });
 
   it("flags YandexBot as bot", () => {
     expect(
-      isBot("Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)")
+      isBot("Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)"),
     ).toBe(true);
   });
 
   it("flags Baiduspider as bot", () => {
     expect(
-      isBot("Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)")
+      isBot(
+        "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)",
+      ),
     ).toBe(true);
   });
 
   it("flags Yahoo Slurp as bot", () => {
     expect(
-      isBot("Mozilla/5.0 (compatible; Yahoo! Slurp; http://help.yahoo.com/help/us/ysearch/slurp)")
+      isBot(
+        "Mozilla/5.0 (compatible; Yahoo! Slurp; http://help.yahoo.com/help/us/ysearch/slurp)",
+      ),
     ).toBe(true);
   });
 
@@ -282,7 +301,9 @@ describe("isBot", () => {
   });
 
   it("flags Slackbot link expander as bot", () => {
-    expect(isBot("Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)")).toBe(true);
+    expect(
+      isBot("Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)"),
+    ).toBe(true);
   });
 
   it("flags Twitterbot as bot", () => {
@@ -291,12 +312,18 @@ describe("isBot", () => {
 
   it("flags LinkedInBot as bot", () => {
     expect(
-      isBot("LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)")
+      isBot(
+        "LinkedInBot/1.0 (compatible; Mozilla/5.0; Jakarta Commons-HttpClient/3.1 +http://www.linkedin.com)",
+      ),
     ).toBe(true);
   });
 
   it("flags Discordbot as bot", () => {
-    expect(isBot("Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)")).toBe(true);
+    expect(
+      isBot(
+        "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)",
+      ),
+    ).toBe(true);
   });
 
   it("flags TelegramBot as bot", () => {
@@ -308,25 +335,39 @@ describe("isBot", () => {
   });
 
   it("flags SkypeUriPreview as bot", () => {
-    expect(isBot("Mozilla/5.0 (Windows NT 10.0; WOW64) SkypeUriPreview Preview/0.5")).toBe(true);
+    expect(
+      isBot("Mozilla/5.0 (Windows NT 10.0; WOW64) SkypeUriPreview Preview/0.5"),
+    ).toBe(true);
   });
 
   it("flags Applebot as bot", () => {
     expect(
-      isBot("Mozilla/5.0 (compatible; Applebot/0.1; +http://www.apple.com/go/applebot)")
+      isBot(
+        "Mozilla/5.0 (compatible; Applebot/0.1; +http://www.apple.com/go/applebot)",
+      ),
     ).toBe(true);
   });
 
   it("flags GPTBot as bot", () => {
-    expect(isBot("Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)")).toBe(true);
+    expect(
+      isBot("Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)"),
+    ).toBe(true);
   });
 
   it("flags ClaudeBot as bot", () => {
-    expect(isBot("Mozilla/5.0 (compatible; ClaudeBot/1.0; +claudebot@anthropic.com)")).toBe(true);
+    expect(
+      isBot(
+        "Mozilla/5.0 (compatible; ClaudeBot/1.0; +claudebot@anthropic.com)",
+      ),
+    ).toBe(true);
   });
 
   it("flags PerplexityBot as bot", () => {
-    expect(isBot("Mozilla/5.0 (compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)")).toBe(true);
+    expect(
+      isBot(
+        "Mozilla/5.0 (compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)",
+      ),
+    ).toBe(true);
   });
 
   it("flags CCBot (Common Crawl) as bot", () => {
@@ -335,20 +376,34 @@ describe("isBot", () => {
 
   it("flags Bytespider (ByteDance) as bot", () => {
     expect(
-      isBot("Mozilla/5.0 (Linux; Android 5.0) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; Bytespider; spider-feedback@bytedance.com)")
+      isBot(
+        "Mozilla/5.0 (Linux; Android 5.0) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; Bytespider; spider-feedback@bytedance.com)",
+      ),
     ).toBe(true);
   });
 
   it("flags AhrefsBot as bot", () => {
-    expect(isBot("Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)")).toBe(true);
+    expect(
+      isBot(
+        "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)",
+      ),
+    ).toBe(true);
   });
 
   it("flags SemrushBot as bot", () => {
-    expect(isBot("Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)")).toBe(true);
+    expect(
+      isBot(
+        "Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)",
+      ),
+    ).toBe(true);
   });
 
   it("flags UptimeRobot monitor as bot", () => {
-    expect(isBot("Mozilla/5.0 (compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)")).toBe(true);
+    expect(
+      isBot(
+        "Mozilla/5.0 (compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)",
+      ),
+    ).toBe(true);
   });
 
   it("flags curl as bot", () => {
@@ -373,53 +428,57 @@ describe("isBot", () => {
 
   it("flags headless Chrome as bot", () => {
     expect(
-      isBot("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36")
+      isBot(
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBe(true);
   });
 
   it("does not flag desktop Chrome as bot", () => {
     expect(
       isBot(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBe(false);
   });
 
   it("does not flag iPhone Safari as bot", () => {
     expect(
       isBot(
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
-      )
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+      ),
     ).toBe(false);
   });
 
   it("does not flag macOS Safari as bot", () => {
     expect(
       isBot(
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
-      )
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+      ),
     ).toBe(false);
   });
 
   it("does not flag Firefox as bot", () => {
     expect(
-      isBot("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0")
+      isBot(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+      ),
     ).toBe(false);
   });
 
   it("does not flag Android Chrome as bot", () => {
     expect(
       isBot(
-        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-      )
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+      ),
     ).toBe(false);
   });
 
   it("does not flag Edge as bot", () => {
     expect(
       isBot(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+      ),
     ).toBe(false);
   });
 
@@ -436,41 +495,69 @@ describe("isBot", () => {
   });
 
   it("flags Amazonbot AI crawler as bot", () => {
-    expect(isBot("Mozilla/5.0 (compatible; Amazonbot/0.1; +https://developer.amazon.com/support/amazonbot)")).toBe(true);
+    expect(
+      isBot(
+        "Mozilla/5.0 (compatible; Amazonbot/0.1; +https://developer.amazon.com/support/amazonbot)",
+      ),
+    ).toBe(true);
   });
 
   it("flags Meta-ExternalAgent AI crawler as bot", () => {
-    expect(isBot("meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)")).toBe(true);
+    expect(
+      isBot(
+        "meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)",
+      ),
+    ).toBe(true);
   });
 });
 
 describe("isAiSearch", () => {
   it("flags ChatGPT-User (live user-triggered fetch) as an AI search", () => {
-    expect(isAiSearch("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0")).toBe(true);
+    expect(
+      isAiSearch(
+        "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0",
+      ),
+    ).toBe(true);
   });
 
   it("flags Perplexity-User as an AI search", () => {
-    expect(isAiSearch("Mozilla/5.0 (compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)")).toBe(true);
+    expect(
+      isAiSearch(
+        "Mozilla/5.0 (compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)",
+      ),
+    ).toBe(true);
   });
 
   it("flags Claude-User as an AI search", () => {
-    expect(isAiSearch("Mozilla/5.0 (compatible; Claude-User/1.0; +Claude-User@anthropic.com)")).toBe(true);
+    expect(
+      isAiSearch(
+        "Mozilla/5.0 (compatible; Claude-User/1.0; +Claude-User@anthropic.com)",
+      ),
+    ).toBe(true);
   });
 
   it("flags OAI-SearchBot as an AI search", () => {
-    expect(isAiSearch("Mozilla/5.0 (compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot)")).toBe(true);
+    expect(
+      isAiSearch(
+        "Mozilla/5.0 (compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot)",
+      ),
+    ).toBe(true);
   });
 
   it("does not flag a normal desktop browser as an AI search", () => {
     expect(
       isAiSearch(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      )
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      ),
     ).toBe(false);
   });
 
   it("does not flag GPTBot (a training crawler) as an AI search", () => {
-    expect(isAiSearch("Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)")).toBe(false);
+    expect(
+      isAiSearch(
+        "Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)",
+      ),
+    ).toBe(false);
   });
 
   it("does not flag an empty UA as an AI search", () => {

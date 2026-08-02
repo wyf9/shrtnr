@@ -16,7 +16,12 @@ export function DeployCta({ t, variant = "banner" }: Props) {
         <h3 class="cta-heading">{t("cta.heading")}</h3>
         <p class="cta-body">{t("cta.body")}</p>
       </div>
-      <a class="cta-button" href={DEPLOY_CTA_URL} target="_blank" rel="noopener noreferrer">
+      <a
+        class="cta-button"
+        href={DEPLOY_CTA_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {t("cta.button")}
       </a>
     </aside>

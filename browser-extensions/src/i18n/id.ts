@@ -4,7 +4,7 @@
 import type { Translations } from "./types";
 
 const id: Translations = {
-  "_lang": "id",
+  _lang: "id",
 
   // Brand
   "brand.name": "shrtnr",
@@ -26,7 +26,8 @@ const id: Translations = {
 
   // Popup — not configured
   "popup.notConfigured.heading": "Siapkan shrtnr",
-  "popup.notConfigured.body": "shrtnr bersifat self-hosted. Arahkan ekstensi ini ke server Anda untuk mulai memendekkan.",
+  "popup.notConfigured.body":
+    "shrtnr bersifat self-hosted. Arahkan ekstensi ini ke server Anda untuk mulai memendekkan.",
 
   // Form
   "form.baseUrl.label": "URL Server",
@@ -45,30 +46,38 @@ const id: Translations = {
 
   // CTA
   "cta.heading": "Belum punya shrtnr?",
-  "cta.body": "Deploy instans gratis di Cloudflare dengan satu klik. Tier gratis, tanpa kartu kredit.",
+  "cta.body":
+    "Deploy instans gratis di Cloudflare dengan satu klik. Tier gratis, tanpa kartu kredit.",
   "cta.button": "Deploy gratis",
 
   // Errors (visible to users)
-  "error.internalPage": "shrtnr tidak dapat memendekkan halaman internal browser.",
+  "error.internalPage":
+    "shrtnr tidak dapat memendekkan halaman internal browser.",
   "error.unparseable": "Tidak dapat membaca URL tab ini.",
-  "error.network": "Tidak dapat menjangkau shrtnr Anda di {host}. Periksa URL atau jaringan Anda.",
+  "error.network":
+    "Tidak dapat menjangkau shrtnr Anda di {host}. Periksa URL atau jaringan Anda.",
   "error.unauthorized": "Kunci API Anda ditolak. Perbarui di pengaturan.",
   "error.forbidden": "Kunci API ini tidak diizinkan membuat tautan.",
-  "error.notFound": "API shrtnr tidak ditemukan di {host}. Apakah host salah ketik?",
+  "error.notFound":
+    "API shrtnr tidak ditemukan di {host}. Apakah host salah ketik?",
   "error.rateLimited": "Terlalu banyak permintaan. Coba lagi sebentar.",
   "error.server": "Server shrtnr Anda mengembalikan kesalahan.",
   "error.validation": "{message}",
-  "error.clipboard": "Penyalinan gagal. Pilih tautan di atas untuk menyalinnya.",
-  "error.permissionDenied": "shrtnr memerlukan izin untuk berkomunikasi dengan {host}. Klik Simpan lagi dan setujui.",
+  "error.clipboard":
+    "Penyalinan gagal. Pilih tautan di atas untuk menyalinnya.",
+  "error.permissionDenied":
+    "shrtnr memerlukan izin untuk berkomunikasi dengan {host}. Klik Simpan lagi dan setujui.",
   "error.tabUnknown": "Tidak dapat membaca tab aktif.",
 
   // Options page
   "options.title": "Pengaturan shrtnr",
   "options.subtitle": "Hubungkan ekstensi ini ke deployment shrtnr Anda.",
   "options.section.connection": "Koneksi",
-  "options.section.connection.body": "Nilai-nilai ini disimpan di pengaturan tersinkronisasi browser Anda dan tidak pernah dikirim ke Oddbit.",
+  "options.section.connection.body":
+    "Nilai-nilai ini disimpan di pengaturan tersinkronisasi browser Anda dan tidak pernah dikirim ke Oddbit.",
   "options.section.about": "Tentang",
-  "options.section.about.body": "shrtnr bersumber terbuka dan self-hosted. Sumber: github.com/oddbit/shrtnr.",
+  "options.section.about.body":
+    "shrtnr bersumber terbuka dan self-hosted. Sumber: github.com/oddbit/shrtnr.",
   "options.section.about.website": "oddbit.id",
   "options.section.about.version": "Versi {version}",
 

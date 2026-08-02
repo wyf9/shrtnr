@@ -22,26 +22,26 @@ The upstream **shrtnr** is built by [Oddbit](https://oddb.it/website), a senior-
 
 ## Tech stack
 
-| Component | Purpose |
-|---|---|
-| [Cloudflare Workers](https://developers.cloudflare.com/workers/) | Runtime that handles every request (redirects, admin UI, API, MCP) |
-| [Cloudflare D1](https://developers.cloudflare.com/d1/) | SQLite database storing links, slugs, click events, etc. |
-| [Cloudflare KV](https://developers.cloudflare.com/kv/) | High-speed cache for slug-to-link lookups |
-| [Hono](https://hono.dev/) | Web framework, paired with `@hono/zod-openapi` to generate the API spec |
-| [Durable Objects](https://developers.cloudflare.com/durable-objects/) | Hosts MCP agent sessions |
-| [Zod](https://zod.dev/) | Request/response schema validation that also drives OpenAPI generation |
+| Component                                                             | Purpose                                                                 |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [Cloudflare Workers](https://developers.cloudflare.com/workers/)      | Runtime that handles every request (redirects, admin UI, API, MCP)      |
+| [Cloudflare D1](https://developers.cloudflare.com/d1/)                | SQLite database storing links, slugs, click events, etc.                |
+| [Cloudflare KV](https://developers.cloudflare.com/kv/)                | High-speed cache for slug-to-link lookups                               |
+| [Hono](https://hono.dev/)                                             | Web framework, paired with `@hono/zod-openapi` to generate the API spec |
+| [Durable Objects](https://developers.cloudflare.com/durable-objects/) | Hosts MCP agent sessions                                                |
+| [Zod](https://zod.dev/)                                               | Request/response schema validation that also drives OpenAPI generation  |
 
 ## Request routing overview
 
 The app dispatches by route prefix:
 
-| Route | Purpose | Auth |
-|---|---|---|
-| `/<slug>` | Short-link redirect | Public |
-| `/_/admin/*` | Admin UI and admin API | Requires external protection (see [Access Control](/guide/access-control)) |
-| `/_/api/*` | Public link-management API | Bearer token |
-| `/_/mcp` (and `mcp.<domain>`) | MCP endpoint for AI assistants | OAuth (Cloudflare Access) |
-| `/_/health` | Health check | Public |
+| Route                         | Purpose                        | Auth                                                                       |
+| ----------------------------- | ------------------------------ | -------------------------------------------------------------------------- |
+| `/<slug>`                     | Short-link redirect            | Public                                                                     |
+| `/_/admin/*`                  | Admin UI and admin API         | Requires external protection (see [Access Control](/guide/access-control)) |
+| `/_/api/*`                    | Public link-management API     | Bearer token                                                               |
+| `/_/mcp` (and `mcp.<domain>`) | MCP endpoint for AI assistants | OAuth (Cloudflare Access)                                                  |
+| `/_/health`                   | Health check                   | Public                                                                     |
 
 ## What's next
 

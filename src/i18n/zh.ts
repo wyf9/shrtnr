@@ -5,7 +5,7 @@ import type { Translations } from "./types";
 
 const zh: Translations = {
   // Language code (used by client-side Intl APIs)
-  "_lang": "zh",
+  _lang: "zh",
   // Navigation
   "nav.dashboard": "仪表盘",
   "nav.links": "链接",
@@ -41,7 +41,8 @@ const zh: Translations = {
   "dashboard.topDomains": "热门域名",
   "dashboard.mostClicked": "点击最多",
   "dashboard.clickToCopy": "点击复制",
-  "dashboard.redirectCacheWarning": "已启用重定向缓存。由于缓存的重定向可能不会运行 Worker，统计数据可能少计点击次数。",
+  "dashboard.redirectCacheWarning":
+    "已启用重定向缓存。由于缓存的重定向可能不会运行 Worker，统计数据可能少计点击次数。",
 
   // Links
   "links.title": "链接",
@@ -68,7 +69,7 @@ const zh: Translations = {
   "links.perPageAria": "每页链接数",
   "links.colTrend": "趋势",
   "links.newLink": "新建链接",
-  "links.allDisabled": '所有链接均已禁用。切换“显示已禁用”以查看它们。',
+  "links.allDisabled": "所有链接均已禁用。切换“显示已禁用”以查看它们。",
   "links.empty": "暂无链接。使用上方的 + 新建链接按钮开始。",
   "links.disabled": "已禁用",
   "links.clicks": "点击",
@@ -84,7 +85,8 @@ const zh: Translations = {
   "linkDetail.disable": "禁用",
   "linkDetail.delete": "删除",
   "linkDetail.disabled": "已禁用",
-  "linkDetail.cachedInaccurate": "该链接由重定向缓存提供，在缓存过期或被清除前，其点击数可能低于实际总数。",
+  "linkDetail.cachedInaccurate":
+    "该链接由重定向缓存提供，在缓存过期或被清除前，其点击数可能低于实际总数。",
   "linkDetail.copy": "复制",
   "linkDetail.qr": "二维码",
   "linkDetail.or": "或",
@@ -128,14 +130,17 @@ const zh: Translations = {
   "linkDetail.disableSlug": "禁用 slug",
   "linkDetail.enableSlug": "启用 slug",
   "linkDetail.duplicateTitle": "为该目标地址再创建一个链接？",
-  "linkDetail.duplicateBody": "这将创建一条指向相同目标 URL 的独立链接记录。自定义 slug 不会被复制。",
-  "linkDetail.duplicateHelper": "当你需要单独的标签、归属、过期时间或生命周期时使用此功能。如果只是想为同一目标地址添加另一个短路径，请改为添加自定义 slug。",
+  "linkDetail.duplicateBody":
+    "这将创建一条指向相同目标 URL 的独立链接记录。自定义 slug 不会被复制。",
+  "linkDetail.duplicateHelper":
+    "当你需要单独的标签、归属、过期时间或生命周期时使用此功能。如果只是想为同一目标地址添加另一个短路径，请改为添加自定义 slug。",
   "linkDetail.copyLabel": "复制标签",
   "linkDetail.confirmDisable": "确定要禁用此链接吗？它将停止重定向。",
   "linkDetail.confirmDelete": "删除此链接？这将永久删除该链接及其所有 slug。",
   "linkDetail.confirmEnable": "重新启用此链接？",
   "linkDetail.confirmDeleteSlug": "删除 slug /{slug}？此操作无法撤销。",
-  "linkDetail.confirmDisableSlug": "禁用 slug /{slug}？它将停止重定向，但点击历史会被保留。",
+  "linkDetail.confirmDisableSlug":
+    "禁用 slug /{slug}？它将停止重定向，但点击历史会被保留。",
   "linkDetail.confirmEnableSlug": "重新启用 slug /{slug}？",
   "linkDetail.selectPrimary": "选择主 slug",
   "linkDetail.moreActions": "更多操作",
@@ -143,7 +148,8 @@ const zh: Translations = {
 
   // Redirects
   "redirects.title": "动态重定向",
-  "redirects.subtitle": "使用占位符和通配符管理动态重定向规则。所有规则均使用 302。",
+  "redirects.subtitle":
+    "使用占位符和通配符管理动态重定向规则。所有规则均使用 302。",
   "redirects.colSource": "源模式",
   "redirects.colDestination": "目标地址",
   "redirects.sourcePattern": "/pattern/:placeholder 或 /prefix/*",
@@ -182,33 +188,43 @@ const zh: Translations = {
   "settings.defaultRange": "默认时间范围",
   "settings.defaultRangeHint": "在未选择范围时应用于每个统计页面。",
   "settings.rootRedirectUrl": "根重定向 URL",
-  "settings.rootRedirectUrlHint": "设置后，未登录访问 / 的用户将被重定向到此处。留空则保留登录落地页。",
+  "settings.rootRedirectUrlHint":
+    "设置后，未登录访问 / 的用户将被重定向到此处。留空则保留登录落地页。",
   "settings.rootRedirectUrlPlaceholder": "https://example.com",
   "settings.dynamicRedirectRules": "动态重定向规则",
-  "settings.dynamicRedirectRulesHint": "支持 _redirects 风格的规则，可使用占位符 (:name) 和通配符 (* -> :splat)。每行一条规则。",
-  "settings.dynamicRedirectRulesPlaceholder": "# /mail/:email https://siiway.org/go/mail?email=:email\n# /a/* https://siiway.org/about/:splat",
+  "settings.dynamicRedirectRulesHint":
+    "支持 _redirects 风格的规则，可使用占位符 (:name) 和通配符 (* -> :splat)。每行一条规则。",
+  "settings.dynamicRedirectRulesPlaceholder":
+    "# /mail/:email https://siiway.org/go/mail?email=:email\n# /a/* https://siiway.org/about/:splat",
   "settings.slugLength": "默认 Slug 长度",
   "settings.analyticsFilters": "统计筛选",
   "settings.filterBots": "过滤机器人流量",
-  "settings.filterBotsHint": "从所有统计视图中排除来自机器人、爬虫以及 AI 训练爬虫（GPTBot、ClaudeBot、Google-Extended 等）的点击。",
+  "settings.filterBotsHint":
+    "从所有统计视图中排除来自机器人、爬虫以及 AI 训练爬虫（GPTBot、ClaudeBot、Google-Extended 等）的点击。",
   "settings.filterSelfReferrers": "过滤自引用来源",
-  "settings.filterSelfReferrersHint": "排除 Referer 为本站裸源（内部导航）的点击。",
+  "settings.filterSelfReferrersHint":
+    "排除 Referer 为本站裸源（内部导航）的点击。",
   "settings.filterAiSearches": "过滤 AI 搜索",
-  "settings.filterAiSearchesHint": "排除来自实时 AI 搜索和助手（ChatGPT-User、Perplexity-User、Claude-User 等）的点击，即用户主动询问 AI 或 Agent 时抓取该链接产生的访问，区别于用于训练模型的 AI 爬虫。",
+  "settings.filterAiSearchesHint":
+    "排除来自实时 AI 搜索和助手（ChatGPT-User、Perplexity-User、Claude-User 等）的点击，即用户主动询问 AI 或 Agent 时抓取该链接产生的访问，区别于用于训练模型的 AI 爬虫。",
   "settings.performance": "性能",
   "settings.redirectCache": "缓存重定向一年",
-  "settings.redirectCacheHint": "通过从 Workers Cache 提供热门短链接来降低 CPU 消耗。在缓存被清除或过期之前，点击统计可能会少计。",
+  "settings.redirectCacheHint":
+    "通过从 Workers Cache 提供热门短链接来降低 CPU 消耗。在缓存被清除或过期之前，点击统计可能会少计。",
   "settings.purgeCache": "清除重定向缓存",
-  "settings.purgeCacheHint": "立即清除所有已缓存的重定向，使从缓存提供的链接恢复点击统计。",
+  "settings.purgeCacheHint":
+    "立即清除所有已缓存的重定向，使从缓存提供的链接恢复点击统计。",
   "settings.redirectCacheDuration": "缓存时长",
   "settings.redirectCacheDurationHint": "重定向被缓存多久后重新评估。",
   "settings.redirectCacheThreshold": "缓存阈值",
-  "settings.redirectCacheThresholdHint": "仅缓存在时间窗口内达到该点击数的链接（点击数 / 天数）。两者都设为 0 则缓存所有链接。",
+  "settings.redirectCacheThresholdHint":
+    "仅缓存在时间窗口内达到该点击数的链接（点击数 / 天数）。两者都设为 0 则缓存所有链接。",
   "settings.unitDays": "天",
   "settings.purgeCacheButton": "清除缓存",
   "settings.redirects": "重定向",
   "settings.dynamicRedirectStrictMatch": "动态重定向严格匹配",
-  "settings.dynamicRedirectStrictMatchHint": "启用后，动态规则中的每个占位符 (:name) 和通配符 (*) 都必须捕获到非空值才会触发。例如启用时 “/a/*” 不会匹配 “/a/”。无论此设置如何，末尾不带 / 的路径（如 “/a”）都不会匹配 “/a/*”。",
+  "settings.dynamicRedirectStrictMatchHint":
+    "启用后，动态规则中的每个占位符 (:name) 和通配符 (*) 都必须捕获到非空值才会触发。例如启用时 “/a/*” 不会匹配 “/a/”。无论此设置如何，末尾不带 / 的路径（如 “/a”）都不会匹配 “/a/*”。",
   "settings.save": "保存",
   "settings.combos": "{count} 种可能的组合",
   "settings.combosInfinite": "几乎无限种可能的组合",
@@ -219,16 +235,19 @@ const zh: Translations = {
   "settings.installApp": "安装应用",
   "settings.integrations": "集成",
   "settings.sdksTitle": "SDK",
-  "settings.sdksDesc": "从你自己的代码管理链接。以编程方式创建、更新、禁用并读取点击统计。",
+  "settings.sdksDesc":
+    "从你自己的代码管理链接。以编程方式创建、更新、禁用并读取点击统计。",
   "settings.sdkTsLang": "TypeScript",
   "settings.sdkTsPkg": "npm: @wyf9/shrtnr",
   "settings.sdkPythonLang": "Python",
   "settings.sdkPythonPkg": "PyPI: shrtnr",
   "settings.mcpTitle": "MCP 服务器",
-  "settings.mcpDesc": "让 AI 助手访问你的链接。适用于 Claude Desktop 和 VS Code 中的 GitHub Copilot。",
+  "settings.mcpDesc":
+    "让 AI 助手访问你的链接。适用于 Claude Desktop 和 VS Code 中的 GitHub Copilot。",
   "settings.mcpOAuth": "MCP OAuth",
   "settings.mcpConfigured": "已配置",
-  "settings.mcpNotConfigured": "未配置。设置所需的密钥以为 MCP 端点启用 OAuth。",
+  "settings.mcpNotConfigured":
+    "未配置。设置所需的密钥以为 MCP 端点启用 OAuth。",
   "settings.mcpDocsLink": "MCP 文档",
   "settings.mcpSetupLink": "README 中的设置指南",
   "settings.apiTitle": "API",
@@ -304,7 +323,7 @@ const zh: Translations = {
   "client.copy": "复制",
   "client.done": "完成",
   "client.apiKeyCopied": "API 密钥已复制",
-  "client.confirmDeleteKey": '删除 API 密钥“{title}”？此操作无法撤销。',
+  "client.confirmDeleteKey": "删除 API 密钥“{title}”？此操作无法撤销。",
   "client.keyDeleted": "密钥已删除",
   "client.keyDeleteError": "删除密钥失败",
 
@@ -332,21 +351,24 @@ const zh: Translations = {
   "client.cachePurged": "重定向缓存已清除",
   "client.cachePurgeError": "清除重定向缓存失败",
   "client.cacheDurationError": "缓存时长至少为 1 天",
-  "client.cacheThresholdPairError": "缓存阈值两项需同为 0（缓存全部）或同时大于 0",
+  "client.cacheThresholdPairError":
+    "缓存阈值两项需同为 0（缓存全部）或同时大于 0",
   "client.combos": "{count} 种可能的组合",
   "client.combosInfinite": "几乎无限种可能的组合",
   "client.minLength": "最小长度为 3 个字符",
   "client.updateAvailable": "可用",
   "client.releaseNotes": "发行说明",
   "client.viewRepo": "查看仓库",
-  "client.updateHint": "更新方法：在 GitHub 上同步你的 fork，然后你的部署会自动重新部署。",
+  "client.updateHint":
+    "更新方法：在 GitHub 上同步你的 fork，然后你的部署会自动重新部署。",
   "client.upToDate": "已是最新",
   "client.whatsNew": "更新内容",
   "client.updateCheckFailed": "无法检查更新",
 
   // Pages
   "pages.title": "页面",
-  "pages.subtitle": "从你的短域名提供静态页面。每个页面都在其 slug 路径下提供。",
+  "pages.subtitle":
+    "从你的短域名提供静态页面。每个页面都在其 slug 路径下提供。",
   "pages.colSlug": "Slug",
   "pages.colFilename": "文件名",
   "pages.colStatus": "HTTP 状态",

@@ -4,7 +4,9 @@
 import { describe, it, expect } from "vitest";
 import { okWithRange, RANGE_LABELS, rangeNote } from "../../mcp/server";
 
-function parseBody(result: ReturnType<typeof okWithRange>): Record<string, unknown> {
+function parseBody(
+  result: ReturnType<typeof okWithRange>,
+): Record<string, unknown> {
   expect(result.content).toHaveLength(1);
   const text = result.content[0]?.text;
   expect(typeof text).toBe("string");
@@ -34,7 +36,9 @@ describe("okWithRange", () => {
   });
 
   it("preserves nested data fields on object payloads", () => {
-    const body = parseBody(okWithRange("90d", { results: [{ name: "US", count: 5 }], extra: true }));
+    const body = parseBody(
+      okWithRange("90d", { results: [{ name: "US", count: 5 }], extra: true }),
+    );
     expect(body.range_used).toBe("90d");
     expect(body.results).toEqual([{ name: "US", count: 5 }]);
     expect(body.extra).toBe(true);

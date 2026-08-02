@@ -149,7 +149,7 @@ export const themes = {
     "--color-disabled-bg": "#e6ece8",
     "--color-disabled-text": "#8a9d98",
 
-    "--shadow-color": "rgba(15, 45, 42, 0.09)"
+    "--shadow-color": "rgba(15, 45, 42, 0.09)",
   },
 } as const;
 

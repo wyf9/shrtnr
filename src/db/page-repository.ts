@@ -134,7 +134,9 @@ export class PageRepository {
   static async enable(db: D1Database, id: number): Promise<boolean> {
     const now = Math.floor(Date.now() / 1000);
     const result = await db
-      .prepare("UPDATE pages SET disabled_at = NULL, updated_at = ? WHERE id = ?")
+      .prepare(
+        "UPDATE pages SET disabled_at = NULL, updated_at = ? WHERE id = ?",
+      )
       .bind(now, id)
       .run();
     return result.meta.changes > 0;

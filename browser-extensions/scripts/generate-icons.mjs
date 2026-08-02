@@ -40,7 +40,9 @@ async function renderWithMagick(size) {
       `${size}x${size}`,
       out,
     ]);
-    proc.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`magick exited ${code}`))));
+    proc.on("close", (code) =>
+      code === 0 ? resolve() : reject(new Error(`magick exited ${code}`)),
+    );
     proc.on("error", reject);
   });
 }

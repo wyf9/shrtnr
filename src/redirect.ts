@@ -5,12 +5,22 @@ import { recordClick } from "./services/link-management";
 import { getRedirectCacheConfig } from "./services/admin-management";
 import { SlugCache, RedirectCacheMarker } from "./kv";
 import { SlugRepository, ClickRepository } from "./db";
-import { parseDeviceType, parseBrowser, parseOS, isBot, isAiSearch } from "./ua";
+import {
+  parseDeviceType,
+  parseBrowser,
+  parseOS,
+  isBot,
+  isAiSearch,
+} from "./ua";
 import { notFoundResponse } from "./404";
 import { ClickData, Env } from "./types";
 import { REDIRECT_CACHE_TAG, redirectCacheTag } from "./constants";
 import { computeVisitorFingerprint } from "./fingerprint";
-import { isBareOriginSelfReferrer, normalizeHost, parseReferrerHost } from "./referrer";
+import {
+  isBareOriginSelfReferrer,
+  normalizeHost,
+  parseReferrerHost,
+} from "./referrer";
 
 export async function handleRedirect(
   slug: string,
@@ -25,7 +35,10 @@ export async function handleRedirect(
 
   // 2. KV miss: fall back to D1 and populate KV (read-through)
   if (!entry) {
-    const d1Result = await SlugRepository.findForRedirect(env.DB, normalizedSlug);
+    const d1Result = await SlugRepository.findForRedirect(
+      env.DB,
+      normalizedSlug,
+    );
     if (!d1Result) return notFoundResponse();
 
     entry = {
@@ -47,9 +60,15 @@ export async function handleRedirect(
 
   // 5. Record click (background, does not block redirect)
   const rawReferrer = request.headers.get("Referer") || null;
-  const country = (request as unknown as { cf?: { country?: string } }).cf?.country ?? request.headers.get("cf-ipcountry") ?? null;
+  const country =
+    (request as unknown as { cf?: { country?: string } }).cf?.country ??
+    request.headers.get("cf-ipcountry") ??
+    null;
   const ua = request.headers.get("User-Agent") || "";
-  const clientIp = request.headers.get("CF-Connecting-IP") || request.headers.get("X-Forwarded-For") || null;
+  const clientIp =
+    request.headers.get("CF-Connecting-IP") ||
+    request.headers.get("X-Forwarded-For") ||
+    null;
 
   const url = new URL(request.url);
   const utmMedium = url.searchParams.get("utm_medium")?.toLowerCase() ?? null;
@@ -65,7 +84,11 @@ export async function handleRedirect(
 
   // Best-effort silent visitor fingerprint. Hashed IP + UA + daily salt.
   // Stored for future unique-visitor analytics; never exposed raw anywhere.
-  const visitorFp = await computeVisitorFingerprint(clientIp, ua, env.FP_SALT).catch(() => null);
+  const visitorFp = await computeVisitorFingerprint(
+    clientIp,
+    ua,
+    env.FP_SALT,
+  ).catch(() => null);
 
   const data: ClickData = {
     referrer,
@@ -108,21 +131,34 @@ export async function handleRedirect(
     if (cacheConfig.cacheAll) {
       shouldCache = true;
     } else {
-      const sinceTs = Math.floor(Date.now() / 1000) - cacheConfig.thresholdWindowDays * 86400;
-      const recentClicks = await ClickRepository.countSince(env.DB, normalizedSlug, sinceTs);
+      const sinceTs =
+        Math.floor(Date.now() / 1000) - cacheConfig.thresholdWindowDays * 86400;
+      const recentClicks = await ClickRepository.countSince(
+        env.DB,
+        normalizedSlug,
+        sinceTs,
+      );
       shouldCache = recentClicks >= cacheConfig.thresholdClicks;
     }
   }
 
   if (shouldCache) {
     const maxAge = cacheConfig.durationDays * 86400;
-    headers.set("Cache-Control", `public, max-age=${maxAge}, stale-while-revalidate=604800`);
+    headers.set(
+      "Cache-Control",
+      `public, max-age=${maxAge}, stale-while-revalidate=604800`,
+    );
     // Tag with both a per-slug tag (for targeted purges on edit/disable) and a
     // shared tag so disabling the cache can purge every redirect in one call.
-    headers.set("Cache-Tag", `${REDIRECT_CACHE_TAG},${redirectCacheTag(normalizedSlug)}`);
+    headers.set(
+      "Cache-Tag",
+      `${REDIRECT_CACHE_TAG},${redirectCacheTag(normalizedSlug)}`,
+    );
     // Record that this slug is now served from cache so the admin UI can flag
     // its analytics as approximate. The marker expires with the cache.
-    ctx.waitUntil(RedirectCacheMarker.mark(env.SLUG_KV, normalizedSlug, maxAge));
+    ctx.waitUntil(
+      RedirectCacheMarker.mark(env.SLUG_KV, normalizedSlug, maxAge),
+    );
   } else {
     headers.set("Cache-Control", "no-store");
   }

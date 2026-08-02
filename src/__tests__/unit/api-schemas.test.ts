@@ -37,7 +37,14 @@ describe("CustomSlugStringSchema", () => {
 
 describe("TIMELINE_RANGES", () => {
   it("matches the documented public range set", () => {
-    expect([...TIMELINE_RANGES]).toEqual(["24h", "7d", "30d", "90d", "1y", "all"]);
+    expect([...TIMELINE_RANGES]).toEqual([
+      "24h",
+      "7d",
+      "30d",
+      "90d",
+      "1y",
+      "all",
+    ]);
   });
 });
 

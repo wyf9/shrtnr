@@ -4,12 +4,11 @@ The repository ships three independent release tracks: the Cloudflare Workers ap
 
 ## Release tracks
 
-| Target | Manifest | Tag prefix | Workflow | Mode |
-|---|---|---|---|---|
-| Cloudflare Workers app | root `package.json` | `app-v*` | `release.yml` | main-push |
-| TypeScript / npm SDK | `sdk/typescript/package.json` | `npm-v*` | `release-sdk-npm.yml` | main-push |
-| Python / PyPI SDK | `sdk/python/pyproject.toml` | `py-v*` | `release-sdk-python.yml` | main-push |
-
+| Target                 | Manifest                      | Tag prefix | Workflow                 | Mode      |
+| ---------------------- | ----------------------------- | ---------- | ------------------------ | --------- |
+| Cloudflare Workers app | root `package.json`           | `app-v*`   | `release.yml`            | main-push |
+| TypeScript / npm SDK   | `sdk/typescript/package.json` | `npm-v*`   | `release-sdk-npm.yml`    | main-push |
+| Python / PyPI SDK      | `sdk/python/pyproject.toml`   | `py-v*`    | `release-sdk-python.yml` | main-push |
 
 Shared bash lives in `scripts/read-version.sh` and `scripts/extract-changelog.sh`, called from each workflow.
 
@@ -35,11 +34,10 @@ On "update the version" / "bump version" / "create a release":
 
 Each SDK records the SHA-256 of the OpenAPI spec it was last regenerated against:
 
-| SDK | Manifest | Field |
-|---|---|---|
-| TypeScript | `sdk/typescript/package.json` | top-level `x-spec-hash` |
-| Python | `sdk/python/pyproject.toml` | `[tool.shrtnr]` `spec_hash` |
-
+| SDK        | Manifest                      | Field                       |
+| ---------- | ----------------------------- | --------------------------- |
+| TypeScript | `sdk/typescript/package.json` | top-level `x-spec-hash`     |
+| Python     | `sdk/python/pyproject.toml`   | `[tool.shrtnr]` `spec_hash` |
 
 Spec changes stale both hashes. A root `package.json` version bump also drifts the hash because the spec embeds `info.version`.
 

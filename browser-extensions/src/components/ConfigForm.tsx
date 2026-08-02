@@ -61,7 +61,13 @@ function categoryToMessage(category: string): {
   }
 }
 
-export function ConfigForm({ t, initial, onSaved, showCancel, onCancel }: Props) {
+export function ConfigForm({
+  t,
+  initial,
+  onSaved,
+  showCancel,
+  onCancel,
+}: Props) {
   const [baseUrl, setBaseUrl] = useState(initial?.baseUrl ?? "");
   const [apiKey, setApiKey] = useState(initial?.apiKey ?? "");
   const [testState, setTestState] = useState<TestState>({ kind: "idle" });
@@ -89,7 +95,11 @@ export function ConfigForm({ t, initial, onSaved, showCancel, onCancel }: Props)
               : { host },
         });
       } else {
-        setTestState({ kind: "error", messageKey: "error.network", params: { host } });
+        setTestState({
+          kind: "error",
+          messageKey: "error.network",
+          params: { host },
+        });
       }
     }
   }
@@ -134,7 +144,11 @@ export function ConfigForm({ t, initial, onSaved, showCancel, onCancel }: Props)
       onSaved({ baseUrl: normalizedOrigin, apiKey: trimmedKey });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Save failed";
-      setSaveState({ kind: "error", messageKey: "error.validation", params: { message } });
+      setSaveState({
+        kind: "error",
+        messageKey: "error.validation",
+        params: { message },
+      });
     }
   }
 
@@ -153,7 +167,9 @@ export function ConfigForm({ t, initial, onSaved, showCancel, onCancel }: Props)
           class="field-input"
           placeholder={t("form.baseUrl.placeholder")}
           value={baseUrl}
-          onInput={(e) => setBaseUrl((e.currentTarget as HTMLInputElement).value)}
+          onInput={(e) =>
+            setBaseUrl((e.currentTarget as HTMLInputElement).value)
+          }
           autoComplete="off"
           spellcheck={false}
           required
@@ -168,7 +184,9 @@ export function ConfigForm({ t, initial, onSaved, showCancel, onCancel }: Props)
           class="field-input field-input-mono"
           placeholder={t("form.apiKey.placeholder")}
           value={apiKey}
-          onInput={(e) => setApiKey((e.currentTarget as HTMLInputElement).value)}
+          onInput={(e) =>
+            setApiKey((e.currentTarget as HTMLInputElement).value)
+          }
           autoComplete="off"
           spellcheck={false}
           required

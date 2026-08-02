@@ -3,7 +3,7 @@
 
 const en = {
   // Language code (used by client-side Intl APIs)
-  "_lang": "en",
+  _lang: "en",
   // Navigation
   "nav.dashboard": "Dashboard",
   "nav.links": "Links",
@@ -39,7 +39,8 @@ const en = {
   "dashboard.topDomains": "Top Domains",
   "dashboard.mostClicked": "Most Clicked",
   "dashboard.clickToCopy": "Click to copy",
-  "dashboard.redirectCacheWarning": "Redirect cache is enabled. Analytics can undercount clicks because cached redirects may not run the Worker.",
+  "dashboard.redirectCacheWarning":
+    "Redirect cache is enabled. Analytics can undercount clicks because cached redirects may not run the Worker.",
 
   // Links
   "links.title": "Links",
@@ -68,11 +69,13 @@ const en = {
   "links.newLink": "New Link",
   "links.allDisabled":
     'All links are disabled. Toggle "Show disabled" to see them.',
-  "links.empty": "No links yet. Use the + New Link button above to get started.",
+  "links.empty":
+    "No links yet. Use the + New Link button above to get started.",
   "links.disabled": "Disabled",
   "links.clicks": "clicks",
   "links.clickToCopy": "Click to copy",
-  "links.cachedInaccurate": "Served from cache: click count may be lower than the real total.",
+  "links.cachedInaccurate":
+    "Served from cache: click count may be lower than the real total.",
   "links.show": "Show",
   "links.searchResults": "{count} matching links",
   "links.clearSearch": "Clear",
@@ -83,7 +86,8 @@ const en = {
   "linkDetail.disable": "Disable",
   "linkDetail.delete": "Delete",
   "linkDetail.disabled": "Disabled",
-  "linkDetail.cachedInaccurate": "This link is served from the redirect cache, so its click counts may be lower than the real total until the cache expires or is cleared.",
+  "linkDetail.cachedInaccurate":
+    "This link is served from the redirect cache, so its click counts may be lower than the real total until the cache expires or is cleared.",
   "linkDetail.copy": "Copy",
   "linkDetail.qr": "QR",
   "linkDetail.or": "or",
@@ -127,14 +131,19 @@ const en = {
   "linkDetail.disableSlug": "Disable slug",
   "linkDetail.enableSlug": "Enable slug",
   "linkDetail.duplicateTitle": "Create another link for this destination?",
-  "linkDetail.duplicateBody": "This creates a separate link record that points to the same destination URL. Custom slugs will not be copied.",
-  "linkDetail.duplicateHelper": "Use this when you want separate labeling, ownership, expiry, or lifecycle. If you just want another short path for the same destination, add a custom slug instead.",
+  "linkDetail.duplicateBody":
+    "This creates a separate link record that points to the same destination URL. Custom slugs will not be copied.",
+  "linkDetail.duplicateHelper":
+    "Use this when you want separate labeling, ownership, expiry, or lifecycle. If you just want another short path for the same destination, add a custom slug instead.",
   "linkDetail.copyLabel": "Copy label",
-  "linkDetail.confirmDisable": "Are you sure you want to disable this link? It will stop redirecting.",
-  "linkDetail.confirmDelete": "Delete this link? This removes the link and all its slugs permanently.",
+  "linkDetail.confirmDisable":
+    "Are you sure you want to disable this link? It will stop redirecting.",
+  "linkDetail.confirmDelete":
+    "Delete this link? This removes the link and all its slugs permanently.",
   "linkDetail.confirmEnable": "Re-enable this link?",
   "linkDetail.confirmDeleteSlug": "Delete slug /{slug}? This cannot be undone.",
-  "linkDetail.confirmDisableSlug": "Disable slug /{slug}? It will stop redirecting but click history is preserved.",
+  "linkDetail.confirmDisableSlug":
+    "Disable slug /{slug}? It will stop redirecting but click history is preserved.",
   "linkDetail.confirmEnableSlug": "Re-enable slug /{slug}?",
   "linkDetail.selectPrimary": "Select primary slug",
   "linkDetail.moreActions": "More actions",
@@ -142,7 +151,8 @@ const en = {
 
   // Redirects
   "redirects.title": "Dynamic Redirects",
-  "redirects.subtitle": "Manage dynamic redirect rules with placeholders and splat. All rules use 302.",
+  "redirects.subtitle":
+    "Manage dynamic redirect rules with placeholders and splat. All rules use 302.",
   "redirects.colSource": "Source Pattern",
   "redirects.colDestination": "Destination",
   "redirects.sourcePattern": "/pattern/:placeholder or /prefix/*",
@@ -180,35 +190,47 @@ const en = {
   "settings.themeDark": "Dark",
   "settings.themeLight": "Light",
   "settings.defaultRange": "Default Time Range",
-  "settings.defaultRangeHint": "Applied to every analytics page when no range is chosen.",
+  "settings.defaultRangeHint":
+    "Applied to every analytics page when no range is chosen.",
   "settings.rootRedirectUrl": "Root Redirect URL",
-  "settings.rootRedirectUrlHint": "When set, unauthenticated visitors to / are redirected here. Leave empty to keep the login landing page.",
+  "settings.rootRedirectUrlHint":
+    "When set, unauthenticated visitors to / are redirected here. Leave empty to keep the login landing page.",
   "settings.rootRedirectUrlPlaceholder": "https://example.com",
   "settings.dynamicRedirectRules": "Dynamic Redirect Rules",
-  "settings.dynamicRedirectRulesHint": "Supports _redirects-style rules with placeholders (:name) and splat (* -> :splat). One rule per line.",
-  "settings.dynamicRedirectRulesPlaceholder": "# /mail/:email https://siiway.org/go/mail?email=:email\n# /a/* https://siiway.org/about/:splat",
+  "settings.dynamicRedirectRulesHint":
+    "Supports _redirects-style rules with placeholders (:name) and splat (* -> :splat). One rule per line.",
+  "settings.dynamicRedirectRulesPlaceholder":
+    "# /mail/:email https://siiway.org/go/mail?email=:email\n# /a/* https://siiway.org/about/:splat",
   "settings.slugLength": "Default Slug Length",
   "settings.analyticsFilters": "Analytics Filters",
   "settings.filterBots": "Filter out bot traffic",
-  "settings.filterBotsHint": "Exclude clicks from bots, crawlers, and AI training crawlers (GPTBot, ClaudeBot, Google-Extended, and similar) from every analytics view.",
+  "settings.filterBotsHint":
+    "Exclude clicks from bots, crawlers, and AI training crawlers (GPTBot, ClaudeBot, Google-Extended, and similar) from every analytics view.",
   "settings.filterSelfReferrers": "Filter out self-referrers",
-  "settings.filterSelfReferrersHint": "Exclude clicks whose Referer is the bare origin of this site (internal navigation).",
+  "settings.filterSelfReferrersHint":
+    "Exclude clicks whose Referer is the bare origin of this site (internal navigation).",
   "settings.filterAiSearches": "Filter out AI searches",
-  "settings.filterAiSearchesHint": "Exclude clicks from live AI searches and assistants (ChatGPT-User, Perplexity-User, Claude-User, and similar) that fetch the link when a person asks an AI or an agent, distinct from AI training crawlers.",
+  "settings.filterAiSearchesHint":
+    "Exclude clicks from live AI searches and assistants (ChatGPT-User, Perplexity-User, Claude-User, and similar) that fetch the link when a person asks an AI or an agent, distinct from AI training crawlers.",
   "settings.performance": "Performance",
   "settings.redirectCache": "Cache redirects for one year",
-  "settings.redirectCacheHint": "Reduces CPU by serving hot short links from Workers Cache. Click analytics can undercount until the cache is purged or expires.",
+  "settings.redirectCacheHint":
+    "Reduces CPU by serving hot short links from Workers Cache. Click analytics can undercount until the cache is purged or expires.",
   "settings.redirectCacheDuration": "Cache duration",
-  "settings.redirectCacheDurationHint": "How long a redirect stays cached before it is re-evaluated.",
+  "settings.redirectCacheDurationHint":
+    "How long a redirect stays cached before it is re-evaluated.",
   "settings.redirectCacheThreshold": "Cache threshold",
-  "settings.redirectCacheThresholdHint": "Only cache links that reach this many clicks within the window (clicks / days). Set both to 0 to cache every link.",
+  "settings.redirectCacheThresholdHint":
+    "Only cache links that reach this many clicks within the window (clicks / days). Set both to 0 to cache every link.",
   "settings.unitDays": "days",
   "settings.purgeCache": "Clear redirect cache",
-  "settings.purgeCacheHint": "Drop every cached redirect now so click tracking resumes for links served from the cache.",
+  "settings.purgeCacheHint":
+    "Drop every cached redirect now so click tracking resumes for links served from the cache.",
   "settings.purgeCacheButton": "Clear cache",
   "settings.redirects": "Redirects",
   "settings.dynamicRedirectStrictMatch": "Strict dynamic redirect matching",
-  "settings.dynamicRedirectStrictMatchHint": "Require every placeholder (:name) and splat (*) to capture a non-empty value before a dynamic rule fires. For example, \"/a/*\" will not match \"/a/\" when enabled. Paths without a trailing slash (e.g. \"/a\") never match \"/a/*\" regardless of this setting.",
+  "settings.dynamicRedirectStrictMatchHint":
+    'Require every placeholder (:name) and splat (*) to capture a non-empty value before a dynamic rule fires. For example, "/a/*" will not match "/a/" when enabled. Paths without a trailing slash (e.g. "/a") never match "/a/*" regardless of this setting.',
   "settings.save": "Save",
   "settings.combos": "{count} possible combinations",
   "settings.combosInfinite": "Practically infinite possible combinations",
@@ -304,13 +326,11 @@ const en = {
   "client.createKeyError": "Failed to create key",
   "client.keyCreated": "Key Created",
   "client.keyCreatedDesc": "Copy your API key now. It will not be shown again.",
-  "client.keyWarning":
-    "Store this key securely. You cannot retrieve it later.",
+  "client.keyWarning": "Store this key securely. You cannot retrieve it later.",
   "client.copy": "Copy",
   "client.done": "Done",
   "client.apiKeyCopied": "API key copied",
-  "client.confirmDeleteKey":
-    'Delete API key "{title}"? This cannot be undone.',
+  "client.confirmDeleteKey": 'Delete API key "{title}"? This cannot be undone.',
   "client.keyDeleted": "Key deleted",
   "client.keyDeleteError": "Failed to delete key",
 
@@ -338,7 +358,8 @@ const en = {
   "client.cachePurged": "Redirect cache cleared",
   "client.cachePurgeError": "Failed to clear redirect cache",
   "client.cacheDurationError": "Cache duration must be at least 1 day",
-  "client.cacheThresholdPairError": "Set both cache threshold values to 0 (cache all) or both above 0",
+  "client.cacheThresholdPairError":
+    "Set both cache threshold values to 0 (cache all) or both above 0",
   "client.combos": "{count} possible combinations",
   "client.combosInfinite": "Practically infinite possible combinations",
   "client.minLength": "Minimum length is 3 characters",
@@ -353,7 +374,8 @@ const en = {
 
   // Pages
   "pages.title": "Pages",
-  "pages.subtitle": "Serve static pages from your short domain. Each page is served at its slug path.",
+  "pages.subtitle":
+    "Serve static pages from your short domain. Each page is served at its slug path.",
   "pages.colSlug": "Slug",
   "pages.colFilename": "Filename",
   "pages.colStatus": "HTTP Status",

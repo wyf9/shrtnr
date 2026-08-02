@@ -60,18 +60,18 @@ with Shrtnr(base_url="...", api_key="sk_...") as client:
 
 ### Links (`client.links`)
 
-| Method | Description |
-|---|---|
-| `get(id, *, range=None)` | Get a link with click count |
-| `list(*, owner=None, range=None)` | List all links |
-| `create(*, url, label=None, slug_length=None, expires_at=None, allow_duplicate=None)` | Create a short link |
-| `update(id, *, url=None, label=None, expires_at=None)` | Update URL, label, or expiry |
-| `disable(id)` | Stop redirecting |
-| `enable(id)` | Resume redirecting |
-| `delete(id)` | Permanently delete |
-| `analytics(id, *, range=None)` | Click breakdown by country, device, referrer, etc. |
-| `timeline(id, *, range=None)` | Click counts bucketed over time |
-| `qr(id, *, slug=None, size=None)` | QR code as SVG string |
+| Method                                                                                | Description                                        |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `get(id, *, range=None)`                                                              | Get a link with click count                        |
+| `list(*, owner=None, range=None)`                                                     | List all links                                     |
+| `create(*, url, label=None, slug_length=None, expires_at=None, allow_duplicate=None)` | Create a short link                                |
+| `update(id, *, url=None, label=None, expires_at=None)`                                | Update URL, label, or expiry                       |
+| `disable(id)`                                                                         | Stop redirecting                                   |
+| `enable(id)`                                                                          | Resume redirecting                                 |
+| `delete(id)`                                                                          | Permanently delete                                 |
+| `analytics(id, *, range=None)`                                                        | Click breakdown by country, device, referrer, etc. |
+| `timeline(id, *, range=None)`                                                         | Click counts bucketed over time                    |
+| `qr(id, *, slug=None, size=None)`                                                     | QR code as SVG string                              |
 
 ```python
 # Shorten a URL
@@ -87,13 +87,13 @@ print(stats.total_clicks, stats.countries, stats.browsers)
 
 ### Slugs (`client.slugs`)
 
-| Method | Description |
-|---|---|
-| `lookup(slug)` | Find a link by slug |
-| `add(link_id, slug)` | Add a custom slug |
-| `disable(link_id, slug)` | Disable a slug |
-| `enable(link_id, slug)` | Re-enable a slug |
-| `remove(link_id, slug)` | Remove a slug |
+| Method                   | Description         |
+| ------------------------ | ------------------- |
+| `lookup(slug)`           | Find a link by slug |
+| `add(link_id, slug)`     | Add a custom slug   |
+| `disable(link_id, slug)` | Disable a slug      |
+| `enable(link_id, slug)`  | Re-enable a slug    |
+| `remove(link_id, slug)`  | Remove a slug       |
 
 ```python
 # Add a campaign slug then disable it when the campaign ends

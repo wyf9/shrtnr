@@ -22,7 +22,9 @@ export class ExtensionError extends Error {
     public readonly serverMessage?: string,
     public readonly status?: number,
   ) {
-    super(`extension error (${category}${status != null ? ` / HTTP ${status}` : ""})`);
+    super(
+      `extension error (${category}${status != null ? ` / HTTP ${status}` : ""})`,
+    );
     this.name = "ExtensionError";
   }
 }
@@ -38,7 +40,10 @@ export function categorizeStatus(status: number): ErrorCategory {
   return "server";
 }
 
-export function logError(category: ErrorCategory, status: number | undefined): void {
+export function logError(
+  category: ErrorCategory,
+  status: number | undefined,
+): void {
   const tag = status != null ? `[${category}/${status}]` : `[${category}]`;
   console.warn(`shrtnr-extension ${tag}`);
 }

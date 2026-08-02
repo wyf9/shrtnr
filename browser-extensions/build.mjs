@@ -71,7 +71,9 @@ async function buildEntries(target, outdir, watch) {
     jsxImportSource: "preact",
     loader: { ".css": "css" },
     define: {
-      "process.env.NODE_ENV": JSON.stringify(watch ? "development" : "production"),
+      "process.env.NODE_ENV": JSON.stringify(
+        watch ? "development" : "production",
+      ),
       "process.env.EXT_TARGET": JSON.stringify(target),
     },
     logLevel: "info",
@@ -91,8 +93,14 @@ async function copyStaticFiles(outdir) {
   const popupSrc = path.join(SRC, "popup");
   const optionsSrc = path.join(SRC, "options");
 
-  await copyFile(path.join(popupSrc, "popup.html"), path.join(outdir, "popup.html"));
-  await copyFile(path.join(optionsSrc, "options.html"), path.join(outdir, "options.html"));
+  await copyFile(
+    path.join(popupSrc, "popup.html"),
+    path.join(outdir, "popup.html"),
+  );
+  await copyFile(
+    path.join(optionsSrc, "options.html"),
+    path.join(outdir, "options.html"),
+  );
 
   const assetsOut = path.join(outdir, "assets");
   await fs.mkdir(assetsOut, { recursive: true });
@@ -120,8 +128,13 @@ async function rmDir(dir) {
 async function zipDir(srcDir, zipPath) {
   await fs.rm(zipPath, { force: true });
   await new Promise((resolve, reject) => {
-    const proc = spawn("zip", ["-rq", zipPath, "."], { cwd: srcDir, stdio: "inherit" });
-    proc.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`zip exited ${code}`))));
+    const proc = spawn("zip", ["-rq", zipPath, "."], {
+      cwd: srcDir,
+      stdio: "inherit",
+    });
+    proc.on("close", (code) =>
+      code === 0 ? resolve() : reject(new Error(`zip exited ${code}`)),
+    );
     proc.on("error", reject);
   });
 }
@@ -140,7 +153,9 @@ async function buildTarget(target, watch) {
   if (!watch) {
     const zipPath = path.join(DIST, `${target}.zip`);
     await zipDir(outdir, zipPath);
-    console.log(`✓ ${target}: ${path.relative(ROOT, outdir)} + ${path.relative(ROOT, zipPath)}`);
+    console.log(
+      `✓ ${target}: ${path.relative(ROOT, outdir)} + ${path.relative(ROOT, zipPath)}`,
+    );
   } else {
     console.log(`watching: ${target}`);
   }

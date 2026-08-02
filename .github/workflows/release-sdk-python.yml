@@ -12,10 +12,10 @@ on:
   push:
     branches: [main]
     paths:
-      - 'sdk/python/**'
-      - '.github/workflows/release-sdk-python.yml'
-      - 'scripts/extract-changelog.sh'
-      - 'scripts/read-version.sh'
+      - "sdk/python/**"
+      - ".github/workflows/release-sdk-python.yml"
+      - "scripts/extract-changelog.sh"
+      - "scripts/read-version.sh"
   workflow_dispatch:
 
 permissions:

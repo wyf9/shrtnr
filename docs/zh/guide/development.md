@@ -24,15 +24,15 @@ bun run dev                # 启动本地开发服务器 (wrangler dev)
 
 ## 常用脚本
 
-| 脚本 | 说明 |
-|---|---|
-| `bun run dev` | 启动本地开发服务器 |
-| `bun run deploy` | 部署到 Cloudflare |
-| `bun run test` | 运行一次测试 (`vitest run`) |
-| `bun run test:watch` | 监听模式运行测试 |
-| `bun run db:migrate:local` | 对本地 D1 应用迁移 |
-| `bun run db:migrate:remote` | 对远程 D1 应用迁移 |
-| `bun run emit-spec` | 生成 OpenAPI 规范 (`scripts/emit-spec.ts`) |
+| 脚本                        | 说明                                       |
+| --------------------------- | ------------------------------------------ |
+| `bun run dev`               | 启动本地开发服务器                         |
+| `bun run deploy`            | 部署到 Cloudflare                          |
+| `bun run test`              | 运行一次测试 (`vitest run`)                |
+| `bun run test:watch`        | 监听模式运行测试                           |
+| `bun run db:migrate:local`  | 对本地 D1 应用迁移                         |
+| `bun run db:migrate:remote` | 对远程 D1 应用迁移                         |
+| `bun run emit-spec`         | 生成 OpenAPI 规范 (`scripts/emit-spec.ts`) |
 
 ## 测试
 
@@ -44,9 +44,10 @@ bun run test:watch    # 监听模式
 ```
 
 ::: warning 测试约定
+
 - 为每个请求的行为或变更编写测试。
 - 不要为了迁就代码改动而修改或删除测试。
-:::
+  :::
 
 ## SDK 开发
 
@@ -60,10 +61,11 @@ bun run build
 ```
 
 ::: tip SDK 一致性
+
 - 对任一 SDK 的改动都需要评估并同步到其他 SDK。
 - 所有 SDK 的 README 保持同步，仅按语言习惯做必要调整。
 - 每个 SDK 记录其最后一次针对的 OpenAPI 规范的 SHA-256（spec hash）。API 变更会同时使两个哈希过期。
-:::
+  :::
 
 详细的贡献与发布约定见 [贡献指南](/zh/contributing/guidelines) 与 [发布流程](/zh/contributing/releases)。
 

@@ -5,7 +5,7 @@ import type { Translations } from "./types";
 
 const sv: Translations = {
   // Language code (used by client-side Intl APIs)
-  "_lang": "sv",
+  _lang: "sv",
   // Navigation
   "nav.dashboard": "Översikt",
   "nav.links": "Länkar",
@@ -41,7 +41,8 @@ const sv: Translations = {
   "dashboard.topDomains": "Toppdomäner",
   "dashboard.mostClicked": "Mest klickade",
   "dashboard.clickToCopy": "Klicka för att kopiera",
-  "dashboard.redirectCacheWarning": "Omdirigeringscache är aktiv. Statistik kan underräkna klick eftersom cachade omdirigeringar kanske inte kör Workern.",
+  "dashboard.redirectCacheWarning":
+    "Omdirigeringscache är aktiv. Statistik kan underräkna klick eftersom cachade omdirigeringar kanske inte kör Workern.",
 
   // Links
   "links.title": "Länkar",
@@ -75,7 +76,8 @@ const sv: Translations = {
   "links.disabled": "Inaktiverad",
   "links.clicks": "klick",
   "links.clickToCopy": "Klicka för att kopiera",
-  "links.cachedInaccurate": "Levereras från cache: klickantalet kan vara lägre än den verkliga summan.",
+  "links.cachedInaccurate":
+    "Levereras från cache: klickantalet kan vara lägre än den verkliga summan.",
   "links.show": "Visa",
   "links.searchResults": "{count} matchande länkar",
   "links.clearSearch": "Rensa",
@@ -86,7 +88,8 @@ const sv: Translations = {
   "linkDetail.disable": "Inaktivera",
   "linkDetail.delete": "Radera",
   "linkDetail.disabled": "Inaktiverad",
-  "linkDetail.cachedInaccurate": "Den här länken levereras från omdirigeringscachen, så dess klickantal kan vara lägre än den verkliga summan tills cachen löper ut eller rensas.",
+  "linkDetail.cachedInaccurate":
+    "Den här länken levereras från omdirigeringscachen, så dess klickantal kan vara lägre än den verkliga summan tills cachen löper ut eller rensas.",
   "linkDetail.copy": "Kopiera",
   "linkDetail.qr": "QR",
   "linkDetail.or": "eller",
@@ -130,14 +133,20 @@ const sv: Translations = {
   "linkDetail.disableSlug": "Inaktivera slug",
   "linkDetail.enableSlug": "Aktivera slug",
   "linkDetail.duplicateTitle": "Skapa en till länk för samma destination?",
-  "linkDetail.duplicateBody": "Detta skapar en separat länk som pekar på samma destinations-URL. Anpassade sluggar kopieras inte.",
-  "linkDetail.duplicateHelper": "Använd detta när du vill ha separat etikettering, ägande, utgångsdatum eller livscykel. Om du bara vill ha en annan kort sökväg för samma destination, lägg till en anpassad slug istället.",
+  "linkDetail.duplicateBody":
+    "Detta skapar en separat länk som pekar på samma destinations-URL. Anpassade sluggar kopieras inte.",
+  "linkDetail.duplicateHelper":
+    "Använd detta när du vill ha separat etikettering, ägande, utgångsdatum eller livscykel. Om du bara vill ha en annan kort sökväg för samma destination, lägg till en anpassad slug istället.",
   "linkDetail.copyLabel": "Kopiera etikett",
-  "linkDetail.confirmDisable": "Är du säker på att du vill inaktivera denna länk? Den slutar omdirigera.",
-  "linkDetail.confirmDelete": "Radera denna länk? Länken och alla dess slugs tas bort permanent.",
+  "linkDetail.confirmDisable":
+    "Är du säker på att du vill inaktivera denna länk? Den slutar omdirigera.",
+  "linkDetail.confirmDelete":
+    "Radera denna länk? Länken och alla dess slugs tas bort permanent.",
   "linkDetail.confirmEnable": "Återaktivera denna länk?",
-  "linkDetail.confirmDeleteSlug": "Ta bort slug /{slug}? Detta kan inte ångras.",
-  "linkDetail.confirmDisableSlug": "Inaktivera slug /{slug}? Den slutar omdirigera men klickhistorik bevaras.",
+  "linkDetail.confirmDeleteSlug":
+    "Ta bort slug /{slug}? Detta kan inte ångras.",
+  "linkDetail.confirmDisableSlug":
+    "Inaktivera slug /{slug}? Den slutar omdirigera men klickhistorik bevaras.",
   "linkDetail.confirmEnableSlug": "Återaktivera slug /{slug}?",
   "linkDetail.selectPrimary": "Välj primär slug",
   "linkDetail.moreActions": "Fler åtgärder",
@@ -145,17 +154,20 @@ const sv: Translations = {
 
   // Redirects
   "redirects.title": "Dynamiska omdirigeringar",
-  "redirects.subtitle": "Hantera dynamiska omdirigeringsregler med platshållare och splat. Alla regler använder 302.",
+  "redirects.subtitle":
+    "Hantera dynamiska omdirigeringsregler med platshållare och splat. Alla regler använder 302.",
   "redirects.colSource": "Källmönster",
   "redirects.colDestination": "Destination",
   "redirects.sourcePattern": "/mönster/:platshållare eller /prefix/*",
-  "redirects.destinationUrl": "https://destination.com/:platshållare eller :splat",
+  "redirects.destinationUrl":
+    "https://destination.com/:platshållare eller :splat",
   "redirects.add": "Lägg till regel",
   "redirects.edit": "Redigera",
   "redirects.editRule": "Redigera regel",
   "redirects.saveRule": "Spara regel",
   "redirects.delete": "Radera",
-  "redirects.empty": "Ingen dynamisk omdirigeringsregel ännu. Lägg till en för att komma igång.",
+  "redirects.empty":
+    "Ingen dynamisk omdirigeringsregel ännu. Lägg till en för att komma igång.",
 
   // API Keys
   "keys.title": "API-nycklar",
@@ -183,38 +195,52 @@ const sv: Translations = {
   "settings.themeDark": "Mörkt",
   "settings.themeLight": "Ljust",
   "settings.defaultRange": "Standard tidsintervall",
-  "settings.defaultRangeHint": "Tillämpas på alla statistiksidor när inget intervall har valts.",
+  "settings.defaultRangeHint":
+    "Tillämpas på alla statistiksidor när inget intervall har valts.",
   "settings.rootRedirectUrl": "Root-omdirigerings-URL",
-  "settings.rootRedirectUrlHint": "När den är satt omdirigeras oinloggade besökare till / hit. Lämna tom för att behålla inloggningssidan.",
+  "settings.rootRedirectUrlHint":
+    "När den är satt omdirigeras oinloggade besökare till / hit. Lämna tom för att behålla inloggningssidan.",
   "settings.rootRedirectUrlPlaceholder": "https://example.com",
   "settings.dynamicRedirectRules": "Dynamiska omdirigeringsregler",
-  "settings.dynamicRedirectRulesHint": "Stödjer regler i _redirects-stil med platshållare (:name) och splat (* -> :splat). En regel per rad.",
-  "settings.dynamicRedirectRulesPlaceholder": "# /mail/:email https://siiway.org/go/mail?email=:email\n# /a/* https://siiway.org/about/:splat",
+  "settings.dynamicRedirectRulesHint":
+    "Stödjer regler i _redirects-stil med platshållare (:name) och splat (* -> :splat). En regel per rad.",
+  "settings.dynamicRedirectRulesPlaceholder":
+    "# /mail/:email https://siiway.org/go/mail?email=:email\n# /a/* https://siiway.org/about/:splat",
   "settings.slugLength": "Standard slug-längd",
   "settings.analyticsFilters": "Statistikfilter",
   "settings.filterBots": "Filtrera bort bot-trafik",
-  "settings.filterBotsHint": "Exkludera klick från bottar, crawlers och AI-träningscrawlers (GPTBot, ClaudeBot, Google-Extended och liknande) från all statistik.",
+  "settings.filterBotsHint":
+    "Exkludera klick från bottar, crawlers och AI-träningscrawlers (GPTBot, ClaudeBot, Google-Extended och liknande) från all statistik.",
   "settings.filterSelfReferrers": "Filtrera bort egen hänvisning",
-  "settings.filterSelfReferrersHint": "Exkludera klick vars hänvisare är den bara domänen för denna webbplats (intern navigering).",
+  "settings.filterSelfReferrersHint":
+    "Exkludera klick vars hänvisare är den bara domänen för denna webbplats (intern navigering).",
   "settings.filterAiSearches": "Filtrera bort AI-sökningar",
-  "settings.filterAiSearchesHint": "Exkludera klick från direkta AI-sökningar och assistenter (ChatGPT-User, Perplexity-User, Claude-User och liknande) som hämtar länken när en person frågar en AI eller en agent, till skillnad från AI-träningscrawlers.",
+  "settings.filterAiSearchesHint":
+    "Exkludera klick från direkta AI-sökningar och assistenter (ChatGPT-User, Perplexity-User, Claude-User och liknande) som hämtar länken när en person frågar en AI eller en agent, till skillnad från AI-träningscrawlers.",
   "settings.performance": "Prestanda",
   "settings.redirectCache": "Cachelagra omdirigeringar i ett år",
-  "settings.redirectCacheHint": "Minskar CPU genom att servera populära kortlänkar från Workers Cache. Klickstatistik kan underräknas tills cachen rensas eller löper ut.",
+  "settings.redirectCacheHint":
+    "Minskar CPU genom att servera populära kortlänkar från Workers Cache. Klickstatistik kan underräknas tills cachen rensas eller löper ut.",
   "settings.purgeCache": "Rensa omdirigeringscache",
-  "settings.purgeCacheHint": "Töm alla cachelagrade omdirigeringar nu så att klickspårning återupptas för länkar som serveras från cachen.",
+  "settings.purgeCacheHint":
+    "Töm alla cachelagrade omdirigeringar nu så att klickspårning återupptas för länkar som serveras från cachen.",
   "settings.redirectCacheDuration": "Cachetid",
-  "settings.redirectCacheDurationHint": "Hur länge en omdirigering ligger cachad innan den utvärderas på nytt.",
+  "settings.redirectCacheDurationHint":
+    "Hur länge en omdirigering ligger cachad innan den utvärderas på nytt.",
   "settings.redirectCacheThreshold": "Cachetröskel",
-  "settings.redirectCacheThresholdHint": "Cachelagra bara länkar som når så här många klick inom perioden (klick / dagar). Sätt båda till 0 för att cachelagra alla länkar.",
+  "settings.redirectCacheThresholdHint":
+    "Cachelagra bara länkar som når så här många klick inom perioden (klick / dagar). Sätt båda till 0 för att cachelagra alla länkar.",
   "settings.unitDays": "dagar",
   "settings.purgeCacheButton": "Rensa cache",
   "settings.redirects": "Omdirigeringar",
-  "settings.dynamicRedirectStrictMatch": "Strikt matchning för dynamiska omdirigeringar",
-  "settings.dynamicRedirectStrictMatchHint": "Kräver att varje platshållare (:name) och splat (*) fångar ett icke-tomt värde innan en dynamisk regel aktiveras. Till exempel matchar \"/a/*\" inte \"/a/\" när det är aktiverat. Sökvägar utan avslutande snedstreck (t.ex. \"/a\") matchar aldrig \"/a/*\" oavsett denna inställning.",
+  "settings.dynamicRedirectStrictMatch":
+    "Strikt matchning för dynamiska omdirigeringar",
+  "settings.dynamicRedirectStrictMatchHint":
+    'Kräver att varje platshållare (:name) och splat (*) fångar ett icke-tomt värde innan en dynamisk regel aktiveras. Till exempel matchar "/a/*" inte "/a/" när det är aktiverat. Sökvägar utan avslutande snedstreck (t.ex. "/a") matchar aldrig "/a/*" oavsett denna inställning.',
   "settings.save": "Spara",
   "settings.combos": "{count} möjliga kombinationer",
-  "settings.combosInfinite": "Praktiskt taget obegränsat antal möjliga kombinationer",
+  "settings.combosInfinite":
+    "Praktiskt taget obegränsat antal möjliga kombinationer",
   "settings.minLength": "Minsta längd är 3 tecken",
   "settings.version": "Version",
   "settings.account": "Konto",
@@ -306,8 +332,7 @@ const sv: Translations = {
   "client.selectScope": "Välj omfattning",
   "client.createKeyError": "Kunde inte skapa nyckel",
   "client.keyCreated": "Nyckel skapad",
-  "client.keyCreatedDesc":
-    "Kopiera din API-nyckel nu. Den visas inte igen.",
+  "client.keyCreatedDesc": "Kopiera din API-nyckel nu. Den visas inte igen.",
   "client.keyWarning":
     "Spara denna nyckel säkert. Du kan inte hämta den senare.",
   "client.copy": "Kopiera",
@@ -342,9 +367,11 @@ const sv: Translations = {
   "client.cachePurged": "Omdirigeringscache rensad",
   "client.cachePurgeError": "Kunde inte rensa omdirigeringscache",
   "client.cacheDurationError": "Cachetiden måste vara minst 1 dag",
-  "client.cacheThresholdPairError": "Sätt båda cachetröskelvärdena till 0 (cachelagra alla) eller båda över 0",
+  "client.cacheThresholdPairError":
+    "Sätt båda cachetröskelvärdena till 0 (cachelagra alla) eller båda över 0",
   "client.combos": "{count} möjliga kombinationer",
-  "client.combosInfinite": "Praktiskt taget obegränsat antal möjliga kombinationer",
+  "client.combosInfinite":
+    "Praktiskt taget obegränsat antal möjliga kombinationer",
   "client.minLength": "Minsta längd är 3 tecken",
   "client.updateAvailable": "tillgänglig",
   "client.releaseNotes": "Versionsanteckningar",
@@ -357,7 +384,8 @@ const sv: Translations = {
 
   // Pages
   "pages.title": "Sidor",
-  "pages.subtitle": "Servera statiska sidor från din korta domän. Varje sida visas på sin slug-sökväg.",
+  "pages.subtitle":
+    "Servera statiska sidor från din korta domän. Varje sida visas på sin slug-sökväg.",
   "pages.colSlug": "Slug",
   "pages.colFilename": "Filnamn",
   "pages.colStatus": "HTTP-status",
@@ -370,7 +398,8 @@ const sv: Translations = {
   "pages.disable": "Inaktivera",
   "pages.enable": "Aktivera",
   "pages.disabled": "Inaktiverad",
-  "pages.empty": "Inga sidor än. Lägg till en för att börja visa statiskt innehåll.",
+  "pages.empty":
+    "Inga sidor än. Lägg till en för att börja visa statiskt innehåll.",
   "pages.statusPlaceholder": "200",
   "pages.headersPlaceholder": "{}",
 

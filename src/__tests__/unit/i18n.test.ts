@@ -109,7 +109,10 @@ describe("i18n", () => {
       for (const lang of SUPPORTED_LANGUAGES) {
         const translations = getTranslations(lang);
         for (const key of enKeys) {
-          expect(translations[key as keyof typeof translations], `Missing '${key}' in '${lang}'`).toBeTruthy();
+          expect(
+            translations[key as keyof typeof translations],
+            `Missing '${key}' in '${lang}'`,
+          ).toBeTruthy();
         }
       }
     });

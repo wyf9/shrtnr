@@ -23,12 +23,12 @@ Your `baseUrl` and `apiKey` are stored in `chrome.storage.sync`, the browser's n
 
 ## Permissions explained
 
-| Permission | Purpose |
-|---|---|
-| `activeTab` | Read the active tab URL when you click the toolbar icon, so the extension can shorten it. The extension does not read tab content. |
-| `clipboardWrite` | Copy the generated short URL to your clipboard so you can paste it elsewhere. |
-| `storage` | Persist your shrtnr URL and API key across browser sessions. |
-| Host permission for your shrtnr URL | Granted at runtime against the exact origin you enter on the options page. The extension cannot reach any other origin. |
+| Permission                          | Purpose                                                                                                                            |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `activeTab`                         | Read the active tab URL when you click the toolbar icon, so the extension can shorten it. The extension does not read tab content. |
+| `clipboardWrite`                    | Copy the generated short URL to your clipboard so you can paste it elsewhere.                                                      |
+| `storage`                           | Persist your shrtnr URL and API key across browser sessions.                                                                       |
+| Host permission for your shrtnr URL | Granted at runtime against the exact origin you enter on the options page. The extension cannot reach any other origin.            |
 
 ## What this extension does not do
 

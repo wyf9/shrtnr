@@ -24,7 +24,10 @@ export class HttpClient {
   async request<T>(
     method: string,
     path: string,
-    options: { body?: unknown; query?: Record<string, string | undefined> } = {},
+    options: {
+      body?: unknown;
+      query?: Record<string, string | undefined>;
+    } = {},
   ): Promise<T> {
     const url = this.buildUrl(path, options.query);
     const headers: Record<string, string> = {
@@ -95,7 +98,10 @@ export class HttpClient {
     return res.text();
   }
 
-  private buildUrl(path: string, query?: Record<string, string | undefined>): string {
+  private buildUrl(
+    path: string,
+    query?: Record<string, string | undefined>,
+  ): string {
     const base = `${this.baseUrl}${path}`;
     if (!query) return base;
     const params = new URLSearchParams();

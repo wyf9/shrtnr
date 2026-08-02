@@ -34,21 +34,26 @@ async function checkTarget(target) {
   const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
 
   const referenced = new Set();
-  if (manifest.action?.default_popup) referenced.add(manifest.action.default_popup);
+  if (manifest.action?.default_popup)
+    referenced.add(manifest.action.default_popup);
   if (manifest.options_ui?.page) referenced.add(manifest.options_ui.page);
-  if (manifest.background?.service_worker) referenced.add(manifest.background.service_worker);
+  if (manifest.background?.service_worker)
+    referenced.add(manifest.background.service_worker);
   if (Array.isArray(manifest.background?.scripts)) {
     for (const s of manifest.background.scripts) referenced.add(s);
   }
   for (const v of Object.values(manifest.icons ?? {})) referenced.add(v);
-  for (const v of Object.values(manifest.action?.default_icon ?? {})) referenced.add(v);
+  for (const v of Object.values(manifest.action?.default_icon ?? {}))
+    referenced.add(v);
 
   const missing = [];
   for (const rel of referenced) {
     if (!(await exists(path.join(outdir, rel)))) missing.push(rel);
   }
   if (missing.length > 0) {
-    throw new Error(`${target}: missing referenced files: ${missing.join(", ")}`);
+    throw new Error(
+      `${target}: missing referenced files: ${missing.join(", ")}`,
+    );
   }
 
   // popup.html and options.html are referenced — verify they pull in their js entry points.
@@ -61,7 +66,9 @@ async function checkTarget(target) {
       throw new Error(`${target}: ${html} does not reference ${expectedJs}`);
     }
     if (!(await exists(path.join(outdir, expectedJs)))) {
-      throw new Error(`${target}: ${html} references ${expectedJs} but file is missing`);
+      throw new Error(
+        `${target}: ${html} references ${expectedJs} but file is missing`,
+      );
     }
   }
 

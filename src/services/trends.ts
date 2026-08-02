@@ -15,7 +15,10 @@ export const RANGE_SECONDS: Record<Exclude<TimelineRange, "all">, number> = {
  * Lower-bound timestamp for a given range. `all` returns undefined so callers
  * can drop the time filter from a SLUG_SELECT subquery and count lifetime.
  */
-export function rangeToSinceTs(range: TimelineRange | undefined, now?: number): number | undefined {
+export function rangeToSinceTs(
+  range: TimelineRange | undefined,
+  now?: number,
+): number | undefined {
   if (!range || range === "all") return undefined;
   const ts = now ?? Math.floor(Date.now() / 1000);
   return ts - RANGE_SECONDS[range];
@@ -26,7 +29,10 @@ export function rangeToSinceTs(range: TimelineRange | undefined, now?: number): 
  * Returns `undefined` when there is no baseline to compare against (previous is 0),
  * which callers use to suppress the trend pill.
  */
-export function computeDelta(current: number, previous: number): number | undefined {
+export function computeDelta(
+  current: number,
+  previous: number,
+): number | undefined {
   if (previous === 0) return undefined;
   if (current === previous) return 0;
   return Math.round(((current - previous) / previous) * 100);
@@ -38,7 +44,11 @@ export function computeDelta(current: number, previous: number): number | undefi
  * selected period. Range "all" falls back to the entity's lifetime, floored at one
  * day so a brand-new entity does not produce an inflated rate.
  */
-function avgPerDayDivisor(range: TimelineRange, createdAt: number, now: number): number {
+function avgPerDayDivisor(
+  range: TimelineRange,
+  createdAt: number,
+  now: number,
+): number {
   if (range !== "all") return RANGE_SECONDS[range] / 86400;
   const seconds = Math.max(1, now - createdAt);
   return Math.max(1, seconds / 86400);

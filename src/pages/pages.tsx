@@ -35,7 +35,11 @@ export const PagesPage: FC<Props> = ({ pages, t }) => {
             type="text"
             placeholder={t("pages.filenamePlaceholder")}
           />
-          <button class="btn btn-primary btn-lg" id="quick-page-btn" onclick="AdminClient.showCreatePageModal()">
+          <button
+            class="btn btn-primary btn-lg"
+            id="quick-page-btn"
+            onclick="AdminClient.showCreatePageModal()"
+          >
             <span class="icon">add</span> {t("pages.add")}
           </button>
         </div>
@@ -65,7 +69,9 @@ export const PagesPage: FC<Props> = ({ pages, t }) => {
                     <td data-label={t("pages.colSlug")}>
                       <code class="redirect-rule-code">/{page.slug}</code>
                       {page.disabled_at ? (
-                        <span class="badge badge-disabled">{t("pages.disabled")}</span>
+                        <span class="badge badge-disabled">
+                          {t("pages.disabled")}
+                        </span>
                       ) : null}
                     </td>
                     <td data-label={t("pages.colFilename")}>

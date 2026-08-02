@@ -8,7 +8,10 @@ import sv from "./sv";
 import zh from "./zh";
 
 export type { TranslationKey, Translations };
-export type TranslateFn = (key: TranslationKey, params?: Record<string, string | number>) => string;
+export type TranslateFn = (
+  key: TranslationKey,
+  params?: Record<string, string | number>,
+) => string;
 
 export const DEFAULT_LANGUAGE = "en";
 export const SUPPORTED_LANGUAGES = ["en", "id", "sv", "zh"] as const;
@@ -29,7 +32,10 @@ export function createTranslateFn(lang: string): TranslateFn {
   const strings = getTranslations(lang);
   const fallback = en;
 
-  return (key: TranslationKey, params?: Record<string, string | number>): string => {
+  return (
+    key: TranslationKey,
+    params?: Record<string, string | number>,
+  ): string => {
     let value = strings[key] || fallback[key] || key;
     if (params) {
       for (const [k, v] of Object.entries(params)) {

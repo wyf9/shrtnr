@@ -18,10 +18,15 @@ function renderRulePart(part: string): any {
   let match;
 
   while ((match = regex.exec(part)) !== null) {
-    if (match.index > lastIndex) tokens.push(part.substring(lastIndex, match.index));
+    if (match.index > lastIndex)
+      tokens.push(part.substring(lastIndex, match.index));
     const token = match[0];
     tokens.push(
-      token === "*" ? <span class="syntax-splat">{token}</span> : <span class="syntax-placeholder">{token}</span>,
+      token === "*" ? (
+        <span class="syntax-splat">{token}</span>
+      ) : (
+        <span class="syntax-placeholder">{token}</span>
+      ),
     );
     lastIndex = regex.lastIndex;
   }
@@ -54,7 +59,11 @@ export const RedirectsPage: FC<Props> = ({ rules, t }) => {
             type="text"
             placeholder={t("redirects.destinationUrl")}
           />
-          <button class="btn btn-primary btn-lg" id="quick-rule-btn" onclick="addRedirectRule()">
+          <button
+            class="btn btn-primary btn-lg"
+            id="quick-rule-btn"
+            onclick="addRedirectRule()"
+          >
             <span class="icon">add</span> {t("redirects.add")}
           </button>
         </div>
@@ -80,10 +89,14 @@ export const RedirectsPage: FC<Props> = ({ rules, t }) => {
                 {rules.map((rule, idx) => (
                   <tr class="redirect-row">
                     <td data-label={t("redirects.colSource")}>
-                      <code class="redirect-rule-code">{renderRulePart(rule.source)}</code>
+                      <code class="redirect-rule-code">
+                        {renderRulePart(rule.source)}
+                      </code>
                     </td>
                     <td data-label={t("redirects.colDestination")}>
-                      <code class="redirect-rule-code">{renderRulePart(rule.destination)}</code>
+                      <code class="redirect-rule-code">
+                        {renderRulePart(rule.destination)}
+                      </code>
                     </td>
                     <td class="col-actions">
                       <button

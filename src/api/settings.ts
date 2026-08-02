@@ -11,11 +11,19 @@ import { json, fromServiceResult } from "./response";
 
 type CachePurgeContext = Pick<ExecutionContext, "waitUntil" | "cache">;
 
-export async function handleGetSettings(env: Env, identity: string): Promise<Response> {
+export async function handleGetSettings(
+  env: Env,
+  identity: string,
+): Promise<Response> {
   return fromServiceResult(await getAppSettings(env, identity));
 }
 
-export async function handleUpdateSettings(request: Request, env: Env, identity: string, ctx?: CachePurgeContext): Promise<Response> {
+export async function handleUpdateSettings(
+  request: Request,
+  env: Env,
+  identity: string,
+  ctx?: CachePurgeContext,
+): Promise<Response> {
   let body: {
     slug_default_length?: number;
     theme?: string;
@@ -38,9 +46,14 @@ export async function handleUpdateSettings(request: Request, env: Env, identity:
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  return fromServiceResult(await updateAppSettings(env, identity, body as any, ctx));
+  return fromServiceResult(
+    await updateAppSettings(env, identity, body as any, ctx),
+  );
 }
 
-export async function handlePurgeRedirectCache(env: Env, ctx?: CachePurgeContext): Promise<Response> {
+export async function handlePurgeRedirectCache(
+  env: Env,
+  ctx?: CachePurgeContext,
+): Promise<Response> {
   return fromServiceResult(await purgeRedirectCache(env, ctx));
 }

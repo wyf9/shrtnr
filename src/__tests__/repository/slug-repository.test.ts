@@ -8,7 +8,10 @@ beforeEach(resetData);
 
 describe("SlugRepository.findByValue", () => {
   it("returns slug with url and expires_at for a known slug", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const found = await SlugRepository.findByValue(env.DB, "abc");
     expect(found).not.toBeNull();
     expect(found!.slug).toBe("abc");
@@ -23,7 +26,11 @@ describe("SlugRepository.findByValue", () => {
 
   it("includes expires_at from the parent link", async () => {
     const future = Math.floor(Date.now() / 1000) + 3600;
-    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "exp", expiresAt: future });
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "exp",
+      expiresAt: future,
+    });
     const found = await SlugRepository.findByValue(env.DB, "exp");
     expect(found!.expires_at).toBe(future);
   });
@@ -31,7 +38,10 @@ describe("SlugRepository.findByValue", () => {
 
 describe("SlugRepository.findForRedirect", () => {
   it("returns url, disabled_at, and expires_at for a known slug", async () => {
-    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const found = await SlugRepository.findForRedirect(env.DB, "abc");
     expect(found).not.toBeNull();
     expect(found!.url).toBe("https://example.com");
@@ -45,13 +55,20 @@ describe("SlugRepository.findForRedirect", () => {
 
   it("includes expires_at from the parent link", async () => {
     const future = Math.floor(Date.now() / 1000) + 3600;
-    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "exp", expiresAt: future });
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "exp",
+      expiresAt: future,
+    });
     const found = await SlugRepository.findForRedirect(env.DB, "exp");
     expect(found!.expires_at).toBe(future);
   });
 
   it("includes disabled_at when slug is disabled", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     await SlugRepository.disable(env.DB, "my-custom");
     const found = await SlugRepository.findForRedirect(env.DB, "my-custom");
@@ -59,7 +76,10 @@ describe("SlugRepository.findForRedirect", () => {
   });
 
   it("does not include click_count", async () => {
-    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const found = await SlugRepository.findForRedirect(env.DB, "abc");
     expect(found).not.toHaveProperty("click_count");
   });
@@ -67,7 +87,10 @@ describe("SlugRepository.findForRedirect", () => {
 
 describe("SlugRepository.exists", () => {
   it("returns true for a slug that exists", async () => {
-    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     expect(await SlugRepository.exists(env.DB, "abc")).toBe(true);
   });
 
@@ -78,7 +101,10 @@ describe("SlugRepository.exists", () => {
 
 describe("SlugRepository.addCustom", () => {
   it("inserts a custom slug with is_custom = 1", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const custom = await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     expect(custom.is_custom).toBe(1);
     expect(custom.slug).toBe("my-custom");
@@ -86,14 +112,20 @@ describe("SlugRepository.addCustom", () => {
   });
 
   it("returns the newly inserted slug row", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const custom = await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     expect(custom.slug).toBe("my-custom");
     expect(custom.click_count).toBe(0);
   });
 
   it("sets first custom slug as primary automatically", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const custom = await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     expect(custom.is_primary).toBe(1);
     // random slug should no longer be primary
@@ -103,8 +135,15 @@ describe("SlugRepository.addCustom", () => {
   });
 
   it("does not change primary when adding second custom slug", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    const first = await SlugRepository.addCustom(env.DB, link.id, "first-custom");
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
+    const first = await SlugRepository.addCustom(
+      env.DB,
+      link.id,
+      "first-custom",
+    );
     await SlugRepository.addCustom(env.DB, link.id, "second-custom");
     const updated = await LinkRepository.getById(env.DB, link.id);
     const primary = updated!.slugs.find((s) => s.is_primary);
@@ -112,7 +151,10 @@ describe("SlugRepository.addCustom", () => {
   });
 
   it("allows multiple custom slugs on the same link", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     await SlugRepository.addCustom(env.DB, link.id, "custom-1");
     await SlugRepository.addCustom(env.DB, link.id, "custom-2");
     const updated = await LinkRepository.getById(env.DB, link.id);
@@ -123,7 +165,10 @@ describe("SlugRepository.addCustom", () => {
 
 describe("SlugRepository.setPrimary", () => {
   it("sets the specified slug as primary and clears others", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     await SlugRepository.addCustom(env.DB, link.id, "custom-1");
     await SlugRepository.addCustom(env.DB, link.id, "custom-2");
     const updated = await LinkRepository.getById(env.DB, link.id);
@@ -138,14 +183,20 @@ describe("SlugRepository.setPrimary", () => {
 
 describe("SlugRepository.disable", () => {
   it("sets disabled_at on the slug", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const custom = await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     const disabled = await SlugRepository.disable(env.DB, custom.slug);
     expect(disabled!.disabled_at).toBeGreaterThan(0);
   });
 
   it("falls back primary to random slug when disabling the primary", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const custom = await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     await SlugRepository.disable(env.DB, custom.slug);
     const updated = await LinkRepository.getById(env.DB, link.id);
@@ -157,7 +208,10 @@ describe("SlugRepository.disable", () => {
 
 describe("SlugRepository.enable", () => {
   it("clears disabled_at on the slug", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const custom = await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     await SlugRepository.disable(env.DB, custom.slug);
     const enabled = await SlugRepository.enable(env.DB, custom.slug);
@@ -167,7 +221,10 @@ describe("SlugRepository.enable", () => {
 
 describe("SlugRepository.remove", () => {
   it("deletes a custom slug with zero clicks", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const custom = await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     const removed = await SlugRepository.remove(env.DB, custom.slug);
     expect(removed).toBe(true);
@@ -176,15 +233,25 @@ describe("SlugRepository.remove", () => {
   });
 
   it("refuses to delete a slug with clicks", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const custom = await SlugRepository.addCustom(env.DB, link.id, "my-custom");
-    await env.DB.prepare("INSERT INTO clicks (slug, clicked_at, link_mode) VALUES (?, ?, 'link')").bind(custom.slug, Math.floor(Date.now() / 1000)).run();
+    await env.DB.prepare(
+      "INSERT INTO clicks (slug, clicked_at, link_mode) VALUES (?, ?, 'link')",
+    )
+      .bind(custom.slug, Math.floor(Date.now() / 1000))
+      .run();
     const removed = await SlugRepository.remove(env.DB, custom.slug);
     expect(removed).toBe(false);
   });
 
   it("allows deleting a random (non-custom) slug when it has no clicks", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     const random = link.slugs.find((s) => !s.is_custom)!;
     const removed = await SlugRepository.remove(env.DB, random.slug);
@@ -192,7 +259,10 @@ describe("SlugRepository.remove", () => {
   });
 
   it("falls back primary to random slug when removing the primary", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const custom = await SlugRepository.addCustom(env.DB, link.id, "my-custom");
     await SlugRepository.remove(env.DB, custom.slug);
     const updated = await LinkRepository.getById(env.DB, link.id);

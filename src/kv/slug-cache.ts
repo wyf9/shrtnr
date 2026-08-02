@@ -8,17 +8,27 @@ export interface SlugCacheEntry {
 }
 
 export class SlugCache {
-  static async get(kv: KVNamespace | undefined, slug: string): Promise<SlugCacheEntry | null> {
+  static async get(
+    kv: KVNamespace | undefined,
+    slug: string,
+  ): Promise<SlugCacheEntry | null> {
     if (!kv) return null;
     return kv.get<SlugCacheEntry>(slug, "json");
   }
 
-  static async put(kv: KVNamespace | undefined, slug: string, entry: SlugCacheEntry): Promise<void> {
+  static async put(
+    kv: KVNamespace | undefined,
+    slug: string,
+    entry: SlugCacheEntry,
+  ): Promise<void> {
     if (!kv) return;
     await kv.put(slug, JSON.stringify(entry));
   }
 
-  static async delete(kv: KVNamespace | undefined, slug: string): Promise<void> {
+  static async delete(
+    kv: KVNamespace | undefined,
+    slug: string,
+  ): Promise<void> {
     if (!kv) return;
     await kv.delete(slug);
   }

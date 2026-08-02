@@ -67,7 +67,9 @@ describe("create -> redirect -> click -> analytics", () => {
       }),
     );
     expect(redirectRes.status).toBe(301);
-    expect(redirectRes.headers.get("Location")).toBe("https://example.com/redirect-flow");
+    expect(redirectRes.headers.get("Location")).toBe(
+      "https://example.com/redirect-flow",
+    );
 
     // 3. Wait for the waitUntil(recordClick) to land in the clicks table.
     const clickCount = await waitForClick(link.id);
@@ -78,9 +80,12 @@ describe("create -> redirect -> click -> analytics", () => {
     //    response to the caller's identity via resolveClickFilters.
     const token = makeFakeJwt({ email: DEV_IDENTITY });
     const analyticsRes = await SELF.fetch(
-      new Request(`https://shrtnr.test/_/admin/api/links/${link.id}/analytics?range=all`, {
-        headers: { "Cf-Access-Jwt-Assertion": token },
-      }),
+      new Request(
+        `https://shrtnr.test/_/admin/api/links/${link.id}/analytics?range=all`,
+        {
+          headers: { "Cf-Access-Jwt-Assertion": token },
+        },
+      ),
     );
     expect(analyticsRes.status).toBe(200);
     const stats = (await analyticsRes.json()) as { total_clicks: number };

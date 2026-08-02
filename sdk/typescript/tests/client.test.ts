@@ -10,9 +10,14 @@ const API_KEY = "sk_abc";
 
 let fetchSpy: ReturnType<typeof vi.fn>;
 
-function mockFetch(status: number, body: unknown, contentType = "application/json") {
-  const bodyStr =
-    contentType.startsWith("application/json") ? JSON.stringify(body) : String(body);
+function mockFetch(
+  status: number,
+  body: unknown,
+  contentType = "application/json",
+) {
+  const bodyStr = contentType.startsWith("application/json")
+    ? JSON.stringify(body)
+    : String(body);
   fetchSpy.mockResolvedValueOnce(
     new Response(bodyStr, {
       status,
@@ -48,10 +53,20 @@ describe("Auth headers", () => {
   });
 
   it("auth header appears on slug requests too", async () => {
-    mockFetch(200, { linkId: 1, slug: "test", isCustom: 1, isPrimary: 1, clickCount: 0, createdAt: 0, disabledAt: null });
+    mockFetch(200, {
+      linkId: 1,
+      slug: "test",
+      isCustom: 1,
+      isPrimary: 1,
+      clickCount: 0,
+      createdAt: 0,
+      disabledAt: null,
+    });
     await client().slugs.lookup("test");
     const { init } = lastCall();
-    expect((init.headers as Record<string, string>)["Authorization"]).toBe(`Bearer ${API_KEY}`);
+    expect((init.headers as Record<string, string>)["Authorization"]).toBe(
+      `Bearer ${API_KEY}`,
+    );
   });
 });
 
@@ -83,7 +98,9 @@ describe("Error handling", () => {
       await client().links.get(1);
       expect.unreachable();
     } catch (e) {
-      expect((e as ShrtnrError).message).toBe("shrtnr API error (HTTP 400): bad request");
+      expect((e as ShrtnrError).message).toBe(
+        "shrtnr API error (HTTP 400): bad request",
+      );
     }
   });
 
@@ -145,8 +162,22 @@ describe("Case transformation", () => {
   });
 
   it("converts camelCase request body keys to snake_case on the wire", async () => {
-    mockFetch(201, { id: 1, url: "https://example.com", label: null, created_at: 1000, expires_at: null, created_via: null, created_by: "u", total_clicks: 0, slugs: [] });
-    await client().links.create({ url: "https://example.com", slugLength: 6, expiresAt: 2000 });
+    mockFetch(201, {
+      id: 1,
+      url: "https://example.com",
+      label: null,
+      created_at: 1000,
+      expires_at: null,
+      created_via: null,
+      created_by: "u",
+      total_clicks: 0,
+      slugs: [],
+    });
+    await client().links.create({
+      url: "https://example.com",
+      slugLength: 6,
+      expiresAt: 2000,
+    });
     const { init } = lastCall();
     const body = JSON.parse(init.body as string) as Record<string, unknown>;
     expect(body["slug_length"]).toBe(6);
@@ -154,7 +185,6 @@ describe("Case transformation", () => {
     expect(body["slugLength"]).toBeUndefined();
     expect(body["expiresAt"]).toBeUndefined();
   });
-
 });
 
 // ============================================================
@@ -162,9 +192,15 @@ describe("Case transformation", () => {
 // ============================================================
 
 const stubLink = {
-  id: 1, url: "https://example.com", label: null,
-  created_at: 1000, expires_at: null, created_via: null,
-  created_by: "u", total_clicks: 0, slugs: [],
+  id: 1,
+  url: "https://example.com",
+  label: null,
+  created_at: 1000,
+  expires_at: null,
+  created_via: null,
+  created_by: "u",
+  total_clicks: 0,
+  slugs: [],
 };
 
 describe("links.get", () => {
@@ -266,11 +302,21 @@ describe("links.delete", () => {
 describe("links.analytics", () => {
   const stubStats = {
     total_clicks: 42,
-    countries: [], referrers: [], referrer_hosts: [],
-    devices: [], os: [], browsers: [],
-    link_modes: [], channels: [], clicks_over_time: [], slug_clicks: [],
-    num_countries: 3, num_referrers: 2, num_referrer_hosts: 1,
-    num_os: 4, num_browsers: 2,
+    countries: [],
+    referrers: [],
+    referrer_hosts: [],
+    devices: [],
+    os: [],
+    browsers: [],
+    link_modes: [],
+    channels: [],
+    clicks_over_time: [],
+    slug_clicks: [],
+    num_countries: 3,
+    num_referrers: 2,
+    num_referrer_hosts: 1,
+    num_os: 4,
+    num_browsers: 2,
   };
 
   it("GETs /api/links/:id/analytics", async () => {
@@ -299,7 +345,13 @@ describe("links.timeline", () => {
   const stubTimeline = {
     range: "7d",
     buckets: [{ label: "Mon", count: 5 }],
-    summary: { last_24h: 1, last_7d: 5, last_30d: 10, last_90d: 30, last_1y: 100 },
+    summary: {
+      last_24h: 1,
+      last_7d: 5,
+      last_30d: 10,
+      last_90d: 30,
+      last_1y: 100,
+    },
   };
 
   it("GETs /api/links/:id/timeline", async () => {
@@ -345,8 +397,13 @@ describe("links.qr", () => {
 // ============================================================
 
 const stubSlug = {
-  link_id: 1, slug: "abc", is_custom: 1, is_primary: 0,
-  click_count: 0, created_at: 1000, disabled_at: null,
+  link_id: 1,
+  slug: "abc",
+  is_custom: 1,
+  is_primary: 0,
+  click_count: 0,
+  created_at: 1000,
+  disabled_at: null,
 };
 
 describe("slugs.lookup", () => {
@@ -411,14 +468,22 @@ describe("slugs.remove", () => {
 
 describe("Base URL normalization", () => {
   it("strips trailing slashes from baseUrl", async () => {
-    const c = new ShrtnrClient({ baseUrl: BASE + "/", apiKey: API_KEY, fetch: fetchSpy });
+    const c = new ShrtnrClient({
+      baseUrl: BASE + "/",
+      apiKey: API_KEY,
+      fetch: fetchSpy,
+    });
     mockFetch(200, []);
     await c.links.list();
     expect(lastCall().url).toBe(`${BASE}/_/api/links`);
   });
 
   it("strips multiple trailing slashes", async () => {
-    const c = new ShrtnrClient({ baseUrl: BASE + "///", apiKey: API_KEY, fetch: fetchSpy });
+    const c = new ShrtnrClient({
+      baseUrl: BASE + "///",
+      apiKey: API_KEY,
+      fetch: fetchSpy,
+    });
     mockFetch(200, []);
     await c.links.list();
     expect(lastCall().url).toBe(`${BASE}/_/api/links`);
@@ -444,7 +509,9 @@ describe("Package surface", () => {
   it("does not publish an internal admin entrypoint in package.json", async () => {
     const { readFileSync } = await import("node:fs");
     const { resolve } = await import("node:path");
-    const packageJsonPath = resolve(new URL("../package.json", import.meta.url).pathname);
+    const packageJsonPath = resolve(
+      new URL("../package.json", import.meta.url).pathname,
+    );
     const pkg = JSON.parse(readFileSync(packageJsonPath, "utf8")) as {
       exports?: Record<string, unknown>;
     };

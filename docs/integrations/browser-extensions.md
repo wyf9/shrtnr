@@ -27,12 +27,12 @@ After install, click the toolbar icon. The popup either:
 
 Declared in `manifests/base.json`:
 
-| Permission | Why |
-|---|---|
-| `activeTab` | Read the active tab URL on toolbar click. Less invasive than the broader `tabs` permission and does not show "read your browsing history" in the install dialog. |
-| `storage` | Persist the configured `baseUrl + apiKey` to `chrome.storage.sync`. |
-| `clipboardWrite` | Copy the short URL to the clipboard via `navigator.clipboard.writeText`. |
-| `optional_host_permissions: ["*://*/*"]` | Granted **at runtime** against the user's actual `baseUrl` after they save it in options. The install dialog therefore lists no host permissions. |
+| Permission                               | Why                                                                                                                                                              |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `activeTab`                              | Read the active tab URL on toolbar click. Less invasive than the broader `tabs` permission and does not show "read your browsing history" in the install dialog. |
+| `storage`                                | Persist the configured `baseUrl + apiKey` to `chrome.storage.sync`.                                                                                              |
+| `clipboardWrite`                         | Copy the short URL to the clipboard via `navigator.clipboard.writeText`.                                                                                         |
+| `optional_host_permissions: ["*://*/*"]` | Granted **at runtime** against the user's actual `baseUrl` after they save it in options. The install dialog therefore lists no host permissions.                |
 
 The extension does not request `host_permissions` at install time.
 

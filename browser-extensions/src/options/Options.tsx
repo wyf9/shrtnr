@@ -27,7 +27,12 @@ export function Options() {
     });
   }, []);
 
-  const initial = loadState.kind === "ready" ? loadState.config : loadState.kind === "saved" ? loadState.config : null;
+  const initial =
+    loadState.kind === "ready"
+      ? loadState.config
+      : loadState.kind === "saved"
+        ? loadState.config
+        : null;
   const ctaVisible = loadState.kind === "ready" && loadState.config === null;
   const showSaved = loadState.kind === "saved";
 
@@ -48,7 +53,9 @@ export function Options() {
         <h2 id="connection-heading" class="options-section-heading">
           {t("options.section.connection")}
         </h2>
-        <p class="options-section-body">{t("options.section.connection.body")}</p>
+        <p class="options-section-body">
+          {t("options.section.connection.body")}
+        </p>
         {loadState.kind !== "loading" && (
           <ConfigForm
             t={t}
@@ -71,7 +78,12 @@ export function Options() {
         </h2>
         <p class="options-section-body">{t("options.section.about.body")}</p>
         <p class="options-section-body">
-          <a class="link" href={PROJECT_INFO_URL} target="_blank" rel="noopener noreferrer">
+          <a
+            class="link"
+            href={PROJECT_INFO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {t("options.section.about.website")}
           </a>
         </p>

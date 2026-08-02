@@ -20,7 +20,12 @@
 
 import { Hono } from "hono";
 import type { Env, TimelineRange } from "./types";
-import { verifyAccessJwt, extractIdentity, isSignedIn, type AccessUser } from "./access";
+import {
+  verifyAccessJwt,
+  extractIdentity,
+  isSignedIn,
+  type AccessUser,
+} from "./access";
 import { handleRedirect } from "./redirect";
 import { unauthorizedResponse } from "./auth";
 import { apiRouter } from "./api/router";
@@ -62,8 +67,15 @@ import {
   handleEnableSlug,
   handleRemoveSlug,
 } from "./api/slugs";
-import { handleGetSettings, handleUpdateSettings, handlePurgeRedirectCache } from "./api/settings";
-import { handleGetRedirectRules, handleUpdateRedirectRules } from "./api/redirects";
+import {
+  handleGetSettings,
+  handleUpdateSettings,
+  handlePurgeRedirectCache,
+} from "./api/settings";
+import {
+  handleGetRedirectRules,
+  handleUpdateRedirectRules,
+} from "./api/redirects";
 import { handleListKeys, handleCreateKey, handleDeleteKey } from "./api/keys";
 import {
   handleDashboardStats as handleDashboardStatsApi,
@@ -152,7 +164,8 @@ app.get("/_/admin/logout", (c) => {
     status: 302,
     headers: {
       Location: logoutUrl,
-      "Set-Cookie": "CF_Authorization=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax",
+      "Set-Cookie":
+        "CF_Authorization=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax",
     },
   });
 });
@@ -165,8 +178,12 @@ function getCookie(request: Request, name: string): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-async function getPageData(c: { env: Env; req: { raw: Request } }, identity: string) {
-  const { getDynamicRedirectRules } = await import("./services/admin-management");
+async function getPageData(
+  c: { env: Env; req: { raw: Request } },
+  identity: string,
+) {
+  const { getDynamicRedirectRules } =
+    await import("./services/admin-management");
   const settingsResult = await getAppSettings(c.env, identity);
   const settings = settingsResult.ok ? settingsResult.data : null;
   const theme = settings?.theme ?? getCookie(c.req.raw, "theme") ?? "oddbit";
@@ -178,24 +195,51 @@ async function getPageData(c: { env: Env; req: { raw: Request } }, identity: str
   const filterAiSearches = settings?.filter_ai_searches ?? true;
   const rootRedirectUrl = settings?.root_redirect_url ?? "";
   const redirectCacheEnabled = settings?.redirect_cache_enabled ?? false;
-  const redirectCacheDurationDays = settings?.redirect_cache_duration_days ?? DEFAULT_REDIRECT_CACHE_DURATION_DAYS;
-  const redirectCacheThresholdClicks = settings?.redirect_cache_threshold_clicks ?? DEFAULT_REDIRECT_CACHE_THRESHOLD_CLICKS;
-  const redirectCacheThresholdWindowDays = settings?.redirect_cache_threshold_window_days ?? DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS;
-  const dynamicRedirectStrictMatch = settings?.dynamic_redirect_strict_match ?? false;
+  const redirectCacheDurationDays =
+    settings?.redirect_cache_duration_days ??
+    DEFAULT_REDIRECT_CACHE_DURATION_DAYS;
+  const redirectCacheThresholdClicks =
+    settings?.redirect_cache_threshold_clicks ??
+    DEFAULT_REDIRECT_CACHE_THRESHOLD_CLICKS;
+  const redirectCacheThresholdWindowDays =
+    settings?.redirect_cache_threshold_window_days ??
+    DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS;
+  const dynamicRedirectStrictMatch =
+    settings?.dynamic_redirect_strict_match ?? false;
   const dynamicRedirectRules = await getDynamicRedirectRules(c.env);
   const t = createTranslateFn(lang);
   const translations = getTranslations(lang);
-  return { theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, redirectCacheDurationDays, redirectCacheThresholdClicks, redirectCacheThresholdWindowDays, dynamicRedirectStrictMatch, dynamicRedirectRules, t, translations };
+  return {
+    theme,
+    slugLength,
+    lang,
+    defaultRange,
+    filterBots,
+    filterSelfReferrers,
+    filterAiSearches,
+    rootRedirectUrl,
+    redirectCacheEnabled,
+    redirectCacheDurationDays,
+    redirectCacheThresholdClicks,
+    redirectCacheThresholdWindowDays,
+    dynamicRedirectStrictMatch,
+    dynamicRedirectRules,
+    t,
+    translations,
+  };
 }
 
 // ---- Admin pages ----
 
 app.get("/_/admin/dashboard", async (c) => {
   const identity = c.var.identity;
-  const { theme, t, lang, translations, defaultRange, redirectCacheEnabled } = await getPageData(c, identity);
+  const { theme, t, lang, translations, defaultRange, redirectCacheEnabled } =
+    await getPageData(c, identity);
   const rangeParam = c.req.query("range");
   const validRanges = new Set(["24h", "7d", "30d", "90d", "1y", "all"]);
-  const range = (validRanges.has(rangeParam || "") ? rangeParam : defaultRange) as TimelineRange;
+  const range = (
+    validRanges.has(rangeParam || "") ? rangeParam : defaultRange
+  ) as TimelineRange;
   const statsResult = await getDashboardStats(c.env, range, identity);
   const stats = statsResult.ok
     ? statsResult.data
@@ -222,42 +266,83 @@ app.get("/_/admin/dashboard", async (c) => {
         num_referrers: 0,
       };
   return c.html(
-    <Layout active="dashboard" theme={theme} t={t} lang={lang} translations={translations}>
-      <DashboardPage stats={stats} t={t} lang={lang} range={range} redirectCacheEnabled={redirectCacheEnabled} />
+    <Layout
+      active="dashboard"
+      theme={theme}
+      t={t}
+      lang={lang}
+      translations={translations}
+    >
+      <DashboardPage
+        stats={stats}
+        t={t}
+        lang={lang}
+        range={range}
+        redirectCacheEnabled={redirectCacheEnabled}
+      />
     </Layout>,
   );
 });
 
 app.get("/_/admin/links", async (c) => {
   const identity = c.var.identity;
-  const { theme, slugLength, t, lang, translations, defaultRange } = await getPageData(c, identity);
+  const { theme, slugLength, t, lang, translations, defaultRange } =
+    await getPageData(c, identity);
   const searchQuery = c.req.query("search") || "";
   const filters = await resolveClickFilters(c.env, identity);
-  const validRanges = new Set<TimelineRange>(["24h", "7d", "30d", "90d", "1y", "all"]);
+  const validRanges = new Set<TimelineRange>([
+    "24h",
+    "7d",
+    "30d",
+    "90d",
+    "1y",
+    "all",
+  ]);
   const rangeParam = c.req.query("range");
-  const range = (validRanges.has(rangeParam as TimelineRange) ? rangeParam : defaultRange) as TimelineRange;
+  const range = (
+    validRanges.has(rangeParam as TimelineRange) ? rangeParam : defaultRange
+  ) as TimelineRange;
   const linksResult = searchQuery
-    ? await searchLinks(c.env, searchQuery, { includeOwner: true, withDeltaRange: range, filters, range })
+    ? await searchLinks(c.env, searchQuery, {
+        includeOwner: true,
+        withDeltaRange: range,
+        filters,
+        range,
+      })
     : await listLinks(c.env, { withDeltaRange: range, filters, range });
   const links = linksResult.ok ? linksResult.data : [];
   // Which links are served from the redirect cache (so their click totals may
   // undercount). A link counts as cached when any of its slugs is cached.
-  const cachedSlugs = await resolveCachedSlugs(c.env, links.flatMap((l) => l.slugs.map((s) => s.slug)));
+  const cachedSlugs = await resolveCachedSlugs(
+    c.env,
+    links.flatMap((l) => l.slugs.map((s) => s.slug)),
+  );
   const cachedLinkIds = new Set(
-    links.filter((l) => l.slugs.some((s) => cachedSlugs.has(s.slug))).map((l) => l.id),
+    links
+      .filter((l) => l.slugs.some((s) => cachedSlugs.has(s.slug)))
+      .map((l) => l.id),
   );
   const sort = c.req.query("sort") || "recent";
   const page = parseInt(c.req.query("page") || "1", 10) || 1;
   const perPage = parseInt(c.req.query("per_page") || "25", 10) || 25;
   const filterParam = c.req.query("filter");
   const legacyShowDisabled = c.req.query("show_disabled") === "1";
-  const filter = filterParam === "disabled" || filterParam === "all" || filterParam === "active"
-    ? filterParam
-    : legacyShowDisabled
-      ? "all"
-      : "active";
+  const filter =
+    filterParam === "disabled" ||
+    filterParam === "all" ||
+    filterParam === "active"
+      ? filterParam
+      : legacyShowDisabled
+        ? "all"
+        : "active";
   return c.html(
-    <Layout active="links" theme={theme} t={t} lang={lang} translations={translations}>
+    <Layout
+      active="links"
+      theme={theme}
+      t={t}
+      lang={lang}
+      translations={translations}
+    >
       <LinksPage
         links={links}
         sort={sort}
@@ -278,23 +363,62 @@ app.get("/_/admin/links/:id", async (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return notFoundResponse();
   const identity = c.var.identity;
-  const { theme, t, lang, translations, defaultRange } = await getPageData(c, identity);
+  const { theme, t, lang, translations, defaultRange } = await getPageData(
+    c,
+    identity,
+  );
   const initialRange: TimelineRange = defaultRange;
   const filters = await resolveClickFilters(c.env, identity);
   const linkResult = await getLink(c.env, id, { filters, range: initialRange });
   if (!linkResult.ok) return notFoundResponse();
-  const analyticsResult = await getLinkAnalytics(c.env, id, initialRange, filters);
-  const analytics = analyticsResult.ok ? analyticsResult.data : {
-    total_clicks: 0,
-    countries: [], referrers: [], referrer_hosts: [], devices: [], os: [], browsers: [],
-    link_modes: [], channels: [], clicks_over_time: [], slug_clicks: [],
-    num_countries: 0, num_referrers: 0, num_referrer_hosts: 0, num_os: 0, num_browsers: 0,
-  };
-  const cachedSlugs = await resolveCachedSlugs(c.env, linkResult.data.slugs.map((s) => s.slug));
+  const analyticsResult = await getLinkAnalytics(
+    c.env,
+    id,
+    initialRange,
+    filters,
+  );
+  const analytics = analyticsResult.ok
+    ? analyticsResult.data
+    : {
+        total_clicks: 0,
+        countries: [],
+        referrers: [],
+        referrer_hosts: [],
+        devices: [],
+        os: [],
+        browsers: [],
+        link_modes: [],
+        channels: [],
+        clicks_over_time: [],
+        slug_clicks: [],
+        num_countries: 0,
+        num_referrers: 0,
+        num_referrer_hosts: 0,
+        num_os: 0,
+        num_browsers: 0,
+      };
+  const cachedSlugs = await resolveCachedSlugs(
+    c.env,
+    linkResult.data.slugs.map((s) => s.slug),
+  );
   const isCached = linkResult.data.slugs.some((s) => cachedSlugs.has(s.slug));
   return c.html(
-    <Layout active="links" theme={theme} t={t} lang={lang} translations={translations}>
-      <LinkDetailPage link={linkResult.data} analytics={analytics} isCached={isCached} t={t} lang={lang} identity={identity} initialRange={initialRange} />
+    <Layout
+      active="links"
+      theme={theme}
+      t={t}
+      lang={lang}
+      translations={translations}
+    >
+      <LinkDetailPage
+        link={linkResult.data}
+        analytics={analytics}
+        isCached={isCached}
+        t={t}
+        lang={lang}
+        identity={identity}
+        initialRange={initialRange}
+      />
     </Layout>,
   );
 });
@@ -305,7 +429,13 @@ app.get("/_/admin/keys", async (c) => {
   const keysResult = await listAllApiKeys(c.env, identity);
   const keys = keysResult.ok ? keysResult.data : [];
   return c.html(
-    <Layout active="keys" theme={theme} t={t} lang={lang} translations={translations}>
+    <Layout
+      active="keys"
+      theme={theme}
+      t={t}
+      lang={lang}
+      translations={translations}
+    >
       <KeysPage keys={keys as any} t={t} lang={lang} />
     </Layout>,
   );
@@ -313,24 +443,70 @@ app.get("/_/admin/keys", async (c) => {
 
 app.get("/_/admin/settings", async (c) => {
   const identity = c.var.identity;
-  const { theme, slugLength, t, lang, translations, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, redirectCacheDurationDays, redirectCacheThresholdClicks, redirectCacheThresholdWindowDays, dynamicRedirectStrictMatch } = await getPageData(c, identity);
+  const {
+    theme,
+    slugLength,
+    t,
+    lang,
+    translations,
+    defaultRange,
+    filterBots,
+    filterSelfReferrers,
+    filterAiSearches,
+    rootRedirectUrl,
+    redirectCacheEnabled,
+    redirectCacheDurationDays,
+    redirectCacheThresholdClicks,
+    redirectCacheThresholdWindowDays,
+    dynamicRedirectStrictMatch,
+  } = await getPageData(c, identity);
   const mcpConfigured = Boolean(c.env.MCP_ACCESS_AUD && c.env.ACCESS_JWKS_URL);
   const userEmail = c.var.user?.email ?? null;
   return c.html(
-    <Layout active="settings" theme={theme} t={t} lang={lang} translations={translations}>
-        <SettingsPage theme={theme} slugLength={slugLength} lang={lang} defaultRange={defaultRange} filterBots={filterBots} filterSelfReferrers={filterSelfReferrers} filterAiSearches={filterAiSearches} rootRedirectUrl={rootRedirectUrl} redirectCacheEnabled={redirectCacheEnabled} redirectCacheDurationDays={redirectCacheDurationDays} redirectCacheThresholdClicks={redirectCacheThresholdClicks} redirectCacheThresholdWindowDays={redirectCacheThresholdWindowDays} dynamicRedirectStrictMatch={dynamicRedirectStrictMatch} t={t} mcpConfigured={mcpConfigured} userEmail={userEmail} />
+    <Layout
+      active="settings"
+      theme={theme}
+      t={t}
+      lang={lang}
+      translations={translations}
+    >
+      <SettingsPage
+        theme={theme}
+        slugLength={slugLength}
+        lang={lang}
+        defaultRange={defaultRange}
+        filterBots={filterBots}
+        filterSelfReferrers={filterSelfReferrers}
+        filterAiSearches={filterAiSearches}
+        rootRedirectUrl={rootRedirectUrl}
+        redirectCacheEnabled={redirectCacheEnabled}
+        redirectCacheDurationDays={redirectCacheDurationDays}
+        redirectCacheThresholdClicks={redirectCacheThresholdClicks}
+        redirectCacheThresholdWindowDays={redirectCacheThresholdWindowDays}
+        dynamicRedirectStrictMatch={dynamicRedirectStrictMatch}
+        t={t}
+        mcpConfigured={mcpConfigured}
+        userEmail={userEmail}
+      />
     </Layout>,
   );
 });
 
 app.get("/_/admin/redirects", async (c) => {
   const identity = c.var.identity;
-  const { theme, t, lang, translations, dynamicRedirectRules } = await getPageData(c, identity);
+  const { theme, t, lang, translations, dynamicRedirectRules } =
+    await getPageData(c, identity);
   const { parseDynamicRedirectRules } = await import("./redirect-rules");
   const parsed = parseDynamicRedirectRules(dynamicRedirectRules);
   const rules = parsed.ok ? parsed.rules : [];
   return c.html(
-    <Layout active="redirects" theme={theme} t={t} lang={lang} translations={translations}>
+    <Layout
+      active="redirects"
+      theme={theme}
+      t={t}
+      lang={lang}
+      translations={translations}
+    >
       <RedirectsPage rules={rules} t={t} lang={lang} />
     </Layout>,
   );
@@ -342,7 +518,13 @@ app.get("/_/admin/pages", async (c) => {
   const { PageRepository } = await import("./db/page-repository");
   const pages = await PageRepository.list(c.env.DB);
   return c.html(
-    <Layout active="pages" theme={theme} t={t} lang={lang} translations={translations}>
+    <Layout
+      active="pages"
+      theme={theme}
+      t={t}
+      lang={lang}
+      translations={translations}
+    >
       <PagesPage pages={pages} t={t} lang={lang} />
     </Layout>,
   );
@@ -355,7 +537,9 @@ app.get("/_/admin/", (c) => c.redirect("/_/admin/dashboard", 302));
 app.get("/_/admin/link/:slug", (c) => c.redirect("/_/admin/links", 301));
 app.get("/_/dashboard", (c) => c.redirect("/_/admin/dashboard", 301));
 app.get("/_/links", (c) => c.redirect("/_/admin/links", 301));
-app.get("/_/links/:id", (c) => c.redirect(`/_/admin/links/${c.req.param("id")}`, 301));
+app.get("/_/links/:id", (c) =>
+  c.redirect(`/_/admin/links/${c.req.param("id")}`, 301),
+);
 app.get("/_/keys", (c) => c.redirect("/_/admin/keys", 301));
 app.get("/_/settings", (c) => c.redirect("/_/admin/settings", 301));
 
@@ -363,7 +547,9 @@ app.get("/_/settings", (c) => c.redirect("/_/admin/settings", 301));
 
 // Keys
 app.get("/_/admin/api/keys", (c) => handleListKeys(c.env, c.var.identity));
-app.post("/_/admin/api/keys", (c) => handleCreateKey(c.req.raw, c.env, c.var.identity));
+app.post("/_/admin/api/keys", (c) =>
+  handleCreateKey(c.req.raw, c.env, c.var.identity),
+);
 app.delete("/_/admin/api/keys/:id", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
@@ -371,7 +557,9 @@ app.delete("/_/admin/api/keys/:id", (c) => {
 });
 
 // Links (admin path: no scope checks, full access)
-app.post("/_/admin/api/links", (c) => handleCreateLink(c.req.raw, c.env, "app", c.var.identity, c.executionCtx));
+app.post("/_/admin/api/links", (c) =>
+  handleCreateLink(c.req.raw, c.env, "app", c.var.identity, c.executionCtx),
+);
 app.get("/_/admin/api/links", (c) => handleListLinks(c.env));
 app.get("/_/admin/api/links/:id", (c) => {
   const id = parseInt(c.req.param("id"), 10);
@@ -386,12 +574,22 @@ app.put("/_/admin/api/links/:id", (c) => {
 app.get("/_/admin/api/links/:id/analytics", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleAdminLinkAnalytics(c.env, c.var.identity, id, c.req.query("range"));
+  return handleAdminLinkAnalytics(
+    c.env,
+    c.var.identity,
+    id,
+    c.req.query("range"),
+  );
 });
 app.get("/_/admin/api/links/:id/timeline", (c) => {
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Not Found" }, 404);
-  return handleAdminLinkTimeline(c.env, c.var.identity, id, c.req.query("range"));
+  return handleAdminLinkTimeline(
+    c.env,
+    c.var.identity,
+    id,
+    c.req.query("range"),
+  );
 });
 app.post("/_/admin/api/links/:id/disable", (c) => {
   const id = parseInt(c.req.param("id"), 10);
@@ -443,16 +641,26 @@ app.get("/_/admin/api/links/:id/qr", (c) => {
 });
 
 // Settings
-app.get("/_/admin/api/settings", (c) => handleGetSettings(c.env, c.var.identity));
-app.put("/_/admin/api/settings", (c) => handleUpdateSettings(c.req.raw, c.env, c.var.identity, c.executionCtx));
-app.post("/_/admin/api/cache/purge", (c) => handlePurgeRedirectCache(c.env, c.executionCtx));
+app.get("/_/admin/api/settings", (c) =>
+  handleGetSettings(c.env, c.var.identity),
+);
+app.put("/_/admin/api/settings", (c) =>
+  handleUpdateSettings(c.req.raw, c.env, c.var.identity, c.executionCtx),
+);
+app.post("/_/admin/api/cache/purge", (c) =>
+  handlePurgeRedirectCache(c.env, c.executionCtx),
+);
 
 // Redirect Rules
 app.get("/_/admin/api/redirects", (c) => handleGetRedirectRules(c.env));
-app.put("/_/admin/api/redirects", (c) => handleUpdateRedirectRules(c.req.raw, c.env));
+app.put("/_/admin/api/redirects", (c) =>
+  handleUpdateRedirectRules(c.req.raw, c.env),
+);
 
 // Dashboard stats
-app.get("/_/admin/api/dashboard", (c) => handleDashboardStatsApi(c.env, c.var.identity, c.req.query("range")));
+app.get("/_/admin/api/dashboard", (c) =>
+  handleDashboardStatsApi(c.env, c.var.identity, c.req.query("range")),
+);
 
 // Pages
 app.get("/_/admin/api/pages", (c) => handleListPages(c.env));
@@ -495,14 +703,16 @@ app.route("/_/api", apiRouter);
 // ---- Root landing page ----
 
 app.get("/", async (c) => {
-  if (await isSignedIn(c.req.raw, c.env)) return c.redirect("/_/admin/dashboard", 302);
+  if (await isSignedIn(c.req.raw, c.env))
+    return c.redirect("/_/admin/dashboard", 302);
   const rootRedirectUrl = await getRootRedirectUrl(c.env);
   if (rootRedirectUrl) return c.redirect(rootRedirectUrl, 302);
   return landingResponse();
 });
 
 app.get("/_", async (c) => {
-  if (await isSignedIn(c.req.raw, c.env)) return c.redirect("/_/admin/dashboard", 302);
+  if (await isSignedIn(c.req.raw, c.env))
+    return c.redirect("/_/admin/dashboard", 302);
   return c.redirect("/", 302);
 });
 
@@ -510,7 +720,8 @@ app.get("/_", async (c) => {
 
 app.get("/*", async (c) => {
   const pathname = new URL(c.req.url).pathname;
-  if (!pathname || pathname === "/" || pathname.startsWith("/_")) return notFoundResponse();
+  if (!pathname || pathname === "/" || pathname.startsWith("/_"))
+    return notFoundResponse();
 
   const dynamicRedirect = await getDynamicRedirect(c.env, c.req.url);
   if (dynamicRedirect) return c.redirect(dynamicRedirect.url, 302);
@@ -536,7 +747,11 @@ export { ShrtnrMCP };
 const mcpHandler = ShrtnrMCP.serve("/_/mcp");
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
     let url = new URL(request.url);
 
     // CF Access MCP-type applications cannot be scoped to a path — they must
@@ -613,7 +828,12 @@ export default {
           ],
           code_challenge_methods_supported: ["S256"],
         },
-        { headers: { "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" } },
+        {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "no-store",
+          },
+        },
       );
     }
 

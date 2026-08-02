@@ -46,26 +46,27 @@ Cloudflare 一键部署不会复制 GitHub Actions 工作流，因此不会自�
 
 迁移文件位于 `migrations/`，按序号命名并顺序应用：
 
-| 文件 | 说明 |
-|---|---|
-| `0001_initial.sql` | 初始表结构（链接、短码等） |
-| `0002_analytics_schema.sql` | 点击分析相关表 |
-| `0003_drop_cached_counters.sql` | 移除缓存计数器 |
-| `0004_slug_text_pk.sql` | 短码改为文本主键 |
-| `0005_bundles.sql` | 分组 (Bundles) 支持（后已移除）与访客指纹列 |
-| `0006_self_referrer_flag.sql` | 自引用来源标记 |
-| `0007_redirect_settings.sql` | 动态重定向规则设置 |
-| `0008_pages.sql` | 自定义页面 (Pages) 支持 |
-| `0009_drop_bundles.sql` | 移除分组 (Bundles) 功能表结构 |
-| `0010_ai_search_flag.sql` | AI 搜索点击检测标记 |
+| 文件                            | 说明                                        |
+| ------------------------------- | ------------------------------------------- |
+| `0001_initial.sql`              | 初始表结构（链接、短码等）                  |
+| `0002_analytics_schema.sql`     | 点击分析相关表                              |
+| `0003_drop_cached_counters.sql` | 移除缓存计数器                              |
+| `0004_slug_text_pk.sql`         | 短码改为文本主键                            |
+| `0005_bundles.sql`              | 分组 (Bundles) 支持（后已移除）与访客指纹列 |
+| `0006_self_referrer_flag.sql`   | 自引用来源标记                              |
+| `0007_redirect_settings.sql`    | 动态重定向规则设置                          |
+| `0008_pages.sql`                | 自定义页面 (Pages) 支持                     |
+| `0009_drop_bundles.sql`         | 移除分组 (Bundles) 功能表结构               |
+| `0010_ai_search_flag.sql`       | AI 搜索点击检测标记                         |
 
 ## 迁移约定
 
 ::: tip 数据安全
+
 - 保留所有既有数据。
 - 当重建被 `ON DELETE CASCADE` 外键引用的表时，先保存并删除依赖表，重命名后再恢复。
 - 迁移后验证所有受影响表的行数不变。
-:::
+  :::
 
 ## KV 缓存
 

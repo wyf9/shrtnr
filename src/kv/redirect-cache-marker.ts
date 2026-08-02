@@ -14,20 +14,30 @@ const MIN_TTL_SECONDS = 60;
 
 export class RedirectCacheMarker {
   /** Record that `slug` is edge-cached for the next `ttlSeconds`. */
-  static async mark(kv: KVNamespace | undefined, slug: string, ttlSeconds: number): Promise<void> {
+  static async mark(
+    kv: KVNamespace | undefined,
+    slug: string,
+    ttlSeconds: number,
+  ): Promise<void> {
     if (!kv) return;
     const ttl = Math.max(MIN_TTL_SECONDS, Math.floor(ttlSeconds));
     await kv.put(MARKER_PREFIX + slug, "1", { expirationTtl: ttl });
   }
 
   /** Remove the marker for `slug` (e.g. after an explicit cache purge). */
-  static async unmark(kv: KVNamespace | undefined, slug: string): Promise<void> {
+  static async unmark(
+    kv: KVNamespace | undefined,
+    slug: string,
+  ): Promise<void> {
     if (!kv) return;
     await kv.delete(MARKER_PREFIX + slug);
   }
 
   /** True when `slug` still has a live cached redirect marker. */
-  static async isCached(kv: KVNamespace | undefined, slug: string): Promise<boolean> {
+  static async isCached(
+    kv: KVNamespace | undefined,
+    slug: string,
+  ): Promise<boolean> {
     if (!kv) return false;
     return (await kv.get(MARKER_PREFIX + slug)) !== null;
   }
@@ -50,11 +60,16 @@ export class RedirectCacheMarker {
    * Return the subset of `slugs` that currently have a live cache marker.
    * Reads run in parallel; an empty set is returned when KV is unavailable.
    */
-  static async filterCached(kv: KVNamespace | undefined, slugs: string[]): Promise<Set<string>> {
+  static async filterCached(
+    kv: KVNamespace | undefined,
+    slugs: string[],
+  ): Promise<Set<string>> {
     if (!kv || slugs.length === 0) return new Set();
     const unique = Array.from(new Set(slugs));
     const hits = await Promise.all(
-      unique.map((slug) => kv.get(MARKER_PREFIX + slug).then((v) => (v !== null ? slug : null))),
+      unique.map((slug) =>
+        kv.get(MARKER_PREFIX + slug).then((v) => (v !== null ? slug : null)),
+      ),
     );
     return new Set(hits.filter((s): s is string => s !== null));
   }

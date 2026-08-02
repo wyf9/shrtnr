@@ -22,7 +22,12 @@ const DEFAULT_OPTIONS: Option[] = [
   { value: "all", label: "All" },
 ];
 
-export const RangePicker: FC<RangePickerProps> = ({ current, basePath, options = DEFAULT_OPTIONS, preserveParams }) => {
+export const RangePicker: FC<RangePickerProps> = ({
+  current,
+  basePath,
+  options = DEFAULT_OPTIONS,
+  preserveParams,
+}) => {
   return (
     <div class="range-picker" role="group" aria-label="Select time range">
       {options.map((o) => {
@@ -35,7 +40,13 @@ export const RangePicker: FC<RangePickerProps> = ({ current, basePath, options =
         params.set("range", o.value);
         const href = `${basePath}?${params.toString()}`;
         return (
-          <a href={href} class={o.value === current ? "active" : ""} data-range={o.value}>{o.label}</a>
+          <a
+            href={href}
+            class={o.value === current ? "active" : ""}
+            data-range={o.value}
+          >
+            {o.label}
+          </a>
         );
       })}
     </div>

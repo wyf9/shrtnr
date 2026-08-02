@@ -120,12 +120,19 @@ describe("created_via tracking", () => {
   });
 
   it("LinkRepository.create accepts createdVia parameter", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdVia: "mcp" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+      createdVia: "mcp",
+    });
     expect(link.created_via).toBe("mcp");
   });
 
   it("LinkRepository.create defaults created_via to app", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     expect(link.created_via).toBe("app");
   });
 
@@ -145,7 +152,10 @@ describe("created_via tracking", () => {
 
 describe("QR link mode tracking", () => {
   it("ClickRepository.record stores link_mode when provided", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const slug = link.slugs[0].slug;
     await ClickRepository.record(env.DB, slug, {
       country: "US",
@@ -154,15 +164,19 @@ describe("QR link mode tracking", () => {
       linkMode: "qr",
     });
 
-    const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT link_mode FROM clicks WHERE slug = ?",
+    )
       .bind(slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("qr");
   });
 
   it("ClickRepository.record defaults link_mode to 'link' for regular clicks", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const slug = link.slugs[0].slug;
     await ClickRepository.record(env.DB, slug, {
       country: "US",
@@ -170,31 +184,41 @@ describe("QR link mode tracking", () => {
       browser: "Chrome",
     });
 
-    const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT link_mode FROM clicks WHERE slug = ?",
+    )
       .bind(slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("link");
   });
 
   it("redirect with ?utm_medium=qr records link_mode as 'qr'", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "test1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "test1",
+    });
     const res = await SELF.fetch(
-      new Request("https://shrtnr.test/test1?utm_medium=qr", { redirect: "manual" }),
+      new Request("https://shrtnr.test/test1?utm_medium=qr", {
+        redirect: "manual",
+      }),
     );
     expect(res.status).toBe(301);
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT link_mode FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("qr");
   });
 
   it("redirect without utm_medium records link_mode as 'link'", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "test2" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "test2",
+    });
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/test2", { redirect: "manual" }),
     );
@@ -202,47 +226,63 @@ describe("QR link mode tracking", () => {
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT link_mode FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("link");
   });
 
   it("redirect with uppercase ?utm_medium=QR records link_mode as 'qr'", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "test3" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "test3",
+    });
     const res = await SELF.fetch(
-      new Request("https://shrtnr.test/test3?utm_medium=QR", { redirect: "manual" }),
+      new Request("https://shrtnr.test/test3?utm_medium=QR", {
+        redirect: "manual",
+      }),
     );
     expect(res.status).toBe(301);
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT link_mode FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("qr");
   });
 
   it("redirect with non-qr utm_medium records link_mode as 'link'", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "test4" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "test4",
+    });
     const res = await SELF.fetch(
-      new Request("https://shrtnr.test/test4?utm_medium=email", { redirect: "manual" }),
+      new Request("https://shrtnr.test/test4?utm_medium=email", {
+        redirect: "manual",
+      }),
     );
     expect(res.status).toBe(301);
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT link_mode FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT link_mode FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ link_mode: string | null }>();
     expect(row!.link_mode).toBe("link");
   });
 
   it("analytics includes link_mode breakdown", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const slug = link.slugs[0].slug;
     await ClickRepository.record(env.DB, slug, { linkMode: "qr" });
     await ClickRepository.record(env.DB, slug, { linkMode: "qr" });
@@ -262,18 +302,31 @@ describe("QR link mode tracking", () => {
 
 describe("UTM parameter tracking", () => {
   it("redirect stores all UTM parameters from query string", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "utm1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "utm1",
+    });
     const res = await SELF.fetch(
-      new Request("https://shrtnr.test/utm1?utm_source=newsletter&utm_medium=email&utm_campaign=spring-launch&utm_term=deals&utm_content=cta-button", { redirect: "manual" }),
+      new Request(
+        "https://shrtnr.test/utm1?utm_source=newsletter&utm_medium=email&utm_campaign=spring-launch&utm_term=deals&utm_content=cta-button",
+        { redirect: "manual" },
+      ),
     );
     expect(res.status).toBe(301);
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT utm_source, utm_medium, utm_campaign, utm_term, utm_content FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT utm_source, utm_medium, utm_campaign, utm_term, utm_content FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
-      .first<{ utm_source: string; utm_medium: string; utm_campaign: string; utm_term: string; utm_content: string }>();
+      .first<{
+        utm_source: string;
+        utm_medium: string;
+        utm_campaign: string;
+        utm_term: string;
+        utm_content: string;
+      }>();
     expect(row!.utm_source).toBe("newsletter");
     expect(row!.utm_medium).toBe("email");
     expect(row!.utm_campaign).toBe("spring-launch");
@@ -282,18 +335,30 @@ describe("UTM parameter tracking", () => {
   });
 
   it("redirect stores utm_medium=qr and sets link_mode=qr simultaneously", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "utm2" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "utm2",
+    });
     const res = await SELF.fetch(
-      new Request("https://shrtnr.test/utm2?utm_medium=qr&utm_source=poster&utm_campaign=promo-2026", { redirect: "manual" }),
+      new Request(
+        "https://shrtnr.test/utm2?utm_medium=qr&utm_source=poster&utm_campaign=promo-2026",
+        { redirect: "manual" },
+      ),
     );
     expect(res.status).toBe(301);
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT link_mode, utm_medium, utm_source, utm_campaign FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT link_mode, utm_medium, utm_source, utm_campaign FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
-      .first<{ link_mode: string; utm_medium: string; utm_source: string; utm_campaign: string }>();
+      .first<{
+        link_mode: string;
+        utm_medium: string;
+        utm_source: string;
+        utm_campaign: string;
+      }>();
     expect(row!.link_mode).toBe("qr");
     expect(row!.utm_medium).toBe("qr");
     expect(row!.utm_source).toBe("poster");
@@ -305,12 +370,16 @@ describe("UTM parameter tracking", () => {
 
 describe("OS and referrer_host tracking", () => {
   it("redirect stores OS parsed from User-Agent", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "os1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "os1",
+    });
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/os1", {
         redirect: "manual",
         headers: {
-          "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+          "User-Agent":
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
         },
       }),
     );
@@ -318,15 +387,17 @@ describe("OS and referrer_host tracking", () => {
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT os FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare("SELECT os FROM clicks WHERE slug = ?")
       .bind(link.slugs[0].slug)
       .first<{ os: string }>();
     expect(row!.os).toBe("ios");
   });
 
   it("redirect stores referrer_host extracted from Referer header", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ref1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "ref1",
+    });
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/ref1", {
         redirect: "manual",
@@ -339,8 +410,9 @@ describe("OS and referrer_host tracking", () => {
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT referrer, referrer_host FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer, referrer_host FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ referrer: string; referrer_host: string }>();
     expect(row!.referrer).toBe("https://google.com/search?q=test");
@@ -348,7 +420,10 @@ describe("OS and referrer_host tracking", () => {
   });
 
   it("strips www. prefix from referrer_host", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ref-www" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "ref-www",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/ref-www", {
         redirect: "manual",
@@ -356,15 +431,19 @@ describe("OS and referrer_host tracking", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT referrer_host FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer_host FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ referrer_host: string }>();
     expect(row!.referrer_host).toBe("linkedin.com");
   });
 
   it("keeps meaningful subdomains in referrer_host", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ref-sub" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "ref-sub",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/ref-sub", {
         redirect: "manual",
@@ -372,15 +451,19 @@ describe("OS and referrer_host tracking", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT referrer_host FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer_host FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ referrer_host: string }>();
     expect(row!.referrer_host).toBe("firebase.google.com");
   });
 
   it("keeps country-code second-level domains intact in referrer_host", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ref-ccld" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "ref-ccld",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/ref-ccld", {
         redirect: "manual",
@@ -388,16 +471,21 @@ describe("OS and referrer_host tracking", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT referrer_host FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer_host FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ referrer_host: string }>();
     expect(row!.referrer_host).toBe("somedomain.co.uk");
   });
 
   it("redirect stores user_agent string", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ua1" });
-    const uaString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "ua1",
+    });
+    const uaString =
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/ua1", {
         redirect: "manual",
@@ -408,8 +496,9 @@ describe("OS and referrer_host tracking", () => {
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT user_agent FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT user_agent FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ user_agent: string }>();
     expect(row!.user_agent).toBe(uaString);
@@ -426,7 +515,10 @@ describe("OS and referrer_host tracking", () => {
 
 describe("app-scheme referrer normalization", () => {
   it("maps a known android-app package to its brand domain in referrer_host", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "app1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "app1",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/app1", {
         redirect: "manual",
@@ -434,8 +526,9 @@ describe("app-scheme referrer normalization", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT referrer, referrer_host FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer, referrer_host FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ referrer: string | null; referrer_host: string | null }>();
     expect(row!.referrer).toBe("android-app://com.linkedin.android/");
@@ -443,7 +536,10 @@ describe("app-scheme referrer normalization", () => {
   });
 
   it("stores referrer_host = null for an uncurated android-app package, preserving raw", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "app2" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "app2",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/app2", {
         redirect: "manual",
@@ -451,8 +547,9 @@ describe("app-scheme referrer normalization", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT referrer, referrer_host FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer, referrer_host FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ referrer: string | null; referrer_host: string | null }>();
     expect(row!.referrer).toBe("android-app://com.some.obscure.app/");
@@ -460,7 +557,10 @@ describe("app-scheme referrer normalization", () => {
   });
 
   it("stores referrer_host = null for android browser packages (chrome, samsung)", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "app3" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "app3",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/app3", {
         redirect: "manual",
@@ -468,8 +568,9 @@ describe("app-scheme referrer normalization", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT referrer, referrer_host FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer, referrer_host FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ referrer: string | null; referrer_host: string | null }>();
     expect(row!.referrer).toBe("android-app://com.android.chrome/");
@@ -481,7 +582,10 @@ describe("app-scheme referrer normalization", () => {
 
 describe("bot detection on redirect", () => {
   it("records is_bot=1 for a crawler User-Agent", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "bot1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "bot1",
+    });
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/bot1", {
         redirect: "manual",
@@ -495,15 +599,17 @@ describe("bot detection on redirect", () => {
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT is_bot FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare("SELECT is_bot FROM clicks WHERE slug = ?")
       .bind(link.slugs[0].slug)
       .first<{ is_bot: number }>();
     expect(row!.is_bot).toBe(1);
   });
 
   it("records is_bot=1 for a link-previewer User-Agent", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "bot2" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "bot2",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/bot2", {
         redirect: "manual",
@@ -511,15 +617,17 @@ describe("bot detection on redirect", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT is_bot FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare("SELECT is_bot FROM clicks WHERE slug = ?")
       .bind(link.slugs[0].slug)
       .first<{ is_bot: number }>();
     expect(row!.is_bot).toBe(1);
   });
 
   it("records is_bot=1 when User-Agent header is missing", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "bot3" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "bot3",
+    });
     // Undici strips User-Agent when set to empty, but the worker sees it as absent → treated as bot.
     await SELF.fetch(
       new Request("https://shrtnr.test/bot3", {
@@ -528,15 +636,17 @@ describe("bot detection on redirect", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT is_bot FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare("SELECT is_bot FROM clicks WHERE slug = ?")
       .bind(link.slugs[0].slug)
       .first<{ is_bot: number }>();
     expect(row!.is_bot).toBe(1);
   });
 
   it("records is_bot=0 for a desktop Chrome User-Agent", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "human1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "human1",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/human1", {
         redirect: "manual",
@@ -547,8 +657,7 @@ describe("bot detection on redirect", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT is_bot FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare("SELECT is_bot FROM clicks WHERE slug = ?")
       .bind(link.slugs[0].slug)
       .first<{ is_bot: number }>();
     expect(row!.is_bot).toBe(0);
@@ -559,7 +668,10 @@ describe("bot detection on redirect", () => {
 
 describe("self-referrer flagging", () => {
   it("stores raw referrer and flags is_self_referrer=1 for bare-origin same host", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "self1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "self1",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/self1", {
         redirect: "manual",
@@ -567,17 +679,25 @@ describe("self-referrer flagging", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT referrer, referrer_host, is_self_referrer FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer, referrer_host, is_self_referrer FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
-      .first<{ referrer: string | null; referrer_host: string | null; is_self_referrer: number }>();
+      .first<{
+        referrer: string | null;
+        referrer_host: string | null;
+        is_self_referrer: number;
+      }>();
     expect(row!.referrer).toBe("https://shrtnr.test/");
     expect(row!.referrer_host).toBe("shrtnr.test");
     expect(row!.is_self_referrer).toBe(1);
   });
 
   it("is_self_referrer=0 for same-host referrer with a meaningful path", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "self2" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "self2",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/self2", {
         redirect: "manual",
@@ -585,17 +705,25 @@ describe("self-referrer flagging", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT referrer, referrer_host, is_self_referrer FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer, referrer_host, is_self_referrer FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
-      .first<{ referrer: string | null; referrer_host: string | null; is_self_referrer: number }>();
+      .first<{
+        referrer: string | null;
+        referrer_host: string | null;
+        is_self_referrer: number;
+      }>();
     expect(row!.referrer).toBe("https://shrtnr.test/_/admin/settings");
     expect(row!.referrer_host).toBe("shrtnr.test");
     expect(row!.is_self_referrer).toBe(0);
   });
 
   it("is_self_referrer=1 when same-host root is visited without a trailing slash", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "self2b" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "self2b",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/self2b", {
         redirect: "manual",
@@ -603,15 +731,19 @@ describe("self-referrer flagging", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT is_self_referrer FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT is_self_referrer FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ is_self_referrer: number }>();
     expect(row!.is_self_referrer).toBe(1);
   });
 
   it("is_self_referrer=0 for same-host root with query string", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "self2c" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "self2c",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/self2c", {
         redirect: "manual",
@@ -619,15 +751,19 @@ describe("self-referrer flagging", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT is_self_referrer FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT is_self_referrer FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ is_self_referrer: number }>();
     expect(row!.is_self_referrer).toBe(0);
   });
 
   it("is_self_referrer=1 when Referer uses www. prefix of the same host", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "self3" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "self3",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/self3", {
         redirect: "manual",
@@ -635,8 +771,9 @@ describe("self-referrer flagging", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT referrer, is_self_referrer FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer, is_self_referrer FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ referrer: string | null; is_self_referrer: number }>();
     expect(row!.referrer).toBe("https://www.shrtnr.test/");
@@ -644,7 +781,10 @@ describe("self-referrer flagging", () => {
   });
 
   it("is_self_referrer=0 and referrer preserved for cross-origin referrers", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "cross1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "cross1",
+    });
     await SELF.fetch(
       new Request("https://shrtnr.test/cross1", {
         redirect: "manual",
@@ -652,17 +792,25 @@ describe("self-referrer flagging", () => {
       }),
     );
     await new Promise((r) => setTimeout(r, 100));
-    const row = await env.DB
-      .prepare("SELECT referrer, referrer_host, is_self_referrer FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer, referrer_host, is_self_referrer FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
-      .first<{ referrer: string | null; referrer_host: string | null; is_self_referrer: number }>();
+      .first<{
+        referrer: string | null;
+        referrer_host: string | null;
+        is_self_referrer: number;
+      }>();
     expect(row!.referrer).toBe("https://oddbit.id/en/projects/rekap");
     expect(row!.referrer_host).toBe("oddbit.id");
     expect(row!.is_self_referrer).toBe(0);
   });
 
   it("with excludeSelfReferrers, sources breakdown and total_clicks both drop bare-origin self-referrers", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "filt1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "filt1",
+    });
     const slug = link.slugs[0].slug;
     // One self-referrer, one meaningful same-host, one cross-origin.
     await ClickRepository.record(env.DB, slug, {
@@ -692,7 +840,10 @@ describe("self-referrer flagging", () => {
   });
 
   it("without excludeSelfReferrers, every click is counted (self-referrers included)", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "filt1b" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "filt1b",
+    });
     const slug = link.slugs[0].slug;
     await ClickRepository.record(env.DB, slug, {
       referrer: "https://shrtnr.test/",
@@ -707,11 +858,16 @@ describe("self-referrer flagging", () => {
 
     const stats = await ClickRepository.getStats(env.DB, link.id);
     expect(stats.total_clicks).toBe(2);
-    expect(stats.referrers.map((r) => r.name)).toContain("https://shrtnr.test/");
+    expect(stats.referrers.map((r) => r.name)).toContain(
+      "https://shrtnr.test/",
+    );
   });
 
   it("with excludeSelfReferrers, domains breakdown drops bare-origin self-referrer hosts", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "filt2" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "filt2",
+    });
     const slug = link.slugs[0].slug;
     await ClickRepository.record(env.DB, slug, {
       referrer: "https://shrtnr.test/",
@@ -751,10 +907,9 @@ describe("click tracking edge cases", () => {
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare(
-        "SELECT device_type, os, browser, user_agent FROM clicks WHERE slug = ?",
-      )
+    const row = await env.DB.prepare(
+      "SELECT device_type, os, browser, user_agent FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{
         device_type: string | null;
@@ -781,8 +936,9 @@ describe("click tracking edge cases", () => {
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT referrer, referrer_host FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT referrer, referrer_host FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ referrer: string | null; referrer_host: string | null }>();
     expect(row).not.toBeNull();
@@ -804,8 +960,9 @@ describe("click tracking edge cases", () => {
 
     await new Promise((r) => setTimeout(r, 100));
 
-    const row = await env.DB
-      .prepare("SELECT country FROM clicks WHERE slug = ?")
+    const row = await env.DB.prepare(
+      "SELECT country FROM clicks WHERE slug = ?",
+    )
       .bind(link.slugs[0].slug)
       .first<{ country: string | null }>();
     expect(row).not.toBeNull();
@@ -841,7 +998,10 @@ describe("QR code generation", () => {
   });
 
   it("renderQrSvg respects custom colors", () => {
-    const svg = renderQrSvg("https://oddb.it/abc", { fg: "#ff0000", bg: "#00ff00" });
+    const svg = renderQrSvg("https://oddb.it/abc", {
+      fg: "#ff0000",
+      bg: "#00ff00",
+    });
     expect(svg).toContain('fill="#00ff00"');
     expect(svg).toContain('fill="#ff0000"');
   });
@@ -883,7 +1043,9 @@ describe("QR download API", () => {
       }),
     );
 
-    const res = await SELF.fetch(authed(`/_/admin/api/links/${created.id}/qr?slug=my-link`));
+    const res = await SELF.fetch(
+      authed(`/_/admin/api/links/${created.id}/qr?slug=my-link`),
+    );
     expect(res.status).toBe(200);
     const body = await res.text();
     expect(body).toContain("<svg");

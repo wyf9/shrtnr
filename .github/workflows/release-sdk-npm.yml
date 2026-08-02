@@ -11,10 +11,10 @@ on:
   push:
     branches: [main]
     paths:
-      - 'sdk/typescript/**'
-      - '.github/workflows/release-sdk-npm.yml'
-      - 'scripts/extract-changelog.sh'
-      - 'scripts/read-version.sh'
+      - "sdk/typescript/**"
+      - ".github/workflows/release-sdk-npm.yml"
+      - "scripts/extract-changelog.sh"
+      - "scripts/read-version.sh"
   workflow_dispatch:
 
 permissions:

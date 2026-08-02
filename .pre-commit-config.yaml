@@ -1,0 +1,18 @@
+# prek / pre-commit configuration
+# Install hooks with: prek install
+# Run manually with: prek run --all-files
+repos:
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: bunx prettier --write --ignore-unknown
+        language: system
+        files: \.(ts|tsx|mts|js|mjs|jsx|json|jsonc|css|scss|html|ya?ml|md)$
+        exclude: |
+          (?x)^(
+            bun\.lock|
+            CHANGELOG\.md|
+            docs/\.vitepress/(cache|dist)/.*|
+            sdk/python/\.venv/.*
+          )$

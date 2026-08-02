@@ -7,7 +7,10 @@ import sv from "./sv";
 import type { TranslationKey, Translations } from "./types";
 
 export type { TranslationKey, Translations };
-export type TranslateFn = (key: TranslationKey, params?: Record<string, string | number>) => string;
+export type TranslateFn = (
+  key: TranslationKey,
+  params?: Record<string, string | number>,
+) => string;
 
 export const DEFAULT_LANGUAGE = "en";
 export const SUPPORTED_LANGUAGES = ["en", "id", "sv"] as const;
@@ -20,7 +23,8 @@ export function isSupportedLanguage(lang: string): lang is SupportedLanguage {
 }
 
 export function detectLanguage(): SupportedLanguage {
-  const raw = typeof navigator !== "undefined" ? (navigator.language || "en") : "en";
+  const raw =
+    typeof navigator !== "undefined" ? navigator.language || "en" : "en";
   const primary = raw.split("-")[0]?.toLowerCase() ?? "en";
   return isSupportedLanguage(primary) ? primary : DEFAULT_LANGUAGE;
 }

@@ -17,12 +17,19 @@ async function seedApiKey(
 ): Promise<string> {
   const raw = `sk_${crypto.randomUUID().replace(/-/g, "")}`;
   const prefix = raw.slice(0, 7);
-  const hashBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+  const hashBuf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(raw),
+  );
   const hash = Array.from(new Uint8Array(hashBuf))
-    .map((b) => b.toString(16).padStart(2, "0")).join("");
-  await db.prepare(
-    "INSERT INTO api_keys (identity, title, key_prefix, key_hash, scope, created_at) VALUES (?, ?, ?, ?, ?, ?)"
-  ).bind(identity, "test", prefix, hash, scope, Math.floor(Date.now() / 1000)).run();
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  await db
+    .prepare(
+      "INSERT INTO api_keys (identity, title, key_prefix, key_hash, scope, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+    )
+    .bind(identity, "test", prefix, hash, scope, Math.floor(Date.now() / 1000))
+    .run();
   return raw;
 }
 
@@ -51,10 +58,10 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
     expect(res.status).toBe(201);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.url).toBe("https://example.com");
     expect(body.slugs.length).toBeGreaterThanOrEqual(1);
   });
@@ -65,7 +72,7 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "not-a-url" }),
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
@@ -76,10 +83,10 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "javascript:alert(1)" }),
-      })
+      }),
     );
     expect(res.status).toBe(400);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.error).toMatch(/https?/);
   });
 
@@ -88,8 +95,10 @@ describe("Links API", () => {
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "data:text/html,<script>alert(1)</script>" }),
-      })
+        body: JSON.stringify({
+          url: "data:text/html,<script>alert(1)</script>",
+        }),
+      }),
     );
     expect(res.status).toBe(400);
   });
@@ -100,7 +109,7 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
@@ -111,22 +120,26 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
     expect(createRes.status).toBe(201);
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slugRes = await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "my-slug" }),
-      })
+      }),
     );
     expect(slugRes.status).toBe(201);
-    const linkRes = await SELF.fetch(authed(`/_/admin/api/links/${created.id}`));
-    const body = await linkRes.json() as any;
+    const linkRes = await SELF.fetch(
+      authed(`/_/admin/api/links/${created.id}`),
+    );
+    const body = (await linkRes.json()) as any;
     expect(body.slugs).toHaveLength(2);
-    expect(body.slugs.some((s: any) => s.slug === "my-slug" && s.is_custom === 1)).toBe(true);
+    expect(
+      body.slugs.some((s: any) => s.slug === "my-slug" && s.is_custom === 1),
+    ).toBe(true);
   });
 
   it("POST /_/admin/api/links then POST slugs should be ordered: auto at index 0, custom at index 1", async () => {
@@ -135,18 +148,20 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "custom" }),
-      })
+      }),
     );
-    const linkRes = await SELF.fetch(authed(`/_/admin/api/links/${created.id}`));
-    const body = await linkRes.json() as any;
+    const linkRes = await SELF.fetch(
+      authed(`/_/admin/api/links/${created.id}`),
+    );
+    const body = (await linkRes.json()) as any;
     expect(body.slugs[0].is_custom).toBe(0);
     expect(body.slugs[1].is_custom).toBe(1);
     expect(body.slugs[1].slug).toBe("custom");
@@ -158,18 +173,18 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "ordered" }),
-      })
+      }),
     );
     const res = await SELF.fetch(authed("/_/admin/api/links"));
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     const link = body.find((l: any) => l.slugs.length === 2);
     expect(link.slugs[0].is_custom).toBe(0);
     expect(link.slugs[1].is_custom).toBe(1);
@@ -181,18 +196,18 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "detail-order" }),
-      })
+      }),
     );
     const res = await SELF.fetch(authed(`/_/admin/api/links/${created.id}`));
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.slugs[0].is_custom).toBe(0);
     expect(body.slugs[1].is_custom).toBe(1);
     expect(body.slugs[1].slug).toBe("detail-order");
@@ -204,10 +219,10 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
     expect(res.status).toBe(201);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.slugs).toHaveLength(1);
     expect(body.slugs[0].is_custom).toBe(0);
   });
@@ -217,11 +232,14 @@ describe("Links API", () => {
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com/custom", custom_slug: "My-Custom" }),
-      })
+        body: JSON.stringify({
+          url: "https://example.com/custom",
+          custom_slug: "My-Custom",
+        }),
+      }),
     );
     expect(res.status).toBe(201);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     // No random slug is generated when a custom slug is supplied.
     expect(body.slugs).toHaveLength(1);
     const customSlug = body.slugs[0];
@@ -235,12 +253,17 @@ describe("Links API", () => {
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com/custom-dot", custom_slug: "my.page" }),
-      })
+        body: JSON.stringify({
+          url: "https://example.com/custom-dot",
+          custom_slug: "my.page",
+        }),
+      }),
     );
     expect(res.status).toBe(201);
-    const body = await res.json() as any;
-    expect(body.slugs.some((s: any) => s.slug === "my.page" && s.is_custom === 1)).toBe(true);
+    const body = (await res.json()) as any;
+    expect(
+      body.slugs.some((s: any) => s.slug === "my.page" && s.is_custom === 1),
+    ).toBe(true);
   });
 
   it("POST /_/admin/api/links with label and expires_at should store them", async () => {
@@ -249,10 +272,14 @@ describe("Links API", () => {
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", label: "Test", expires_at: future }),
-      })
+        body: JSON.stringify({
+          url: "https://example.com",
+          label: "Test",
+          expires_at: future,
+        }),
+      }),
     );
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.label).toBe("Test");
     expect(body.expires_at).toBe(future);
   });
@@ -263,17 +290,17 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
     const res = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.duplicate).toBe(true);
     expect(body.url).toBe("https://example.com");
   });
@@ -284,18 +311,21 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const firstBody = await first.json() as any;
+    const firstBody = (await first.json()) as any;
     const res = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://example.com", allow_duplicate: true }),
-      })
+        body: JSON.stringify({
+          url: "https://example.com",
+          allow_duplicate: true,
+        }),
+      }),
     );
     expect(res.status).toBe(201);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.id).not.toBe(firstBody.id);
     expect(body.url).toBe("https://example.com");
   });
@@ -306,10 +336,10 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://brand-new.com" }),
-      })
+      }),
     );
     expect(res.status).toBe(201);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.duplicate).toBeUndefined();
   });
 
@@ -319,17 +349,17 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://one.com" }),
-      })
+      }),
     );
     await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://two.com" }),
-      })
+      }),
     );
     const res = await SELF.fetch(authed("/_/admin/api/links"));
-    const body = await res.json() as any[];
+    const body = (await res.json()) as any[];
     expect(body).toHaveLength(2);
   });
 
@@ -344,18 +374,18 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://old.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const res = await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://new.com" }),
-      })
+      }),
     );
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.url).toBe("https://new.com");
   });
 
@@ -365,15 +395,15 @@ describe("Links API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const res = await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "bad-url" }),
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
@@ -387,23 +417,23 @@ describe("Disable / Enable API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const before = Math.floor(Date.now() / 1000);
     const res = await SELF.fetch(
-      authed(`/_/admin/api/links/${created.id}/disable`, { method: "POST" })
+      authed(`/_/admin/api/links/${created.id}/disable`, { method: "POST" }),
     );
     const after = Math.floor(Date.now() / 1000);
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.expires_at).toBeGreaterThanOrEqual(before);
     expect(body.expires_at).toBeLessThanOrEqual(after);
   });
 
   it("POST /_/admin/api/links/:id/disable for non-existent link should return 404", async () => {
     const res = await SELF.fetch(
-      authed("/_/admin/api/links/99999/disable", { method: "POST" })
+      authed("/_/admin/api/links/99999/disable", { method: "POST" }),
     );
     expect(res.status).toBe(404);
   });
@@ -414,12 +444,12 @@ describe("Disable / Enable API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     // Disable
     await SELF.fetch(
-      authed(`/_/admin/api/links/${created.id}/disable`, { method: "POST" })
+      authed(`/_/admin/api/links/${created.id}/disable`, { method: "POST" }),
     );
     // Enable by clearing expires_at
     const res = await SELF.fetch(
@@ -427,9 +457,9 @@ describe("Disable / Enable API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ expires_at: null }),
-      })
+      }),
     );
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.expires_at).toBeNull();
   });
 });
@@ -442,18 +472,18 @@ describe("Custom Slugs API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const res = await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "my-custom" }),
-      })
+      }),
     );
     expect(res.status).toBe(201);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.slug).toBe("my-custom");
     expect(body.is_custom).toBe(1);
   });
@@ -464,22 +494,22 @@ describe("Custom Slugs API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "taken" }),
-      })
+      }),
     );
     const res = await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "taken" }),
-      })
+      }),
     );
     expect(res.status).toBe(409);
   });
@@ -490,25 +520,25 @@ describe("Custom Slugs API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "existing" }),
-      })
+      }),
     );
     const res = await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "another" }),
-      })
+      }),
     );
     expect(res.status).toBe(201);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.slug).toBe("another");
     expect(body.is_custom).toBe(1);
   });
@@ -519,58 +549,64 @@ describe("Custom Slugs API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const res = await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "-bad" }),
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
-
 });
 describe("Public slug-mutation API (/_/api/*)", () => {
-  async function setupLinkWithCustomSlug(): Promise<{ linkId: number; slug: string; rawKey: string }> {
+  async function setupLinkWithCustomSlug(): Promise<{
+    linkId: number;
+    slug: string;
+    rawKey: string;
+  }> {
     const linkRes = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
     await SELF.fetch(
       authed(`/_/admin/api/links/${link.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "custom" }),
-      })
+      }),
     );
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Mutator", scope: "create,read" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
     return { linkId: link.id, slug: "custom", rawKey: raw_key };
   }
 
   it("owner's key can disable their own custom slug", async () => {
     const { linkId, slug, rawKey } = await setupLinkWithCustomSlug();
     const res = await SELF.fetch(
-      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}/disable`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${rawKey}` },
-      })
+      new Request(
+        `https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}/disable`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${rawKey}` },
+        },
+      ),
     );
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.slug).toBe(slug);
     expect(body.disabled_at).not.toBeNull();
   });
@@ -578,19 +614,25 @@ describe("Public slug-mutation API (/_/api/*)", () => {
   it("owner's key can re-enable their previously-disabled slug", async () => {
     const { linkId, slug, rawKey } = await setupLinkWithCustomSlug();
     await SELF.fetch(
-      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}/disable`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${rawKey}` },
-      })
+      new Request(
+        `https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}/disable`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${rawKey}` },
+        },
+      ),
     );
     const res = await SELF.fetch(
-      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}/enable`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${rawKey}` },
-      })
+      new Request(
+        `https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}/enable`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${rawKey}` },
+        },
+      ),
     );
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.disabled_at).toBeNull();
   });
 
@@ -599,11 +641,11 @@ describe("Public slug-mutation API (/_/api/*)", () => {
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${slug}`, {
         method: "DELETE",
-        headers: { "Authorization": `Bearer ${rawKey}` },
-      })
+        headers: { Authorization: `Bearer ${rawKey}` },
+      }),
     );
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.removed).toBe(true);
   });
 
@@ -611,20 +653,23 @@ describe("Public slug-mutation API (/_/api/*)", () => {
     const { linkId, rawKey } = await setupLinkWithCustomSlug();
     const linkInfo = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${linkId}`, {
-        headers: { "Authorization": `Bearer ${rawKey}` },
-      })
+        headers: { Authorization: `Bearer ${rawKey}` },
+      }),
     );
-    const info = await linkInfo.json() as any;
+    const info = (await linkInfo.json()) as any;
     const autoSlug = info.slugs.find((s: any) => !s.is_custom).slug;
 
     const res = await SELF.fetch(
-      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${autoSlug}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${rawKey}` },
-      })
+      new Request(
+        `https://shrtnr.test/_/api/links/${linkId}/slugs/${autoSlug}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${rawKey}` },
+        },
+      ),
     );
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.removed).toBe(true);
   });
 
@@ -634,9 +679,9 @@ describe("Public slug-mutation API (/_/api/*)", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com/only-slug" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
     const autoSlug = link.slugs.find((s: any) => !s.is_custom).slug;
 
     const keyRes = await SELF.fetch(
@@ -644,18 +689,21 @@ describe("Public slug-mutation API (/_/api/*)", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Remover", scope: "create" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
 
     const res = await SELF.fetch(
-      new Request(`https://shrtnr.test/_/api/links/${link.id}/slugs/${autoSlug}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+      new Request(
+        `https://shrtnr.test/_/api/links/${link.id}/slugs/${autoSlug}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${raw_key}` },
+        },
+      ),
     );
     expect(res.status).toBe(400);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.error).toBe("Cannot remove the last remaining slug on a link");
   });
 
@@ -663,16 +711,19 @@ describe("Public slug-mutation API (/_/api/*)", () => {
     const { linkId, rawKey } = await setupLinkWithCustomSlug();
     const linkInfo = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${linkId}`, {
-        headers: { "Authorization": `Bearer ${rawKey}` },
-      })
+        headers: { Authorization: `Bearer ${rawKey}` },
+      }),
     );
-    const info = await linkInfo.json() as any;
+    const info = (await linkInfo.json()) as any;
     const autoSlug = info.slugs.find((s: any) => !s.is_custom).slug;
     const res = await SELF.fetch(
-      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/${autoSlug}/disable`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${rawKey}` },
-      })
+      new Request(
+        `https://shrtnr.test/_/api/links/${linkId}/slugs/${autoSlug}/disable`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${rawKey}` },
+        },
+      ),
     );
     expect(res.status).toBe(400);
   });
@@ -680,10 +731,13 @@ describe("Public slug-mutation API (/_/api/*)", () => {
   it("returns 404 for unknown slug on an owned link", async () => {
     const { linkId, rawKey } = await setupLinkWithCustomSlug();
     const res = await SELF.fetch(
-      new Request(`https://shrtnr.test/_/api/links/${linkId}/slugs/nope/disable`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${rawKey}` },
-      })
+      new Request(
+        `https://shrtnr.test/_/api/links/${linkId}/slugs/nope/disable`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${rawKey}` },
+        },
+      ),
     );
     expect(res.status).toBe(404);
   });
@@ -694,14 +748,14 @@ describe("Public slug-mutation API (/_/api/*)", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Mutator", scope: "create" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/99999/slugs/x/disable`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
     expect(res.status).toBe(404);
   });
@@ -713,33 +767,38 @@ describe("Public slug-mutation API (/_/api/*)", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
     await SELF.fetch(
       authed(`/_/admin/api/links/${link.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "owned" }),
-      })
+      }),
     );
 
     // Create an API key as a different identity (other@example.com).
-    const otherAuth = { "Cf-Access-Jwt-Assertion": makeJwt("other@example.com") };
+    const otherAuth = {
+      "Cf-Access-Jwt-Assertion": makeJwt("other@example.com"),
+    };
     const keyRes = await SELF.fetch(
       new Request("https://shrtnr.test/_/admin/api/keys", {
         method: "POST",
         headers: { ...otherAuth, "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Intruder", scope: "create" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
 
     const res = await SELF.fetch(
-      new Request(`https://shrtnr.test/_/api/links/${link.id}/slugs/owned/disable`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+      new Request(
+        `https://shrtnr.test/_/api/links/${link.id}/slugs/owned/disable`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${raw_key}` },
+        },
+      ),
     );
     expect(res.status).toBe(403);
   });
@@ -750,29 +809,32 @@ describe("Public slug-mutation API (/_/api/*)", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
     await SELF.fetch(
       authed(`/_/admin/api/links/${link.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "readable" }),
-      })
+      }),
     );
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Reader", scope: "read" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
     const res = await SELF.fetch(
-      new Request(`https://shrtnr.test/_/api/links/${link.id}/slugs/readable/disable`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+      new Request(
+        `https://shrtnr.test/_/api/links/${link.id}/slugs/readable/disable`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${raw_key}` },
+        },
+      ),
     );
     expect(res.status).toBe(403);
   });
@@ -786,15 +848,15 @@ describe("Custom Slug Redirect", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://custom-target.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}/slugs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "go" }),
-      })
+      }),
     );
     const res = await SELF.fetch(unauthed("/go"), { redirect: "manual" });
     expect(res.status).toBe(301);
@@ -816,16 +878,19 @@ describe("Smart search input", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
     const created = await SELF.fetch(
       authed("/_/admin/api/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: "https://testsite.com", label: "test campaign" }),
-      })
+        body: JSON.stringify({
+          url: "https://testsite.com",
+          label: "test campaign",
+        }),
+      }),
     );
-    const link = await created.json() as any;
+    const link = (await created.json()) as any;
 
     // Search with text term
     const res = await SELF.fetch(authed("/_/admin/links?search=test"));
@@ -877,13 +942,13 @@ describe("Delete Link API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://deletable.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     expect(created.total_clicks).toBe(0);
 
     const deleteRes = await SELF.fetch(
-      authed(`/_/admin/api/links/${created.id}`, { method: "DELETE" })
+      authed(`/_/admin/api/links/${created.id}`, { method: "DELETE" }),
     );
     expect(deleteRes.status).toBe(200);
 
@@ -899,25 +964,25 @@ describe("Delete Link API", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://popular.com" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const slug = created.slugs[0].slug;
 
     // Generate a click by following the redirect
     await SELF.fetch(unauthed(`/${slug}`), { redirect: "manual" });
 
     const deleteRes = await SELF.fetch(
-      authed(`/_/admin/api/links/${created.id}`, { method: "DELETE" })
+      authed(`/_/admin/api/links/${created.id}`, { method: "DELETE" }),
     );
     expect(deleteRes.status).toBe(400);
-    const body = await deleteRes.json() as any;
+    const body = (await deleteRes.json()) as any;
     expect(body.error).toBeTruthy();
   });
 
   it("DELETE /_/admin/api/links/:id for non-existent link should return 404", async () => {
     const res = await SELF.fetch(
-      authed("/_/admin/api/links/99999", { method: "DELETE" })
+      authed("/_/admin/api/links/99999", { method: "DELETE" }),
     );
     expect(res.status).toBe(404);
   });
@@ -934,22 +999,38 @@ describe("POST /_/api/links idempotent on URL", () => {
   it("returns 200 + duplicate:true on second call with same URL", async () => {
     const apiKey = await seedApiKey(env.DB, "create");
 
-    const first = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ url: "https://example.com/dup-test" }),
-    }));
+    const first = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/dup-test" }),
+      }),
+    );
     expect(first.status).toBe(201);
-    const firstBody = await first.json() as { id: number; duplicate?: boolean };
+    const firstBody = (await first.json()) as {
+      id: number;
+      duplicate?: boolean;
+    };
     expect(firstBody.duplicate).toBeUndefined();
 
-    const second = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ url: "https://example.com/dup-test" }),
-    }));
+    const second = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/dup-test" }),
+      }),
+    );
     expect(second.status).toBe(200);
-    const secondBody = await second.json() as { id: number; duplicate?: boolean };
+    const secondBody = (await second.json()) as {
+      id: number;
+      duplicate?: boolean;
+    };
     expect(secondBody.id).toBe(firstBody.id);
     expect(secondBody.duplicate).toBe(true);
   });
@@ -957,21 +1038,34 @@ describe("POST /_/api/links idempotent on URL", () => {
   it("returns 201 + new link when allow_duplicate is true", async () => {
     const apiKey = await seedApiKey(env.DB, "create");
 
-    const first = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ url: "https://example.com/allow-dup" }),
-    }));
+    const first = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/allow-dup" }),
+      }),
+    );
     expect(first.status).toBe(201);
-    const firstBody = await first.json() as { id: number };
+    const firstBody = (await first.json()) as { id: number };
 
-    const second = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ url: "https://example.com/allow-dup", allow_duplicate: true }),
-    }));
+    const second = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          url: "https://example.com/allow-dup",
+          allow_duplicate: true,
+        }),
+      }),
+    );
     expect(second.status).toBe(201);
-    const secondBody = await second.json() as { id: number };
+    const secondBody = (await second.json()) as { id: number };
     expect(secondBody.id).not.toBe(firstBody.id);
   });
 });
@@ -989,13 +1083,18 @@ describe("POST /_/api/links URL length cap", () => {
     const overCap = prefix + "a".repeat(2049 - prefix.length);
     expect(overCap).toHaveLength(2049);
 
-    const res = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ url: overCap }),
-    }));
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ url: overCap }),
+      }),
+    );
     expect(res.status).toBe(400);
-    const body = await res.json() as { error: string };
+    const body = (await res.json()) as { error: string };
     expect(typeof body.error).toBe("string");
     expect(body.error.length).toBeGreaterThan(0);
   });
@@ -1015,18 +1114,27 @@ describe("cross-owner link isolation", () => {
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
-    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ url: "https://example.com/owner-b-only-delete" }),
-    }));
+    const create = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({
+          url: "https://example.com/owner-b-only-delete",
+        }),
+      }),
+    );
     expect(create.status).toBe(201);
-    const { id } = await create.json() as { id: number };
+    const { id } = (await create.json()) as { id: number };
 
-    const del = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${keyA}` },
-    }));
+    const del = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${keyA}` },
+      }),
+    );
     expect(del.status).toBe(403);
   });
 
@@ -1034,17 +1142,26 @@ describe("cross-owner link isolation", () => {
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
-    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ url: "https://example.com/owner-b-only-disable" }),
-    }));
-    const { id } = await create.json() as { id: number };
+    const create = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({
+          url: "https://example.com/owner-b-only-disable",
+        }),
+      }),
+    );
+    const { id } = (await create.json()) as { id: number };
 
-    const disable = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/disable`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${keyA}` },
-    }));
+    const disable = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}/disable`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${keyA}` },
+      }),
+    );
     expect(disable.status).toBe(403);
   });
 });
@@ -1063,19 +1180,26 @@ describe("Open read access (design): anyone can read anything", () => {
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
-    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ url: "https://example.com/owner-b-readable" }),
-    }));
+    const create = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/owner-b-readable" }),
+      }),
+    );
     expect(create.status).toBe(201);
-    const { id } = await create.json() as { id: number };
+    const { id } = (await create.json()) as { id: number };
 
-    const get = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}`, {
-      headers: { Authorization: `Bearer ${keyA}` },
-    }));
+    const get = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}`, {
+        headers: { Authorization: `Bearer ${keyA}` },
+      }),
+    );
     expect(get.status).toBe(200);
-    const body = await get.json() as { id: number; url: string };
+    const body = (await get.json()) as { id: number; url: string };
     expect(body.id).toBe(id);
     expect(body.url).toBe("https://example.com/owner-b-readable");
   });
@@ -1084,27 +1208,39 @@ describe("Open read access (design): anyone can read anything", () => {
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
-    const createA = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyA}` },
-      body: JSON.stringify({ url: "https://example.com/by-a" }),
-    }));
+    const createA = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyA}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/by-a" }),
+      }),
+    );
     expect(createA.status).toBe(201);
-    const { id: idA } = await createA.json() as { id: number };
+    const { id: idA } = (await createA.json()) as { id: number };
 
-    const createB = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ url: "https://example.com/by-b" }),
-    }));
+    const createB = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/by-b" }),
+      }),
+    );
     expect(createB.status).toBe(201);
-    const { id: idB } = await createB.json() as { id: number };
+    const { id: idB } = (await createB.json()) as { id: number };
 
-    const list = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      headers: { Authorization: `Bearer ${keyA}` },
-    }));
+    const list = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        headers: { Authorization: `Bearer ${keyA}` },
+      }),
+    );
     expect(list.status).toBe(200);
-    const body = await list.json() as { id: number }[];
+    const body = (await list.json()) as { id: number }[];
     const ids = body.map((l) => l.id);
     expect(ids).toContain(idA);
     expect(ids).toContain(idB);
@@ -1115,24 +1251,36 @@ describe("Open read access (design): anyone can read anything", () => {
     const keyC = await seedApiKey(env.DB, "create,read", "ownerC@test");
     const keyD = await seedApiKey(env.DB, "create,read", "ownerD@test");
 
-    const createC = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyC}` },
-      body: JSON.stringify({ url: "https://example.com/by-c" }),
-    }));
-    const { id: idC } = await createC.json() as { id: number };
+    const createC = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyC}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/by-c" }),
+      }),
+    );
+    const { id: idC } = (await createC.json()) as { id: number };
 
-    const createD = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyD}` },
-      body: JSON.stringify({ url: "https://example.com/by-d" }),
-    }));
-    const { id: idD } = await createD.json() as { id: number };
+    const createD = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyD}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/by-d" }),
+      }),
+    );
+    const { id: idD } = (await createD.json()) as { id: number };
 
     for (const id of [idC, idD]) {
-      const res = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}`, {
-        headers: { Authorization: `Bearer ${keyA}` },
-      }));
+      const res = await SELF.fetch(
+        new Request(`https://shrtnr.test/_/api/links/${id}`, {
+          headers: { Authorization: `Bearer ${keyA}` },
+        }),
+      );
       expect(res.status).toBe(200);
     }
   });
@@ -1158,21 +1306,33 @@ describe("Link+slug access model (design): anyone reads, anyone adds slugs, only
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
-    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ url: "https://example.com/owner-b-open-append" }),
-    }));
+    const create = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({
+          url: "https://example.com/owner-b-open-append",
+        }),
+      }),
+    );
     expect(create.status).toBe(201);
-    const { id } = await create.json() as { id: number };
+    const { id } = (await create.json()) as { id: number };
 
-    const add = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyA}` },
-      body: JSON.stringify({ slug: "added-by-a" }),
-    }));
+    const add = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyA}`,
+        },
+        body: JSON.stringify({ slug: "added-by-a" }),
+      }),
+    );
     expect(add.status).toBe(201);
-    const body = await add.json() as { slug: string; is_custom: number };
+    const body = (await add.json()) as { slug: string; is_custom: number };
     expect(body.slug).toBe("added-by-a");
     expect(body.is_custom).toBe(1);
   });
@@ -1181,26 +1341,40 @@ describe("Link+slug access model (design): anyone reads, anyone adds slugs, only
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
-    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ url: "https://example.com/owner-b-remove-slug" }),
-    }));
-    const { id } = await create.json() as { id: number };
+    const create = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({
+          url: "https://example.com/owner-b-remove-slug",
+        }),
+      }),
+    );
+    const { id } = (await create.json()) as { id: number };
 
     // Owner B adds the slug (proving the slug exists and belongs to owner B's link).
-    const add = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ slug: "owner-b-slug" }),
-    }));
+    const add = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({ slug: "owner-b-slug" }),
+      }),
+    );
     expect(add.status).toBe(201);
 
     // Owner A tries to remove it: must fail with 403, not 404.
-    const remove = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs/owner-b-slug`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${keyA}` },
-    }));
+    const remove = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}/slugs/owner-b-slug`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${keyA}` },
+      }),
+    );
     expect(remove.status).toBe(403);
   });
 
@@ -1208,24 +1382,41 @@ describe("Link+slug access model (design): anyone reads, anyone adds slugs, only
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
-    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ url: "https://example.com/owner-b-disable-slug" }),
-    }));
-    const { id } = await create.json() as { id: number };
+    const create = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({
+          url: "https://example.com/owner-b-disable-slug",
+        }),
+      }),
+    );
+    const { id } = (await create.json()) as { id: number };
 
-    const add = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ slug: "to-disable" }),
-    }));
+    const add = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({ slug: "to-disable" }),
+      }),
+    );
     expect(add.status).toBe(201);
 
-    const disable = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs/to-disable/disable`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${keyA}` },
-    }));
+    const disable = await SELF.fetch(
+      new Request(
+        `https://shrtnr.test/_/api/links/${id}/slugs/to-disable/disable`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${keyA}` },
+        },
+      ),
+    );
     expect(disable.status).toBe(403);
   });
 
@@ -1233,31 +1424,53 @@ describe("Link+slug access model (design): anyone reads, anyone adds slugs, only
     const keyA = await seedApiKey(env.DB, "create,read", "ownerA@test");
     const keyB = await seedApiKey(env.DB, "create,read", "ownerB@test");
 
-    const create = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ url: "https://example.com/owner-b-enable-slug" }),
-    }));
-    const { id } = await create.json() as { id: number };
+    const create = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({
+          url: "https://example.com/owner-b-enable-slug",
+        }),
+      }),
+    );
+    const { id } = (await create.json()) as { id: number };
 
-    const add = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${keyB}` },
-      body: JSON.stringify({ slug: "to-enable" }),
-    }));
+    const add = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}/slugs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keyB}`,
+        },
+        body: JSON.stringify({ slug: "to-enable" }),
+      }),
+    );
     expect(add.status).toBe(201);
 
     // Owner B disables the slug first so enable has something to flip.
-    const disable = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs/to-enable/disable`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${keyB}` },
-    }));
+    const disable = await SELF.fetch(
+      new Request(
+        `https://shrtnr.test/_/api/links/${id}/slugs/to-enable/disable`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${keyB}` },
+        },
+      ),
+    );
     expect(disable.status).toBe(200);
 
-    const enable = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}/slugs/to-enable/enable`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${keyA}` },
-    }));
+    const enable = await SELF.fetch(
+      new Request(
+        `https://shrtnr.test/_/api/links/${id}/slugs/to-enable/enable`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${keyA}` },
+        },
+      ),
+    );
     expect(enable.status).toBe(403);
   });
 });

@@ -28,7 +28,9 @@ type JsonRpcResponse = {
  * out of its `data:` payloads. Returns null if the stream closes before any
  * JSON message is observed. Mirrors the helper in handler/mcp.test.ts.
  */
-async function readFirstSseMessage(res: Response): Promise<JsonRpcResponse | null> {
+async function readFirstSseMessage(
+  res: Response,
+): Promise<JsonRpcResponse | null> {
   if (!res.body) return null;
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -140,8 +142,7 @@ describe("MCP create_link followed by redirect", () => {
     const message = await readFirstSseMessage(callRes);
     expect(message).not.toBeNull();
     const result = message!.result as
-      | { isError?: boolean; content?: { text?: string }[] }
-      | undefined;
+      { isError?: boolean; content?: { text?: string }[] } | undefined;
     expect(result).toBeDefined();
     expect(result?.isError).toBeFalsy();
 
@@ -172,7 +173,9 @@ describe("MCP create_link followed by redirect", () => {
       }),
     );
     expect(redirectRes.status).toBe(301);
-    expect(redirectRes.headers.get("Location")).toBe("https://example.com/mcp-flow");
+    expect(redirectRes.headers.get("Location")).toBe(
+      "https://example.com/mcp-flow",
+    );
 
     // 4. The click recorded by the redirect handler must reference the same
     //    link.id the MCP tool returned.

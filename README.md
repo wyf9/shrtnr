@@ -299,12 +299,12 @@ Replace `your-domain.com` with your actual short domain.
 
 Authentication is determined by route prefix:
 
-| Route | Auth | Notes |
-|---|---|---|
-| `/_/api/*` | Bearer token | Public link-management API. Create keys from the admin UI under **API Keys** and pass them as `Authorization: Bearer sk_...`. |
-| `/_/mcp` (and `mcp.<your-domain>`) | OAuth | MCP endpoint for AI assistants. Auth handled by Cloudflare Access. See the MCP section above. |
-| `/_/admin/*` | None built in | Admin UI and admin-only API. Protect externally (see [Access Control](#access-control)). Not callable with API keys. |
-| `/_/health` | Public | Health check. |
+| Route                              | Auth          | Notes                                                                                                                         |
+| ---------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `/_/api/*`                         | Bearer token  | Public link-management API. Create keys from the admin UI under **API Keys** and pass them as `Authorization: Bearer sk_...`. |
+| `/_/mcp` (and `mcp.<your-domain>`) | OAuth         | MCP endpoint for AI assistants. Auth handled by Cloudflare Access. See the MCP section above.                                 |
+| `/_/admin/*`                       | None built in | Admin UI and admin-only API. Protect externally (see [Access Control](#access-control)). Not callable with API keys.          |
+| `/_/health`                        | Public        | Health check.                                                                                                                 |
 
 For full endpoint shapes, parameters, and example payloads, see the live API reference at **`/_/api/docs`** on your deployment, or fetch the OpenAPI 3.1 spec directly at **`/_/api/openapi.json`**. The spec is the source of truth: SDKs ([TypeScript](sdk/typescript/README.md), [Python](sdk/python/README.md)) regenerate from it when the API changes.
 

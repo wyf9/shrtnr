@@ -172,7 +172,9 @@ describe("OAuth discovery", () => {
       "https://shrtnr.test/cdn-cgi/access/oauth/registration",
     );
     // Endpoints start with the test origin
-    expect((body.authorization_endpoint as string).startsWith("https://shrtnr.test")).toBe(true);
+    expect(
+      (body.authorization_endpoint as string).startsWith("https://shrtnr.test"),
+    ).toBe(true);
   });
 
   it("includes CORS header", async () => {
@@ -249,7 +251,11 @@ describe("MCP tool behavior (service layer)", () => {
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
-    const result = await disableLink(env as never, created.data.id, created.data.created_by);
+    const result = await disableLink(
+      env as never,
+      created.data.id,
+      created.data.created_by,
+    );
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.expires_at).toBeDefined();
@@ -280,7 +286,11 @@ describe("MCP tool behavior (service layer)", () => {
     expect(created.ok).toBe(true);
     if (!created.ok) return;
 
-    const result = await getLinkAnalytics(env as never, created.data.id, undefined);
+    const result = await getLinkAnalytics(
+      env as never,
+      created.data.id,
+      undefined,
+    );
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.total_clicks).toBe(0);
@@ -289,8 +299,14 @@ describe("MCP tool behavior (service layer)", () => {
   });
 
   it("search_links finds a link by label", async () => {
-    await createLink(env as never, { url: "https://oddbit.id", label: "Oddbit website" });
-    await createLink(env as never, { url: "https://example.com", label: "Unrelated page" });
+    await createLink(env as never, {
+      url: "https://oddbit.id",
+      label: "Oddbit website",
+    });
+    await createLink(env as never, {
+      url: "https://example.com",
+      label: "Unrelated page",
+    });
 
     const result = await searchLinks(env as never, "oddbit");
 
@@ -302,9 +318,13 @@ describe("MCP tool behavior (service layer)", () => {
   });
 
   it("search_links finds a link by slug", async () => {
-    const created = await createLink(env as never, { url: "https://oddbit.id/pricing" });
+    const created = await createLink(env as never, {
+      url: "https://oddbit.id/pricing",
+    });
     if (created.ok) {
-      await addCustomSlugToLink(env as never, created.data.id, { slug: "pricing-page" });
+      await addCustomSlugToLink(env as never, created.data.id, {
+        slug: "pricing-page",
+      });
     }
     await createLink(env as never, { url: "https://example.com" });
 
@@ -323,7 +343,9 @@ describe("MCP tool behavior (service layer)", () => {
       label: "Oddbit website",
     });
     if (created.ok) {
-      await addCustomSlugToLink(env as never, created.data.id, { slug: "oddbit-home" });
+      await addCustomSlugToLink(env as never, created.data.id, {
+        slug: "oddbit-home",
+      });
     }
 
     const result = await searchLinks(env as never, "oddbit");
@@ -337,7 +359,10 @@ describe("MCP tool behavior (service layer)", () => {
   });
 
   it("search_links returns empty array when no match", async () => {
-    await createLink(env as never, { url: "https://example.com", label: "Some page" });
+    await createLink(env as never, {
+      url: "https://example.com",
+      label: "Some page",
+    });
 
     const result = await searchLinks(env as never, "xyzzy-no-match");
 
@@ -365,7 +390,10 @@ describe("MCP tool behavior (service layer)", () => {
 
 describe("ShrtnrMCP identity getter", () => {
   it("returns the authenticated email from props without recursing", () => {
-    const agent = Object.create(ShrtnrMCP.prototype) as { props: { email: string }; identity: string };
+    const agent = Object.create(ShrtnrMCP.prototype) as {
+      props: { email: string };
+      identity: string;
+    };
     agent.props = { email: "dennis@oddbit.id" };
     expect(agent.identity).toBe("dennis@oddbit.id");
   });
@@ -383,11 +411,17 @@ describe("ShrtnrMCP identity getter", () => {
 
 describe("create_link duplicate semantics", () => {
   it("second call with the same URL returns the existing link with duplicate meta", async () => {
-    const first = await createLink(env as never, { url: "https://duplicate.example/test", created_by: "dennis@oddbit.id" });
+    const first = await createLink(env as never, {
+      url: "https://duplicate.example/test",
+      created_by: "dennis@oddbit.id",
+    });
     expect(first.ok).toBe(true);
     if (!first.ok) return;
 
-    const second = await createLink(env as never, { url: "https://duplicate.example/test", created_by: "dennis@oddbit.id" });
+    const second = await createLink(env as never, {
+      url: "https://duplicate.example/test",
+      created_by: "dennis@oddbit.id",
+    });
     expect(second.ok).toBe(true);
     if (!second.ok) return;
 
@@ -398,7 +432,10 @@ describe("create_link duplicate semantics", () => {
   });
 
   it("first call returns 201 with no duplicate meta", async () => {
-    const result = await createLink(env as never, { url: "https://fresh.example/test", created_by: "dennis@oddbit.id" });
+    const result = await createLink(env as never, {
+      url: "https://fresh.example/test",
+      created_by: "dennis@oddbit.id",
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.status).toBe(201);
@@ -425,7 +462,9 @@ type JsonRpcResponse = {
  * out of its `data:` payloads. Returns null if the stream closes before any
  * JSON message is observed.
  */
-async function readFirstSseMessage(res: Response): Promise<JsonRpcResponse | null> {
+async function readFirstSseMessage(
+  res: Response,
+): Promise<JsonRpcResponse | null> {
   if (!res.body) return null;
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -537,7 +576,8 @@ describe("MCP error surface", () => {
     expect(res.status).toBe(200);
     const message = await readFirstSseMessage(res);
     expect(message).not.toBeNull();
-    const result = message!.result as { isError?: boolean; content?: { text?: string }[] } | undefined;
+    const result = message!.result as
+      { isError?: boolean; content?: { text?: string }[] } | undefined;
     expect(result).toBeDefined();
     expect(result?.isError).toBe(true);
     expect(result?.content?.[0]?.text).toMatch(/no_such_tool_definitely/);
@@ -567,11 +607,14 @@ describe("MCP error surface", () => {
     expect(res.status).toBe(200);
     const message = await readFirstSseMessage(res);
     expect(message).not.toBeNull();
-    const result = message!.result as { isError?: boolean; content?: { text?: string }[] } | undefined;
+    const result = message!.result as
+      { isError?: boolean; content?: { text?: string }[] } | undefined;
     expect(result).toBeDefined();
     expect(result?.isError).toBe(true);
     // The validation error mentions the tool name and the failing field.
     expect(result?.content?.[0]?.text).toMatch(/create_link/);
-    expect(result?.content?.[0]?.text?.toLowerCase()).toMatch(/url|required|invalid/);
+    expect(result?.content?.[0]?.text?.toLowerCase()).toMatch(
+      /url|required|invalid/,
+    );
   });
 });

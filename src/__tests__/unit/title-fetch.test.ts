@@ -3,7 +3,9 @@ import { extractTitle } from "../../title-fetch";
 
 describe("extractTitle", () => {
   it("extracts a plain title", () => {
-    expect(extractTitle("<html><head><title>Hello World</title></head></html>")).toBe("Hello World");
+    expect(
+      extractTitle("<html><head><title>Hello World</title></head></html>"),
+    ).toBe("Hello World");
   });
 
   it("extracts title with attributes on the tag", () => {
@@ -23,11 +25,15 @@ describe("extractTitle", () => {
   });
 
   it("collapses whitespace and trims", () => {
-    expect(extractTitle("<title>  Hello \n  World  </title>")).toBe("Hello World");
+    expect(extractTitle("<title>  Hello \n  World  </title>")).toBe(
+      "Hello World",
+    );
   });
 
   it("decodes HTML entities", () => {
-    expect(extractTitle("<title>Tom &amp; Jerry &#39;s</title>")).toBe("Tom & Jerry 's");
+    expect(extractTitle("<title>Tom &amp; Jerry &#39;s</title>")).toBe(
+      "Tom & Jerry 's",
+    );
   });
 
   it("handles multiline title", () => {

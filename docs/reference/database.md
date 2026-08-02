@@ -46,26 +46,27 @@ Cloudflare one-click deploy does not copy GitHub Actions workflows, so it does n
 
 Migration files live in `migrations/`, named by sequence number and applied in order:
 
-| File | Description |
-|---|---|
-| `0001_initial.sql` | Initial schema (links, slugs, etc.) |
-| `0002_analytics_schema.sql` | Click analytics tables |
-| `0003_drop_cached_counters.sql` | Remove cached counters |
-| `0004_slug_text_pk.sql` | Slug switched to a text primary key |
-| `0005_bundles.sql` | Bundles support (later removed) and visitor fingerprint column |
-| `0006_self_referrer_flag.sql` | Self-referrer flag |
-| `0007_redirect_settings.sql` | Dynamic redirect rule settings |
-| `0008_pages.sql` | Custom pages support |
-| `0009_drop_bundles.sql` | Remove the bundles feature schema |
-| `0010_ai_search_flag.sql` | AI search click detection flag |
+| File                            | Description                                                    |
+| ------------------------------- | -------------------------------------------------------------- |
+| `0001_initial.sql`              | Initial schema (links, slugs, etc.)                            |
+| `0002_analytics_schema.sql`     | Click analytics tables                                         |
+| `0003_drop_cached_counters.sql` | Remove cached counters                                         |
+| `0004_slug_text_pk.sql`         | Slug switched to a text primary key                            |
+| `0005_bundles.sql`              | Bundles support (later removed) and visitor fingerprint column |
+| `0006_self_referrer_flag.sql`   | Self-referrer flag                                             |
+| `0007_redirect_settings.sql`    | Dynamic redirect rule settings                                 |
+| `0008_pages.sql`                | Custom pages support                                           |
+| `0009_drop_bundles.sql`         | Remove the bundles feature schema                              |
+| `0010_ai_search_flag.sql`       | AI search click detection flag                                 |
 
 ## Migration conventions
 
 ::: tip Data safety
+
 - Preserve all existing data.
 - When recreating a table referenced by `ON DELETE CASCADE` foreign keys, save and drop dependent tables first, then restore after rename.
 - Verify row counts are unchanged in all affected tables post-migration.
-:::
+  :::
 
 ## KV cache
 

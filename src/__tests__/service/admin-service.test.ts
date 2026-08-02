@@ -28,7 +28,9 @@ describe("admin-management service", () => {
   });
 
   it("rejects slug default length below minimum", async () => {
-    const result = await updateAppSettings(env as any, TEST_IDENTITY, { slug_default_length: 2 });
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      slug_default_length: 2,
+    });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -37,7 +39,9 @@ describe("admin-management service", () => {
   });
 
   it("rejects slug default length above maximum", async () => {
-    const result = await updateAppSettings(env as any, TEST_IDENTITY, { slug_default_length: 200 });
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      slug_default_length: 200,
+    });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -46,7 +50,9 @@ describe("admin-management service", () => {
   });
 
   it("updates settings and returns persisted value", async () => {
-    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { slug_default_length: 5 });
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, {
+      slug_default_length: 5,
+    });
     expect(updated.ok).toBe(true);
 
     const settings = await getAppSettings(env as any, TEST_IDENTITY);
@@ -78,7 +84,9 @@ describe("admin-management service", () => {
   it("returns 30d default_range when stored value is empty", async () => {
     await env.DB.prepare(
       "INSERT INTO settings (identity, key, value) VALUES (?, 'default_range', '')",
-    ).bind(TEST_IDENTITY).run();
+    )
+      .bind(TEST_IDENTITY)
+      .run();
     const settings = await getAppSettings(env as any, TEST_IDENTITY);
     expect(settings.ok).toBe(true);
     if (settings.ok) {
@@ -89,7 +97,9 @@ describe("admin-management service", () => {
   it("returns 30d default_range when stored value is invalid", async () => {
     await env.DB.prepare(
       "INSERT INTO settings (identity, key, value) VALUES (?, 'default_range', 'garbage')",
-    ).bind(TEST_IDENTITY).run();
+    )
+      .bind(TEST_IDENTITY)
+      .run();
     const settings = await getAppSettings(env as any, TEST_IDENTITY);
     expect(settings.ok).toBe(true);
     if (settings.ok) {
@@ -98,7 +108,9 @@ describe("admin-management service", () => {
   });
 
   it("persists a valid default_range", async () => {
-    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { default_range: "7d" });
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, {
+      default_range: "7d",
+    });
     expect(updated.ok).toBe(true);
 
     const settings = await getAppSettings(env as any, TEST_IDENTITY);
@@ -109,7 +121,9 @@ describe("admin-management service", () => {
   });
 
   it("rejects an invalid default_range", async () => {
-    const result = await updateAppSettings(env as any, TEST_IDENTITY, { default_range: "42x" as any });
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      default_range: "42x" as any,
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.status).toBe(400);
@@ -118,7 +132,9 @@ describe("admin-management service", () => {
 
   it("accepts every valid range value", async () => {
     for (const r of ["24h", "7d", "30d", "90d", "1y", "all"] as const) {
-      const updated = await updateAppSettings(env as any, TEST_IDENTITY, { default_range: r });
+      const updated = await updateAppSettings(env as any, TEST_IDENTITY, {
+        default_range: r,
+      });
       expect(updated.ok).toBe(true);
       const settings = await getAppSettings(env as any, TEST_IDENTITY);
       if (settings.ok) expect(settings.data.default_range).toBe(r);
@@ -142,16 +158,22 @@ describe("admin-management service", () => {
   });
 
   it("persists filter_ai_searches when toggled off and back on", async () => {
-    const off = await updateAppSettings(env as any, TEST_IDENTITY, { filter_ai_searches: false });
+    const off = await updateAppSettings(env as any, TEST_IDENTITY, {
+      filter_ai_searches: false,
+    });
     expect(off.ok).toBe(true);
     if (off.ok) expect(off.data.filter_ai_searches).toBe(false);
 
-    const on = await updateAppSettings(env as any, TEST_IDENTITY, { filter_ai_searches: true });
+    const on = await updateAppSettings(env as any, TEST_IDENTITY, {
+      filter_ai_searches: true,
+    });
     if (on.ok) expect(on.data.filter_ai_searches).toBe(true);
   });
 
   it("rejects non-boolean filter_ai_searches", async () => {
-    const result = await updateAppSettings(env as any, TEST_IDENTITY, { filter_ai_searches: "nope" as any });
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      filter_ai_searches: "nope" as any,
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.status).toBe(400);
   });
@@ -167,13 +189,17 @@ describe("admin-management service", () => {
   });
 
   it("persists a valid redirect cache duration", async () => {
-    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { redirect_cache_duration_days: 30 });
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, {
+      redirect_cache_duration_days: 30,
+    });
     expect(updated.ok).toBe(true);
     if (updated.ok) expect(updated.data.redirect_cache_duration_days).toBe(30);
   });
 
   it("rejects a redirect cache duration below 1 day", async () => {
-    const result = await updateAppSettings(env as any, TEST_IDENTITY, { redirect_cache_duration_days: 0 });
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      redirect_cache_duration_days: 0,
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.status).toBe(400);
   });
@@ -234,15 +260,21 @@ describe("admin-management service", () => {
   });
 
   it("persists a valid root_redirect_url", async () => {
-    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { root_redirect_url: "https://example.com/root" });
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, {
+      root_redirect_url: "https://example.com/root",
+    });
     expect(updated.ok).toBe(true);
     if (!updated.ok) return;
     expect(updated.data.root_redirect_url).toBe("https://example.com/root");
   });
 
   it("clears root_redirect_url when set to null", async () => {
-    await updateAppSettings(env as any, TEST_IDENTITY, { root_redirect_url: "https://example.com/root" });
-    const cleared = await updateAppSettings(env as any, TEST_IDENTITY, { root_redirect_url: null });
+    await updateAppSettings(env as any, TEST_IDENTITY, {
+      root_redirect_url: "https://example.com/root",
+    });
+    const cleared = await updateAppSettings(env as any, TEST_IDENTITY, {
+      root_redirect_url: null,
+    });
     expect(cleared.ok).toBe(true);
     if (cleared.ok) {
       expect(cleared.data.root_redirect_url).toBeNull();
@@ -250,16 +282,21 @@ describe("admin-management service", () => {
   });
 
   it("rejects invalid root_redirect_url protocol", async () => {
-    const result = await updateAppSettings(env as any, TEST_IDENTITY, { root_redirect_url: "javascript:alert(1)" });
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      root_redirect_url: "javascript:alert(1)",
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.status).toBe(400);
   });
 
   it("treats root_redirect_url as global across identities", async () => {
-    await updateAppSettings(env as any, "user-a@example.com", { root_redirect_url: "https://global.example.com" });
+    await updateAppSettings(env as any, "user-a@example.com", {
+      root_redirect_url: "https://global.example.com",
+    });
     const b = await getAppSettings(env as any, "user-b@example.com");
     expect(b.ok).toBe(true);
-    if (b.ok) expect(b.data.root_redirect_url).toBe("https://global.example.com/");
+    if (b.ok)
+      expect(b.data.root_redirect_url).toBe("https://global.example.com/");
   });
 
   it("returns empty dynamic redirect rules by default", async () => {
@@ -268,7 +305,9 @@ describe("admin-management service", () => {
   });
 
   it("persists filter_bots when toggled off", async () => {
-    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { filter_bots: false });
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, {
+      filter_bots: false,
+    });
     expect(updated.ok).toBe(true);
 
     const settings = await getAppSettings(env as any, TEST_IDENTITY);
@@ -277,7 +316,9 @@ describe("admin-management service", () => {
   });
 
   it("persists filter_self_referrers when toggled off", async () => {
-    const updated = await updateAppSettings(env as any, TEST_IDENTITY, { filter_self_referrers: false });
+    const updated = await updateAppSettings(env as any, TEST_IDENTITY, {
+      filter_self_referrers: false,
+    });
     expect(updated.ok).toBe(true);
 
     const settings = await getAppSettings(env as any, TEST_IDENTITY);
@@ -294,8 +335,12 @@ describe("admin-management service", () => {
   });
 
   it("scopes filter settings by identity", async () => {
-    await updateAppSettings(env as any, "user-a@example.com", { filter_bots: false });
-    await updateAppSettings(env as any, "user-b@example.com", { filter_bots: true });
+    await updateAppSettings(env as any, "user-a@example.com", {
+      filter_bots: false,
+    });
+    await updateAppSettings(env as any, "user-b@example.com", {
+      filter_bots: true,
+    });
 
     const a = await getAppSettings(env as any, "user-a@example.com");
     const b = await getAppSettings(env as any, "user-b@example.com");
@@ -304,7 +349,9 @@ describe("admin-management service", () => {
   });
 
   it("rejects non-boolean filter_bots", async () => {
-    const result = await updateAppSettings(env as any, TEST_IDENTITY, { filter_bots: "nope" as any });
+    const result = await updateAppSettings(env as any, TEST_IDENTITY, {
+      filter_bots: "nope" as any,
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.status).toBe(400);
   });

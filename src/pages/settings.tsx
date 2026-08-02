@@ -30,8 +30,28 @@ type Props = {
   userEmail?: string | null;
 };
 
-export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, redirectCacheDurationDays, redirectCacheThresholdClicks, redirectCacheThresholdWindowDays, dynamicRedirectStrictMatch, t, mcpConfigured, userEmail }) => {
-  const combos = Math.pow(RANDOM_CHARSET.length, Math.max(slugLength, MIN_SLUG_LENGTH));
+export const SettingsPage: FC<Props> = ({
+  theme,
+  slugLength,
+  lang,
+  defaultRange,
+  filterBots,
+  filterSelfReferrers,
+  filterAiSearches,
+  rootRedirectUrl,
+  redirectCacheEnabled,
+  redirectCacheDurationDays,
+  redirectCacheThresholdClicks,
+  redirectCacheThresholdWindowDays,
+  dynamicRedirectStrictMatch,
+  t,
+  mcpConfigured,
+  userEmail,
+}) => {
+  const combos = Math.pow(
+    RANDOM_CHARSET.length,
+    Math.max(slugLength, MIN_SLUG_LENGTH),
+  );
   const comboHint =
     slugLength < MIN_SLUG_LENGTH
       ? t("settings.minLength")
@@ -60,7 +80,8 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   {SUPPORTED_LANGUAGES.map((code) => {
                     const native = t(`lang.${code}` as any);
                     const local = t(`langLocal.${code}` as any);
-                    const label = lang === code ? native : `${native} · ${local}`;
+                    const label =
+                      lang === code ? native : `${native} · ${local}`;
                     return (
                       <option value={code} selected={lang === code}>
                         {label}
@@ -95,7 +116,8 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   data-theme="light"
                   onclick="setTheme('light')"
                 >
-                  <span class="icon">light_mode</span> {t("settings.themeLight")}
+                  <span class="icon">light_mode</span>{" "}
+                  {t("settings.themeLight")}
                 </button>
               </div>
             </div>
@@ -112,11 +134,16 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   min={String(MIN_SLUG_LENGTH)}
                   value={String(slugLength)}
                 />
-                <button class="btn btn-secondary btn-sm" onclick="saveSettings()">
+                <button
+                  class="btn btn-secondary btn-sm"
+                  onclick="saveSettings()"
+                >
                   {t("settings.save")}
                 </button>
               </div>
-              <div class="form-hint" id="slug-combo-hint">{comboHint}</div>
+              <div class="form-hint" id="slug-combo-hint">
+                {comboHint}
+              </div>
             </div>
           </div>
 
@@ -151,7 +178,10 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   placeholder={t("settings.rootRedirectUrlPlaceholder")}
                   value={rootRedirectUrl}
                 />
-                <button class="btn btn-secondary btn-sm" onclick="saveRootRedirectUrl()">
+                <button
+                  class="btn btn-secondary btn-sm"
+                  onclick="saveRootRedirectUrl()"
+                >
                   {t("settings.save")}
                 </button>
               </div>
@@ -180,8 +210,12 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
               </div>
               <div class="toggle-row">
                 <div>
-                  <div class="toggle-label">{t("settings.filterSelfReferrers")}</div>
-                  <div class="toggle-hint">{t("settings.filterSelfReferrersHint")}</div>
+                  <div class="toggle-label">
+                    {t("settings.filterSelfReferrers")}
+                  </div>
+                  <div class="toggle-hint">
+                    {t("settings.filterSelfReferrersHint")}
+                  </div>
                 </div>
                 <label class="toggle-switch">
                   <input
@@ -196,8 +230,12 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
               </div>
               <div class="toggle-row">
                 <div>
-                  <div class="toggle-label">{t("settings.filterAiSearches")}</div>
-                  <div class="toggle-hint">{t("settings.filterAiSearchesHint")}</div>
+                  <div class="toggle-label">
+                    {t("settings.filterAiSearches")}
+                  </div>
+                  <div class="toggle-hint">
+                    {t("settings.filterAiSearchesHint")}
+                  </div>
                 </div>
                 <label class="toggle-switch">
                   <input
@@ -219,7 +257,9 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
               <div class="toggle-row">
                 <div>
                   <div class="toggle-label">{t("settings.redirectCache")}</div>
-                  <div class="toggle-hint">{t("settings.redirectCacheHint")}</div>
+                  <div class="toggle-hint">
+                    {t("settings.redirectCacheHint")}
+                  </div>
                 </div>
                 <label class="toggle-switch">
                   <input
@@ -234,8 +274,12 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
               </div>
               <div class="setting-field-row">
                 <div class="setting-action-copy">
-                  <div class="toggle-label">{t("settings.redirectCacheDuration")}</div>
-                  <div class="toggle-hint">{t("settings.redirectCacheDurationHint")}</div>
+                  <div class="toggle-label">
+                    {t("settings.redirectCacheDuration")}
+                  </div>
+                  <div class="toggle-hint">
+                    {t("settings.redirectCacheDurationHint")}
+                  </div>
                 </div>
                 <div class="setting-field-input">
                   <input
@@ -245,13 +289,19 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                     id="redirect-cache-duration-input"
                     value={String(redirectCacheDurationDays)}
                   />
-                  <span class="setting-field-unit">{t("settings.unitDays")}</span>
+                  <span class="setting-field-unit">
+                    {t("settings.unitDays")}
+                  </span>
                 </div>
               </div>
               <div class="setting-field-row">
                 <div class="setting-action-copy">
-                  <div class="toggle-label">{t("settings.redirectCacheThreshold")}</div>
-                  <div class="toggle-hint">{t("settings.redirectCacheThresholdHint")}</div>
+                  <div class="toggle-label">
+                    {t("settings.redirectCacheThreshold")}
+                  </div>
+                  <div class="toggle-hint">
+                    {t("settings.redirectCacheThresholdHint")}
+                  </div>
                 </div>
                 <div class="setting-field-input">
                   <input
@@ -269,8 +319,13 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                     id="redirect-cache-threshold-window-input"
                     value={String(redirectCacheThresholdWindowDays)}
                   />
-                  <span class="setting-field-unit">{t("settings.unitDays")}</span>
-                  <button class="btn btn-secondary btn-sm" onclick="AdminClient.saveRedirectCacheTuning()">
+                  <span class="setting-field-unit">
+                    {t("settings.unitDays")}
+                  </span>
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    onclick="AdminClient.saveRedirectCacheTuning()"
+                  >
                     {t("settings.save")}
                   </button>
                 </div>
@@ -280,8 +335,12 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   <div class="toggle-label">{t("settings.purgeCache")}</div>
                   <div class="toggle-hint">{t("settings.purgeCacheHint")}</div>
                 </div>
-                <button class="btn btn-secondary btn-sm" onclick="AdminClient.purgeRedirectCache()">
-                  <span class="icon">cached</span> {t("settings.purgeCacheButton")}
+                <button
+                  class="btn btn-secondary btn-sm"
+                  onclick="AdminClient.purgeRedirectCache()"
+                >
+                  <span class="icon">cached</span>{" "}
+                  {t("settings.purgeCacheButton")}
                 </button>
               </div>
             </div>
@@ -292,8 +351,12 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
               <label class="form-label">{t("settings.redirects")}</label>
               <div class="toggle-row">
                 <div>
-                  <div class="toggle-label">{t("settings.dynamicRedirectStrictMatch")}</div>
-                  <div class="toggle-hint">{t("settings.dynamicRedirectStrictMatchHint")}</div>
+                  <div class="toggle-label">
+                    {t("settings.dynamicRedirectStrictMatch")}
+                  </div>
+                  <div class="toggle-hint">
+                    {t("settings.dynamicRedirectStrictMatchHint")}
+                  </div>
                 </div>
                 <label class="toggle-switch">
                   <input
@@ -333,7 +396,9 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
           <div class="bento-card integration-card">
             <div class="integration-card-head">
               <span class="icon">terminal</span>
-              <span class="integration-card-title">{t("settings.sdksTitle")}</span>
+              <span class="integration-card-title">
+                {t("settings.sdksTitle")}
+              </span>
             </div>
             <div class="integration-card-desc">{t("settings.sdksDesc")}</div>
             <ul class="integration-sdk-list">
@@ -344,8 +409,12 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   rel="noopener"
                   class="integration-sdk-link"
                 >
-                  <span class="integration-sdk-lang">{t("settings.sdkTsLang")}</span>
-                  <span class="integration-sdk-pkg">{t("settings.sdkTsPkg")}</span>
+                  <span class="integration-sdk-lang">
+                    {t("settings.sdkTsLang")}
+                  </span>
+                  <span class="integration-sdk-pkg">
+                    {t("settings.sdkTsPkg")}
+                  </span>
                   <span class="icon">open_in_new</span>
                 </a>
               </li>
@@ -356,20 +425,23 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
                   rel="noopener"
                   class="integration-sdk-link"
                 >
-                  <span class="integration-sdk-lang">{t("settings.sdkPythonLang")}</span>
-                  <span class="integration-sdk-pkg">{t("settings.sdkPythonPkg")}</span>
+                  <span class="integration-sdk-lang">
+                    {t("settings.sdkPythonLang")}
+                  </span>
+                  <span class="integration-sdk-pkg">
+                    {t("settings.sdkPythonPkg")}
+                  </span>
                   <span class="icon">open_in_new</span>
                 </a>
               </li>
             </ul>
           </div>
-          <a
-            href="/_/api/docs#tag/links"
-            class="bento-card integration-card"
-          >
+          <a href="/_/api/docs#tag/links" class="bento-card integration-card">
             <div class="integration-card-head">
               <span class="icon">api</span>
-              <span class="integration-card-title">{t("settings.apiTitle")}</span>
+              <span class="integration-card-title">
+                {t("settings.apiTitle")}
+              </span>
             </div>
             <div class="integration-card-desc">{t("settings.apiDesc")}</div>
             <div class="integration-card-link">
@@ -385,12 +457,16 @@ export const SettingsPage: FC<Props> = ({ theme, slugLength, lang, defaultRange,
           >
             <div class="integration-card-head">
               <span class="icon">smart_toy</span>
-              <span class="integration-card-title">{t("settings.mcpTitle")}</span>
+              <span class="integration-card-title">
+                {t("settings.mcpTitle")}
+              </span>
             </div>
             <div class="integration-card-desc">{t("settings.mcpDesc")}</div>
             <div class="integration-card-link">
               <span class="icon">open_in_new</span>
-              {mcpConfigured ? t("settings.mcpDocsLink") : t("settings.mcpSetupLink")}
+              {mcpConfigured
+                ? t("settings.mcpDocsLink")
+                : t("settings.mcpSetupLink")}
             </div>
           </a>
         </div>

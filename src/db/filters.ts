@@ -21,7 +21,8 @@ export function clickFilterSql(filters?: ClickFilters, alias = ""): string {
   const prefix = alias ? `${alias}.` : "";
   const parts: string[] = [];
   if (filters?.excludeBots) parts.push(`${prefix}is_bot = 0`);
-  if (filters?.excludeSelfReferrers) parts.push(`${prefix}is_self_referrer = 0`);
+  if (filters?.excludeSelfReferrers)
+    parts.push(`${prefix}is_self_referrer = 0`);
   if (filters?.excludeAiSearches) parts.push(`${prefix}is_ai_search = 0`);
   return parts.length ? " AND " + parts.join(" AND ") : "";
 }
@@ -41,7 +42,10 @@ export interface SlugClickCountOptions {
  * the bind arguments to pass alongside the outer query. Callers must spread the
  * returned `binds` into their .bind(...) calls AFTER their own binds.
  */
-export function slugClickCountSql(opts?: SlugClickCountOptions): { sql: string; binds: number[] } {
+export function slugClickCountSql(opts?: SlugClickCountOptions): {
+  sql: string;
+  binds: number[];
+} {
   let sql = "(SELECT COUNT(*) FROM clicks c WHERE c.slug = s.slug";
   sql += clickFilterSql(opts?.filters, "c");
   const binds: number[] = [];

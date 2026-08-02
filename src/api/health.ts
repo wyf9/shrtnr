@@ -4,7 +4,14 @@
 import pkg from "../../package.json";
 
 export function handleHealth(): Response {
-  return new Response(JSON.stringify({ status: "ok", version: pkg.version, timestamp: Date.now() }), {
-    headers: { "Content-Type": "application/json" },
-  });
+  return new Response(
+    JSON.stringify({
+      status: "ok",
+      version: pkg.version,
+      timestamp: Date.now(),
+    }),
+    {
+      headers: { "Content-Type": "application/json" },
+    },
+  );
 }

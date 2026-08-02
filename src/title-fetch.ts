@@ -14,7 +14,10 @@ export async function fetchPageTitle(url: string): Promise<string | null> {
     });
 
     const contentType = res.headers.get("content-type") ?? "";
-    if (!contentType.includes("text/html") && !contentType.includes("application/xhtml")) {
+    if (
+      !contentType.includes("text/html") &&
+      !contentType.includes("application/xhtml")
+    ) {
       return null;
     }
 

@@ -50,15 +50,15 @@ bun run db:migrate:remote  # 对远程数据库应用迁移
 
 对应的 npm scripts 定义在 `package.json` 中：
 
-| 脚本 | 命令 |
-|---|---|
-| `dev` | `wrangler dev` |
-| `deploy` | `wrangler deploy` |
-| `wrangler-login` | `wrangler login` |
-| `db:create` | `wrangler d1 create shrtnr-db` |
-| `db:migrate:local` | `wrangler d1 migrations apply DB --local` |
+| 脚本                | 命令                                       |
+| ------------------- | ------------------------------------------ |
+| `dev`               | `wrangler dev`                             |
+| `deploy`            | `wrangler deploy`                          |
+| `wrangler-login`    | `wrangler login`                           |
+| `db:create`         | `wrangler d1 create shrtnr-db`             |
+| `db:migrate:local`  | `wrangler d1 migrations apply DB --local`  |
 | `db:migrate:remote` | `wrangler d1 migrations apply DB --remote` |
-| `secret:put` | `wrangler secret put` |
+| `secret:put`        | `wrangler secret put`                      |
 
 ## 绑定与配置
 

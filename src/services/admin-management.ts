@@ -12,7 +12,10 @@ import {
   DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS,
 } from "../constants";
 import { validateSlugLength } from "../slugs";
-import { parseDynamicRedirectRules, matchDynamicRedirect } from "../redirect-rules";
+import {
+  parseDynamicRedirectRules,
+  matchDynamicRedirect,
+} from "../redirect-rules";
 import { Env, TimelineRange } from "../types";
 import { ServiceResult, ok, fail } from "./result";
 
@@ -27,9 +30,14 @@ type CachePurgeContext = Pick<ExecutionContext, "waitUntil" | "cache">;
  * links are cached so the admin UI stops warning about them. The tag purge is a
  * no-op when the runtime does not expose a cache-purge binding.
  */
-function purgeAllRedirectCache(env: Env, ctx: CachePurgeContext | undefined): void {
+function purgeAllRedirectCache(
+  env: Env,
+  ctx: CachePurgeContext | undefined,
+): void {
   if (ctx?.cache) {
-    ctx.waitUntil(ctx.cache.purge({ tags: [REDIRECT_CACHE_TAG] }).then(() => undefined));
+    ctx.waitUntil(
+      ctx.cache.purge({ tags: [REDIRECT_CACHE_TAG] }).then(() => undefined),
+    );
   }
   const clearMarkers = RedirectCacheMarker.clearAll(env.SLUG_KV);
   if (ctx?.waitUntil) ctx.waitUntil(clearMarkers);
@@ -47,15 +55,24 @@ const VALID_SCOPES = ["create", "read", "create,read"];
 async function hashKey(raw: string): Promise<string> {
   const encoded = new TextEncoder().encode(raw);
   const digest = await crypto.subtle.digest("SHA-256", encoded);
-  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function generateRawKey(): string {
-  return "sk_" + Array.from(crypto.getRandomValues(new Uint8Array(24)))
-    .map((b) => b.toString(16).padStart(2, "0")).join("");
+  return (
+    "sk_" +
+    Array.from(crypto.getRandomValues(new Uint8Array(24)))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("")
+  );
 }
 
-export async function listAllApiKeys(env: Env, identity: string): Promise<ServiceResult<unknown[]>> {
+export async function listAllApiKeys(
+  env: Env,
+  identity: string,
+): Promise<ServiceResult<unknown[]>> {
   const keys = await ApiKeyRepository.list(env.DB, identity);
   const safe = keys.map(({ key_hash, identity: _id, ...rest }) => rest);
   return ok(safe);
@@ -89,13 +106,20 @@ export async function createNewApiKey(
   return ok({ key: safeKey, raw_key: rawKey }, 201);
 }
 
-export async function deleteApiKeyById(env: Env, identity: string, id: number): Promise<ServiceResult<{ ok: true }>> {
+export async function deleteApiKeyById(
+  env: Env,
+  identity: string,
+  id: number,
+): Promise<ServiceResult<{ ok: true }>> {
   const deleted = await ApiKeyRepository.delete(env.DB, identity, id);
   if (!deleted) return fail(404, "Key not found");
   return ok({ ok: true });
 }
 
-export async function authenticateApiKey(env: Env, rawKey: string): Promise<ApiKeyRow | null> {
+export async function authenticateApiKey(
+  env: Env,
+  rawKey: string,
+): Promise<ApiKeyRow | null> {
   const keyHash = await hashKey(rawKey);
   const row = await ApiKeyRepository.findByHash(env.DB, keyHash);
   if (!row) return null;
@@ -142,7 +166,8 @@ function normalizeRootRedirectUrl(value: string | null): string | null {
   if (!trimmed) return null;
   try {
     const parsed = new URL(trimmed);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:")
+      return null;
     return parsed.toString();
   } catch {
     return null;
@@ -153,7 +178,21 @@ export async function getAppSettings(
   env: Env,
   identity: string,
 ): Promise<ServiceResult<AppSettings>> {
-  const [slugLength, theme, lang, defaultRange, filterBots, filterSelfReferrers, filterAiSearches, rootRedirectUrl, redirectCacheEnabled, redirectCacheDurationDays, redirectCacheThresholdClicks, redirectCacheThresholdWindowDays, dynamicRedirectStrictMatch] = await Promise.all([
+  const [
+    slugLength,
+    theme,
+    lang,
+    defaultRange,
+    filterBots,
+    filterSelfReferrers,
+    filterAiSearches,
+    rootRedirectUrl,
+    redirectCacheEnabled,
+    redirectCacheDurationDays,
+    redirectCacheThresholdClicks,
+    redirectCacheThresholdWindowDays,
+    dynamicRedirectStrictMatch,
+  ] = await Promise.all([
     SettingRepository.get(env.DB, identity, "slug_default_length"),
     SettingRepository.get(env.DB, identity, "theme"),
     SettingRepository.get(env.DB, identity, "lang"),
@@ -164,12 +203,23 @@ export async function getAppSettings(
     SettingRepository.get(env.DB, "anonymous", "root_redirect_url"),
     SettingRepository.get(env.DB, "anonymous", "redirect_cache_enabled"),
     SettingRepository.get(env.DB, "anonymous", "redirect_cache_duration_days"),
-    SettingRepository.get(env.DB, "anonymous", "redirect_cache_threshold_clicks"),
-    SettingRepository.get(env.DB, "anonymous", "redirect_cache_threshold_window_days"),
+    SettingRepository.get(
+      env.DB,
+      "anonymous",
+      "redirect_cache_threshold_clicks",
+    ),
+    SettingRepository.get(
+      env.DB,
+      "anonymous",
+      "redirect_cache_threshold_window_days",
+    ),
     SettingRepository.get(env.DB, "anonymous", "dynamic_redirect_strict_match"),
   ]);
   return ok({
-    slug_default_length: parseInt(slugLength ?? String(DEFAULT_SLUG_LENGTH), 10),
+    slug_default_length: parseInt(
+      slugLength ?? String(DEFAULT_SLUG_LENGTH),
+      10,
+    ),
     theme: theme ?? null,
     lang: lang ?? null,
     default_range: isValidRange(defaultRange) ? defaultRange : DEFAULT_RANGE,
@@ -178,10 +228,22 @@ export async function getAppSettings(
     filter_ai_searches: parseBoolSetting(filterAiSearches, true),
     root_redirect_url: normalizeRootRedirectUrl(rootRedirectUrl),
     redirect_cache_enabled: parseBoolSetting(redirectCacheEnabled, false),
-    redirect_cache_duration_days: parseIntSetting(redirectCacheDurationDays, DEFAULT_REDIRECT_CACHE_DURATION_DAYS),
-    redirect_cache_threshold_clicks: parseIntSetting(redirectCacheThresholdClicks, DEFAULT_REDIRECT_CACHE_THRESHOLD_CLICKS),
-    redirect_cache_threshold_window_days: parseIntSetting(redirectCacheThresholdWindowDays, DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS),
-    dynamic_redirect_strict_match: parseBoolSetting(dynamicRedirectStrictMatch, false),
+    redirect_cache_duration_days: parseIntSetting(
+      redirectCacheDurationDays,
+      DEFAULT_REDIRECT_CACHE_DURATION_DAYS,
+    ),
+    redirect_cache_threshold_clicks: parseIntSetting(
+      redirectCacheThresholdClicks,
+      DEFAULT_REDIRECT_CACHE_THRESHOLD_CLICKS,
+    ),
+    redirect_cache_threshold_window_days: parseIntSetting(
+      redirectCacheThresholdWindowDays,
+      DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS,
+    ),
+    dynamic_redirect_strict_match: parseBoolSetting(
+      dynamicRedirectStrictMatch,
+      false,
+    ),
   });
 }
 
@@ -208,7 +270,12 @@ export async function updateAppSettings(
   if (body.slug_default_length !== undefined) {
     const err = validateSlugLength(body.slug_default_length);
     if (err) return fail(400, err);
-    await SettingRepository.set(env.DB, identity, "slug_default_length", String(body.slug_default_length));
+    await SettingRepository.set(
+      env.DB,
+      identity,
+      "slug_default_length",
+      String(body.slug_default_length),
+    );
   }
   if (body.theme !== undefined && typeof body.theme === "string") {
     await SettingRepository.set(env.DB, identity, "theme", body.theme);
@@ -220,45 +287,81 @@ export async function updateAppSettings(
     if (body.default_range === null || body.default_range === "") {
       await SettingRepository.set(env.DB, identity, "default_range", "");
     } else if (isValidRange(body.default_range)) {
-      await SettingRepository.set(env.DB, identity, "default_range", body.default_range);
+      await SettingRepository.set(
+        env.DB,
+        identity,
+        "default_range",
+        body.default_range,
+      );
     } else {
-      return fail(400, `default_range must be one of: ${VALID_RANGES.join(", ")}`);
+      return fail(
+        400,
+        `default_range must be one of: ${VALID_RANGES.join(", ")}`,
+      );
     }
   }
   if (body.filter_bots !== undefined) {
     if (typeof body.filter_bots !== "boolean") {
       return fail(400, "filter_bots must be a boolean");
     }
-    await SettingRepository.set(env.DB, identity, "filter_bots", String(body.filter_bots));
+    await SettingRepository.set(
+      env.DB,
+      identity,
+      "filter_bots",
+      String(body.filter_bots),
+    );
   }
   if (body.filter_self_referrers !== undefined) {
     if (typeof body.filter_self_referrers !== "boolean") {
       return fail(400, "filter_self_referrers must be a boolean");
     }
-    await SettingRepository.set(env.DB, identity, "filter_self_referrers", String(body.filter_self_referrers));
+    await SettingRepository.set(
+      env.DB,
+      identity,
+      "filter_self_referrers",
+      String(body.filter_self_referrers),
+    );
   }
   if (body.filter_ai_searches !== undefined) {
     if (typeof body.filter_ai_searches !== "boolean") {
       return fail(400, "filter_ai_searches must be a boolean");
     }
-    await SettingRepository.set(env.DB, identity, "filter_ai_searches", String(body.filter_ai_searches));
+    await SettingRepository.set(
+      env.DB,
+      identity,
+      "filter_ai_searches",
+      String(body.filter_ai_searches),
+    );
   }
   if (body.root_redirect_url !== undefined) {
-    if (body.root_redirect_url === null || body.root_redirect_url.trim() === "") {
+    if (
+      body.root_redirect_url === null ||
+      body.root_redirect_url.trim() === ""
+    ) {
       await SettingRepository.set(env.DB, "anonymous", "root_redirect_url", "");
     } else {
       const normalized = normalizeRootRedirectUrl(body.root_redirect_url);
       if (!normalized) {
         return fail(400, "root_redirect_url must be a valid http or https URL");
       }
-      await SettingRepository.set(env.DB, "anonymous", "root_redirect_url", normalized);
+      await SettingRepository.set(
+        env.DB,
+        "anonymous",
+        "root_redirect_url",
+        normalized,
+      );
     }
   }
   if (body.redirect_cache_enabled !== undefined) {
     if (typeof body.redirect_cache_enabled !== "boolean") {
       return fail(400, "redirect_cache_enabled must be a boolean");
     }
-    await SettingRepository.set(env.DB, "anonymous", "redirect_cache_enabled", String(body.redirect_cache_enabled));
+    await SettingRepository.set(
+      env.DB,
+      "anonymous",
+      "redirect_cache_enabled",
+      String(body.redirect_cache_enabled),
+    );
     // Turning the cache off must also drop every already-cached redirect.
     // Otherwise clients keep replaying the long-lived 301 straight from the
     // edge, the Worker never runs, and click analytics stay broken until the
@@ -271,41 +374,80 @@ export async function updateAppSettings(
   if (body.redirect_cache_duration_days !== undefined) {
     const days = body.redirect_cache_duration_days;
     if (!Number.isInteger(days) || days < 1) {
-      return fail(400, "redirect_cache_duration_days must be a positive integer number of days");
+      return fail(
+        400,
+        "redirect_cache_duration_days must be a positive integer number of days",
+      );
     }
-    await SettingRepository.set(env.DB, "anonymous", "redirect_cache_duration_days", String(days));
+    await SettingRepository.set(
+      env.DB,
+      "anonymous",
+      "redirect_cache_duration_days",
+      String(days),
+    );
   }
-  if (body.redirect_cache_threshold_clicks !== undefined || body.redirect_cache_threshold_window_days !== undefined) {
+  if (
+    body.redirect_cache_threshold_clicks !== undefined ||
+    body.redirect_cache_threshold_window_days !== undefined
+  ) {
     // The threshold has two parts (clicks + window). Validate the effective
     // pair so a partial update can't leave one at zero and the other positive.
     const current = await getAppSettings(env, identity);
-    const curClicks = current.ok ? current.data.redirect_cache_threshold_clicks : DEFAULT_REDIRECT_CACHE_THRESHOLD_CLICKS;
-    const curWindow = current.ok ? current.data.redirect_cache_threshold_window_days : DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS;
+    const curClicks = current.ok
+      ? current.data.redirect_cache_threshold_clicks
+      : DEFAULT_REDIRECT_CACHE_THRESHOLD_CLICKS;
+    const curWindow = current.ok
+      ? current.data.redirect_cache_threshold_window_days
+      : DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS;
     const clicks = body.redirect_cache_threshold_clicks ?? curClicks;
     const windowDays = body.redirect_cache_threshold_window_days ?? curWindow;
     if (!Number.isInteger(clicks) || clicks < 0) {
-      return fail(400, "redirect_cache_threshold_clicks must be a non-negative integer");
+      return fail(
+        400,
+        "redirect_cache_threshold_clicks must be a non-negative integer",
+      );
     }
     if (!Number.isInteger(windowDays) || windowDays < 0) {
-      return fail(400, "redirect_cache_threshold_window_days must be a non-negative integer number of days");
+      return fail(
+        400,
+        "redirect_cache_threshold_window_days must be a non-negative integer number of days",
+      );
     }
     // Both zero caches every link; both positive gates by traffic. Exactly one
     // zero is ambiguous, so reject it.
     if ((clicks === 0) !== (windowDays === 0)) {
-      return fail(400, "redirect_cache_threshold_clicks and redirect_cache_threshold_window_days must both be zero (cache all) or both be positive");
+      return fail(
+        400,
+        "redirect_cache_threshold_clicks and redirect_cache_threshold_window_days must both be zero (cache all) or both be positive",
+      );
     }
     if (body.redirect_cache_threshold_clicks !== undefined) {
-      await SettingRepository.set(env.DB, "anonymous", "redirect_cache_threshold_clicks", String(clicks));
+      await SettingRepository.set(
+        env.DB,
+        "anonymous",
+        "redirect_cache_threshold_clicks",
+        String(clicks),
+      );
     }
     if (body.redirect_cache_threshold_window_days !== undefined) {
-      await SettingRepository.set(env.DB, "anonymous", "redirect_cache_threshold_window_days", String(windowDays));
+      await SettingRepository.set(
+        env.DB,
+        "anonymous",
+        "redirect_cache_threshold_window_days",
+        String(windowDays),
+      );
     }
   }
   if (body.dynamic_redirect_strict_match !== undefined) {
     if (typeof body.dynamic_redirect_strict_match !== "boolean") {
       return fail(400, "dynamic_redirect_strict_match must be a boolean");
     }
-    await SettingRepository.set(env.DB, "anonymous", "dynamic_redirect_strict_match", String(body.dynamic_redirect_strict_match));
+    await SettingRepository.set(
+      env.DB,
+      "anonymous",
+      "dynamic_redirect_strict_match",
+      String(body.dynamic_redirect_strict_match),
+    );
   }
 
   return getAppSettings(env, identity);
@@ -316,7 +458,10 @@ export async function updateAppSettings(
  * can force stale 301s out of the edge cache without waiting for the TTL, for
  * example after noticing analytics undercounting.
  */
-export async function purgeRedirectCache(env: Env, ctx?: CachePurgeContext): Promise<ServiceResult<{ ok: true }>> {
+export async function purgeRedirectCache(
+  env: Env,
+  ctx?: CachePurgeContext,
+): Promise<ServiceResult<{ ok: true }>> {
   purgeAllRedirectCache(env, ctx);
   return ok({ ok: true });
 }
@@ -325,7 +470,10 @@ export async function purgeRedirectCache(env: Env, ctx?: CachePurgeContext): Pro
  * Return the subset of `slugs` whose redirect is currently edge-cached (and
  * therefore under-counting clicks). Empty when the cache is disabled.
  */
-export async function resolveCachedSlugs(env: Env, slugs: string[]): Promise<Set<string>> {
+export async function resolveCachedSlugs(
+  env: Env,
+  slugs: string[],
+): Promise<Set<string>> {
   if (slugs.length === 0) return new Set();
   const enabled = await isRedirectCacheEnabled(env);
   if (!enabled) return new Set();
@@ -333,7 +481,11 @@ export async function resolveCachedSlugs(env: Env, slugs: string[]): Promise<Set
 }
 
 export async function isRedirectCacheEnabled(env: Env): Promise<boolean> {
-  const stored = await SettingRepository.get(env.DB, "anonymous", "redirect_cache_enabled");
+  const stored = await SettingRepository.get(
+    env.DB,
+    "anonymous",
+    "redirect_cache_enabled",
+  );
   return parseBoolSetting(stored, false);
 }
 
@@ -350,18 +502,42 @@ export type RedirectCacheConfig = {
  * Resolve the full redirect-cache configuration in a single settings read.
  * Used by the redirect handler to decide whether and for how long to cache.
  */
-export async function getRedirectCacheConfig(env: Env): Promise<RedirectCacheConfig> {
-  const [enabled, durationDays, thresholdClicks, thresholdWindowDays] = await Promise.all([
-    SettingRepository.get(env.DB, "anonymous", "redirect_cache_enabled"),
-    SettingRepository.get(env.DB, "anonymous", "redirect_cache_duration_days"),
-    SettingRepository.get(env.DB, "anonymous", "redirect_cache_threshold_clicks"),
-    SettingRepository.get(env.DB, "anonymous", "redirect_cache_threshold_window_days"),
-  ]);
-  const clicks = parseIntSetting(thresholdClicks, DEFAULT_REDIRECT_CACHE_THRESHOLD_CLICKS);
-  const windowDays = parseIntSetting(thresholdWindowDays, DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS);
+export async function getRedirectCacheConfig(
+  env: Env,
+): Promise<RedirectCacheConfig> {
+  const [enabled, durationDays, thresholdClicks, thresholdWindowDays] =
+    await Promise.all([
+      SettingRepository.get(env.DB, "anonymous", "redirect_cache_enabled"),
+      SettingRepository.get(
+        env.DB,
+        "anonymous",
+        "redirect_cache_duration_days",
+      ),
+      SettingRepository.get(
+        env.DB,
+        "anonymous",
+        "redirect_cache_threshold_clicks",
+      ),
+      SettingRepository.get(
+        env.DB,
+        "anonymous",
+        "redirect_cache_threshold_window_days",
+      ),
+    ]);
+  const clicks = parseIntSetting(
+    thresholdClicks,
+    DEFAULT_REDIRECT_CACHE_THRESHOLD_CLICKS,
+  );
+  const windowDays = parseIntSetting(
+    thresholdWindowDays,
+    DEFAULT_REDIRECT_CACHE_THRESHOLD_WINDOW_DAYS,
+  );
   return {
     enabled: parseBoolSetting(enabled, false),
-    durationDays: parseIntSetting(durationDays, DEFAULT_REDIRECT_CACHE_DURATION_DAYS),
+    durationDays: parseIntSetting(
+      durationDays,
+      DEFAULT_REDIRECT_CACHE_DURATION_DAYS,
+    ),
     thresholdClicks: clicks,
     thresholdWindowDays: windowDays,
     cacheAll: clicks === 0 && windowDays === 0,
@@ -369,21 +545,38 @@ export async function getRedirectCacheConfig(env: Env): Promise<RedirectCacheCon
 }
 
 export async function getRootRedirectUrl(env: Env): Promise<string | null> {
-  const stored = await SettingRepository.get(env.DB, "anonymous", "root_redirect_url");
+  const stored = await SettingRepository.get(
+    env.DB,
+    "anonymous",
+    "root_redirect_url",
+  );
   return normalizeRootRedirectUrl(stored);
 }
 
 export async function getDynamicRedirectRules(env: Env): Promise<string> {
-  const stored = await SettingRepository.get(env.DB, "anonymous", "dynamic_redirect_rules");
+  const stored = await SettingRepository.get(
+    env.DB,
+    "anonymous",
+    "dynamic_redirect_rules",
+  );
   return stored ?? "";
 }
 
-export async function isDynamicRedirectStrictMatchEnabled(env: Env): Promise<boolean> {
-  const stored = await SettingRepository.get(env.DB, "anonymous", "dynamic_redirect_strict_match");
+export async function isDynamicRedirectStrictMatchEnabled(
+  env: Env,
+): Promise<boolean> {
+  const stored = await SettingRepository.get(
+    env.DB,
+    "anonymous",
+    "dynamic_redirect_strict_match",
+  );
   return parseBoolSetting(stored, false);
 }
 
-export async function getDynamicRedirect(env: Env, requestUrl: string): Promise<{ url: string } | null> {
+export async function getDynamicRedirect(
+  env: Env,
+  requestUrl: string,
+): Promise<{ url: string } | null> {
   const [rules, strict] = await Promise.all([
     getDynamicRedirectRules(env),
     isDynamicRedirectStrictMatchEnabled(env),
@@ -398,9 +591,17 @@ export async function getDynamicRedirect(env: Env, requestUrl: string): Promise<
  * Resolve the viewer's analytics filter preferences into a ClickFilters object
  * ready to pass to the repository layer.
  */
-export async function resolveClickFilters(env: Env, identity: string): Promise<ClickFilters> {
+export async function resolveClickFilters(
+  env: Env,
+  identity: string,
+): Promise<ClickFilters> {
   const result = await getAppSettings(env, identity);
-  if (!result.ok) return { excludeBots: true, excludeSelfReferrers: true, excludeAiSearches: true };
+  if (!result.ok)
+    return {
+      excludeBots: true,
+      excludeSelfReferrers: true,
+      excludeAiSearches: true,
+    };
   return {
     excludeBots: result.data.filter_bots,
     excludeSelfReferrers: result.data.filter_self_referrers,

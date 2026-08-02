@@ -43,10 +43,10 @@ https://<your-team-name>.cloudflareaccess.com/cdn-cgi/access/certs
 
 ## 相关 Worker Secret
 
-| Secret | 用途 |
-|---|---|
-| `ACCESS_AUD` | 管理应用的 AUD Tag，启用管理请求的 JWT 校验 |
-| `ACCESS_JWKS_URL` | Cloudflare Access 的 JWKS 证书地址 |
-| `MCP_ACCESS_AUD` | MCP Access 应用的 AUD Tag，见 [MCP 服务器](/zh/integrations/mcp) |
+| Secret            | 用途                                                             |
+| ----------------- | ---------------------------------------------------------------- |
+| `ACCESS_AUD`      | 管理应用的 AUD Tag，启用管理请求的 JWT 校验                      |
+| `ACCESS_JWKS_URL` | Cloudflare Access 的 JWKS 证书地址                               |
+| `MCP_ACCESS_AUD`  | MCP Access 应用的 AUD Tag，见 [MCP 服务器](/zh/integrations/mcp) |
 
 相关实现见 `src/access.ts` 与 `src/auth.ts`。

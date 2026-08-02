@@ -76,7 +76,10 @@ describe("Links listing page", () => {
   });
 
   it("the range query param overrides the default and updates the column header", async () => {
-    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const res = await SELF.fetch(req("/_/admin/links?range=7d"));
     const html = await res.text();
     expect(html).toMatch(/Clicks\s*\(7d\)/i);
@@ -91,10 +94,14 @@ describe("Links listing page", () => {
     const now = Math.floor(Date.now() / 1000);
     await env.DB.prepare(
       "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(slug, now - 60).run();
+    )
+      .bind(slug, now - 60)
+      .run();
     await env.DB.prepare(
       "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(slug, now - 60 * 86400).run();
+    )
+      .bind(slug, now - 60 * 86400)
+      .run();
 
     const all = await SELF.fetch(req("/_/admin/links?range=all"));
     const allHtml = await all.text();
@@ -108,12 +115,21 @@ describe("Links listing page", () => {
   });
 
   it("changing filter or sort preserves the active range in URLs", async () => {
-    await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const res = await SELF.fetch(req("/_/admin/links?range=7d"));
     const html = await res.text();
     // Param order is implementation-defined; assert that range=7d co-occurs with each navigation link.
-    const sortHrefs = [...html.matchAll(/href="(\/_\/admin\/links\?[^"]*sort=popular[^"]*)"/g)].map((m) => m[1]);
-    const filterHrefs = [...html.matchAll(/href="(\/_\/admin\/links\?[^"]*filter=disabled[^"]*)"/g)].map((m) => m[1]);
+    const sortHrefs = [
+      ...html.matchAll(/href="(\/_\/admin\/links\?[^"]*sort=popular[^"]*)"/g),
+    ].map((m) => m[1]);
+    const filterHrefs = [
+      ...html.matchAll(
+        /href="(\/_\/admin\/links\?[^"]*filter=disabled[^"]*)"/g,
+      ),
+    ].map((m) => m[1]);
     expect(sortHrefs.some((h) => h.includes("range=7d"))).toBe(true);
     expect(filterHrefs.some((h) => h.includes("range=7d"))).toBe(true);
   });
@@ -137,7 +153,9 @@ describe("Links listing page", () => {
     // Delta pill should be present somewhere
     expect(html).toMatch(/class="delta /);
     // The delta should appear in a created-column cell, not a clicks-column cell
-    expect(html).toMatch(/<td[^>]*class="[^"]*col-date[^"]*"[^>]*>[\s\S]*?class="delta /);
+    expect(html).toMatch(
+      /<td[^>]*class="[^"]*col-date[^"]*"[^>]*>[\s\S]*?class="delta /,
+    );
   });
 
   it("pagination shows a '1–N of Total' summary", async () => {

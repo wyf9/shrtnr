@@ -33,7 +33,9 @@ export function normalizeHost(host: string): string {
   return lower.startsWith("www.") ? lower.slice(4) : lower;
 }
 
-export function parseAppReferrer(rawReferrer: string): { packageName: string } | null {
+export function parseAppReferrer(
+  rawReferrer: string,
+): { packageName: string } | null {
   for (const prefix of APP_SCHEME_PREFIXES) {
     if (rawReferrer.startsWith(prefix)) {
       const rest = rawReferrer.slice(prefix.length);
@@ -65,7 +67,10 @@ export function parseReferrerHost(rawReferrer: string | null): string | null {
 // root landing page, but content-less landing pages make those clicks
 // uninformative (often bot-forged). Meaningful same-host referrers like
 // `/_/admin/settings` are kept so internal link-click tracking survives.
-export function isBareOriginSelfReferrer(rawReferrer: string | null, requestHost: string): boolean {
+export function isBareOriginSelfReferrer(
+  rawReferrer: string | null,
+  requestHost: string,
+): boolean {
   if (!rawReferrer) return false;
   try {
     const u = new URL(rawReferrer);

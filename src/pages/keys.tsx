@@ -36,14 +36,9 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
     <>
       <div class="page-header">
         <div class="page-title">{t("keys.title")}</div>
-        <div class="page-subtitle">
-          {t("keys.subtitle")}
-        </div>
+        <div class="page-subtitle">{t("keys.subtitle")}</div>
         <div class="page-note">
-          {t("keys.docsNote")}{" "}
-          <a href="/_/api/docs">
-            {t("keys.docsLink")}
-          </a>
+          {t("keys.docsNote")} <a href="/_/api/docs">{t("keys.docsLink")}</a>
         </div>
       </div>
 
@@ -59,9 +54,7 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
       {keys.length === 0 ? (
         <div class="empty-state">
           <span class="icon">key_off</span>
-          <p>
-            {t("keys.empty")}
-          </p>
+          <p>{t("keys.empty")}</p>
         </div>
       ) : (
         <div class="bento-card bento-card-flush">
@@ -82,9 +75,13 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
                   const scopes = k.scope.split(",");
                   return (
                     <tr>
-                      <td data-label={t("keys.colTitle")} class="col-title">{k.title}</td>
+                      <td data-label={t("keys.colTitle")} class="col-title">
+                        {k.title}
+                      </td>
                       <td data-label={t("keys.colKey")}>
-                        <span class="col-key-prefix">{k.key_prefix}&hellip;</span>
+                        <span class="col-key-prefix">
+                          {k.key_prefix}&hellip;
+                        </span>
                       </td>
                       <td data-label={t("keys.colScope")}>
                         {scopes.map((s) => (
@@ -94,7 +91,10 @@ export const KeysPage: FC<Props> = ({ keys, t, lang }) => {
                       <td data-label={t("keys.colCreated")} class="col-date">
                         {formatDate(k.created_at, lang)}
                       </td>
-                      <td data-label={t("keys.colLastUsed")} class="col-last-used">
+                      <td
+                        data-label={t("keys.colLastUsed")}
+                        class="col-last-used"
+                      >
                         {k.last_used_at ? (
                           formatDate(k.last_used_at, lang)
                         ) : (

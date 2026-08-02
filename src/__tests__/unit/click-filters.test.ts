@@ -80,22 +80,35 @@ async function seedClicksWithAiSearch(slug: string): Promise<void> {
 
 describe("ClickRepository.getStats: excludeAiSearches", () => {
   it("excludeAiSearches=true drops AI-search clicks from totals and breakdowns", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ai1" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "ai1",
+    });
     await seedClicksWithAiSearch(link.slugs[0].slug);
 
     const raw = await ClickRepository.getStats(env.DB, link.id);
     expect(raw.total_clicks).toBe(3);
 
-    const filtered = await ClickRepository.getStats(env.DB, link.id, undefined, {
-      excludeAiSearches: true,
-    });
+    const filtered = await ClickRepository.getStats(
+      env.DB,
+      link.id,
+      undefined,
+      {
+        excludeAiSearches: true,
+      },
+    );
     expect(filtered.total_clicks).toBe(2);
-    expect(filtered.referrer_hosts.map((r) => r.name)).not.toContain("chatgpt.com");
+    expect(filtered.referrer_hosts.map((r) => r.name)).not.toContain(
+      "chatgpt.com",
+    );
     expect(filtered.countries.find((c) => c.name === "NL")).toBeUndefined();
   });
 
   it("leaves AI-search clicks in place when the filter is off", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "ai2" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "ai2",
+    });
     await seedClicksWithAiSearch(link.slugs[0].slug);
 
     const stats = await ClickRepository.getStats(env.DB, link.id, undefined, {
@@ -109,20 +122,29 @@ describe("ClickRepository.getStats: excludeAiSearches", () => {
 
 describe("ClickRepository.getStats: ClickFilters", () => {
   it("no filter passed: all clicks counted everywhere", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f1a" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "f1a",
+    });
     await seedClicksMixed(link.slugs[0].slug);
 
     const stats = await ClickRepository.getStats(env.DB, link.id);
 
     expect(stats.total_clicks).toBe(4);
-    expect(stats.referrer_hosts.map((r) => r.name).sort()).toEqual(
-      ["crawler.example", "github.com", "pub.dev", "shrtnr.test"],
-    );
+    expect(stats.referrer_hosts.map((r) => r.name).sort()).toEqual([
+      "crawler.example",
+      "github.com",
+      "pub.dev",
+      "shrtnr.test",
+    ]);
     expect(stats.countries.find((c) => c.name === "US")?.count).toBe(2);
   });
 
   it("excludeBots=true: bot clicks drop from totals, breakdowns, and distinct counts", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f1b" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "f1b",
+    });
     await seedClicksMixed(link.slugs[0].slug);
 
     const stats = await ClickRepository.getStats(env.DB, link.id, undefined, {
@@ -130,12 +152,17 @@ describe("ClickRepository.getStats: ClickFilters", () => {
     });
 
     expect(stats.total_clicks).toBe(3);
-    expect(stats.referrer_hosts.map((r) => r.name)).not.toContain("crawler.example");
+    expect(stats.referrer_hosts.map((r) => r.name)).not.toContain(
+      "crawler.example",
+    );
     expect(stats.browsers.map((b) => b.name)).not.toContain("Bot");
   });
 
   it("excludeSelfReferrers=true: self-referrer clicks drop from totals and breakdowns", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f1c" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "f1c",
+    });
     await seedClicksMixed(link.slugs[0].slug);
 
     const stats = await ClickRepository.getStats(env.DB, link.id, undefined, {
@@ -143,13 +170,18 @@ describe("ClickRepository.getStats: ClickFilters", () => {
     });
 
     expect(stats.total_clicks).toBe(3);
-    expect(stats.referrer_hosts.map((r) => r.name)).not.toContain("shrtnr.test");
+    expect(stats.referrer_hosts.map((r) => r.name)).not.toContain(
+      "shrtnr.test",
+    );
     // A self-referrer click from ID contributed; with the filter on, ID drops out.
     expect(stats.countries.find((c) => c.name === "ID")).toBeUndefined();
   });
 
   it("both filters on: only the two real clicks remain", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f1d" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "f1d",
+    });
     await seedClicksMixed(link.slugs[0].slug);
 
     const stats = await ClickRepository.getStats(env.DB, link.id, undefined, {
@@ -158,27 +190,44 @@ describe("ClickRepository.getStats: ClickFilters", () => {
     });
 
     expect(stats.total_clicks).toBe(2);
-    expect(stats.referrer_hosts.map((r) => r.name).sort()).toEqual(["github.com", "pub.dev"]);
+    expect(stats.referrer_hosts.map((r) => r.name).sort()).toEqual([
+      "github.com",
+      "pub.dev",
+    ]);
   });
 });
 
 describe("ClickRepository.getDashboardStats: ClickFilters", () => {
   it("both filters on: KPIs, breakdowns and top-links all drop bot + self-referrer clicks", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f2a" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "f2a",
+    });
     await seedClicksMixed(link.slugs[0].slug);
 
-    const stats = await ClickRepository.getDashboardStats(env.DB, "all", undefined, {
-      excludeBots: true,
-      excludeSelfReferrers: true,
-    });
+    const stats = await ClickRepository.getDashboardStats(
+      env.DB,
+      "all",
+      undefined,
+      {
+        excludeBots: true,
+        excludeSelfReferrers: true,
+      },
+    );
 
     expect(stats.total_clicks).toBe(2);
-    expect(stats.top_referrers.map((r) => r.name).sort()).toEqual(["github.com", "pub.dev"]);
+    expect(stats.top_referrers.map((r) => r.name).sort()).toEqual([
+      "github.com",
+      "pub.dev",
+    ]);
     expect(stats.num_referrers).toBe(2);
   });
 
   it("no filter passed: every click counted in dashboard totals and breakdowns", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f2b" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "f2b",
+    });
     await seedClicksMixed(link.slugs[0].slug);
 
     const stats = await ClickRepository.getDashboardStats(env.DB, "all");
@@ -189,13 +238,21 @@ describe("ClickRepository.getDashboardStats: ClickFilters", () => {
   });
 
   it("recent_links[].total_clicks honors filters so cards match the filtered KPIs", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f2c" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "f2c",
+    });
     await seedClicksMixed(link.slugs[0].slug);
 
-    const filtered = await ClickRepository.getDashboardStats(env.DB, "all", undefined, {
-      excludeBots: true,
-      excludeSelfReferrers: true,
-    });
+    const filtered = await ClickRepository.getDashboardStats(
+      env.DB,
+      "all",
+      undefined,
+      {
+        excludeBots: true,
+        excludeSelfReferrers: true,
+      },
+    );
     const raw = await ClickRepository.getDashboardStats(env.DB, "all");
 
     expect(raw.recent_links[0].total_clicks).toBe(4);
@@ -203,15 +260,22 @@ describe("ClickRepository.getDashboardStats: ClickFilters", () => {
   });
 
   it("recent_links[].total_clicks honors the selected time range", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f2d" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "f2d",
+    });
     const slug = link.slugs[0].slug;
     const now = Math.floor(Date.now() / 1000);
     await env.DB.prepare(
       "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(slug, now - 60 * 86400).run();
+    )
+      .bind(slug, now - 60 * 86400)
+      .run();
     await env.DB.prepare(
       "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(slug, now - 60).run();
+    )
+      .bind(slug, now - 60)
+      .run();
 
     const all = await ClickRepository.getDashboardStats(env.DB, "all", now);
     const last7 = await ClickRepository.getDashboardStats(env.DB, "7d", now);
@@ -223,7 +287,10 @@ describe("ClickRepository.getDashboardStats: ClickFilters", () => {
 
 describe("ClickRepository.getTotalClicks / getGlobalBreakdown: ClickFilters", () => {
   it("getTotalClicks respects both filters", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f4a" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "f4a",
+    });
     await seedClicksMixed(link.slugs[0].slug);
 
     const filtered = await ClickRepository.getTotalClicks(env.DB, "all", {
@@ -237,13 +304,22 @@ describe("ClickRepository.getTotalClicks / getGlobalBreakdown: ClickFilters", ()
   });
 
   it("getGlobalBreakdown(country) drops countries contributed only by filtered clicks", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "f4b" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "f4b",
+    });
     await seedClicksMixed(link.slugs[0].slug);
 
-    const filtered = await ClickRepository.getGlobalBreakdown(env.DB, "country", "all", 10, {
-      excludeBots: true,
-      excludeSelfReferrers: true,
-    });
+    const filtered = await ClickRepository.getGlobalBreakdown(
+      env.DB,
+      "country",
+      "all",
+      10,
+      {
+        excludeBots: true,
+        excludeSelfReferrers: true,
+      },
+    );
 
     const names = filtered.map((c) => c.name).sort();
     expect(names).toEqual(["SE", "US"]);

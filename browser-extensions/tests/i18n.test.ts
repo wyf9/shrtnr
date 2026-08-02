@@ -38,12 +38,16 @@ describe("i18n.createTranslateFn", () => {
 
   it("interpolates {host} placeholders", () => {
     const t = createTranslateFn("en");
-    expect(t("error.network", { host: "example.com" })).toContain("example.com");
+    expect(t("error.network", { host: "example.com" })).toContain(
+      "example.com",
+    );
   });
 
   it("interpolates {message} for validation errors", () => {
     const t = createTranslateFn("en");
-    expect(t("error.validation", { message: "URL too long" })).toBe("URL too long");
+    expect(t("error.validation", { message: "URL too long" })).toBe(
+      "URL too long",
+    );
   });
 
   it("returns the key itself when missing in both target and fallback", () => {
@@ -78,7 +82,10 @@ describe("i18n key parity", () => {
     for (const [lang, table] of Object.entries({ en, id, sv })) {
       for (const [key, value] of Object.entries(table)) {
         expect(typeof value, `${lang}.${key} must be a string`).toBe("string");
-        expect(String(value).trim(), `${lang}.${key} must be non-empty`).not.toBe("");
+        expect(
+          String(value).trim(),
+          `${lang}.${key} must be non-empty`,
+        ).not.toBe("");
       }
     }
   });
@@ -92,8 +99,12 @@ describe("i18n key parity", () => {
       const enPlaceholders = (enValue.match(placeholderRe) ?? []).sort();
       const idPlaceholders = (idValue.match(placeholderRe) ?? []).sort();
       const svPlaceholders = (svValue.match(placeholderRe) ?? []).sort();
-      expect(idPlaceholders, `id.${key} placeholders must match en`).toEqual(enPlaceholders);
-      expect(svPlaceholders, `sv.${key} placeholders must match en`).toEqual(enPlaceholders);
+      expect(idPlaceholders, `id.${key} placeholders must match en`).toEqual(
+        enPlaceholders,
+      );
+      expect(svPlaceholders, `sv.${key} placeholders must match en`).toEqual(
+        enPlaceholders,
+      );
     }
   });
 });

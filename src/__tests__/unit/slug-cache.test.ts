@@ -60,6 +60,8 @@ describe("SlugCache", () => {
   });
 
   it("delete on a missing key does not throw", async () => {
-    await expect(SlugCache.delete(env.SLUG_KV, "nonexistent")).resolves.toBeUndefined();
+    await expect(
+      SlugCache.delete(env.SLUG_KV, "nonexistent"),
+    ).resolves.toBeUndefined();
   });
 });

@@ -4,7 +4,12 @@
 import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import { SELF, env } from "cloudflare:test";
 import { applyMigrations, resetData } from "../setup";
-import { LinkRepository, ClickRepository, SettingRepository, SlugRepository } from "../../db";
+import {
+  LinkRepository,
+  ClickRepository,
+  SettingRepository,
+  SlugRepository,
+} from "../../db";
 
 function req(path: string): Request {
   return new Request(`https://shrtnr.test${path}`);
@@ -27,20 +32,37 @@ beforeEach(resetData);
 
 describe("Link detail page server render", () => {
   it("shows delete action for the auto slug when another slug exists", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc", createdBy: "test@example.com" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+      createdBy: "test@example.com",
+    });
     await SlugRepository.addCustom(env.DB, link.id, "brand");
 
     const res = await SELF.fetch(authedReq(`/_/admin/links/${link.id}`));
     expect(res.status).toBe(200);
     const html = await res.text();
 
-    expect(html).toMatch(new RegExp(`confirmDeleteSlug\\(${link.id}, (?:'|&#39;)abc(?:'|&#39;)\\)`));
+    expect(html).toMatch(
+      new RegExp(
+        `confirmDeleteSlug\\(${link.id}, (?:'|&#39;)abc(?:'|&#39;)\\)`,
+      ),
+    );
   });
 
   it("hero total_clicks reflects the user's bot filter on first paint", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].slug, { isBot: 0, isSelfReferrer: 0 });
-    await ClickRepository.record(env.DB, link.slugs[0].slug, { isBot: 1, isSelfReferrer: 0 });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, {
+      isBot: 0,
+      isSelfReferrer: 0,
+    });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, {
+      isBot: 1,
+      isSelfReferrer: 0,
+    });
 
     // Default: filter_bots is on per resolveClickFilters fallback.
     const res = await SELF.fetch(req(`/_/admin/links/${link.id}`));
@@ -53,30 +75,51 @@ describe("Link detail page server render", () => {
   });
 
   it("slug breakdown rows reflect the user's bot filter on first paint", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
-    await ClickRepository.record(env.DB, link.slugs[0].slug, { isBot: 0, isSelfReferrer: 0 });
-    await ClickRepository.record(env.DB, link.slugs[0].slug, { isBot: 0, isSelfReferrer: 0 });
-    await ClickRepository.record(env.DB, link.slugs[0].slug, { isBot: 1, isSelfReferrer: 0 });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, {
+      isBot: 0,
+      isSelfReferrer: 0,
+    });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, {
+      isBot: 0,
+      isSelfReferrer: 0,
+    });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, {
+      isBot: 1,
+      isSelfReferrer: 0,
+    });
 
     const res = await SELF.fetch(req(`/_/admin/links/${link.id}`));
     const html = await res.text();
 
     // The slug-row click count cell carries the slug as data-slug-count.
-    const slugCount = html.match(new RegExp(`data-slug-count="${link.slugs[0].slug}"[^>]*>([^<]+)<`));
+    const slugCount = html.match(
+      new RegExp(`data-slug-count="${link.slugs[0].slug}"[^>]*>([^<]+)<`),
+    );
     expect(slugCount).not.toBeNull();
     expect(slugCount![1].trim()).toBe("2");
   });
 
   it("hero total_clicks honors a user's default_range setting", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const slug = link.slugs[0].slug;
     const now = Math.floor(Date.now() / 1000);
     await env.DB.prepare(
       "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(slug, now - 60).run();
+    )
+      .bind(slug, now - 60)
+      .run();
     await env.DB.prepare(
       "INSERT INTO clicks (slug, clicked_at, link_mode, is_bot, is_self_referrer) VALUES (?, ?, 'link', 0, 0)",
-    ).bind(slug, now - 60 * 86400).run();
+    )
+      .bind(slug, now - 60 * 86400)
+      .run();
 
     await SettingRepository.set(env.DB, "dev@local", "default_range", "7d");
 
@@ -89,9 +132,14 @@ describe("Link detail page server render", () => {
   });
 
   it("renders 30d as the active range when no default_range is set", async () => {
-    const link = await LinkRepository.create(env.DB, { url: "https://example.com", slug: "abc" });
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+    });
     const res = await SELF.fetch(req(`/_/admin/links/${link.id}`));
     const html = await res.text();
-    expect(html).toMatch(/class="timeline-range-btn active"\s+data-range="30d"/);
+    expect(html).toMatch(
+      /class="timeline-range-btn active"\s+data-range="30d"/,
+    );
   });
 });

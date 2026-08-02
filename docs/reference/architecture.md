@@ -49,27 +49,27 @@ The app roughly splits into three layers.
 
 Encapsulates business logic independent of the transport layer:
 
-| Module | Responsibility |
-|---|---|
-| `link-management.ts` | Link create, update, enable/disable, delete |
-| `admin-management.ts` | Admin-side operations |
-| `analytics.ts` | Click analytics aggregation |
-| `trends.ts` | Trend and delta computation |
-| `result.ts` | Unified result/error wrapper |
+| Module                | Responsibility                              |
+| --------------------- | ------------------------------------------- |
+| `link-management.ts`  | Link create, update, enable/disable, delete |
+| `admin-management.ts` | Admin-side operations                       |
+| `analytics.ts`        | Click analytics aggregation                 |
+| `trends.ts`           | Trend and delta computation                 |
+| `result.ts`           | Unified result/error wrapper                |
 
 ### Data layer (`src/db/`)
 
 Repository wrappers over the D1 database:
 
-| Repository | Table |
-|---|---|
-| `link-repository.ts` | Links |
-| `slug-repository.ts` | Slugs |
-| `click-repository.ts` | Click events |
-| `api-key-repository.ts` | API keys |
-| `setting-repository.ts` | Per-user settings |
-| `page-repository.ts` | Custom pages |
-| `filters.ts` | Analytics filter subqueries (bot / self-referrer / time range) |
+| Repository              | Table                                                          |
+| ----------------------- | -------------------------------------------------------------- |
+| `link-repository.ts`    | Links                                                          |
+| `slug-repository.ts`    | Slugs                                                          |
+| `click-repository.ts`   | Click events                                                   |
+| `api-key-repository.ts` | API keys                                                       |
+| `setting-repository.ts` | Per-user settings                                              |
+| `page-repository.ts`    | Custom pages                                                   |
+| `filters.ts`            | Analytics filter subqueries (bot / self-referrer / time range) |
 
 The KV layer (`src/kv/slug-cache.ts`) provides a high-speed cache for slug-to-link lookups.
 

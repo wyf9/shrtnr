@@ -54,7 +54,11 @@ export async function createClient(): Promise<ShrtnrClient | null> {
 function rethrow(err: unknown): never {
   if (err instanceof ExtensionError) throw err;
   if (err instanceof ShrtnrError) {
-    throw new ExtensionError(categorizeStatus(err.status), err.serverMessage, err.status);
+    throw new ExtensionError(
+      categorizeStatus(err.status),
+      err.serverMessage,
+      err.status,
+    );
   }
   throw new ExtensionError("network");
 }
@@ -72,7 +76,10 @@ export async function shortenUrl(url: string): Promise<ShortenResult> {
     const link = await client.links.create({ url });
     const firstSlug = link.slugs?.[0]?.slug;
     if (!firstSlug) {
-      throw new ExtensionError("server", "server returned a link with no slugs");
+      throw new ExtensionError(
+        "server",
+        "server returned a link with no slugs",
+      );
     }
     return {
       id: link.id,

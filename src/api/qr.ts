@@ -6,7 +6,11 @@ import { getLink } from "../services/link-management";
 import { renderQrSvg } from "../qr";
 import { json } from "./response";
 
-export async function handleLinkQr(request: Request, env: Env, linkId: number): Promise<Response> {
+export async function handleLinkQr(
+  request: Request,
+  env: Env,
+  linkId: number,
+): Promise<Response> {
   const result = await getLink(env, linkId);
   if (!result.ok) return json({ error: result.error }, result.status);
 
@@ -16,7 +20,7 @@ export async function handleLinkQr(request: Request, env: Env, linkId: number): 
 
   const slug = requestedSlug
     ? link.slugs.find((s) => s.slug === requestedSlug)
-    : link.slugs.find((s) => s.is_custom) ?? link.slugs[0];
+    : (link.slugs.find((s) => s.is_custom) ?? link.slugs[0]);
 
   if (!slug) return json({ error: "Slug not found" }, 404);
 

@@ -14,9 +14,15 @@ export async function getTrendingLinks(
   range: TimelineRange,
   limit: number,
   identity: string,
-): Promise<ServiceResult<{ link_id: number; clicks: number; url: string; label: string | null }[]>> {
+): Promise<
+  ServiceResult<
+    { link_id: number; clicks: number; url: string; label: string | null }[]
+  >
+> {
   const filters = await resolveClickFilters(env, identity);
-  return ok(await ClickRepository.getTrendingLinks(env.DB, range, limit, filters));
+  return ok(
+    await ClickRepository.getTrendingLinks(env.DB, range, limit, filters),
+  );
 }
 
 export async function getGlobalBreakdown(
@@ -27,7 +33,15 @@ export async function getGlobalBreakdown(
   identity: string,
 ): Promise<ServiceResult<{ name: string; count: number }[]>> {
   const filters = await resolveClickFilters(env, identity);
-  return ok(await ClickRepository.getGlobalBreakdown(env.DB, dimension, range, limit, filters));
+  return ok(
+    await ClickRepository.getGlobalBreakdown(
+      env.DB,
+      dimension,
+      range,
+      limit,
+      filters,
+    ),
+  );
 }
 
 export async function getTotalClicks(
@@ -51,7 +65,16 @@ export async function getLinkBreakdown(
   const link = await LinkRepository.getById(env.DB, linkId);
   if (!link) return fail(404, "Link not found");
   const filters = await resolveClickFilters(env, identity);
-  return ok(await ClickRepository.getLinkBreakdown(env.DB, linkId, dimension, range, limit, filters));
+  return ok(
+    await ClickRepository.getLinkBreakdown(
+      env.DB,
+      linkId,
+      dimension,
+      range,
+      limit,
+      filters,
+    ),
+  );
 }
 
 export interface LinkComparison {
@@ -76,7 +99,12 @@ export async function compareLinkStats(
     const link = await LinkRepository.getById(env.DB, id);
     if (!link) return fail(404, `Link ${id} not found`);
 
-    const stats = await ClickRepository.compareLinkStats(env.DB, id, range, filters);
+    const stats = await ClickRepository.compareLinkStats(
+      env.DB,
+      id,
+      range,
+      filters,
+    );
     results.push({
       link_id: id,
       url: link.url,

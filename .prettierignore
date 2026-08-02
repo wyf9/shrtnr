@@ -1,0 +1,20 @@
+node_modules/
+dist/
+build/
+.wrangler/
+bun.lock
+
+# VitePress
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
+# Dart / Flutter SDK
+sdk/**/.dart_tool/
+sdk/**/build/
+pubspec.lock
+
+# Python SDK virtualenv
+sdk/python/.venv/
+
+# Lockfiles and generated assets
+CHANGELOG.md

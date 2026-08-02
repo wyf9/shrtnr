@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { verifyAccessJwt, extractIdentity, isSignedIn, type AccessUser } from "../../access";
+import {
+  verifyAccessJwt,
+  extractIdentity,
+  isSignedIn,
+  type AccessUser,
+} from "../../access";
 import type { Env } from "../../types";
 
 function fakeEnv(overrides: Partial<Env> = {}): Env {
@@ -39,7 +44,9 @@ describe("verifyAccessJwt", () => {
 
     it("should return email from Cf-Access-Authenticated-User-Email header when no JWT", async () => {
       const env = fakeEnv();
-      const req = makeRequest({ "Cf-Access-Authenticated-User-Email": "header@example.com" });
+      const req = makeRequest({
+        "Cf-Access-Authenticated-User-Email": "header@example.com",
+      });
 
       const user = await verifyAccessJwt(req, env);
       expect(user).toEqual({ email: "header@example.com" });
@@ -73,7 +80,9 @@ describe("verifyAccessJwt", () => {
 
       it("should prefer Cf-Access-Authenticated-User-Email header over DEV_IDENTITY", async () => {
         const env = fakeEnv({ DEV_IDENTITY: "dev@local" });
-        const req = makeRequest({ "Cf-Access-Authenticated-User-Email": "header@example.com" });
+        const req = makeRequest({
+          "Cf-Access-Authenticated-User-Email": "header@example.com",
+        });
 
         const user = await verifyAccessJwt(req, env);
         expect(user).toEqual({ email: "header@example.com" });
@@ -82,7 +91,9 @@ describe("verifyAccessJwt", () => {
 
     it("should return null for malformed JWT (not 3 parts)", async () => {
       const env = fakeEnv();
-      const req = makeRequest({ "Cf-Access-Jwt-Assertion": "not.a.valid.jwt.token" });
+      const req = makeRequest({
+        "Cf-Access-Jwt-Assertion": "not.a.valid.jwt.token",
+      });
 
       const user = await verifyAccessJwt(req, env);
       expect(user).toBeNull();
@@ -112,7 +123,8 @@ describe("verifyAccessJwt", () => {
     it("should reject request without JWT token", async () => {
       const env = fakeEnv({
         ACCESS_AUD: "test-aud-tag",
-        ACCESS_JWKS_URL: "https://one.dong.cloudflareaccess.com/cdn-cgi/access/certs",
+        ACCESS_JWKS_URL:
+          "https://one.dong.cloudflareaccess.com/cdn-cgi/access/certs",
       });
       const req = makeRequest();
 
@@ -123,7 +135,8 @@ describe("verifyAccessJwt", () => {
     it("should reject request with invalid JWT when ACCESS_AUD is set", async () => {
       const env = fakeEnv({
         ACCESS_AUD: "test-aud-tag",
-        ACCESS_JWKS_URL: "https://one.dong.cloudflareaccess.com/cdn-cgi/access/certs",
+        ACCESS_JWKS_URL:
+          "https://one.dong.cloudflareaccess.com/cdn-cgi/access/certs",
       });
       const token = makeJwt({ email: "fake@example.com" });
       const req = makeRequest({ "Cf-Access-Jwt-Assertion": token });
@@ -199,7 +212,9 @@ describe("extractIdentity", () => {
   });
 
   it("should fall back to Cf-Access-Authenticated-User-Email header", async () => {
-    const req = makeRequest({ "Cf-Access-Authenticated-User-Email": "header@example.com" });
+    const req = makeRequest({
+      "Cf-Access-Authenticated-User-Email": "header@example.com",
+    });
     expect(await extractIdentity(req, env)).toBe("header@example.com");
   });
 
@@ -233,7 +248,11 @@ describe("extractIdentity", () => {
   });
 
   it("should prefer email over phone and sub", async () => {
-    const token = makeJwt({ email: "email@example.com", phone: "+1555", sub: "sub-1" });
+    const token = makeJwt({
+      email: "email@example.com",
+      phone: "+1555",
+      sub: "sub-1",
+    });
     const req = makeRequest({ "Cf-Access-Jwt-Assertion": token });
     expect(await extractIdentity(req, env)).toBe("email@example.com");
   });

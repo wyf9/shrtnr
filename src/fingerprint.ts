@@ -34,11 +34,17 @@ function utcDateKey(d: Date): string {
  * fixed per-day string so fingerprinting still works in development; real
  * deployments should set FP_SALT for unpredictability.
  */
-export async function dailySaltFor(date: Date, serverSecret?: string | null): Promise<string> {
+export async function dailySaltFor(
+  date: Date,
+  serverSecret?: string | null,
+): Promise<string> {
   const dateKey = utcDateKey(date);
   if (!serverSecret) {
     // Fallback: deterministic per-day, still rotates daily.
-    const digest = await crypto.subtle.digest("SHA-256", encoder.encode(`shrtnr-default:${dateKey}`));
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      encoder.encode(`shrtnr-default:${dateKey}`),
+    );
     return toHex(digest);
   }
   const key = await crypto.subtle.importKey(

@@ -10,10 +10,10 @@ on:
   push:
     branches: [main]
     paths:
-      - 'browser-extensions/**'
-      - '.github/workflows/release-extension.yml'
-      - 'scripts/extract-changelog.sh'
-      - 'scripts/read-version.sh'
+      - "browser-extensions/**"
+      - ".github/workflows/release-extension.yml"
+      - "scripts/extract-changelog.sh"
+      - "scripts/read-version.sh"
   workflow_dispatch:
 
 permissions:

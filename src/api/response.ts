@@ -12,7 +12,9 @@ export function json(data: unknown, status = 200): Response {
   });
 }
 
-export function fromServiceResult<T>(result: import("../services/result").ServiceResult<T>): Response {
+export function fromServiceResult<T>(
+  result: import("../services/result").ServiceResult<T>,
+): Response {
   if (!result.ok) return json({ error: result.error }, result.status);
   if (result.meta && typeof result.data === "object" && result.data !== null) {
     return json({ ...result.data, ...result.meta }, result.status);
@@ -24,7 +26,9 @@ export function formatZodError(err: z.ZodError): string {
   const first = err.issues[0];
   if (!first) return "Invalid request";
   if (first.code === "unrecognized_keys") {
-    return first.keys.length > 0 ? `Unknown field "${first.keys[0]}"` : "Unknown field";
+    return first.keys.length > 0
+      ? `Unknown field "${first.keys[0]}"`
+      : "Unknown field";
   }
   const path = first.path.length > 0 ? first.path.join(".") : "request";
   return `${path}: ${first.message}`;

@@ -18,12 +18,19 @@ async function seedApiKey(
 ): Promise<string> {
   const raw = `sk_${crypto.randomUUID().replace(/-/g, "")}`;
   const prefix = raw.slice(0, 7);
-  const hashBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+  const hashBuf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(raw),
+  );
   const hash = Array.from(new Uint8Array(hashBuf))
-    .map((b) => b.toString(16).padStart(2, "0")).join("");
-  await db.prepare(
-    "INSERT INTO api_keys (identity, title, key_prefix, key_hash, scope, created_at) VALUES (?, ?, ?, ?, ?, ?)"
-  ).bind(identity, "test", prefix, hash, scope, Math.floor(Date.now() / 1000)).run();
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  await db
+    .prepare(
+      "INSERT INTO api_keys (identity, title, key_prefix, key_hash, scope, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+    )
+    .bind(identity, "test", prefix, hash, scope, Math.floor(Date.now() / 1000))
+    .run();
   return raw;
 }
 
@@ -52,10 +59,10 @@ describe("API Keys Management", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "My Key", scope: "create" }),
-      })
+      }),
     );
     expect(res.status).toBe(201);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.raw_key).toMatch(/^sk_/);
     expect(body.key.title).toBe("My Key");
     expect(body.key.scope).toBe("create");
@@ -67,18 +74,18 @@ describe("API Keys Management", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Key 1", scope: "create" }),
-      })
+      }),
     );
     await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Key 2", scope: "read" }),
-      })
+      }),
     );
     const res = await SELF.fetch(authed("/_/admin/api/keys"));
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body).toHaveLength(2);
     expect(body[0].key_hash).toBeUndefined();
   });
@@ -89,11 +96,11 @@ describe("API Keys Management", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Test Key", scope: "create" }),
-      })
+      }),
     );
     // unauthed = anonymous identity — should see 0 keys
     const res = await SELF.fetch(unauthed("/_/admin/api/keys"));
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body).toHaveLength(0);
   });
 
@@ -103,13 +110,15 @@ describe("API Keys Management", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Revokable", scope: "create" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
-    const res = await SELF.fetch(authed(`/_/admin/api/keys/${created.key.id}`, { method: "DELETE" }));
+    const created = (await createRes.json()) as any;
+    const res = await SELF.fetch(
+      authed(`/_/admin/api/keys/${created.key.id}`, { method: "DELETE" }),
+    );
     expect(res.status).toBe(200);
     const listRes = await SELF.fetch(authed("/_/admin/api/keys"));
-    const list = await listRes.json() as any;
+    const list = (await listRes.json()) as any;
     expect(list).toHaveLength(0);
   });
 
@@ -119,11 +128,11 @@ describe("API Keys Management", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Shared Key", scope: "create" }),
-      })
+      }),
     );
-    const created = await createRes.json() as any;
+    const created = (await createRes.json()) as any;
     const res = await SELF.fetch(
-      unauthed(`/_/admin/api/keys/${created.key.id}`, { method: "DELETE" })
+      unauthed(`/_/admin/api/keys/${created.key.id}`, { method: "DELETE" }),
     );
     expect(res.status).toBe(404);
   });
@@ -134,7 +143,7 @@ describe("API Keys Management", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Bad Scope", scope: "admin" }),
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
@@ -145,7 +154,7 @@ describe("API Keys Management", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ scope: "create" }),
-      })
+      }),
     );
     expect(res.status).toBe(400);
   });
@@ -159,13 +168,13 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Bearer Key", scope: "create,read" }),
-      })
+      }),
     );
-    const { raw_key } = await createRes.json() as any;
+    const { raw_key } = (await createRes.json()) as any;
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/_/api/links", {
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
     expect(res.status).toBe(200);
   });
@@ -173,8 +182,11 @@ describe("API Key Authentication", () => {
   it("should reject an invalid Bearer token", async () => {
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/_/api/links", {
-        headers: { "Authorization": "Bearer sk_000000000000000000000000000000000000000000000000000" },
-      })
+        headers: {
+          Authorization:
+            "Bearer sk_000000000000000000000000000000000000000000000000000",
+        },
+      }),
     );
     expect(res.status).toBe(401);
   });
@@ -182,15 +194,15 @@ describe("API Key Authentication", () => {
   it("should reject a malformed Bearer token", async () => {
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/_/api/links", {
-        headers: { "Authorization": "Bearer not-a-key" },
-      })
+        headers: { Authorization: "Bearer not-a-key" },
+      }),
     );
     expect(res.status).toBe(401);
   });
 
   it("should reject requests with no auth at all", async () => {
     const res = await SELF.fetch(
-      new Request("https://shrtnr.test/_/api/links")
+      new Request("https://shrtnr.test/_/api/links"),
     );
     expect(res.status).toBe(401);
   });
@@ -201,15 +213,18 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Creator", scope: "create" }),
-      })
+      }),
     );
-    const { raw_key } = await createRes.json() as any;
+    const { raw_key } = (await createRes.json()) as any;
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/_/api/links", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${raw_key}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${raw_key}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
     expect(res.status).toBe(201);
   });
@@ -220,15 +235,18 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Reader", scope: "read" }),
-      })
+      }),
     );
-    const { raw_key } = await createRes.json() as any;
+    const { raw_key } = (await createRes.json()) as any;
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/_/api/links", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${raw_key}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${raw_key}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
     expect(res.status).toBe(403);
   });
@@ -240,22 +258,22 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
     // Then create a read key
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Reader", scope: "read" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${link.id}/analytics`, {
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
     expect(res.status).toBe(200);
   });
@@ -266,21 +284,21 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Creator", scope: "create" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${link.id}/analytics`, {
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
     expect(res.status).toBe(403);
   });
@@ -291,23 +309,23 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
 
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Reader", scope: "read" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
 
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${link.id}`, {
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
 
     expect(res.status).toBe(200);
@@ -319,32 +337,32 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
 
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Creator", scope: "create" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
 
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${link.id}`, {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${raw_key}`,
+          Authorization: `Bearer ${raw_key}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ label: "Updated by key" }),
-      })
+      }),
     );
 
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.label).toBe("Updated by key");
   });
 
@@ -354,24 +372,24 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
 
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Creator", scope: "create" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
 
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${link.id}/disable`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
 
     expect(res.status).toBe(200);
@@ -383,28 +401,28 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
 
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Creator", scope: "create" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
 
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${link.id}/slugs`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${raw_key}`,
+          Authorization: `Bearer ${raw_key}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ slug: "created-by-key" }),
-      })
+      }),
     );
 
     expect(res.status).toBe(201);
@@ -416,26 +434,26 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Reader", scope: "read" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${link.id}`, {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${raw_key}`,
+          Authorization: `Bearer ${raw_key}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ label: "Nope" }),
-      })
+      }),
     );
     expect(res.status).toBe(403);
   });
@@ -446,22 +464,22 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Reader", scope: "read" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${link.id}/disable`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
     expect(res.status).toBe(403);
   });
@@ -472,26 +490,26 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Reader", scope: "read" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${link.id}/slugs`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${raw_key}`,
+          Authorization: `Bearer ${raw_key}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ slug: "denied" }),
-      })
+      }),
     );
     expect(res.status).toBe(403);
   });
@@ -502,13 +520,13 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Creator", scope: "create" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/_/api/links", {
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
     expect(res.status).toBe(403);
   });
@@ -519,21 +537,21 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await linkRes.json() as any;
+    const link = (await linkRes.json()) as any;
     const keyRes = await SELF.fetch(
       authed("/_/admin/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Creator", scope: "create" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
     const res = await SELF.fetch(
       new Request(`https://shrtnr.test/_/api/links/${link.id}`, {
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
     expect(res.status).toBe(403);
   });
@@ -545,9 +563,9 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: "https://example.com" }),
-      })
+      }),
     );
-    const link = await createLinkRes.json() as any;
+    const link = (await createLinkRes.json()) as any;
 
     // 1b. Add a custom slug
     await SELF.fetch(
@@ -555,7 +573,7 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug: "find-me" }),
-      })
+      }),
     );
 
     // 2. Create a key
@@ -564,18 +582,18 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Reader", scope: "read" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
 
     // 3. Get link by slug
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/_/api/slugs/find-me", {
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
     expect(res.status).toBe(200);
-    const body = await res.json() as any;
+    const body = (await res.json()) as any;
     expect(body.id).toBe(link.id);
     expect(body.url).toBe("https://example.com");
   });
@@ -586,14 +604,14 @@ describe("API Key Authentication", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Reader", scope: "read" }),
-      })
+      }),
     );
-    const { raw_key } = await keyRes.json() as any;
+    const { raw_key } = (await keyRes.json()) as any;
 
     const res = await SELF.fetch(
       new Request("https://shrtnr.test/_/api/slugs/no-such-slug", {
-        headers: { "Authorization": `Bearer ${raw_key}` },
-      })
+        headers: { Authorization: `Bearer ${raw_key}` },
+      }),
     );
     expect(res.status).toBe(404);
   });
@@ -610,37 +628,54 @@ describe("API Key Authentication", () => {
 describe("API key scope enforcement at handler", () => {
   it("read-scoped key cannot POST /_/api/links (403)", async () => {
     const key = await seedApiKey(env.DB, "read");
-    const res = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ url: "https://example.com/scope-read-block" }),
-    }));
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/scope-read-block" }),
+      }),
+    );
     expect(res.status).toBe(403);
   });
 
   it("create-scoped key can POST /_/api/links (201 fresh, 200 duplicate)", async () => {
     const key = await seedApiKey(env.DB, "create");
-    const res = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ url: "https://example.com/scope-create-ok" }),
-    }));
+    const res = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/scope-create-ok" }),
+      }),
+    );
     expect([200, 201]).toContain(res.status);
   });
 
   it("read-scoped key can GET /_/api/links/:id (200)", async () => {
     const createKey = await seedApiKey(env.DB, "create");
-    const created = await SELF.fetch(new Request("https://shrtnr.test/_/api/links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${createKey}` },
-      body: JSON.stringify({ url: "https://example.com/scope-read-get" }),
-    }));
-    const { id } = await created.json() as { id: number };
+    const created = await SELF.fetch(
+      new Request("https://shrtnr.test/_/api/links", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${createKey}`,
+        },
+        body: JSON.stringify({ url: "https://example.com/scope-read-get" }),
+      }),
+    );
+    const { id } = (await created.json()) as { id: number };
 
     const readKey = await seedApiKey(env.DB, "read");
-    const res = await SELF.fetch(new Request(`https://shrtnr.test/_/api/links/${id}`, {
-      headers: { Authorization: `Bearer ${readKey}` },
-    }));
+    const res = await SELF.fetch(
+      new Request(`https://shrtnr.test/_/api/links/${id}`, {
+        headers: { Authorization: `Bearer ${readKey}` },
+      }),
+    );
     expect(res.status).toBe(200);
   });
 

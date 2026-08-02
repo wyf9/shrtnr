@@ -59,7 +59,11 @@ function parseJwtPayload(token: string): Record<string, unknown> | null {
  * - Admin routes: env.ACCESS_AUD
  * - MCP routes:   env.MCP_ACCESS_AUD
  */
-export async function extractIdentity(request: Request, env: Env, aud = env.ACCESS_AUD): Promise<string> {
+export async function extractIdentity(
+  request: Request,
+  env: Env,
+  aud = env.ACCESS_AUD,
+): Promise<string> {
   function fromPayload(payload: Record<string, unknown>): string | null {
     for (const claim of ["email", "phone", "sub"] as const) {
       const val = payload[claim];
@@ -79,7 +83,9 @@ export async function extractIdentity(request: Request, env: Env, aud = env.ACCE
         if (id) return id;
       }
     }
-    const emailHeader = request.headers.get("Cf-Access-Authenticated-User-Email");
+    const emailHeader = request.headers.get(
+      "Cf-Access-Authenticated-User-Email",
+    );
     if (emailHeader?.trim()) return emailHeader.trim();
     if (env.DEV_IDENTITY?.trim()) return env.DEV_IDENTITY.trim();
     return "anonymous";
@@ -141,7 +147,9 @@ export async function verifyAccessJwt(
       const email = payload?.email;
       return typeof email === "string" && email ? { email } : null;
     }
-    const emailHeader = request.headers.get("Cf-Access-Authenticated-User-Email");
+    const emailHeader = request.headers.get(
+      "Cf-Access-Authenticated-User-Email",
+    );
     if (emailHeader) return { email: emailHeader };
     if (env.DEV_IDENTITY) return { email: env.DEV_IDENTITY };
     return null;

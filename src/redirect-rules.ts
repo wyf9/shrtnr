@@ -16,8 +16,7 @@ export type DynamicRedirectRule = {
 };
 
 export type DynamicRedirectParseResult =
-  | { ok: true; rules: DynamicRedirectRule[] }
-  | { ok: false; error: string };
+  { ok: true; rules: DynamicRedirectRule[] } | { ok: false; error: string };
 
 export type DynamicRedirectMatch = {
   url: string;
@@ -69,7 +68,9 @@ function validateDestination(destination: string): void {
     return;
   } catch {
     if (!destination.startsWith("/")) {
-      throw new Error("destination must be an absolute http(s) URL or start with '/'");
+      throw new Error(
+        "destination must be an absolute http(s) URL or start with '/'",
+      );
     }
   }
 }
@@ -77,7 +78,9 @@ function validateDestination(destination: string): void {
 function parseRuleLine(line: string): DynamicRedirectRule {
   const parts = line.trim().split(/\s+/);
   if (parts.length < 2 || parts.length > 3) {
-    throw new Error("rule must have 2 or 3 columns: <source> <destination> [status]");
+    throw new Error(
+      "rule must have 2 or 3 columns: <source> <destination> [status]",
+    );
   }
 
   const source = parts[0];
@@ -91,7 +94,9 @@ function parseRuleLine(line: string): DynamicRedirectRule {
   return { source, destination, tokens };
 }
 
-export function parseDynamicRedirectRules(raw: string | null | undefined): DynamicRedirectParseResult {
+export function parseDynamicRedirectRules(
+  raw: string | null | undefined,
+): DynamicRedirectParseResult {
   if (!raw || !raw.trim()) return { ok: true, rules: [] };
 
   const lines = raw.split(/\r?\n/);
@@ -103,7 +108,10 @@ export function parseDynamicRedirectRules(raw: string | null | undefined): Dynam
       rules.push(parseRuleLine(line));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      return { ok: false, error: `Invalid redirect rule at line ${i + 1}: ${message}` };
+      return {
+        ok: false,
+        error: `Invalid redirect rule at line ${i + 1}: ${message}`,
+      };
     }
   }
 
@@ -115,8 +123,13 @@ function splitPath(pathname: string): string[] {
   return (pathname.startsWith("/") ? pathname.slice(1) : pathname).split("/");
 }
 
-function applyDestinationTemplate(destination: string, params: Record<string, string>): string {
-  return destination.replace(PARAM_TOKEN_RE, (all, key) => (params[key] !== undefined ? params[key] : all));
+function applyDestinationTemplate(
+  destination: string,
+  params: Record<string, string>,
+): string {
+  return destination.replace(PARAM_TOKEN_RE, (all, key) =>
+    params[key] !== undefined ? params[key] : all,
+  );
 }
 
 function resolveDestination(destination: string, requestUrl: string): string {

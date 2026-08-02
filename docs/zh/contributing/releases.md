@@ -4,12 +4,11 @@
 
 ## 发布轨道
 
-| 目标 | 清单文件 | Tag 前缀 | 工作流 | 模式 |
-|---|---|---|---|---|
-| Cloudflare Workers 应用 | 根 `package.json` | `app-v*` | `release.yml` | main-push |
-| TypeScript / npm SDK | `sdk/typescript/package.json` | `npm-v*` | `release-sdk-npm.yml` | main-push |
-| Python / PyPI SDK | `sdk/python/pyproject.toml` | `py-v*` | `release-sdk-python.yml` | main-push |
-
+| 目标                    | 清单文件                      | Tag 前缀 | 工作流                   | 模式      |
+| ----------------------- | ----------------------------- | -------- | ------------------------ | --------- |
+| Cloudflare Workers 应用 | 根 `package.json`             | `app-v*` | `release.yml`            | main-push |
+| TypeScript / npm SDK    | `sdk/typescript/package.json` | `npm-v*` | `release-sdk-npm.yml`    | main-push |
+| Python / PyPI SDK       | `sdk/python/pyproject.toml`   | `py-v*`  | `release-sdk-python.yml` | main-push |
 
 共享的 bash 逻辑位于 `scripts/read-version.sh` 与 `scripts/extract-changelog.sh`，被各工作流调用。
 
@@ -35,11 +34,10 @@ scripts/bump-sdk-version.sh python 0.1.1
 
 每个 SDK 都记录它最后一次针对的 OpenAPI 规范的 SHA-256：
 
-| SDK | 清单文件 | 字段 |
-|---|---|---|
-| TypeScript | `sdk/typescript/package.json` | 顶层 `x-spec-hash` |
-| Python | `sdk/python/pyproject.toml` | `[tool.shrtnr]` 下的 `spec_hash` |
-
+| SDK        | 清单文件                      | 字段                             |
+| ---------- | ----------------------------- | -------------------------------- |
+| TypeScript | `sdk/typescript/package.json` | 顶层 `x-spec-hash`               |
+| Python     | `sdk/python/pyproject.toml`   | `[tool.shrtnr]` 下的 `spec_hash` |
 
 规范变更会使两个哈希全部过期。根 `package.json` 的版本号变更也会导致哈希漂移，因为规范内嵌了 `info.version`。
 

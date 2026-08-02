@@ -14,7 +14,9 @@ export class SlugsResource {
 
   /** Add a custom slug to a link. */
   add(linkId: number, slug: string): Promise<Slug> {
-    return this.http.request("POST", `/_/api/links/${linkId}/slugs`, { body: { slug } });
+    return this.http.request("POST", `/_/api/links/${linkId}/slugs`, {
+      body: { slug },
+    });
   }
 
   /** Disable a specific slug on a link. */

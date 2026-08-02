@@ -49,27 +49,27 @@ shrtnr/
 
 封装业务逻辑，独立于传输层：
 
-| 模块 | 职责 |
-|---|---|
-| `link-management.ts` | 链接创建、更新、启用/禁用、删除 |
-| `admin-management.ts` | 管理端操作 |
-| `analytics.ts` | 点击分析聚合 |
-| `trends.ts` | 趋势与环比计算 |
-| `result.ts` | 统一的结果/错误封装 |
+| 模块                  | 职责                            |
+| --------------------- | ------------------------------- |
+| `link-management.ts`  | 链接创建、更新、启用/禁用、删除 |
+| `admin-management.ts` | 管理端操作                      |
+| `analytics.ts`        | 点击分析聚合                    |
+| `trends.ts`           | 趋势与环比计算                  |
+| `result.ts`           | 统一的结果/错误封装             |
 
 ### 数据层 (`src/db/`)
 
 对 D1 数据库的仓储 (repository) 封装：
 
-| 仓储 | 表 |
-|---|---|
-| `link-repository.ts` | 链接 |
-| `slug-repository.ts` | 短码 |
-| `click-repository.ts` | 点击事件 |
-| `api-key-repository.ts` | API 密钥 |
-| `setting-repository.ts` | 每用户设置 |
-| `page-repository.ts` | 自定义页面 |
-| `filters.ts` | 分析过滤（机器人 / 自引用 / 时间范围）子查询 |
+| 仓储                    | 表                                           |
+| ----------------------- | -------------------------------------------- |
+| `link-repository.ts`    | 链接                                         |
+| `slug-repository.ts`    | 短码                                         |
+| `click-repository.ts`   | 点击事件                                     |
+| `api-key-repository.ts` | API 密钥                                     |
+| `setting-repository.ts` | 每用户设置                                   |
+| `page-repository.ts`    | 自定义页面                                   |
+| `filters.ts`            | 分析过滤（机器人 / 自引用 / 时间范围）子查询 |
 
 KV 层 (`src/kv/slug-cache.ts`) 为短码到链接的查找提供高速缓存。
 

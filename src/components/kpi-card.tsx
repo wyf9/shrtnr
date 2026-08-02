@@ -30,7 +30,8 @@ export const KpiCard: FC<KpiCardProps> = ({
   sparkline,
   span = 1,
 }) => {
-  const spanClass = span === 2 ? "span-2" : span === 3 ? "span-3" : "bento-card-compact";
+  const spanClass =
+    span === 2 ? "span-2" : span === 3 ? "span-3" : "bento-card-compact";
   return (
     <div class={`bento-card kpi ${spanClass}`} id={id}>
       <div class="kpi-top">
@@ -38,9 +39,13 @@ export const KpiCard: FC<KpiCardProps> = ({
           {icon && <span class="icon">{icon}</span>}
           <span>{label}</span>
         </div>
-        {deltaPct !== undefined && deltaPct !== null && <Delta pct={deltaPct} id={deltaId} />}
+        {deltaPct !== undefined && deltaPct !== null && (
+          <Delta pct={deltaPct} id={deltaId} />
+        )}
       </div>
-      <div class="kpi-value" id={valueId}>{value}</div>
+      <div class="kpi-value" id={valueId}>
+        {value}
+      </div>
       {hint && <div class="kpi-hint">{hint}</div>}
       {sparkline && sparkline.length > 0 && (
         <div class="kpi-spark">

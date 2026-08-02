@@ -27,21 +27,25 @@ describe("normalizeUrl", () => {
   });
 
   it("preserves a URL with a sub-path after trailing slash", () => {
-    expect(normalizeUrl("https://www.npmjs.com/package/@oddbit/shrtnr/sub-path")).toBe(
-      "https://www.npmjs.com/package/@oddbit/shrtnr/sub-path",
-    );
+    expect(
+      normalizeUrl("https://www.npmjs.com/package/@oddbit/shrtnr/sub-path"),
+    ).toBe("https://www.npmjs.com/package/@oddbit/shrtnr/sub-path");
   });
 
   it("preserves a URL with a page anchor", () => {
-    expect(normalizeUrl("https://www.npmjs.com/package/@oddbit/shrtnr#some-page-anchor")).toBe(
-      "https://www.npmjs.com/package/@oddbit/shrtnr#some-page-anchor",
-    );
+    expect(
+      normalizeUrl(
+        "https://www.npmjs.com/package/@oddbit/shrtnr#some-page-anchor",
+      ),
+    ).toBe("https://www.npmjs.com/package/@oddbit/shrtnr#some-page-anchor");
   });
 
   it("preserves a URL with query parameters", () => {
-    expect(normalizeUrl("https://www.npmjs.com/package/@oddbit/shrtnr?some-parameter=value")).toBe(
-      "https://www.npmjs.com/package/@oddbit/shrtnr?some-parameter=value",
-    );
+    expect(
+      normalizeUrl(
+        "https://www.npmjs.com/package/@oddbit/shrtnr?some-parameter=value",
+      ),
+    ).toBe("https://www.npmjs.com/package/@oddbit/shrtnr?some-parameter=value");
   });
 
   it("preserves a clean URL without trailing characters", () => {

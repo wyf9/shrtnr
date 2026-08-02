@@ -2,11 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, waitFor, fireEvent, cleanup } from "@testing-library/preact";
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  cleanup,
+} from "@testing-library/preact";
 import { setStorageItem } from "./setup";
 import { ExtensionError } from "../src/errors";
 
-let mockedTest: ReturnType<typeof vi.fn<(config: { baseUrl: string; apiKey: string }) => Promise<void>>>;
+let mockedTest: ReturnType<
+  typeof vi.fn<(config: { baseUrl: string; apiKey: string }) => Promise<void>>
+>;
 
 type ConfigArg = { baseUrl: string; apiKey: string };
 
@@ -33,7 +41,9 @@ describe("Options — banner visibility", () => {
   it("renders the deploy CTA banner when no config saved", async () => {
     await renderOptions();
     await waitFor(() => {
-      const link = screen.getByRole("link", { name: /deploy/i }) as HTMLAnchorElement;
+      const link = screen.getByRole("link", {
+        name: /deploy/i,
+      }) as HTMLAnchorElement;
       expect(link.href).toContain("oddb.it/shrtnr-deploy-ext");
     });
   });
@@ -63,7 +73,9 @@ describe("Options — Test connection", () => {
   });
 
   it("shows the auth error message on 401", async () => {
-    mockedTest.mockRejectedValue(new ExtensionError("unauthorized", "bad", 401));
+    mockedTest.mockRejectedValue(
+      new ExtensionError("unauthorized", "bad", 401),
+    );
     await renderOptions();
     await waitFor(() => screen.getByLabelText(/server url/i));
     fireEvent.input(screen.getByLabelText(/server url/i), {
@@ -124,7 +136,9 @@ describe("Options — Save", () => {
   it("Save button is disabled when fields empty", async () => {
     await renderOptions();
     await waitFor(() => screen.getByRole("button", { name: /^save$/i }));
-    const saveBtn = screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement;
+    const saveBtn = screen.getByRole("button", {
+      name: /^save$/i,
+    }) as HTMLButtonElement;
     expect(saveBtn.disabled).toBe(true);
   });
 

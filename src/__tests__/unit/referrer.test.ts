@@ -77,8 +77,12 @@ describe("mapAppPackage", () => {
     expect(APP_PACKAGE_TO_DOMAIN["com.linkedin.android"]).toBe("linkedin.com");
     expect(APP_PACKAGE_TO_DOMAIN["com.twitter.android"]).toBe("x.com");
     expect(APP_PACKAGE_TO_DOMAIN["com.facebook.katana"]).toBe("facebook.com");
-    expect(APP_PACKAGE_TO_DOMAIN["com.instagram.android"]).toBe("instagram.com");
-    expect(APP_PACKAGE_TO_DOMAIN["com.zhiliaoapp.musically"]).toBe("tiktok.com");
+    expect(APP_PACKAGE_TO_DOMAIN["com.instagram.android"]).toBe(
+      "instagram.com",
+    );
+    expect(APP_PACKAGE_TO_DOMAIN["com.zhiliaoapp.musically"]).toBe(
+      "tiktok.com",
+    );
     expect(APP_PACKAGE_TO_DOMAIN["com.reddit.frontpage"]).toBe("reddit.com");
   });
 });
@@ -90,15 +94,21 @@ describe("parseReferrerHost", () => {
   });
 
   it("normalizes a regular https URL hostname (existing behavior)", () => {
-    expect(parseReferrerHost("https://www.linkedin.com/feed")).toBe("linkedin.com");
+    expect(parseReferrerHost("https://www.linkedin.com/feed")).toBe(
+      "linkedin.com",
+    );
   });
 
   it("preserves meaningful subdomains in regular URLs", () => {
-    expect(parseReferrerHost("https://firebase.google.com/docs")).toBe("firebase.google.com");
+    expect(parseReferrerHost("https://firebase.google.com/docs")).toBe(
+      "firebase.google.com",
+    );
   });
 
   it("returns the brand domain for a known android-app package", () => {
-    expect(parseReferrerHost("android-app://com.linkedin.android/")).toBe("linkedin.com");
+    expect(parseReferrerHost("android-app://com.linkedin.android/")).toBe(
+      "linkedin.com",
+    );
   });
 
   it("returns null for an uncurated android-app package (preserves raw for future review)", () => {
@@ -107,7 +117,9 @@ describe("parseReferrerHost", () => {
 
   it("returns null for a known android browser package", () => {
     expect(parseReferrerHost("android-app://com.android.chrome/")).toBeNull();
-    expect(parseReferrerHost("android-app://com.sec.android.app.sbrowser/")).toBeNull();
+    expect(
+      parseReferrerHost("android-app://com.sec.android.app.sbrowser/"),
+    ).toBeNull();
   });
 
   it("returns null for a malformed URL (existing behavior)", () => {
@@ -117,23 +129,36 @@ describe("parseReferrerHost", () => {
 
 describe("isBareOriginSelfReferrer", () => {
   it("flags exact bare-origin same-host referrers", () => {
-    expect(isBareOriginSelfReferrer("https://shrtnr.test/", "shrtnr.test")).toBe(true);
+    expect(
+      isBareOriginSelfReferrer("https://shrtnr.test/", "shrtnr.test"),
+    ).toBe(true);
   });
 
   it("does not flag same-host referrers with a meaningful path", () => {
-    expect(isBareOriginSelfReferrer("https://shrtnr.test/_/admin/settings", "shrtnr.test")).toBe(false);
+    expect(
+      isBareOriginSelfReferrer(
+        "https://shrtnr.test/_/admin/settings",
+        "shrtnr.test",
+      ),
+    ).toBe(false);
   });
 
   it("does not flag cross-origin referrers", () => {
-    expect(isBareOriginSelfReferrer("https://oddbit.id/projects", "shrtnr.test")).toBe(false);
+    expect(
+      isBareOriginSelfReferrer("https://oddbit.id/projects", "shrtnr.test"),
+    ).toBe(false);
   });
 
   it("flags www.same-host as the same host", () => {
-    expect(isBareOriginSelfReferrer("https://www.shrtnr.test/", "shrtnr.test")).toBe(true);
+    expect(
+      isBareOriginSelfReferrer("https://www.shrtnr.test/", "shrtnr.test"),
+    ).toBe(true);
   });
 
   it("does not flag bare-origin with a query string", () => {
-    expect(isBareOriginSelfReferrer("https://shrtnr.test/?utm=x", "shrtnr.test")).toBe(false);
+    expect(
+      isBareOriginSelfReferrer("https://shrtnr.test/?utm=x", "shrtnr.test"),
+    ).toBe(false);
   });
 
   it("returns false for null referrer", () => {

@@ -33,7 +33,10 @@ import {
   searchLinks,
   listLinksByOwner,
 } from "../services/link-management";
-import { resolveClickFilters, resolveMcpRange } from "../services/admin-management";
+import {
+  resolveClickFilters,
+  resolveMcpRange,
+} from "../services/admin-management";
 import {
   getTrendingLinks,
   getGlobalBreakdown,
@@ -43,10 +46,7 @@ import {
 } from "../services/analytics";
 import type { TimelineRange } from "../types";
 import { renderQrSvg } from "../qr";
-import {
-  CustomSlugStringSchema,
-  TIMELINE_RANGES,
-} from "../api/schemas";
+import { CustomSlugStringSchema, TIMELINE_RANGES } from "../api/schemas";
 import pkg from "../../package.json";
 
 type ToolResult = {
@@ -68,7 +68,7 @@ export const RANGE_LABELS: Record<TimelineRange, string> = {
   "30d": "30 days",
   "90d": "90 days",
   "1y": "12 months",
-  "all": "all time",
+  all: "all time",
 };
 
 export function rangeNote(range: TimelineRange): string {
@@ -82,7 +82,10 @@ export function rangeNote(range: TimelineRange): string {
  * The wrapper front-loads `range_used`, a human-readable `range_label`, and a
  * plain-English `range_note` before any of the data fields.
  */
-export function okWithRange(range: TimelineRange, payload: unknown): ToolResult {
+export function okWithRange(
+  range: TimelineRange,
+  payload: unknown,
+): ToolResult {
   const wrapper = {
     range_used: range,
     range_label: RANGE_LABELS[range],
@@ -132,7 +135,8 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
   server = new McpServer({ name: "shrtnr", version: pkg.version });
 
   private get identity(): string {
-    if (!this.props) throw new Error("MCP agent invoked without identity props");
+    if (!this.props)
+      throw new Error("MCP agent invoked without identity props");
     return this.props.email;
   }
 
@@ -163,9 +167,17 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         annotations: { title: "List links", ...READ_ONLY },
       },
       async ({ range }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
         const filters = await resolveClickFilters(this.env, this.identity);
-        const result = await listLinks(this.env, { range: resolved, withDeltaRange: resolved, filters });
+        const result = await listLinks(this.env, {
+          range: resolved,
+          withDeltaRange: resolved,
+          filters,
+        });
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, { results: result.data });
       },
@@ -178,15 +190,26 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description:
           "Get full details for a short link by its numeric ID. `total_clicks` and `delta_pct` are scoped to the requested range. Defaults to the user's `default_range` setting (or 30d). Response includes `range_used`.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link"),
           range: optionalRangeSchema,
         },
         annotations: { title: "Get link", ...READ_ONLY },
       },
       async ({ link_id, range }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
         const filters = await resolveClickFilters(this.env, this.identity);
-        const result = await getLink(this.env, link_id, { range: resolved, filters });
+        const result = await getLink(this.env, link_id, {
+          range: resolved,
+          filters,
+        });
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, result.data);
       },
@@ -200,20 +223,38 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
           "Shorten a URL and create a short link. If the destination URL already exists, the existing link is returned with `duplicate: true`, so there is no need to search for the URL first. Optional custom slugs are attached after creation; slugs already in use are reported in `slug_rejections` rather than failing the call.",
         inputSchema: {
           url: z.string().url().describe("Destination URL to shorten"),
-          label: z.string().optional().describe("Human-readable label for the link"),
-          slug_length: z.number().int().min(3).max(16).optional().describe("Length of the random slug (default: 3)"),
+          label: z
+            .string()
+            .optional()
+            .describe("Human-readable label for the link"),
+          slug_length: z
+            .number()
+            .int()
+            .min(3)
+            .max(16)
+            .optional()
+            .describe("Length of the random slug (default: 3)"),
           custom_slug: z
             .union([CustomSlugStringSchema, z.array(CustomSlugStringSchema)])
             .optional()
             .describe(
               "Custom slug(s), e.g. 'my-blog-post' or ['slug-a', 'slug-b']. Added after creation; collisions are reported, not fatal.",
             ),
-          expires_at: z.number().int().nonnegative().optional().describe("Unix timestamp when the link expires"),
+          expires_at: z
+            .number()
+            .int()
+            .nonnegative()
+            .optional()
+            .describe("Unix timestamp when the link expires"),
         },
         annotations: { title: "Create link", ...WRITE_NEW },
       },
       async ({ custom_slug, ...opts }) => {
-        const result = await createLink(this.env, { ...opts, created_via: "mcp", created_by: this.identity });
+        const result = await createLink(this.env, {
+          ...opts,
+          created_via: "mcp",
+          created_by: this.identity,
+        });
         if (!result.ok) return fail(result.error);
 
         const requestedSlugs = custom_slug
@@ -224,16 +265,26 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
 
         const rejections: { slug: string; reason: string }[] = [];
         for (const slug of requestedSlugs) {
-          const addResult = await addCustomSlugToLink(this.env, result.data.id, { slug });
+          const addResult = await addCustomSlugToLink(
+            this.env,
+            result.data.id,
+            { slug },
+          );
           if (!addResult.ok) {
             rejections.push({ slug, reason: addResult.error });
           }
         }
 
-        const link = requestedSlugs.length > 0 ? await getLink(this.env, result.data.id) : result;
+        const link =
+          requestedSlugs.length > 0
+            ? await getLink(this.env, result.data.id)
+            : result;
         if (!link.ok) return fail(link.error);
 
-        const response: Record<string, unknown> = { ...link.data, ...(result.meta ?? {}) };
+        const response: Record<string, unknown> = {
+          ...link.data,
+          ...(result.meta ?? {}),
+        };
         if (rejections.length > 0) response.slug_rejections = rejections;
         return ok(response);
       },
@@ -243,12 +294,27 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
       "update_link",
       {
         title: "Update link",
-        description: "Update the destination URL, label, or expiry of an existing short link.",
+        description:
+          "Update the destination URL, label, or expiry of an existing short link.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link to update"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link to update"),
           url: z.string().url().optional().describe("New destination URL"),
-          label: z.string().nullable().optional().describe("New label (null removes it)"),
-          expires_at: z.number().int().nonnegative().nullable().optional().describe("New expiry Unix timestamp (null removes it)"),
+          label: z
+            .string()
+            .nullable()
+            .optional()
+            .describe("New label (null removes it)"),
+          expires_at: z
+            .number()
+            .int()
+            .nonnegative()
+            .nullable()
+            .optional()
+            .describe("New expiry Unix timestamp (null removes it)"),
         },
         annotations: { title: "Update link", ...WRITE_IDEMPOTENT },
       },
@@ -263,9 +329,14 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
       "disable_link",
       {
         title: "Disable link",
-        description: "Disable a short link so it stops redirecting. Only the link owner can disable it.",
+        description:
+          "Disable a short link so it stops redirecting. Only the link owner can disable it.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link to disable"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link to disable"),
         },
         annotations: { title: "Disable link", ...WRITE_IDEMPOTENT },
       },
@@ -280,9 +351,14 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
       "enable_link",
       {
         title: "Enable link",
-        description: "Re-enable a disabled short link so it starts redirecting again. Only the link owner can enable it.",
+        description:
+          "Re-enable a disabled short link so it starts redirecting again. Only the link owner can enable it.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link to enable"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link to enable"),
         },
         annotations: { title: "Enable link", ...WRITE_IDEMPOTENT },
       },
@@ -299,8 +375,14 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         title: "Add custom slug",
         description: "Add a custom slug to an existing link.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link"),
-          slug: CustomSlugStringSchema.describe("Custom slug to add, e.g. 'my-post'"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link"),
+          slug: CustomSlugStringSchema.describe(
+            "Custom slug to add, e.g. 'my-post'",
+          ),
         },
         annotations: { title: "Add custom slug", ...WRITE_NEW },
       },
@@ -318,13 +400,24 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description:
           "Disable a single custom slug on a link so it stops redirecting. Other slugs on the same link are unaffected. The system-generated slug cannot be disabled this way; disable the whole link instead. Only the link owner can disable a slug.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link"),
-          slug: CustomSlugStringSchema.describe("The slug to disable, e.g. 'summer-sale'"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link"),
+          slug: CustomSlugStringSchema.describe(
+            "The slug to disable, e.g. 'summer-sale'",
+          ),
         },
         annotations: { title: "Disable slug", ...WRITE_IDEMPOTENT },
       },
       async ({ link_id, slug }) => {
-        const result = await disableSlug(this.env, link_id, slug, this.identity);
+        const result = await disableSlug(
+          this.env,
+          link_id,
+          slug,
+          this.identity,
+        );
         if (!result.ok) return fail(result.error);
         return ok(result.data);
       },
@@ -337,7 +430,11 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description:
           "Re-enable a previously disabled custom slug. Only the link owner can enable a slug.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link"),
           slug: CustomSlugStringSchema.describe("The slug to enable"),
         },
         annotations: { title: "Enable slug", ...WRITE_IDEMPOTENT },
@@ -356,7 +453,11 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description:
           "Permanently remove a custom slug from a link. Only zero-click slugs can be removed; slugs with clicks should be disabled instead. The system-generated slug cannot be removed. Only the link owner can remove a slug.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link"),
           slug: CustomSlugStringSchema.describe("The slug to remove"),
         },
         annotations: { title: "Remove slug", ...DESTRUCTIVE },
@@ -375,15 +476,28 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description:
           "Get click analytics for a short link: countries, referrers, devices, browsers, and daily click history. Results cover ONLY the requested time range; clicks outside this window are not included. Always read `range_used` in the response and reuse the same range across follow-up calls so numbers stay comparable. Defaults to the user's `default_range` setting (or 30d) when no range is given.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link"),
           range: optionalRangeSchema,
         },
         annotations: { title: "Link analytics", ...READ_ONLY },
       },
       async ({ link_id, range }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
         const filters = await resolveClickFilters(this.env, this.identity);
-        const result = await getLinkAnalytics(this.env, link_id, resolved, filters);
+        const result = await getLinkAnalytics(
+          this.env,
+          link_id,
+          resolved,
+          filters,
+        );
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, result.data);
       },
@@ -396,13 +510,21 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description:
           "Search for short links by label, slug, URL, or creator email. Click counts and `delta_pct` are scoped to the requested range; reuse the same range across follow-ups to keep numbers comparable. Defaults to the user's `default_range` setting (or 30d). Response includes `range_used`.",
         inputSchema: {
-          query: z.string().describe("Search term to match against link labels, slugs, URLs, and creator emails"),
+          query: z
+            .string()
+            .describe(
+              "Search term to match against link labels, slugs, URLs, and creator emails",
+            ),
           range: optionalRangeSchema,
         },
         annotations: { title: "Search links", ...READ_ONLY },
       },
       async ({ query, range }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
         const filters = await resolveClickFilters(this.env, this.identity);
         const result = await searchLinks(this.env, query, {
           includeOwner: true,
@@ -412,9 +534,15 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         });
         if (!result.ok) return fail(result.error);
         if (result.data.length === 0) {
-          return okWithRange(resolved, { results: [], message: "No links found matching that query." });
+          return okWithRange(resolved, {
+            results: [],
+            message: "No links found matching that query.",
+          });
         }
-        return okWithRange(resolved, { results: result.data, count: result.data.length });
+        return okWithRange(resolved, {
+          results: result.data,
+          count: result.data.length,
+        });
       },
     );
 
@@ -431,7 +559,11 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         annotations: { title: "List links by owner", ...READ_ONLY },
       },
       async ({ owner, range }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
         const filters = await resolveClickFilters(this.env, this.identity);
         const result = await listLinksByOwner(this.env, owner, {
           range: resolved,
@@ -440,9 +572,15 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         });
         if (!result.ok) return fail(result.error);
         if (result.data.length === 0) {
-          return okWithRange(resolved, { results: [], message: `No links found for ${owner}.` });
+          return okWithRange(resolved, {
+            results: [],
+            message: `No links found for ${owner}.`,
+          });
         }
-        return okWithRange(resolved, { results: result.data, count: result.data.length });
+        return okWithRange(resolved, {
+          results: result.data,
+          count: result.data.length,
+        });
       },
     );
 
@@ -450,11 +588,24 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
       "get_link_qr",
       {
         title: "Link QR code",
-        description: "Get a QR code SVG for a short link. The QR encodes the short URL with a ?qr tracking parameter.",
+        description:
+          "Get a QR code SVG for a short link. The QR encodes the short URL with a ?qr tracking parameter.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link"),
-          slug: z.string().optional().describe("Specific slug to use (defaults to custom slug or primary)"),
-          base_url: z.string().url().describe("Base URL of the shrtnr instance, e.g. https://oddb.it"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link"),
+          slug: z
+            .string()
+            .optional()
+            .describe(
+              "Specific slug to use (defaults to custom slug or primary)",
+            ),
+          base_url: z
+            .string()
+            .url()
+            .describe("Base URL of the shrtnr instance, e.g. https://oddb.it"),
         },
         annotations: { title: "Link QR code", ...READ_ONLY },
       },
@@ -489,9 +640,23 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
 
     // ---- Analytics & insight tools ----
 
-    const limitSchema = z.number().int().min(1).max(100).default(10).describe("Maximum number of results to return");
+    const limitSchema = z
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .default(10)
+      .describe("Maximum number of results to return");
     const dimensionSchema = z
-      .enum(["country", "referrer_host", "device_type", "os", "browser", "link_mode", "channel"])
+      .enum([
+        "country",
+        "referrer_host",
+        "device_type",
+        "os",
+        "browser",
+        "link_mode",
+        "channel",
+      ])
       .describe("Dimension to group by");
 
     this.server.registerTool(
@@ -507,8 +672,17 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         annotations: { title: "Trending links", ...READ_ONLY },
       },
       async ({ range, limit }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
-        const result = await getTrendingLinks(this.env, resolved, limit, this.identity);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
+        const result = await getTrendingLinks(
+          this.env,
+          resolved,
+          limit,
+          this.identity,
+        );
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, { results: result.data });
       },
@@ -526,8 +700,16 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         annotations: { title: "Dashboard stats", ...READ_ONLY },
       },
       async ({ range }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
-        const result = await getDashboardStats(this.env, resolved, this.identity);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
+        const result = await getDashboardStats(
+          this.env,
+          resolved,
+          this.identity,
+        );
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, result.data);
       },
@@ -540,15 +722,28 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description:
           "Get time-bucketed click counts for a link with adaptive granularity. Buckets cover ONLY the requested range. Defaults to the user's `default_range` setting (or 30d). Response includes `range_used`.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link"),
           range: optionalRangeSchema,
         },
         annotations: { title: "Link timeline", ...READ_ONLY },
       },
       async ({ link_id, range }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
         const filters = await resolveClickFilters(this.env, this.identity);
-        const result = await getLinkTimeline(this.env, link_id, resolved, filters);
+        const result = await getLinkTimeline(
+          this.env,
+          link_id,
+          resolved,
+          filters,
+        );
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, result.data);
       },
@@ -567,8 +762,18 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         annotations: { title: "Clicks by country", ...READ_ONLY },
       },
       async ({ range, limit }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
-        const result = await getGlobalBreakdown(this.env, "country", resolved, limit, this.identity);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
+        const result = await getGlobalBreakdown(
+          this.env,
+          "country",
+          resolved,
+          limit,
+          this.identity,
+        );
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, { results: result.data });
       },
@@ -587,8 +792,18 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         annotations: { title: "Clicks by referrer", ...READ_ONLY },
       },
       async ({ range, limit }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
-        const result = await getGlobalBreakdown(this.env, "referrer_host", resolved, limit, this.identity);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
+        const result = await getGlobalBreakdown(
+          this.env,
+          "referrer_host",
+          resolved,
+          limit,
+          this.identity,
+        );
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, { results: result.data });
       },
@@ -611,8 +826,18 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         annotations: { title: "Clicks by device", ...READ_ONLY },
       },
       async ({ dimension, range, limit }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
-        const result = await getGlobalBreakdown(this.env, dimension, resolved, limit, this.identity);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
+        const result = await getGlobalBreakdown(
+          this.env,
+          dimension,
+          resolved,
+          limit,
+          this.identity,
+        );
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, { results: result.data });
       },
@@ -625,14 +850,26 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description:
           "Compare two or more links side by side. All per-link stats are scoped to the requested range; pass the same range in follow-up calls to keep comparisons consistent. Defaults to the user's `default_range` setting (or 30d). Response includes `range_used`.",
         inputSchema: {
-          link_ids: z.array(z.number().int().positive()).min(2).describe("Array of link IDs to compare"),
+          link_ids: z
+            .array(z.number().int().positive())
+            .min(2)
+            .describe("Array of link IDs to compare"),
           range: optionalRangeSchema,
         },
         annotations: { title: "Compare links", ...READ_ONLY },
       },
       async ({ link_ids, range }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
-        const result = await compareLinkStats(this.env, link_ids, resolved, this.identity);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
+        const result = await compareLinkStats(
+          this.env,
+          link_ids,
+          resolved,
+          this.identity,
+        );
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, { results: result.data });
       },
@@ -645,16 +882,37 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description:
           "Drill down into a single dimension for one link. Counts cover ONLY the requested range. Defaults to the user's `default_range` setting (or 30d). Response includes `range_used`.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link"),
           dimension: dimensionSchema,
           range: optionalRangeSchema,
-          limit: z.number().int().min(1).max(100).default(25).describe("Maximum results"),
+          limit: z
+            .number()
+            .int()
+            .min(1)
+            .max(100)
+            .default(25)
+            .describe("Maximum results"),
         },
         annotations: { title: "Link breakdown", ...READ_ONLY },
       },
       async ({ link_id, dimension, range, limit }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
-        const result = await getLinkBreakdown(this.env, link_id, dimension, resolved, limit, this.identity);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
+        const result = await getLinkBreakdown(
+          this.env,
+          link_id,
+          dimension,
+          resolved,
+          limit,
+          this.identity,
+        );
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, { results: result.data });
       },
@@ -672,7 +930,11 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         annotations: { title: "Total clicks", ...READ_ONLY },
       },
       async ({ range }) => {
-        const resolved = await resolveMcpRange(this.env, this.identity, range as TimelineRange | undefined);
+        const resolved = await resolveMcpRange(
+          this.env,
+          this.identity,
+          range as TimelineRange | undefined,
+        );
         const result = await getTotalClicks(this.env, resolved, this.identity);
         if (!result.ok) return fail(result.error);
         return okWithRange(resolved, result.data);
@@ -686,7 +948,11 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
         description:
           "Delete a short link. Only links with zero clicks can be deleted. Links with clicks should be disabled instead. Only the link owner can delete it.",
         inputSchema: {
-          link_id: z.number().int().positive().describe("Numeric ID of the link to delete"),
+          link_id: z
+            .number()
+            .int()
+            .positive()
+            .describe("Numeric ID of the link to delete"),
         },
         annotations: { title: "Delete link", ...DESTRUCTIVE },
       },

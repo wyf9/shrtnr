@@ -12,13 +12,23 @@ beforeEach(resetData);
 
 describe("resolveMcpRange", () => {
   it("returns the explicit request when one is provided", async () => {
-    await SettingRepository.set(env.DB, "alice@oddbit.id", "default_range", "7d");
+    await SettingRepository.set(
+      env.DB,
+      "alice@oddbit.id",
+      "default_range",
+      "7d",
+    );
     const range = await resolveMcpRange(env as never, "alice@oddbit.id", "30d");
     expect(range).toBe("30d");
   });
 
   it("falls back to the user's default_range when no request is given", async () => {
-    await SettingRepository.set(env.DB, "alice@oddbit.id", "default_range", "90d");
+    await SettingRepository.set(
+      env.DB,
+      "alice@oddbit.id",
+      "default_range",
+      "90d",
+    );
     const range = await resolveMcpRange(env as never, "alice@oddbit.id");
     expect(range).toBe("90d");
   });
@@ -29,7 +39,12 @@ describe("resolveMcpRange", () => {
   });
 
   it("ignores stale or invalid settings", async () => {
-    await SettingRepository.set(env.DB, "alice@oddbit.id", "default_range", "garbage");
+    await SettingRepository.set(
+      env.DB,
+      "alice@oddbit.id",
+      "default_range",
+      "garbage",
+    );
     const range = await resolveMcpRange(env as never, "alice@oddbit.id");
     expect(range).toBe("30d");
   });

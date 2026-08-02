@@ -5,7 +5,7 @@ import type { Translations } from "./types";
 
 const id: Translations = {
   // Language code (used by client-side Intl APIs)
-  "_lang": "id",
+  _lang: "id",
   // Navigation
   "nav.dashboard": "Dasbor",
   "nav.links": "Tautan",
@@ -41,7 +41,8 @@ const id: Translations = {
   "dashboard.topDomains": "Domain Teratas",
   "dashboard.mostClicked": "Paling Banyak Diklik",
   "dashboard.clickToCopy": "Klik untuk menyalin",
-  "dashboard.redirectCacheWarning": "Cache pengalihan aktif. Analitik dapat menghitung klik terlalu rendah karena pengalihan yang dilayani cache mungkin tidak menjalankan Worker.",
+  "dashboard.redirectCacheWarning":
+    "Cache pengalihan aktif. Analitik dapat menghitung klik terlalu rendah karena pengalihan yang dilayani cache mungkin tidak menjalankan Worker.",
 
   // Links
   "links.title": "Tautan",
@@ -75,7 +76,8 @@ const id: Translations = {
   "links.disabled": "Nonaktif",
   "links.clicks": "klik",
   "links.clickToCopy": "Klik untuk menyalin",
-  "links.cachedInaccurate": "Disajikan dari cache: jumlah klik mungkin lebih rendah dari total sebenarnya.",
+  "links.cachedInaccurate":
+    "Disajikan dari cache: jumlah klik mungkin lebih rendah dari total sebenarnya.",
   "links.show": "Tampilkan",
   "links.searchResults": "{count} tautan cocok",
   "links.clearSearch": "Hapus",
@@ -86,7 +88,8 @@ const id: Translations = {
   "linkDetail.disable": "Nonaktifkan",
   "linkDetail.delete": "Hapus",
   "linkDetail.disabled": "Nonaktif",
-  "linkDetail.cachedInaccurate": "Tautan ini disajikan dari cache pengalihan, sehingga jumlah kliknya mungkin lebih rendah dari total sebenarnya sampai cache kedaluwarsa atau dibersihkan.",
+  "linkDetail.cachedInaccurate":
+    "Tautan ini disajikan dari cache pengalihan, sehingga jumlah kliknya mungkin lebih rendah dari total sebenarnya sampai cache kedaluwarsa atau dibersihkan.",
   "linkDetail.copy": "Salin",
   "linkDetail.qr": "QR",
   "linkDetail.or": "atau",
@@ -130,14 +133,20 @@ const id: Translations = {
   "linkDetail.disableSlug": "Nonaktifkan slug",
   "linkDetail.enableSlug": "Aktifkan slug",
   "linkDetail.duplicateTitle": "Buat tautan lain untuk tujuan ini?",
-  "linkDetail.duplicateBody": "Ini membuat catatan tautan terpisah yang mengarah ke URL tujuan yang sama. Slug kustom tidak akan disalin.",
-  "linkDetail.duplicateHelper": "Gunakan ini ketika Anda ingin pelabelan, kepemilikan, kedaluwarsa, atau siklus hidup terpisah. Jika Anda hanya ingin jalur pendek lain untuk tujuan yang sama, tambahkan slug kustom.",
+  "linkDetail.duplicateBody":
+    "Ini membuat catatan tautan terpisah yang mengarah ke URL tujuan yang sama. Slug kustom tidak akan disalin.",
+  "linkDetail.duplicateHelper":
+    "Gunakan ini ketika Anda ingin pelabelan, kepemilikan, kedaluwarsa, atau siklus hidup terpisah. Jika Anda hanya ingin jalur pendek lain untuk tujuan yang sama, tambahkan slug kustom.",
   "linkDetail.copyLabel": "Salin label",
-  "linkDetail.confirmDisable": "Yakin ingin menonaktifkan tautan ini? Pengalihan akan berhenti.",
-  "linkDetail.confirmDelete": "Hapus tautan ini? Tautan dan semua slug-nya akan dihapus permanen.",
+  "linkDetail.confirmDisable":
+    "Yakin ingin menonaktifkan tautan ini? Pengalihan akan berhenti.",
+  "linkDetail.confirmDelete":
+    "Hapus tautan ini? Tautan dan semua slug-nya akan dihapus permanen.",
   "linkDetail.confirmEnable": "Aktifkan kembali tautan ini?",
-  "linkDetail.confirmDeleteSlug": "Hapus slug /{slug}? Tindakan ini tidak dapat dibatalkan.",
-  "linkDetail.confirmDisableSlug": "Nonaktifkan slug /{slug}? Pengalihan berhenti tetapi riwayat klik dipertahankan.",
+  "linkDetail.confirmDeleteSlug":
+    "Hapus slug /{slug}? Tindakan ini tidak dapat dibatalkan.",
+  "linkDetail.confirmDisableSlug":
+    "Nonaktifkan slug /{slug}? Pengalihan berhenti tetapi riwayat klik dipertahankan.",
   "linkDetail.confirmEnableSlug": "Aktifkan kembali slug /{slug}?",
   "linkDetail.selectPrimary": "Pilih slug utama",
   "linkDetail.moreActions": "Tindakan lainnya",
@@ -145,7 +154,8 @@ const id: Translations = {
 
   // Redirects
   "redirects.title": "Pengalihan Dinamis",
-  "redirects.subtitle": "Mengelola aturan pengalihan dinamis dengan placeholder dan splat. Semua aturan memakai 302.",
+  "redirects.subtitle":
+    "Mengelola aturan pengalihan dinamis dengan placeholder dan splat. Semua aturan memakai 302.",
   "redirects.colSource": "Pola Sumber",
   "redirects.colDestination": "Tujuan",
   "redirects.sourcePattern": "/pola/:placeholder atau /awalan/*",
@@ -155,7 +165,8 @@ const id: Translations = {
   "redirects.editRule": "Sunting Aturan",
   "redirects.saveRule": "Simpan Aturan",
   "redirects.delete": "Hapus",
-  "redirects.empty": "Belum ada aturan pengalihan dinamis. Tambahkan satu untuk memulai.",
+  "redirects.empty":
+    "Belum ada aturan pengalihan dinamis. Tambahkan satu untuk memulai.",
 
   // API Keys
   "keys.title": "Kunci API",
@@ -183,35 +194,47 @@ const id: Translations = {
   "settings.themeDark": "Gelap",
   "settings.themeLight": "Terang",
   "settings.defaultRange": "Rentang Waktu Default",
-  "settings.defaultRangeHint": "Diterapkan di setiap halaman analitik ketika tidak ada rentang yang dipilih.",
+  "settings.defaultRangeHint":
+    "Diterapkan di setiap halaman analitik ketika tidak ada rentang yang dipilih.",
   "settings.rootRedirectUrl": "URL Pengalihan Root",
-  "settings.rootRedirectUrlHint": "Jika diisi, pengunjung yang belum login ke / akan dialihkan ke URL ini. Kosongkan untuk tetap memakai halaman login bawaan.",
+  "settings.rootRedirectUrlHint":
+    "Jika diisi, pengunjung yang belum login ke / akan dialihkan ke URL ini. Kosongkan untuk tetap memakai halaman login bawaan.",
   "settings.rootRedirectUrlPlaceholder": "https://example.com",
   "settings.dynamicRedirectRules": "Aturan Pengalihan Dinamis",
-  "settings.dynamicRedirectRulesHint": "Mendukung aturan gaya _redirects dengan placeholder (:name) dan splat (* -> :splat). Satu aturan per baris.",
-  "settings.dynamicRedirectRulesPlaceholder": "# /mail/:email https://siiway.org/go/mail?email=:email\n# /a/* https://siiway.org/about/:splat",
+  "settings.dynamicRedirectRulesHint":
+    "Mendukung aturan gaya _redirects dengan placeholder (:name) dan splat (* -> :splat). Satu aturan per baris.",
+  "settings.dynamicRedirectRulesPlaceholder":
+    "# /mail/:email https://siiway.org/go/mail?email=:email\n# /a/* https://siiway.org/about/:splat",
   "settings.slugLength": "Panjang Slug Default",
   "settings.analyticsFilters": "Filter Analitik",
   "settings.filterBots": "Saring trafik bot",
-  "settings.filterBotsHint": "Kecualikan klik dari bot, crawler, dan crawler pelatihan AI (GPTBot, ClaudeBot, Google-Extended, dan sejenisnya) dari setiap tampilan analitik.",
+  "settings.filterBotsHint":
+    "Kecualikan klik dari bot, crawler, dan crawler pelatihan AI (GPTBot, ClaudeBot, Google-Extended, dan sejenisnya) dari setiap tampilan analitik.",
   "settings.filterSelfReferrers": "Saring self-referrer",
-  "settings.filterSelfReferrersHint": "Kecualikan klik yang perujuknya adalah origin mentah situs ini (navigasi internal).",
+  "settings.filterSelfReferrersHint":
+    "Kecualikan klik yang perujuknya adalah origin mentah situs ini (navigasi internal).",
   "settings.filterAiSearches": "Saring pencarian AI",
-  "settings.filterAiSearchesHint": "Kecualikan klik dari pencarian AI dan asisten langsung (ChatGPT-User, Perplexity-User, Claude-User, dan sejenisnya) yang mengambil tautan saat seseorang bertanya ke AI atau agen, berbeda dari crawler pelatihan AI.",
+  "settings.filterAiSearchesHint":
+    "Kecualikan klik dari pencarian AI dan asisten langsung (ChatGPT-User, Perplexity-User, Claude-User, dan sejenisnya) yang mengambil tautan saat seseorang bertanya ke AI atau agen, berbeda dari crawler pelatihan AI.",
   "settings.performance": "Performa",
   "settings.redirectCache": "Cache pengalihan selama satu tahun",
-  "settings.redirectCacheHint": "Mengurangi CPU dengan menyajikan tautan pendek populer dari Workers Cache. Analitik klik dapat terhitung lebih rendah sampai cache dibersihkan atau kedaluwarsa.",
+  "settings.redirectCacheHint":
+    "Mengurangi CPU dengan menyajikan tautan pendek populer dari Workers Cache. Analitik klik dapat terhitung lebih rendah sampai cache dibersihkan atau kedaluwarsa.",
   "settings.purgeCache": "Bersihkan cache pengalihan",
-  "settings.purgeCacheHint": "Buang semua pengalihan yang di-cache sekarang agar pelacakan klik kembali berjalan untuk tautan yang disajikan dari cache.",
+  "settings.purgeCacheHint":
+    "Buang semua pengalihan yang di-cache sekarang agar pelacakan klik kembali berjalan untuk tautan yang disajikan dari cache.",
   "settings.redirectCacheDuration": "Durasi cache",
-  "settings.redirectCacheDurationHint": "Berapa lama pengalihan tetap di-cache sebelum dievaluasi ulang.",
+  "settings.redirectCacheDurationHint":
+    "Berapa lama pengalihan tetap di-cache sebelum dievaluasi ulang.",
   "settings.redirectCacheThreshold": "Ambang cache",
-  "settings.redirectCacheThresholdHint": "Hanya cache tautan yang mencapai jumlah klik ini dalam rentang waktu (klik / hari). Setel keduanya ke 0 untuk cache semua tautan.",
+  "settings.redirectCacheThresholdHint":
+    "Hanya cache tautan yang mencapai jumlah klik ini dalam rentang waktu (klik / hari). Setel keduanya ke 0 untuk cache semua tautan.",
   "settings.unitDays": "hari",
   "settings.purgeCacheButton": "Bersihkan cache",
   "settings.redirects": "Pengalihan",
   "settings.dynamicRedirectStrictMatch": "Pencocokan pengalihan dinamis ketat",
-  "settings.dynamicRedirectStrictMatchHint": "Mewajibkan setiap placeholder (:name) dan splat (*) menangkap nilai non-kosong sebelum aturan dinamis dipicu. Misalnya, \"/a/*\" tidak akan cocok dengan \"/a/\" saat diaktifkan. Path tanpa garis miring di akhir (mis. \"/a\") tidak pernah cocok dengan \"/a/*\" terlepas dari pengaturan ini.",
+  "settings.dynamicRedirectStrictMatchHint":
+    'Mewajibkan setiap placeholder (:name) dan splat (*) menangkap nilai non-kosong sebelum aturan dinamis dipicu. Misalnya, "/a/*" tidak akan cocok dengan "/a/" saat diaktifkan. Path tanpa garis miring di akhir (mis. "/a") tidak pernah cocok dengan "/a/*" terlepas dari pengaturan ini.',
   "settings.save": "Simpan",
   "settings.combos": "{count} kemungkinan kombinasi",
   "settings.combosInfinite": "Kemungkinan kombinasi hampir tak terbatas",
@@ -342,7 +365,8 @@ const id: Translations = {
   "client.cachePurged": "Cache pengalihan dibersihkan",
   "client.cachePurgeError": "Gagal membersihkan cache pengalihan",
   "client.cacheDurationError": "Durasi cache minimal 1 hari",
-  "client.cacheThresholdPairError": "Setel kedua nilai ambang cache ke 0 (cache semua) atau keduanya di atas 0",
+  "client.cacheThresholdPairError":
+    "Setel kedua nilai ambang cache ke 0 (cache semua) atau keduanya di atas 0",
   "client.combos": "{count} kemungkinan kombinasi",
   "client.combosInfinite": "Kemungkinan kombinasi hampir tak terbatas",
   "client.minLength": "Panjang minimum 3 karakter",
@@ -357,7 +381,8 @@ const id: Translations = {
 
   // Pages
   "pages.title": "Halaman",
-  "pages.subtitle": "Sajikan halaman statis dari domain pendek Anda. Setiap halaman disajikan di jalur slug-nya.",
+  "pages.subtitle":
+    "Sajikan halaman statis dari domain pendek Anda. Setiap halaman disajikan di jalur slug-nya.",
   "pages.colSlug": "Slug",
   "pages.colFilename": "Nama Berkas",
   "pages.colStatus": "Status HTTP",
@@ -370,7 +395,8 @@ const id: Translations = {
   "pages.disable": "Nonaktifkan",
   "pages.enable": "Aktifkan",
   "pages.disabled": "Dinonaktifkan",
-  "pages.empty": "Belum ada halaman. Tambahkan satu untuk mulai menyajikan konten statis.",
+  "pages.empty":
+    "Belum ada halaman. Tambahkan satu untuk mulai menyajikan konten statis.",
   "pages.statusPlaceholder": "200",
   "pages.headersPlaceholder": "{}",
 
@@ -395,7 +421,8 @@ const id: Translations = {
   "client.pages.disabledMsg": "Halaman dinonaktifkan",
   "client.pages.enabled": "Halaman diaktifkan",
   "client.pages.toggleError": "Gagal mengubah status halaman",
-  "client.pages.confirmDelete": "Hapus halaman /{slug}? Tindakan ini tidak dapat dibatalkan.",
+  "client.pages.confirmDelete":
+    "Hapus halaman /{slug}? Tindakan ini tidak dapat dibatalkan.",
 
   // Language names (displayed in their own language)
   "lang.en": "English",

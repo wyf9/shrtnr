@@ -31,7 +31,9 @@ const StatBar: FC<{
         <span class="count">{fmtNumber(count, lang)}</span>
         <span class="pct">{pct}%</span>
       </div>
-      <div class="bar"><div class={`fill ${color}`} style={`width:${pct}%`} /></div>
+      <div class="bar">
+        <div class={`fill ${color}`} style={`width:${pct}%`} />
+      </div>
     </div>
   );
 };
@@ -49,7 +51,13 @@ type Props = {
   redirectCacheEnabled: boolean;
 };
 
-export const DashboardPage: FC<Props> = ({ stats, t, lang, range, redirectCacheEnabled }) => {
+export const DashboardPage: FC<Props> = ({
+  stats,
+  t,
+  lang,
+  range,
+  redirectCacheEnabled,
+}) => {
   const d = stats;
   const topCountryMax = d.top_countries.reduce((s, i) => s + i.count, 0) || 1;
   const topRefMax = d.top_referrers.reduce((s, i) => s + i.count, 0) || 1;
@@ -75,8 +83,15 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range, redirectCacheE
             type="text"
             placeholder={t("links.inputPlaceholder")}
           />
-          <button class="btn btn-primary btn-lg" id="quick-action-btn" onclick="quickShorten()">
-            <span class="icon" id="quick-action-icon">bolt</span> <span id="quick-action-label">{t("dashboard.shorten")}</span>
+          <button
+            class="btn btn-primary btn-lg"
+            id="quick-action-btn"
+            onclick="quickShorten()"
+          >
+            <span class="icon" id="quick-action-icon">
+              bolt
+            </span>{" "}
+            <span id="quick-action-label">{t("dashboard.shorten")}</span>
           </button>
         </div>
       </div>
@@ -135,10 +150,17 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range, redirectCacheE
         <div class="bento-card span-2 timeline-card" id="dash-timeline">
           <div class="timeline-head">
             <div class="bento-label">{t("linkDetail.clicksOverTime")}</div>
-            <span class="timeline-range-pill">{t(`range.long.${range}` as const)}</span>
+            <span class="timeline-range-pill">
+              {t(`range.long.${range}` as const)}
+            </span>
           </div>
           <div class="timeline-chart">
-            <BigChart values={d.timeline} range={range} t={t} id="dash-bigchart" />
+            <BigChart
+              values={d.timeline}
+              range={range}
+              t={t}
+              id="dash-bigchart"
+            />
           </div>
         </div>
 
@@ -178,10 +200,14 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range, redirectCacheE
                       <span class="label">{slug}</span>
                     </div>
                     <div class="right">
-                      <span class="count">{fmtNumber(link.total_clicks, lang)}</span>
+                      <span class="count">
+                        {fmtNumber(link.total_clicks, lang)}
+                      </span>
                       <span class="pct">{pct}%</span>
                     </div>
-                    <div class="bar"><div class="fill orange" style={`width:${pct}%`} /></div>
+                    <div class="bar">
+                      <div class="fill orange" style={`width:${pct}%`} />
+                    </div>
                   </div>
                   <div class="top-link-row-url">{link.url}</div>
                 </a>
@@ -226,8 +252,7 @@ export const DashboardPage: FC<Props> = ({ stats, t, lang, range, redirectCacheE
                     onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(slug)}')`}
                     title={t("dashboard.clickToCopy")}
                   >
-                    {slug}{" "}
-                    <span class="icon">content_copy</span>
+                    {slug} <span class="icon">content_copy</span>
                   </span>
                   <span class="recent-row-url">{link.url}</span>
                   <span class="recent-row-clicks">{link.total_clicks}</span>

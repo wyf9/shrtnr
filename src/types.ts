@@ -6,9 +6,9 @@ export interface Env {
   SLUG_KV?: KVNamespace;
 
   // Cloudflare Access JWT audience tags
-  ACCESS_AUD: string;       // AUD tag from the admin CF Access application
-  MCP_ACCESS_AUD: string;   // AUD tag from the MCP CF Access application (Managed OAuth)
-  ACCESS_JWKS_URL: string;  // https://<team>.cloudflareaccess.com/cdn-cgi/access/certs
+  ACCESS_AUD: string; // AUD tag from the admin CF Access application
+  MCP_ACCESS_AUD: string; // AUD tag from the MCP CF Access application (Managed OAuth)
+  ACCESS_JWKS_URL: string; // https://<team>.cloudflareaccess.com/cdn-cgi/access/certs
 
   // Dev-only: set to bypass login and assume this identity (e.g. "dev@local")
   DEV_IDENTITY?: string;

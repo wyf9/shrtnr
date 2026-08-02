@@ -1,7 +1,11 @@
 import { env } from "cloudflare:test";
 
 // Load all migration files at build time via Vite's import.meta.glob with eager + raw.
-const migrationFiles = import.meta.glob("../../migrations/*.sql", { eager: true, query: "?raw", import: "default" }) as Record<string, string>;
+const migrationFiles = import.meta.glob("../../migrations/*.sql", {
+  eager: true,
+  query: "?raw",
+  import: "default",
+}) as Record<string, string>;
 
 let migrated = false;
 
@@ -40,7 +44,9 @@ export async function resetData() {
   await env.DB.exec("DELETE FROM links");
   await env.DB.exec("DELETE FROM settings");
   await env.DB.exec("DELETE FROM api_keys");
-  await env.DB.exec("INSERT INTO settings (identity, key, value) VALUES ('anonymous', 'slug_default_length', '3')");
+  await env.DB.exec(
+    "INSERT INTO settings (identity, key, value) VALUES ('anonymous', 'slug_default_length', '3')",
+  );
 
   // Clear KV cache
   const kv = env.SLUG_KV!;

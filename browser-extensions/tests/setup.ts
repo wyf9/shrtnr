@@ -43,7 +43,9 @@ interface MockChrome {
 }
 
 let storageBackend: StorageBackend = {};
-let storageListeners: Array<(changes: Record<string, chrome.storage.StorageChange>, area: string) => void> = [];
+let storageListeners: Array<
+  (changes: Record<string, chrome.storage.StorageChange>, area: string) => void
+> = [];
 
 export function getStorageBackend(): StorageBackend {
   return storageBackend;
@@ -56,24 +58,28 @@ export function resetChromeMocks(): void {
   const mock: MockChrome = {
     storage: {
       sync: {
-        get: vi.fn(async (keys?: string | string[] | Record<string, unknown> | null) => {
-          if (keys == null) return { ...storageBackend };
-          if (typeof keys === "string") {
-            return keys in storageBackend ? { [keys]: storageBackend[keys] } : {};
-          }
-          if (Array.isArray(keys)) {
+        get: vi.fn(
+          async (keys?: string | string[] | Record<string, unknown> | null) => {
+            if (keys == null) return { ...storageBackend };
+            if (typeof keys === "string") {
+              return keys in storageBackend
+                ? { [keys]: storageBackend[keys] }
+                : {};
+            }
+            if (Array.isArray(keys)) {
+              const out: Record<string, unknown> = {};
+              for (const k of keys) {
+                if (k in storageBackend) out[k] = storageBackend[k];
+              }
+              return out;
+            }
             const out: Record<string, unknown> = {};
-            for (const k of keys) {
-              if (k in storageBackend) out[k] = storageBackend[k];
+            for (const [k, fallback] of Object.entries(keys)) {
+              out[k] = k in storageBackend ? storageBackend[k] : fallback;
             }
             return out;
-          }
-          const out: Record<string, unknown> = {};
-          for (const [k, fallback] of Object.entries(keys)) {
-            out[k] = k in storageBackend ? storageBackend[k] : fallback;
-          }
-          return out;
-        }),
+          },
+        ),
         set: vi.fn(async (items: Record<string, unknown>) => {
           const changes: Record<string, chrome.storage.StorageChange> = {};
           for (const [k, v] of Object.entries(items)) {
@@ -99,12 +105,26 @@ export function resetChromeMocks(): void {
         },
       },
       onChanged: {
-        addListener: vi.fn((cb: (changes: Record<string, chrome.storage.StorageChange>, area: string) => void) => {
-          storageListeners.push(cb);
-        }),
-        removeListener: vi.fn((cb: (changes: Record<string, chrome.storage.StorageChange>, area: string) => void) => {
-          storageListeners = storageListeners.filter((l) => l !== cb);
-        }),
+        addListener: vi.fn(
+          (
+            cb: (
+              changes: Record<string, chrome.storage.StorageChange>,
+              area: string,
+            ) => void,
+          ) => {
+            storageListeners.push(cb);
+          },
+        ),
+        removeListener: vi.fn(
+          (
+            cb: (
+              changes: Record<string, chrome.storage.StorageChange>,
+              area: string,
+            ) => void,
+          ) => {
+            storageListeners = storageListeners.filter((l) => l !== cb);
+          },
+        ),
       },
     },
     runtime: {
@@ -115,8 +135,13 @@ export function resetChromeMocks(): void {
       getURL: (path: string) => `chrome-extension://test-extension-id/${path}`,
     },
     tabs: {
-      query: vi.fn(async () => [{ url: "https://example.com/page", id: 1, active: true }]),
-      create: vi.fn(async (props: { url: string }) => ({ id: 2, url: props.url })),
+      query: vi.fn(async () => [
+        { url: "https://example.com/page", id: 1, active: true },
+      ]),
+      create: vi.fn(async (props: { url: string }) => ({
+        id: 2,
+        url: props.url,
+      })),
     },
     permissions: {
       request: vi.fn(async () => true),
@@ -145,7 +170,9 @@ export function resetChromeMocks(): void {
 }
 
 export function getClipboardMock(): { writeText: ReturnType<typeof vi.fn> } {
-  return globalThis.navigator.clipboard as unknown as { writeText: ReturnType<typeof vi.fn> };
+  return globalThis.navigator.clipboard as unknown as {
+    writeText: ReturnType<typeof vi.fn>;
+  };
 }
 
 beforeEach(() => {

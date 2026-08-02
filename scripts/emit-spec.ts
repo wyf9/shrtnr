@@ -33,7 +33,10 @@ const config = {
       "Authenticate with an API key issued from the admin dashboard. " +
       "Built and maintained by Oddbit (https://oddbit.id).",
     contact: { name: "Oddbit", url: "https://oddbit.id" },
-    license: { name: "Apache 2.0", url: "https://www.apache.org/licenses/LICENSE-2.0" },
+    license: {
+      name: "Apache 2.0",
+      url: "https://www.apache.org/licenses/LICENSE-2.0",
+    },
   },
   servers: [{ url: "/" }],
   security: [{ bearerAuth: [] }],
@@ -44,12 +47,21 @@ process.stdout.write(canonicalize(doc) + "\n");
 
 function canonicalize(value: unknown): string {
   if (value === undefined) {
-    throw new Error("canonicalize encountered undefined; this would corrupt the spec hash silently");
+    throw new Error(
+      "canonicalize encountered undefined; this would corrupt the spec hash silently",
+    );
   }
   if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return "[" + value.map(canonicalize).join(",") + "]";
+  if (Array.isArray(value))
+    return "[" + value.map(canonicalize).join(",") + "]";
   const entries = Object.entries(value as Record<string, unknown>)
     .filter(([, v]) => v !== undefined)
-    .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
-  return "{" + entries.map(([k, v]) => JSON.stringify(k) + ":" + canonicalize(v)).join(",") + "}";
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  return (
+    "{" +
+    entries
+      .map(([k, v]) => JSON.stringify(k) + ":" + canonicalize(v))
+      .join(",") +
+    "}"
+  );
 }

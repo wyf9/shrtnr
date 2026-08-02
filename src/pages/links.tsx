@@ -88,12 +88,17 @@ export const LinksPage: FC<Props> = ({
 
   const sortUrl = (s: string) => buildUrl({ sort: s, page: "1" });
   const pageUrl = (p: number) => buildUrl({ page: String(p) });
-  const perPageUrl = (n: number) => buildUrl({ per_page: String(n), page: "1" });
+  const perPageUrl = (n: number) =>
+    buildUrl({ per_page: String(n), page: "1" });
   const filterUrl = (f: LinksFilter) => buildUrl({ filter: f, page: "1" });
 
   const countKey = filtered.length !== 1 ? "links.countPlural" : "links.count";
 
-  const filterChips: { key: LinksFilter; labelKey: "links.filterActive" | "links.filterDisabled" | "links.filterAll"; icon: string }[] = [
+  const filterChips: {
+    key: LinksFilter;
+    labelKey: "links.filterActive" | "links.filterDisabled" | "links.filterAll";
+    icon: string;
+  }[] = [
     { key: "active", labelKey: "links.filterActive", icon: "link" },
     { key: "disabled", labelKey: "links.filterDisabled", icon: "block" },
     { key: "all", labelKey: "links.filterAll", icon: "all_inclusive" },
@@ -116,7 +121,11 @@ export const LinksPage: FC<Props> = ({
           <div class="page-subtitle">{t("links.subtitle")}</div>
         </div>
         <div class="topbar-actions">
-          <RangePicker current={range} basePath="/_/admin/links" preserveParams={preserveParams} />
+          <RangePicker
+            current={range}
+            basePath="/_/admin/links"
+            preserveParams={preserveParams}
+          />
         </div>
       </div>
 
@@ -129,8 +138,15 @@ export const LinksPage: FC<Props> = ({
             placeholder={t("links.inputPlaceholder")}
             value={searchQuery || ""}
           />
-          <button class="btn btn-primary btn-lg" id="quick-action-btn" onclick="quickShorten()">
-            <span class="icon" id="quick-action-icon">bolt</span> <span id="quick-action-label">{t("dashboard.shorten")}</span>
+          <button
+            class="btn btn-primary btn-lg"
+            id="quick-action-btn"
+            onclick="quickShorten()"
+          >
+            <span class="icon" id="quick-action-icon">
+              bolt
+            </span>{" "}
+            <span id="quick-action-label">{t("dashboard.shorten")}</span>
           </button>
         </div>
         <div class="hero-input-row">
@@ -151,7 +167,9 @@ export const LinksPage: FC<Props> = ({
 
       {searchQuery && (
         <div class="search-results-bar">
-          <span class="count">{t("links.searchResults", { count: filtered.length })}</span>
+          <span class="count">
+            {t("links.searchResults", { count: filtered.length })}
+          </span>
           <a href="/_/admin/links" class="btn btn-ghost btn-sm">
             <span class="icon icon-xs">close</span> {t("links.clearSearch")}
           </a>
@@ -176,15 +194,13 @@ export const LinksPage: FC<Props> = ({
               class={`sort-btn${sort === "recent" ? " active" : ""}`}
               href={sortUrl("recent")}
             >
-              <span class="icon icon-sm">schedule</span>{" "}
-              {t("links.recent")}
+              <span class="icon icon-sm">schedule</span> {t("links.recent")}
             </a>
             <a
               class={`sort-btn${sort === "popular" ? " active" : ""}`}
               href={sortUrl("popular")}
             >
-              <span class="icon icon-sm">trending_up</span>{" "}
-              {t("links.popular")}
+              <span class="icon icon-sm">trending_up</span> {t("links.popular")}
             </a>
           </div>
           <div class="toolbar-count">
@@ -196,11 +212,7 @@ export const LinksPage: FC<Props> = ({
       {filtered.length === 0 ? (
         <div class="empty-state">
           <span class="icon">link_off</span>
-          <p>
-            {links.length > 0
-              ? t("links.allDisabled")
-              : t("links.empty")}
-          </p>
+          <p>{links.length > 0 ? t("links.allDisabled") : t("links.empty")}</p>
         </div>
       ) : (
         <>
@@ -211,15 +223,18 @@ export const LinksPage: FC<Props> = ({
                   <tr>
                     <th>{t("links.colLink")}</th>
                     <th>{t("links.colShort")}</th>
-                    <th class="num">{t("links.colClicksRange", { range: rangeLabel })}</th>
+                    <th class="num">
+                      {t("links.colClicksRange", { range: rangeLabel })}
+                    </th>
                     <th>{t("links.colCreated")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pageLinks.map((link) => {
-                    const mainSlug = link.slugs.find((s) => s.is_primary)
-                      || link.slugs.find((s) => s.is_custom)
-                      || link.slugs[0];
+                    const mainSlug =
+                      link.slugs.find((s) => s.is_primary) ||
+                      link.slugs.find((s) => s.is_custom) ||
+                      link.slugs[0];
                     const disabled = isLinkDisabled(link);
                     const cached = cachedLinkIds?.has(link.id) ?? false;
                     const href = `/_/admin/links/${link.id}`;
@@ -248,17 +263,27 @@ export const LinksPage: FC<Props> = ({
                         <td data-label={t("links.colShort")} class="col-short">
                           {mainSlug && (
                             <span
-                              class={`col-short-chip no-row-nav${(mainSlug.disabled_at || disabled) ? " slug-chip-disabled" : ""}`}
+                              class={`col-short-chip no-row-nav${mainSlug.disabled_at || disabled ? " slug-chip-disabled" : ""}`}
                               onclick={`event.preventDefault();event.stopPropagation();copyUrl('${escHtml(mainSlug.slug)}')`}
                               title={t("links.clickToCopy")}
                             >
-                              <span class="col-short-chip-dot" aria-hidden="true" />
-                              <span class="col-short-chip-slug">{mainSlug.slug}</span>
+                              <span
+                                class="col-short-chip-dot"
+                                aria-hidden="true"
+                              />
+                              <span class="col-short-chip-slug">
+                                {mainSlug.slug}
+                              </span>
                               <span class="icon">content_copy</span>
                             </span>
                           )}
                         </td>
-                        <td data-label={t("links.colClicksRange", { range: rangeLabel })} class="col-clicks">
+                        <td
+                          data-label={t("links.colClicksRange", {
+                            range: rangeLabel,
+                          })}
+                          class="col-clicks"
+                        >
                           <span class="col-clicks-cell">
                             {cached ? (
                               <span
@@ -269,16 +294,19 @@ export const LinksPage: FC<Props> = ({
                                 <span class="icon icon-xs">info</span>
                               </span>
                             ) : (
-                              <span class="col-clicks-value">{fmtNumber(link.total_clicks, lang)}</span>
+                              <span class="col-clicks-value">
+                                {fmtNumber(link.total_clicks, lang)}
+                              </span>
                             )}
                           </span>
                         </td>
                         <td data-label={t("links.colCreated")} class="col-date">
                           <span class="col-date-cell">
                             <span>{formatDate(link.created_at, lang)}</span>
-                            {typeof link.delta_pct === "number" && link.total_clicks > 0 && (
-                              <Delta pct={link.delta_pct} />
-                            )}
+                            {typeof link.delta_pct === "number" &&
+                              link.total_clicks > 0 && (
+                                <Delta pct={link.delta_pct} />
+                              )}
                           </span>
                         </td>
                       </tr>
@@ -318,9 +346,7 @@ export const LinksPage: FC<Props> = ({
                 <a
                   class={`page-btn${currentPage >= totalPages ? " disabled" : ""}`}
                   href={
-                    currentPage < totalPages
-                      ? pageUrl(currentPage + 1)
-                      : "#"
+                    currentPage < totalPages ? pageUrl(currentPage + 1) : "#"
                   }
                 >
                   <span class="icon icon-sm">chevron_right</span>

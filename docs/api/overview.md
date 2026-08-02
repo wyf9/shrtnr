@@ -4,12 +4,12 @@ shrtnr exposes a public link-management API authenticated with Bearer tokens. Au
 
 ## Authentication matrix
 
-| Route | Auth | Notes |
-|---|---|---|
-| `/_/api/*` | Bearer token | Public link-management API. Create keys in the admin UI under **API Keys** and pass them as `Authorization: Bearer sk_...`. |
-| `/_/mcp` (and `mcp.<domain>`) | OAuth | MCP endpoint for AI assistants. Auth handled by Cloudflare Access; see [MCP Server](/integrations/mcp). |
-| `/_/admin/*` | None built in | Admin UI and admin-only API. Protect externally (see [Access Control](/guide/access-control)). Not callable with API keys. |
-| `/_/health` | Public | Health check. |
+| Route                         | Auth          | Notes                                                                                                                       |
+| ----------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `/_/api/*`                    | Bearer token  | Public link-management API. Create keys in the admin UI under **API Keys** and pass them as `Authorization: Bearer sk_...`. |
+| `/_/mcp` (and `mcp.<domain>`) | OAuth         | MCP endpoint for AI assistants. Auth handled by Cloudflare Access; see [MCP Server](/integrations/mcp).                     |
+| `/_/admin/*`                  | None built in | Admin UI and admin-only API. Protect externally (see [Access Control](/guide/access-control)). Not callable with API keys.  |
+| `/_/health`                   | Public        | Health check.                                                                                                               |
 
 ## Authentication
 
@@ -37,8 +37,8 @@ The SDKs ([TypeScript](/integrations/sdks), Python) regenerate from this spec wh
 
 Public API routes are mounted under `/_/api` (see `src/api/router.ts`):
 
-| Prefix | Resource | Implementation |
-|---|---|---|
+| Prefix         | Resource                                 | Implementation     |
+| -------------- | ---------------------------------------- | ------------------ |
 | `/_/api/links` | Link CRUD, analytics, timeline, QR codes | `src/api/links.ts` |
 | `/_/api/slugs` | Slug lookup, add, enable/disable, remove | `src/api/slugs.ts` |
 

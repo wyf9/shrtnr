@@ -6,7 +6,9 @@ import { PageRepository, SlugRepository } from "../db";
 import { json } from "./response";
 
 function contentTypeFromFilename(filename: string): string {
-  const ext = filename.includes(".") ? filename.split(".").pop()?.toLowerCase() : "";
+  const ext = filename.includes(".")
+    ? filename.split(".").pop()?.toLowerCase()
+    : "";
   const map: Record<string, string> = {
     html: "text/html; charset=utf-8",
     htm: "text/html; charset=utf-8",
@@ -42,7 +44,9 @@ export function pageResponse(page: Page): Response {
   let customHeaders: Record<string, string> = {};
   try {
     customHeaders = JSON.parse(page.headers);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   for (const [k, v] of Object.entries(customHeaders)) {
     headers.set(k, v);
   }
@@ -58,8 +62,17 @@ export async function handleListPages(env: Env): Promise<Response> {
   return json(pages);
 }
 
-export async function handleCreatePage(request: Request, env: Env): Promise<Response> {
-  let body: { slug?: string; content?: string; filename?: string; http_status?: number; headers?: string };
+export async function handleCreatePage(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  let body: {
+    slug?: string;
+    content?: string;
+    filename?: string;
+    http_status?: number;
+    headers?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -97,7 +110,10 @@ export async function handleCreatePage(request: Request, env: Env): Promise<Resp
 
   const httpStatus = body.http_status ?? 200;
   if (!Number.isInteger(httpStatus) || httpStatus < 100 || httpStatus > 599) {
-    return json({ error: "http_status must be an integer between 100 and 599" }, 400);
+    return json(
+      { error: "http_status must be an integer between 100 and 599" },
+      400,
+    );
   }
 
   const page = await PageRepository.create(env.DB, {
@@ -112,11 +128,21 @@ export async function handleCreatePage(request: Request, env: Env): Promise<Resp
   return json(page, 201);
 }
 
-export async function handleUpdatePage(request: Request, env: Env, id: number): Promise<Response> {
+export async function handleUpdatePage(
+  request: Request,
+  env: Env,
+  id: number,
+): Promise<Response> {
   const existing = await PageRepository.findById(env.DB, id);
   if (!existing) return json({ error: "Not found" }, 404);
 
-  let body: { slug?: string; content?: string; filename?: string; http_status?: number; headers?: string };
+  let body: {
+    slug?: string;
+    content?: string;
+    filename?: string;
+    http_status?: number;
+    headers?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -148,8 +174,16 @@ export async function handleUpdatePage(request: Request, env: Env, id: number): 
     }
   }
 
-  if (body.http_status !== undefined && (!Number.isInteger(body.http_status) || body.http_status < 100 || body.http_status > 599)) {
-    return json({ error: "http_status must be an integer between 100 and 599" }, 400);
+  if (
+    body.http_status !== undefined &&
+    (!Number.isInteger(body.http_status) ||
+      body.http_status < 100 ||
+      body.http_status > 599)
+  ) {
+    return json(
+      { error: "http_status must be an integer between 100 and 599" },
+      400,
+    );
   }
 
   await PageRepository.update(env.DB, id, body);
@@ -157,7 +191,10 @@ export async function handleUpdatePage(request: Request, env: Env, id: number): 
   return json(updated);
 }
 
-export async function handleDeletePage(env: Env, id: number): Promise<Response> {
+export async function handleDeletePage(
+  env: Env,
+  id: number,
+): Promise<Response> {
   const existing = await PageRepository.findById(env.DB, id);
   if (!existing) return json({ error: "Not found" }, 404);
 
@@ -165,7 +202,10 @@ export async function handleDeletePage(env: Env, id: number): Promise<Response> 
   return json({ deleted: true });
 }
 
-export async function handleDisablePage(env: Env, id: number): Promise<Response> {
+export async function handleDisablePage(
+  env: Env,
+  id: number,
+): Promise<Response> {
   const existing = await PageRepository.findById(env.DB, id);
   if (!existing) return json({ error: "Not found" }, 404);
 
@@ -174,7 +214,10 @@ export async function handleDisablePage(env: Env, id: number): Promise<Response>
   return json(updated);
 }
 
-export async function handleEnablePage(env: Env, id: number): Promise<Response> {
+export async function handleEnablePage(
+  env: Env,
+  id: number,
+): Promise<Response> {
   const existing = await PageRepository.findById(env.DB, id);
   if (!existing) return json({ error: "Not found" }, 404);
 

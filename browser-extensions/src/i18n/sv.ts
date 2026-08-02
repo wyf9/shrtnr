@@ -4,7 +4,7 @@
 import type { Translations } from "./types";
 
 const sv: Translations = {
-  "_lang": "sv",
+  _lang: "sv",
 
   // Brand
   "brand.name": "shrtnr",
@@ -26,7 +26,8 @@ const sv: Translations = {
 
   // Popup — not configured
   "popup.notConfigured.heading": "Konfigurera shrtnr",
-  "popup.notConfigured.body": "shrtnr är egenhostad. Peka ut din server för denna tillägg för att börja förkorta.",
+  "popup.notConfigured.body":
+    "shrtnr är egenhostad. Peka ut din server för denna tillägg för att börja förkorta.",
 
   // Form
   "form.baseUrl.label": "Server-URL",
@@ -45,30 +46,37 @@ const sv: Translations = {
 
   // CTA
   "cta.heading": "Har du ingen shrtnr ännu?",
-  "cta.body": "Deploya en gratis instans på Cloudflare med ett klick. Gratisnivå, inget kreditkort.",
+  "cta.body":
+    "Deploya en gratis instans på Cloudflare med ett klick. Gratisnivå, inget kreditkort.",
   "cta.button": "Deploya gratis",
 
   // Errors (visible to users)
   "error.internalPage": "shrtnr kan inte förkorta webbläsarens interna sidor.",
   "error.unparseable": "Kunde inte läsa denna fliks URL.",
-  "error.network": "Når inte din shrtnr på {host}. Kontrollera URL:en eller ditt nätverk.",
-  "error.unauthorized": "Din API-nyckel avvisades. Uppdatera den i inställningarna.",
+  "error.network":
+    "Når inte din shrtnr på {host}. Kontrollera URL:en eller ditt nätverk.",
+  "error.unauthorized":
+    "Din API-nyckel avvisades. Uppdatera den i inställningarna.",
   "error.forbidden": "Denna API-nyckel får inte skapa länkar.",
   "error.notFound": "shrtnr-API hittades inte på {host}. Skrev du fel värd?",
   "error.rateLimited": "För många förfrågningar. Försök igen om en stund.",
   "error.server": "Din shrtnr-server returnerade ett fel.",
   "error.validation": "{message}",
-  "error.clipboard": "Kopiering misslyckades. Markera länken ovan för att kopiera den.",
-  "error.permissionDenied": "shrtnr behöver tillstånd att kommunicera med {host}. Klicka på Spara igen och godkänn.",
+  "error.clipboard":
+    "Kopiering misslyckades. Markera länken ovan för att kopiera den.",
+  "error.permissionDenied":
+    "shrtnr behöver tillstånd att kommunicera med {host}. Klicka på Spara igen och godkänn.",
   "error.tabUnknown": "Kunde inte läsa den aktiva fliken.",
 
   // Options page
   "options.title": "shrtnr-inställningar",
   "options.subtitle": "Anslut denna tillägg till din shrtnr-deployment.",
   "options.section.connection": "Anslutning",
-  "options.section.connection.body": "Dessa värden lagras i webbläsarens synkade inställningar och skickas aldrig till Oddbit.",
+  "options.section.connection.body":
+    "Dessa värden lagras i webbläsarens synkade inställningar och skickas aldrig till Oddbit.",
   "options.section.about": "Om",
-  "options.section.about.body": "shrtnr är öppen källkod och egenhostad. Källa: github.com/oddbit/shrtnr.",
+  "options.section.about.body":
+    "shrtnr är öppen källkod och egenhostad. Källa: github.com/oddbit/shrtnr.",
   "options.section.about.website": "oddbit.id",
   "options.section.about.version": "Version {version}",
 

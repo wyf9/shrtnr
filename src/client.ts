@@ -9,18 +9,21 @@ import { SUPPORTED_LANGUAGES } from "./i18n";
 
 /**
  * Generate the admin client script.
- * 
+ *
  * This refactored version uses a proper module pattern with AdminClient namespace
  * instead of relying on fragile global function assignment retry logic.
- * 
+ *
  * All functions are methods on window.AdminClient, with backward-compatible
  * global wrappers for inline event handlers like onclick="func()".
  */
-export function adminClientScript(version: string, translations: Translations): string {
+export function adminClientScript(
+  version: string,
+  translations: Translations,
+): string {
   const tJson = JSON.stringify(translations);
   const accessMethodOptionsJson = JSON.stringify(ACCESS_METHOD_OPTIONS);
   const supportedLangsJson = JSON.stringify(SUPPORTED_LANGUAGES);
-  
+
   // Extract function bodies from the template below
   // This is injected into the page as an inline script
   return `

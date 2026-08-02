@@ -4,12 +4,12 @@ shrtnr 暴露一个公开的链接管理 API，使用 Bearer Token 认证。认�
 
 ## 认证矩阵
 
-| 路由 | 认证 | 说明 |
-|---|---|---|
-| `/_/api/*` | Bearer Token | 公开的链接管理 API。在管理 UI 的 **API Keys** 中创建密钥，并以 `Authorization: Bearer sk_...` 传递。 |
-| `/_/mcp`（及 `mcp.<域名>`） | OAuth | 面向 AI 助手的 MCP 端点。认证由 Cloudflare Access 处理，见 [MCP 服务器](/zh/integrations/mcp)。 |
-| `/_/admin/*` | 无内置认证 | 管理 UI 与管理专用 API。需外部保护（见 [访问控制](/zh/guide/access-control)）。不可用 API Key 调用。 |
-| `/_/health` | 公开 | 健康检查。 |
+| 路由                        | 认证         | 说明                                                                                                 |
+| --------------------------- | ------------ | ---------------------------------------------------------------------------------------------------- |
+| `/_/api/*`                  | Bearer Token | 公开的链接管理 API。在管理 UI 的 **API Keys** 中创建密钥，并以 `Authorization: Bearer sk_...` 传递。 |
+| `/_/mcp`（及 `mcp.<域名>`） | OAuth        | 面向 AI 助手的 MCP 端点。认证由 Cloudflare Access 处理，见 [MCP 服务器](/zh/integrations/mcp)。      |
+| `/_/admin/*`                | 无内置认证   | 管理 UI 与管理专用 API。需外部保护（见 [访问控制](/zh/guide/access-control)）。不可用 API Key 调用。 |
+| `/_/health`                 | 公开         | 健康检查。                                                                                           |
 
 ## 认证
 
@@ -37,10 +37,10 @@ SDK（[TypeScript](/zh/integrations/sdks)、Python）在 API 变更时从该规�
 
 公开 API 路由挂载于 `/_/api` 之下（见 `src/api/router.ts`）：
 
-| 前缀 | 资源 | 实现 |
-|---|---|---|
+| 前缀           | 资源                                | 实现               |
+| -------------- | ----------------------------------- | ------------------ |
 | `/_/api/links` | 链接的增删改查、分析、时间线、QR 码 | `src/api/links.ts` |
-| `/_/api/slugs` | 短码查找、添加、启用/禁用、移除 | `src/api/slugs.ts` |
+| `/_/api/slugs` | 短码查找、添加、启用/禁用、移除     | `src/api/slugs.ts` |
 
 ## 时间范围参数
 

@@ -30,19 +30,45 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({
   const currentTheme = theme || "oddbit";
   const htmlLang = lang || "en";
 
-  const oddbitLogo = currentTheme === "light"
-    ? "/oddbit-logotype-graphite-green.svg"
-    : currentTheme === "dark"
-    ? "/oddbit-logotype-white.svg"
-    : "/oddbit-logotype-mint-green.svg";
+  const oddbitLogo =
+    currentTheme === "light"
+      ? "/oddbit-logotype-graphite-green.svg"
+      : currentTheme === "dark"
+        ? "/oddbit-logotype-white.svg"
+        : "/oddbit-logotype-mint-green.svg";
 
   const navItems = [
-    { id: "dashboard", href: "/_/admin/dashboard", icon: "dashboard", label: t("nav.dashboard") },
-    { id: "links", href: "/_/admin/links", icon: "link", label: t("nav.links") },
-    { id: "redirects", href: "/_/admin/redirects", icon: "alt_route", label: t("nav.redirects") },
-    { id: "pages", href: "/_/admin/pages", icon: "description", label: t("nav.pages") },
+    {
+      id: "dashboard",
+      href: "/_/admin/dashboard",
+      icon: "dashboard",
+      label: t("nav.dashboard"),
+    },
+    {
+      id: "links",
+      href: "/_/admin/links",
+      icon: "link",
+      label: t("nav.links"),
+    },
+    {
+      id: "redirects",
+      href: "/_/admin/redirects",
+      icon: "alt_route",
+      label: t("nav.redirects"),
+    },
+    {
+      id: "pages",
+      href: "/_/admin/pages",
+      icon: "description",
+      label: t("nav.pages"),
+    },
     { id: "keys", href: "/_/admin/keys", icon: "key", label: t("nav.apiKeys") },
-    { id: "settings", href: "/_/admin/settings", icon: "settings", label: t("nav.settings") },
+    {
+      id: "settings",
+      href: "/_/admin/settings",
+      icon: "settings",
+      label: t("nav.settings"),
+    },
   ];
 
   return (
@@ -53,12 +79,26 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({
         <title>shrtnr: Admin</title>
         <link rel="icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="48x48" href="/icon-48.png" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="/icon-192.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="512x512"
+          href="/icon-512.png"
+        />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin=""
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
           rel="stylesheet"

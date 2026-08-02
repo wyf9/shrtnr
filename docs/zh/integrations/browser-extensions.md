@@ -27,12 +27,12 @@
 
 在 `manifests/base.json` 中声明：
 
-| 权限 | 原因 |
-|---|---|
-| `activeTab` | 在点击工具栏时读取当前标签页 URL。比更宽泛的 `tabs` 权限更克制，不会在安装对话框中显示"读取你的浏览历史"。 |
-| `storage` | 将配置的 `baseUrl + apiKey` 持久化到 `chrome.storage.sync`。 |
-| `clipboardWrite` | 通过 `navigator.clipboard.writeText` 把短 URL 复制到剪贴板。 |
-| `optional_host_permissions: ["*://*/*"]` | 在用户于选项页保存 `baseUrl` 后，于**运行时**针对其实际地址授予。安装对话框因此不列出任何主机权限。 |
+| 权限                                     | 原因                                                                                                       |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `activeTab`                              | 在点击工具栏时读取当前标签页 URL。比更宽泛的 `tabs` 权限更克制，不会在安装对话框中显示"读取你的浏览历史"。 |
+| `storage`                                | 将配置的 `baseUrl + apiKey` 持久化到 `chrome.storage.sync`。                                               |
+| `clipboardWrite`                         | 通过 `navigator.clipboard.writeText` 把短 URL 复制到剪贴板。                                               |
+| `optional_host_permissions: ["*://*/*"]` | 在用户于选项页保存 `baseUrl` 后，于**运行时**针对其实际地址授予。安装对话框因此不列出任何主机权限。        |
 
 扩展在安装时**不**请求 `host_permissions`。
 

@@ -21,6 +21,7 @@ The extension talks to **your own** shrtnr deployment. Oddbit does not host a sh
 - Firefox: [Firefox Add-ons](https://oddb.it/shrtnr-ext-firefox) (link active once approved)
 
 After install, click the toolbar icon. The popup either:
+
 - shows the configure form (first run) — paste your shrtnr URL and an API key from `/_/admin/api-keys`, or
 - shortens the current tab and copies the short URL.
 
@@ -78,6 +79,7 @@ bun run test:watch    # watch mode
 ```
 
 The test suite covers:
+
 - `storage.ts`: get / set / clear / onConfigChange semantics, normalization, validation rejections
 - `api.ts`: client construction, internal-page guard, error-status → category mapping, QR fetch, connection test
 - `i18n`: translation lookup, fallback to en, placeholder interpolation, key parity across all three languages
@@ -107,12 +109,12 @@ The script uses `sharp` if available, falling back to ImageMagick (`magick`). Th
 
 Declared in `manifests/base.json`:
 
-| Permission | Why |
-|---|---|
-| `activeTab` | Read the active tab URL on toolbar click. Less invasive than the broader `tabs` permission and does not show "read your browsing history" in the install dialog. |
-| `storage` | Persist the configured `baseUrl + apiKey` to `chrome.storage.sync`. |
-| `clipboardWrite` | Copy the short URL to the clipboard via `navigator.clipboard.writeText`. |
-| `optional_host_permissions: ["*://*/*"]` | Granted **at runtime** against the user's actual `baseUrl` after they save it in options. The install dialog therefore lists no host permissions. |
+| Permission                               | Why                                                                                                                                                              |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `activeTab`                              | Read the active tab URL on toolbar click. Less invasive than the broader `tabs` permission and does not show "read your browsing history" in the install dialog. |
+| `storage`                                | Persist the configured `baseUrl + apiKey` to `chrome.storage.sync`.                                                                                              |
+| `clipboardWrite`                         | Copy the short URL to the clipboard via `navigator.clipboard.writeText`.                                                                                         |
+| `optional_host_permissions: ["*://*/*"]` | Granted **at runtime** against the user's actual `baseUrl` after they save it in options. The install dialog therefore lists no host permissions.                |
 
 The extension does not request `host_permissions` at install time.
 
@@ -142,6 +144,7 @@ A bump of `browser-extensions/package.json` on `main` triggers `.github/workflow
 5. Tags `ext-v$VERSION` and creates a GitHub release with the changelog section.
 
 Required repo secrets:
+
 - `CHROME_WEBSTORE_CLIENT_ID`, `CHROME_WEBSTORE_CLIENT_SECRET`, `CHROME_WEBSTORE_REFRESH_TOKEN`, `CHROME_WEBSTORE_EXTENSION_ID`
 - `FIREFOX_AMO_API_KEY`, `FIREFOX_AMO_API_SECRET`
 
@@ -158,7 +161,6 @@ Three languages, mirroring the admin app: English, Indonesian, Swedish. English 
 - [shrtnr server](https://github.com/oddbit/shrtnr) — the Cloudflare Worker the extension talks to
 - [`@wyf9/shrtnr` (npm)](https://oddb.it/shrtnr-npm-readme) — TypeScript SDK the extension depends on
 - [`wshrtnr` (PyPI)](https://oddb.it/shrtnr-pypi-readme) — Python SDK
-
 
 ## Attribution
 

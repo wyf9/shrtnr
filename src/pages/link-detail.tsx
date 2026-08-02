@@ -32,7 +32,9 @@ const StatBar: FC<{
         <span class="count">{fmtNumber(count, lang)}</span>
         <span class="pct">{pct}%</span>
       </div>
-      <div class="bar"><div class={`fill ${color}`} style={`width:${pct}%`} /></div>
+      <div class="bar">
+        <div class={`fill ${color}`} style={`width:${pct}%`} />
+      </div>
     </div>
   );
 };
@@ -68,15 +70,24 @@ type Props = {
   isCached?: boolean;
 };
 
-export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, initialRange, isCached }) => {
+export const LinkDetailPage: FC<Props> = ({
+  link,
+  analytics,
+  t,
+  lang,
+  identity,
+  initialRange,
+  isCached,
+}) => {
   const now = Math.floor(Date.now() / 1000);
   const isExpired = !!(link.expires_at && link.expires_at < now);
   const isOwner = identity === link.created_by;
 
   // Primary slug is the one marked is_primary, falling back to first custom, then random
-  const primarySlug = link.slugs.find((s) => s.is_primary)
-    || link.slugs.find((s) => s.is_custom)
-    || link.slugs[0];
+  const primarySlug =
+    link.slugs.find((s) => s.is_primary) ||
+    link.slugs.find((s) => s.is_custom) ||
+    link.slugs[0];
   const displaySlug = primarySlug?.slug || "";
   const hasMultipleSlugs = link.slugs.length > 1;
 
@@ -84,7 +95,10 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
     ? new Date(link.expires_at * 1000).toISOString().slice(0, 16)
     : "";
 
-  const maxSlugClicks = Math.max(1, link.slugs.reduce((s, slug) => s + slug.click_count, 0));
+  const maxSlugClicks = Math.max(
+    1,
+    link.slugs.reduce((s, slug) => s + slug.click_count, 0),
+  );
 
   return (
     <>
@@ -93,7 +107,12 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
           <span class="icon icon-lg">arrow_back</span>
         </a>
         <div class="page-title">{t("linkDetail.title")}</div>
-        <div class="timeline-range-selector" id="timeline-range" data-link-id={link.id} data-initial-range={initialRange}>
+        <div
+          class="timeline-range-selector"
+          id="timeline-range"
+          data-link-id={link.id}
+          data-initial-range={initialRange}
+        >
           {(["24h", "7d", "30d", "90d", "1y", "all"] as const).map((r) => (
             <button
               class={`timeline-range-btn${r === initialRange ? " active" : ""}`}
@@ -113,30 +132,49 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
             <span class="icon icon-lg">more_vert</span>
           </button>
           <div class="detail-menu" id="detail-menu" style="display:none">
-            <button class="detail-menu-item" onclick={`showAddSlugModal(${link.id})`}>
+            <button
+              class="detail-menu-item"
+              onclick={`showAddSlugModal(${link.id})`}
+            >
               <span class="icon">add_link</span> {t("linkDetail.addCustomSlug")}
             </button>
             {hasMultipleSlugs && (
-              <button class="detail-menu-item" onclick={`showChangePrimaryModal(${link.id})`}>
+              <button
+                class="detail-menu-item"
+                onclick={`showChangePrimaryModal(${link.id})`}
+              >
                 <span class="icon">star</span> {t("linkDetail.changePrimary")}
               </button>
             )}
-            <button class="detail-menu-item" onclick={`showDuplicateModal(${link.id}, '${escHtml(link.url)}')`}>
+            <button
+              class="detail-menu-item"
+              onclick={`showDuplicateModal(${link.id}, '${escHtml(link.url)}')`}
+            >
               <span class="icon">content_copy</span> {t("linkDetail.duplicate")}
             </button>
             {isOwner && (
               <>
                 <div class="detail-menu-divider" />
                 {isExpired ? (
-                  <button class="detail-menu-item" onclick={`showEnableLinkModal(${link.id})`}>
-                    <span class="icon">check_circle</span> {t("linkDetail.enable")}
+                  <button
+                    class="detail-menu-item"
+                    onclick={`showEnableLinkModal(${link.id})`}
+                  >
+                    <span class="icon">check_circle</span>{" "}
+                    {t("linkDetail.enable")}
                   </button>
                 ) : link.total_clicks === 0 ? (
-                  <button class="detail-menu-item detail-menu-danger" onclick={`showDeleteLinkModal(${link.id})`}>
+                  <button
+                    class="detail-menu-item detail-menu-danger"
+                    onclick={`showDeleteLinkModal(${link.id})`}
+                  >
                     <span class="icon">delete</span> {t("linkDetail.delete")}
                   </button>
                 ) : (
-                  <button class="detail-menu-item detail-menu-danger" onclick={`showDisableLinkModal(${link.id})`}>
+                  <button
+                    class="detail-menu-item detail-menu-danger"
+                    onclick={`showDisableLinkModal(${link.id})`}
+                  >
                     <span class="icon">block</span> {t("linkDetail.disable")}
                   </button>
                 )}
@@ -155,11 +193,17 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
 
       <div class="detail-hero">
         <div class="left">
-          <div class="label" id="label-display" onclick={`beginEditLabel(${link.id})`}>
+          <div
+            class="label"
+            id="label-display"
+            onclick={`beginEditLabel(${link.id})`}
+          >
             {link.label ? (
               <span class="inline-edit-value">{link.label}</span>
             ) : (
-              <span class="inline-edit-placeholder">{t("linkDetail.setLabel")}</span>
+              <span class="inline-edit-placeholder">
+                {t("linkDetail.setLabel")}
+              </span>
             )}
             <span class="icon inline-edit-icon">edit</span>
           </div>
@@ -171,7 +215,10 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
               placeholder={t("linkDetail.labelPlaceholder")}
               onkeydown={`if(event.key==='Enter')saveDetailLabel(${link.id});if(event.key==='Escape')cancelEditLabel();`}
             />
-            <button class="inline-edit-btn confirm" onclick={`saveDetailLabel(${link.id})`}>
+            <button
+              class="inline-edit-btn confirm"
+              onclick={`saveDetailLabel(${link.id})`}
+            >
               <span class="icon">check</span>
             </button>
             <button class="inline-edit-btn cancel" onclick="cancelEditLabel()">
@@ -186,7 +233,8 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
               class={`short-url${isExpired ? " dimmed" : ""}`}
               onclick={`copyUrl('${escHtml(displaySlug)}')`}
             >
-              <span class="icon">link</span>{displaySlug}
+              <span class="icon">link</span>
+              {displaySlug}
             </span>
             <button
               class="btn-icon"
@@ -203,8 +251,14 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
               <span class="icon">qr_code_2</span>
             </button>
           </div>
-          <a class="dest" href={link.url} target="_blank" rel="noopener noreferrer">
-            <span class="icon">open_in_new</span>{link.url}
+          <a
+            class="dest"
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="icon">open_in_new</span>
+            {link.url}
           </a>
           <div class="meta-row">
             {link.created_by && link.created_by !== "anonymous" && (
@@ -217,28 +271,47 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
               <span class="icon">schedule</span>
               {t("linkDetail.createdOn")}{" "}
               <strong>
-                {new Date(link.created_at * 1000).toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" })}
+                {new Date(link.created_at * 1000).toLocaleDateString(lang, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
               </strong>
             </span>
-            <span class="m inline-edit" id="expiry-display" onclick={`beginEditExpiry(${link.id})`}>
+            <span
+              class="m inline-edit"
+              id="expiry-display"
+              onclick={`beginEditExpiry(${link.id})`}
+            >
               <span class="icon">event_busy</span>
               {link.expires_at ? (
                 <strong>
-                  {new Date(link.expires_at * 1000).toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" })}
+                  {new Date(link.expires_at * 1000).toLocaleDateString(lang, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </strong>
               ) : (
                 t("linkDetail.neverExpires")
               )}
               <span class="icon inline-edit-icon">edit</span>
             </span>
-            <div class="inline-edit-form expiry-form" id="expiry-form" style="display:none">
+            <div
+              class="inline-edit-form expiry-form"
+              id="expiry-form"
+              style="display:none"
+            >
               <input
                 class="form-input form-input-sm"
                 id="detail-expires"
                 type="datetime-local"
                 value={expVal}
               />
-              <button class="inline-edit-btn confirm" onclick={`saveDetailExpiry(${link.id})`}>
+              <button
+                class="inline-edit-btn confirm"
+                onclick={`saveDetailExpiry(${link.id})`}
+              >
                 <span class="icon">check</span>
               </button>
               {link.expires_at && (
@@ -249,7 +322,10 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
                   {t("linkDetail.clear")}
                 </button>
               )}
-              <button class="inline-edit-btn cancel" onclick="cancelEditExpiry()">
+              <button
+                class="inline-edit-btn cancel"
+                onclick="cancelEditExpiry()"
+              >
                 <span class="icon">close</span>
               </button>
             </div>
@@ -263,21 +339,36 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
         </div>
         <div class="right">
           <div class="hero-metric accent">
-            <div class="n" id="hero-total-clicks">{fmtNumber(analytics.total_clicks, lang)}</div>
+            <div class="n" id="hero-total-clicks">
+              {fmtNumber(analytics.total_clicks, lang)}
+            </div>
             <div class="l">{t("linkDetail.totalClicks")}</div>
           </div>
           <div class="hero-metric">
-            <div class="n" id="hero-avg-per-day" data-created-at={link.created_at}>
-              {formatAvgPerDay(analytics.total_clicks, initialRange, link.created_at, now)}
+            <div
+              class="n"
+              id="hero-avg-per-day"
+              data-created-at={link.created_at}
+            >
+              {formatAvgPerDay(
+                analytics.total_clicks,
+                initialRange,
+                link.created_at,
+                now,
+              )}
             </div>
             <div class="l">{t("linkDetail.avgPerDay")}</div>
           </div>
           <div class="hero-metric">
-            <div class="n" id="hero-num-countries">{analytics.num_countries}</div>
+            <div class="n" id="hero-num-countries">
+              {analytics.num_countries}
+            </div>
             <div class="l">{t("linkDetail.countries")}</div>
           </div>
           <div class="hero-metric">
-            <div class="n" id="hero-num-domains">{analytics.num_referrer_hosts}</div>
+            <div class="n" id="hero-num-domains">
+              {analytics.num_referrer_hosts}
+            </div>
             <div class="l">{t("linkDetail.domains")}</div>
           </div>
         </div>
@@ -287,95 +378,118 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
       <div class="bento-card mb-lg">
         <div class="bento-label">{t("linkDetail.slugs")}</div>
         <div class="slugs-table">
-          {[...link.slugs].sort((a, b) => a.is_custom - b.is_custom).map((s) => {
-            const slugDisabled = !!s.disabled_at;
-            const effectivelyDisabled = slugDisabled || isExpired;
-            const isPrimary = s.is_primary === 1;
-            const isCustom = s.is_custom === 1;
-            const canDelete = isOwner && link.slugs.length > 1 && s.click_count === 0 && !slugDisabled;
-            const canDisable = isOwner && isCustom && !slugDisabled && s.click_count > 0;
-            const canEnable = isOwner && isCustom && slugDisabled;
-            const pct = maxSlugClicks > 0 ? ((s.click_count / maxSlugClicks) * 100).toFixed(0) : "0";
+          {[...link.slugs]
+            .sort((a, b) => a.is_custom - b.is_custom)
+            .map((s) => {
+              const slugDisabled = !!s.disabled_at;
+              const effectivelyDisabled = slugDisabled || isExpired;
+              const isPrimary = s.is_primary === 1;
+              const isCustom = s.is_custom === 1;
+              const canDelete =
+                isOwner &&
+                link.slugs.length > 1 &&
+                s.click_count === 0 &&
+                !slugDisabled;
+              const canDisable =
+                isOwner && isCustom && !slugDisabled && s.click_count > 0;
+              const canEnable = isOwner && isCustom && slugDisabled;
+              const pct =
+                maxSlugClicks > 0
+                  ? ((s.click_count / maxSlugClicks) * 100).toFixed(0)
+                  : "0";
 
-            return (
-              <div class={`slugs-row${effectivelyDisabled ? " slugs-row-disabled" : ""}${isPrimary ? " slugs-row-primary" : ""}`} data-slug-id={s.slug}>
-                <div class="slugs-row-actions-left">
-                  {!effectivelyDisabled && (
-                    <>
+              return (
+                <div
+                  class={`slugs-row${effectivelyDisabled ? " slugs-row-disabled" : ""}${isPrimary ? " slugs-row-primary" : ""}`}
+                  data-slug-id={s.slug}
+                >
+                  <div class="slugs-row-actions-left">
+                    {!effectivelyDisabled && (
+                      <>
+                        <button
+                          class="btn-icon"
+                          onclick={`copyUrl('${escHtml(s.slug)}')`}
+                          title={t("linkDetail.copy")}
+                        >
+                          <span class="icon icon-md">content_copy</span>
+                        </button>
+                        <button
+                          class="btn-icon"
+                          onclick={`showQRModal(${link.id}, '${escHtml(s.slug)}')`}
+                          title={t("linkDetail.qr")}
+                        >
+                          <span class="icon icon-md">qr_code_2</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  <div class="slugs-row-slug">
+                    <span class="slug-row-text">{s.slug}</span>
+                    {isPrimary && (
+                      <span
+                        class="slug-badge-primary"
+                        title={t("linkDetail.primarySlug")}
+                      >
+                        <span class="icon icon-xxs">star</span>
+                      </span>
+                    )}
+                    {!isCustom && (
+                      <span
+                        class="slug-badge-auto"
+                        title={t("linkDetail.autoGenerated")}
+                      >
+                        {t("linkDetail.autoGeneratedBadge")}
+                      </span>
+                    )}
+                  </div>
+
+                  <div class="slugs-row-bar-container">
+                    <div class="slugs-row-bar">
+                      <div
+                        class="slugs-row-fill orange"
+                        data-slug-fill={s.slug}
+                        style={`width:${pct}%`}
+                      />
+                    </div>
+                  </div>
+
+                  <div class="slugs-row-count" data-slug-count={s.slug}>
+                    {s.click_count}
+                  </div>
+
+                  <div class="slugs-row-actions-right">
+                    {canDelete && (
+                      <button
+                        class="btn-icon btn-icon-danger"
+                        onclick={`confirmDeleteSlug(${link.id}, '${escHtml(s.slug)}')`}
+                        title={t("linkDetail.deleteSlug")}
+                      >
+                        <span class="icon icon-md">delete</span>
+                      </button>
+                    )}
+                    {canDisable && (
+                      <button
+                        class="btn-icon btn-icon-danger"
+                        onclick={`confirmDisableSlug(${link.id}, '${escHtml(s.slug)}')`}
+                        title={t("linkDetail.disableSlug")}
+                      >
+                        <span class="icon icon-md">block</span>
+                      </button>
+                    )}
+                    {canEnable && (
                       <button
                         class="btn-icon"
-                        onclick={`copyUrl('${escHtml(s.slug)}')`}
-                        title={t("linkDetail.copy")}
+                        onclick={`confirmEnableSlug(${link.id}, '${escHtml(s.slug)}')`}
+                        title={t("linkDetail.enableSlug")}
                       >
-                        <span class="icon icon-md">content_copy</span>
+                        <span class="icon icon-md">check_circle</span>
                       </button>
-                      <button
-                        class="btn-icon"
-                        onclick={`showQRModal(${link.id}, '${escHtml(s.slug)}')`}
-                        title={t("linkDetail.qr")}
-                      >
-                        <span class="icon icon-md">qr_code_2</span>
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                <div class="slugs-row-slug">
-                  <span class="slug-row-text">{s.slug}</span>
-                  {isPrimary && (
-                    <span class="slug-badge-primary" title={t("linkDetail.primarySlug")}>
-                      <span class="icon icon-xxs">star</span>
-                    </span>
-                  )}
-                  {!isCustom && (
-                    <span class="slug-badge-auto" title={t("linkDetail.autoGenerated")}>{t("linkDetail.autoGeneratedBadge")}</span>
-                  )}
-                </div>
-
-                <div class="slugs-row-bar-container">
-                  <div class="slugs-row-bar">
-                    <div
-                      class="slugs-row-fill orange"
-                      data-slug-fill={s.slug}
-                      style={`width:${pct}%`}
-                    />
+                    )}
                   </div>
                 </div>
-
-                <div class="slugs-row-count" data-slug-count={s.slug}>{s.click_count}</div>
-
-                <div class="slugs-row-actions-right">
-                  {canDelete && (
-                    <button
-                      class="btn-icon btn-icon-danger"
-                      onclick={`confirmDeleteSlug(${link.id}, '${escHtml(s.slug)}')`}
-                      title={t("linkDetail.deleteSlug")}
-                    >
-                      <span class="icon icon-md">delete</span>
-                    </button>
-                  )}
-                  {canDisable && (
-                    <button
-                      class="btn-icon btn-icon-danger"
-                      onclick={`confirmDisableSlug(${link.id}, '${escHtml(s.slug)}')`}
-                      title={t("linkDetail.disableSlug")}
-                    >
-                      <span class="icon icon-md">block</span>
-                    </button>
-                  )}
-                  {canEnable && (
-                    <button
-                      class="btn-icon"
-                      onclick={`confirmEnableSlug(${link.id}, '${escHtml(s.slug)}')`}
-                      title={t("linkDetail.enableSlug")}
-                    >
-                      <span class="icon icon-md">check_circle</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </div>
 
@@ -386,8 +500,12 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
               <div class="timeline-head-main">
                 <div class="bento-label">{t("linkDetail.clicksOverTime")}</div>
                 <div class="timeline-total-row">
-                  <span class="timeline-total" id="timeline-total">{fmtNumber(analytics.total_clicks, lang)}</span>
-                  <span class="timeline-total-label">{t("linkDetail.clicksInRange")}</span>
+                  <span class="timeline-total" id="timeline-total">
+                    {fmtNumber(analytics.total_clicks, lang)}
+                  </span>
+                  <span class="timeline-total-label">
+                    {t("linkDetail.clicksInRange")}
+                  </span>
                 </div>
               </div>
             </div>
@@ -400,7 +518,9 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
             <div class="bento-head">
               <div class="bento-label">{t("linkDetail.countries")}</div>
               {analytics.num_countries > 0 && (
-                <div class="bento-count" id="count-countries">{fmtNumber(analytics.num_countries, lang)}</div>
+                <div class="bento-count" id="count-countries">
+                  {fmtNumber(analytics.num_countries, lang)}
+                </div>
               )}
             </div>
             <div class="stat-card-body">
@@ -425,7 +545,9 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
             <div class="bento-head">
               <div class="bento-label">{t("linkDetail.domains")}</div>
               {analytics.num_referrer_hosts > 0 && (
-                <div class="bento-count" id="count-domains">{fmtNumber(analytics.num_referrer_hosts, lang)}</div>
+                <div class="bento-count" id="count-domains">
+                  {fmtNumber(analytics.num_referrer_hosts, lang)}
+                </div>
               )}
             </div>
             <div class="stat-card-body">
@@ -434,7 +556,10 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
                   <StatBar
                     name={r.name}
                     count={r.count}
-                    max={analytics.referrer_hosts.reduce((s, i) => s + i.count, 0)}
+                    max={analytics.referrer_hosts.reduce(
+                      (s, i) => s + i.count,
+                      0,
+                    )}
                     color="mint"
                     mono
                     lang={lang}
@@ -450,7 +575,9 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
             <div class="bento-head">
               <div class="bento-label">{t("linkDetail.sources")}</div>
               {analytics.num_referrers > 0 && (
-                <div class="bento-count" id="count-sources">{fmtNumber(analytics.num_referrers, lang)}</div>
+                <div class="bento-count" id="count-sources">
+                  {fmtNumber(analytics.num_referrers, lang)}
+                </div>
               )}
             </div>
             <div class="stat-card-body">
@@ -477,7 +604,10 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
             <div class="bento-label">{t("linkDetail.linkModes")}</div>
             <div class="stat-card-body">
               {(() => {
-                const modes = fillMissingOptions(analytics.link_modes, ACCESS_METHOD_OPTIONS);
+                const modes = fillMissingOptions(
+                  analytics.link_modes,
+                  ACCESS_METHOD_OPTIONS,
+                );
                 const modeMax = modes.reduce((s, i) => s + i.count, 0);
                 return modes.map((m) => (
                   <StatBar
@@ -517,7 +647,9 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
             <div class="bento-head">
               <div class="bento-label">{t("linkDetail.os")}</div>
               {analytics.num_os > 0 && (
-                <div class="bento-count" id="count-os">{fmtNumber(analytics.num_os, lang)}</div>
+                <div class="bento-count" id="count-os">
+                  {fmtNumber(analytics.num_os, lang)}
+                </div>
               )}
             </div>
             <div class="stat-card-body">
@@ -542,7 +674,9 @@ export const LinkDetailPage: FC<Props> = ({ link, analytics, t, lang, identity, 
             <div class="bento-head">
               <div class="bento-label">{t("linkDetail.browsers")}</div>
               {analytics.num_browsers > 0 && (
-                <div class="bento-count" id="count-browsers">{fmtNumber(analytics.num_browsers, lang)}</div>
+                <div class="bento-count" id="count-browsers">
+                  {fmtNumber(analytics.num_browsers, lang)}
+                </div>
               )}
             </div>
             <div class="stat-card-body">
