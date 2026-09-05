@@ -101,6 +101,8 @@ const sv: Translations = {
   "linkDetail.save": "Spara",
   "linkDetail.setLabel": "Ange etikett",
   "linkDetail.labelPlaceholder": "t.ex. Kampanjsida",
+  "linkDetail.editUrl": "Redigera destinations-URL",
+  "linkDetail.urlPlaceholder": "https://example.com/destination",
   "linkDetail.noExpiry": "Inget utgångsdatum",
   "linkDetail.clicksOverTime": "Klick över tid",
   "linkDetail.noClickData": "Ingen klickdata ännu",
@@ -142,6 +144,8 @@ const sv: Translations = {
     "Är du säker på att du vill inaktivera denna länk? Den slutar omdirigera.",
   "linkDetail.confirmDelete":
     "Radera denna länk? Länken och alla dess slugs tas bort permanent.",
+  "linkDetail.confirmDeleteWithClicks":
+    "Radera denna länk? Den har {clicks} registrerade klick. Radering tar bort länken, alla dess slugs och hela klickhistoriken permanent. Detta kan inte ångras.",
   "linkDetail.confirmEnable": "Återaktivera denna länk?",
   "linkDetail.confirmDeleteSlug":
     "Ta bort slug /{slug}? Detta kan inte ångras.",
@@ -357,6 +361,8 @@ const sv: Translations = {
   "client.expiryClearError": "Kunde inte rensa förfallodatum",
   "client.labelUpdated": "Etikett uppdaterad",
   "client.labelError": "Kunde inte uppdatera etikett",
+  "client.urlUpdated": "Destination uppdaterad",
+  "client.urlError": "Kunde inte uppdatera destination",
   "client.close": "Stäng",
   "client.qrCode": "QR-kod",
   "client.downloadSvg": "SVG",

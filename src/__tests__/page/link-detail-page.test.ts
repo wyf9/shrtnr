@@ -50,6 +50,42 @@ describe("Link detail page server render", () => {
     );
   });
 
+  it("renders the inline destination URL editor for the owner", async () => {
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+      createdBy: "test@example.com",
+    });
+
+    const res = await SELF.fetch(authedReq(`/_/admin/links/${link.id}`));
+    expect(res.status).toBe(200);
+    const html = await res.text();
+
+    expect(html).toContain('id="url-form"');
+    expect(html).toContain('id="detail-url"');
+    expect(html).toMatch(new RegExp(`beginEditUrl\\(${link.id}\\)`));
+    expect(html).toMatch(new RegExp(`saveDetailUrl\\(${link.id}\\)`));
+  });
+
+  it("offers delete for the owner even when the link has clicks", async () => {
+    const link = await LinkRepository.create(env.DB, {
+      url: "https://example.com",
+      slug: "abc",
+      createdBy: "test@example.com",
+    });
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { isBot: 0 });
+
+    const res = await SELF.fetch(authedReq(`/_/admin/links/${link.id}`));
+    expect(res.status).toBe(200);
+    const html = await res.text();
+
+    // Delete stays available, and the modal is told how many clicks exist so it
+    // can warn that history will be dropped.
+    expect(html).toMatch(
+      new RegExp(`showDeleteLinkModal\\(${link.id}, \\d+\\)`),
+    );
+  });
+
   it("hero total_clicks reflects the user's bot filter on first paint", async () => {
     const link = await LinkRepository.create(env.DB, {
       url: "https://example.com",

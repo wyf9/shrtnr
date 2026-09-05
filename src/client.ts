@@ -495,11 +495,14 @@ AdminClient.doDisableLink = function (id) {
   });
 }
 
-AdminClient.showDeleteLinkModal = function (id) {
+AdminClient.showDeleteLinkModal = function (id, clicks) {
   document.getElementById('detail-menu').style.display = 'none';
+  var body = (clicks && clicks > 0)
+    ? AdminClient.t('linkDetail.confirmDeleteWithClicks').replace('{clicks}', AdminClient.fmtCount(clicks))
+    : AdminClient.t('linkDetail.confirmDelete');
   AdminClient.openModal(
     '<div class="modal-title">' + AdminClient.esc(AdminClient.t('linkDetail.delete')) + '</div>' +
-    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + AdminClient.esc(AdminClient.t('linkDetail.confirmDelete')) + '</p>' +
+    '<p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1.5rem">' + AdminClient.esc(body) + '</p>' +
     '<div class="modal-actions"><button class="btn btn-ghost" onclick="AdminClient.closeModal()">' + AdminClient.esc(AdminClient.t('client.cancel')) + '</button><button class="btn btn-danger" onclick="AdminClient.doDeleteLink(' + id + ')">' + AdminClient.esc(AdminClient.t('linkDetail.delete')) + '</button></div>'
   );
 }
@@ -651,6 +654,29 @@ AdminClient.saveDetailLabel = function (linkId) {
   AdminClient.api('/links/' + linkId, { method: 'PUT', body: JSON.stringify(body) }).then(function(res) {
     if (res.ok) { AdminClient.toast(AdminClient.t('client.labelUpdated')); AdminClient.reload(); }
     else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.labelError'), 'error'); });
+  });
+}
+
+// ---- Inline edit: Destination URL ----
+AdminClient.beginEditUrl = function () {
+  document.getElementById('url-display').style.display = 'none';
+  document.getElementById('url-form').style.display = 'flex';
+  var inp = document.getElementById('detail-url');
+  inp.focus();
+  inp.select();
+}
+
+AdminClient.cancelEditUrl = function () {
+  document.getElementById('url-form').style.display = 'none';
+  document.getElementById('url-display').style.display = 'flex';
+}
+
+AdminClient.saveDetailUrl = function (linkId) {
+  var val = document.getElementById('detail-url').value.trim();
+  if (!val) { AdminClient.toast(AdminClient.t('client.urlRequired'), 'error'); return; }
+  AdminClient.api('/links/' + linkId, { method: 'PUT', body: JSON.stringify({ url: val }) }).then(function(res) {
+    if (res.ok) { AdminClient.toast(AdminClient.t('client.urlUpdated')); AdminClient.reload(); }
+    else res.json().then(function(data) { AdminClient.toast(data.error || AdminClient.t('client.urlError'), 'error'); }).catch(function() { AdminClient.toast(AdminClient.t('client.urlError'), 'error'); });
   });
 }
 

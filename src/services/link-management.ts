@@ -340,8 +340,6 @@ export async function deleteLink(
   if (!link) return fail(404, "Link not found");
   if (link.created_by !== identity)
     return fail(403, "Only the link owner can delete this link");
-  if (link.total_clicks > 0)
-    return fail(400, "Cannot delete a link with clicks, disable it instead");
 
   const slugsToDelete = link.slugs.map((s) => s.slug);
   await LinkRepository.delete(env.DB, id);

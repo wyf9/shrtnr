@@ -928,13 +928,12 @@ describe("Smart search input", () => {
     expect(body).toContain("quickShorten");
   });
 });
-// ---- Feature: Delete zero-click links ----
+// ---- Feature: Delete links ----
 
 describe("Delete Link API", () => {
-  // TODO: Implement delete endpoint for links with zero clicks.
-  // Links with zero total_clicks should be deletable via
-  // DELETE /_/admin/api/links/:id. Links with clicks should
-  // return 400 and suggest disabling instead.
+  // Links are deletable via DELETE /_/admin/api/links/:id regardless of how
+  // many clicks they have. Deleting a link with clicks permanently removes the
+  // link, its slugs, and its recorded click history.
 
   it("DELETE /_/admin/api/links/:id should delete a zero-click link", async () => {
     const createRes = await SELF.fetch(
@@ -957,7 +956,7 @@ describe("Delete Link API", () => {
     expect(getRes.status).toBe(404);
   });
 
-  it("DELETE /_/admin/api/links/:id should reject deletion of a link with clicks", async () => {
+  it("DELETE /_/admin/api/links/:id should delete a link with clicks and drop its history", async () => {
     // Create a link and record a click via redirect
     const createRes = await SELF.fetch(
       authed("/_/admin/api/links", {
@@ -975,9 +974,17 @@ describe("Delete Link API", () => {
     const deleteRes = await SELF.fetch(
       authed(`/_/admin/api/links/${created.id}`, { method: "DELETE" }),
     );
-    expect(deleteRes.status).toBe(400);
-    const body = (await deleteRes.json()) as any;
-    expect(body.error).toBeTruthy();
+    expect(deleteRes.status).toBe(200);
+
+    // The link is gone
+    const getRes = await SELF.fetch(authed(`/_/admin/api/links/${created.id}`));
+    expect(getRes.status).toBe(404);
+
+    // The slug no longer resolves
+    const redirectRes = await SELF.fetch(unauthed(`/${slug}`), {
+      redirect: "manual",
+    });
+    expect(redirectRes.status).toBe(404);
   });
 
   it("DELETE /_/admin/api/links/:id for non-existent link should return 404", async () => {

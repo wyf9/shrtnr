@@ -214,11 +214,11 @@ export class LinkRepository {
   }
 
   static async delete(db: D1Database, id: number): Promise<boolean> {
-    // Lifetime guard: a link with any historical clicks (bots, self-referrers,
-    // or real users) is preserved so analytics history is not silently dropped.
+    // Deleting a link permanently removes it along with its slugs and every
+    // recorded click. Callers that want to keep analytics should disable the
+    // link instead.
     const link = await LinkRepository.getById(db, id);
     if (!link) return false;
-    if (link.total_clicks > 0) return false;
 
     await db
       .prepare(

@@ -946,7 +946,7 @@ export class ShrtnrMCP extends McpAgent<Env, Record<string, never>, Props> {
       {
         title: "Delete link",
         description:
-          "Delete a short link. Only links with zero clicks can be deleted. Links with clicks should be disabled instead. Only the link owner can delete it.",
+          "Delete a short link permanently, including its slugs and all recorded clicks. This cannot be undone; disable the link instead if you want to keep its analytics. Only the link owner can delete it.",
         inputSchema: {
           link_id: z
             .number()

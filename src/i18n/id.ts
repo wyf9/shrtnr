@@ -101,6 +101,8 @@ const id: Translations = {
   "linkDetail.save": "Simpan",
   "linkDetail.setLabel": "Atur label",
   "linkDetail.labelPlaceholder": "mis. Halaman kampanye",
+  "linkDetail.editUrl": "Edit URL tujuan",
+  "linkDetail.urlPlaceholder": "https://example.com/tujuan",
   "linkDetail.noExpiry": "Tidak ada kedaluwarsa",
   "linkDetail.clicksOverTime": "Klik Seiring Waktu",
   "linkDetail.noClickData": "Belum ada data klik",
@@ -142,6 +144,8 @@ const id: Translations = {
     "Yakin ingin menonaktifkan tautan ini? Pengalihan akan berhenti.",
   "linkDetail.confirmDelete":
     "Hapus tautan ini? Tautan dan semua slug-nya akan dihapus permanen.",
+  "linkDetail.confirmDeleteWithClicks":
+    "Hapus tautan ini? Tautan ini memiliki {clicks} klik tercatat. Menghapusnya akan menghapus tautan, semua slug-nya, dan seluruh riwayat klik secara permanen. Tindakan ini tidak dapat dibatalkan.",
   "linkDetail.confirmEnable": "Aktifkan kembali tautan ini?",
   "linkDetail.confirmDeleteSlug":
     "Hapus slug /{slug}? Tindakan ini tidak dapat dibatalkan.",
@@ -355,6 +359,8 @@ const id: Translations = {
   "client.expiryClearError": "Gagal menghapus kedaluwarsa",
   "client.labelUpdated": "Label diperbarui",
   "client.labelError": "Gagal memperbarui label",
+  "client.urlUpdated": "Tujuan diperbarui",
+  "client.urlError": "Gagal memperbarui tujuan",
   "client.close": "Tutup",
   "client.qrCode": "Kode QR",
   "client.downloadSvg": "SVG",

@@ -413,15 +413,15 @@ describe("delete_link", () => {
     expect(get.ok).toBe(false);
   });
 
-  it("refuses to delete a link with clicks", async () => {
+  it("deletes a link with clicks and drops its history", async () => {
     const link = await seedLink("https://clicked.com");
     await recordClicks(link.slugs[0].slug, 1);
 
     const result = await deleteLink(env as never, link.id, link.created_by);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(400);
-    }
+    expect(result.ok).toBe(true);
+
+    const get = await getLink(env as never, link.id);
+    expect(get.ok).toBe(false);
   });
 
   it("returns 404 for nonexistent link", async () => {

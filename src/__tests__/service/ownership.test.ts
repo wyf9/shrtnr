@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { env } from "cloudflare:test";
 import { applyMigrations, resetData } from "../setup";
-import { LinkRepository } from "../../db";
+import { LinkRepository, ClickRepository } from "../../db";
 import {
   createLink,
   disableLink,
@@ -78,6 +78,17 @@ describe("Link ownership: delete", () => {
     const link = await createOwnedLink();
     const result = await deleteLink(env as any, link.id, OWNER);
     expect(result.ok).toBe(true);
+  });
+
+  it("owner can delete a link that has clicks", async () => {
+    const link = await createOwnedLink();
+    await ClickRepository.record(env.DB, link.slugs[0].slug, { isBot: 0 });
+
+    const result = await deleteLink(env as any, link.id, OWNER);
+    expect(result.ok).toBe(true);
+
+    // The link and its history are gone.
+    expect(await LinkRepository.getById(env.DB, link.id)).toBeNull();
   });
 
   it("non-owner cannot delete another user's link", async () => {

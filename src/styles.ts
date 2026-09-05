@@ -405,6 +405,10 @@ select.form-input { appearance: none; -webkit-appearance: none; padding-right: 2
 .detail-hero .short-url.dimmed { opacity: 0.5; }
 .detail-hero .short-url-row .btn-icon { width: 30px; height: 30px; border-radius: var(--radius-md); color: var(--color-text-muted); }
 .detail-hero .short-url-row .btn-icon:hover { background: var(--color-surface-interactive); color: var(--color-text); }
+.detail-hero .dest-row { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.65rem; }
+.detail-hero .dest-row .dest { margin-top: 0; min-width: 0; }
+.detail-hero .dest-row .btn-icon { width: 30px; height: 30px; border-radius: var(--radius-md); color: var(--color-text-muted); flex-shrink: 0; }
+.detail-hero .dest-row .btn-icon:hover { background: var(--color-surface-interactive); color: var(--color-text); }
 .detail-hero .dest { font-size: 0.82rem; color: var(--color-text-muted); margin-top: 0.65rem; display: flex; align-items: center; gap: 0.4rem; word-break: break-all; text-decoration: none; }
 .detail-hero .dest:hover { color: var(--color-text); }
 .detail-hero .dest .icon { color: var(--color-text-subtle); font-size: 14px; flex-shrink: 0; }

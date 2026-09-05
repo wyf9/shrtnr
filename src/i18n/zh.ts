@@ -98,6 +98,8 @@ const zh: Translations = {
   "linkDetail.save": "保存",
   "linkDetail.setLabel": "设置标签",
   "linkDetail.labelPlaceholder": "例如：活动落地页",
+  "linkDetail.editUrl": "编辑目标地址",
+  "linkDetail.urlPlaceholder": "https://example.com/目标地址",
   "linkDetail.noExpiry": "无过期时间",
   "linkDetail.clicksOverTime": "点击随时间变化",
   "linkDetail.noClickData": "暂无点击数据",
@@ -137,6 +139,8 @@ const zh: Translations = {
   "linkDetail.copyLabel": "复制标签",
   "linkDetail.confirmDisable": "确定要禁用此链接吗？它将停止重定向。",
   "linkDetail.confirmDelete": "删除此链接？这将永久删除该链接及其所有 slug。",
+  "linkDetail.confirmDeleteWithClicks":
+    "删除此链接？该链接已有 {clicks} 次点击记录。删除将永久移除该链接、其所有 slug 以及全部点击历史，此操作无法撤销。",
   "linkDetail.confirmEnable": "重新启用此链接？",
   "linkDetail.confirmDeleteSlug": "删除 slug /{slug}？此操作无法撤销。",
   "linkDetail.confirmDisableSlug":
@@ -341,6 +345,8 @@ const zh: Translations = {
   "client.expiryClearError": "清除过期时间失败",
   "client.labelUpdated": "标签已更新",
   "client.labelError": "更新标签失败",
+  "client.urlUpdated": "目标地址已更新",
+  "client.urlError": "更新目标地址失败",
   "client.close": "关闭",
   "client.qrCode": "二维码",
   "client.downloadSvg": "SVG",

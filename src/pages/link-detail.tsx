@@ -163,21 +163,20 @@ export const LinkDetailPage: FC<Props> = ({
                     <span class="icon">check_circle</span>{" "}
                     {t("linkDetail.enable")}
                   </button>
-                ) : link.total_clicks === 0 ? (
-                  <button
-                    class="detail-menu-item detail-menu-danger"
-                    onclick={`showDeleteLinkModal(${link.id})`}
-                  >
-                    <span class="icon">delete</span> {t("linkDetail.delete")}
-                  </button>
                 ) : (
                   <button
-                    class="detail-menu-item detail-menu-danger"
+                    class="detail-menu-item"
                     onclick={`showDisableLinkModal(${link.id})`}
                   >
                     <span class="icon">block</span> {t("linkDetail.disable")}
                   </button>
                 )}
+                <button
+                  class="detail-menu-item detail-menu-danger"
+                  onclick={`showDeleteLinkModal(${link.id}, ${link.total_clicks})`}
+                >
+                  <span class="icon">delete</span> {t("linkDetail.delete")}
+                </button>
               </>
             )}
           </div>
@@ -251,15 +250,47 @@ export const LinkDetailPage: FC<Props> = ({
               <span class="icon">qr_code_2</span>
             </button>
           </div>
-          <a
-            class="dest"
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span class="icon">open_in_new</span>
-            {link.url}
-          </a>
+          <div class="dest-row" id="url-display">
+            <a
+              class="dest"
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span class="icon">open_in_new</span>
+              {link.url}
+            </a>
+            {isOwner && (
+              <button
+                class="btn-icon"
+                onclick={`beginEditUrl(${link.id})`}
+                title={t("linkDetail.editUrl")}
+              >
+                <span class="icon">edit</span>
+              </button>
+            )}
+          </div>
+          {isOwner && (
+            <div class="inline-edit-form" id="url-form" style="display:none">
+              <input
+                class="form-input form-input-sm"
+                id="detail-url"
+                type="url"
+                value={link.url}
+                placeholder={t("linkDetail.urlPlaceholder")}
+                onkeydown={`if(event.key==='Enter')saveDetailUrl(${link.id});if(event.key==='Escape')cancelEditUrl();`}
+              />
+              <button
+                class="inline-edit-btn confirm"
+                onclick={`saveDetailUrl(${link.id})`}
+              >
+                <span class="icon">check</span>
+              </button>
+              <button class="inline-edit-btn cancel" onclick="cancelEditUrl()">
+                <span class="icon">close</span>
+              </button>
+            </div>
+          )}
           <div class="meta-row">
             {link.created_by && link.created_by !== "anonymous" && (
               <span class="m">

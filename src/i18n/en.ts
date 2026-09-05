@@ -99,6 +99,8 @@ const en = {
   "linkDetail.save": "Save",
   "linkDetail.setLabel": "Set label",
   "linkDetail.labelPlaceholder": "e.g. Campaign landing page",
+  "linkDetail.editUrl": "Edit destination URL",
+  "linkDetail.urlPlaceholder": "https://example.com/destination",
   "linkDetail.noExpiry": "No expiry",
   "linkDetail.clicksOverTime": "Clicks over time",
   "linkDetail.noClickData": "No click data yet",
@@ -140,6 +142,8 @@ const en = {
     "Are you sure you want to disable this link? It will stop redirecting.",
   "linkDetail.confirmDelete":
     "Delete this link? This removes the link and all its slugs permanently.",
+  "linkDetail.confirmDeleteWithClicks":
+    "Delete this link? It has {clicks} recorded clicks. Deleting removes the link, all its slugs, and its entire click history permanently. This cannot be undone.",
   "linkDetail.confirmEnable": "Re-enable this link?",
   "linkDetail.confirmDeleteSlug": "Delete slug /{slug}? This cannot be undone.",
   "linkDetail.confirmDisableSlug":
@@ -348,6 +352,8 @@ const en = {
   "client.expiryClearError": "Failed to clear expiry",
   "client.labelUpdated": "Label updated",
   "client.labelError": "Failed to update label",
+  "client.urlUpdated": "Destination updated",
+  "client.urlError": "Failed to update destination",
   "client.close": "Close",
   "client.qrCode": "QR Code",
   "client.downloadSvg": "SVG",

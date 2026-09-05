@@ -572,7 +572,7 @@ describe("LinkRepository click_count options", () => {
     expect(filtered!.total_clicks).toBe(2);
   });
 
-  it("delete still uses raw lifetime counts as the guard", async () => {
+  it("delete removes a link along with its recorded clicks", async () => {
     const link = await LinkRepository.create(env.DB, {
       url: "https://example.com",
       slug: "guard",
@@ -580,7 +580,17 @@ describe("LinkRepository click_count options", () => {
     await ClickRepository.record(env.DB, link.slugs[0].slug, { isBot: 1 });
 
     const removed = await LinkRepository.delete(env.DB, link.id);
+    expect(removed).toBe(true);
 
-    expect(removed).toBe(false);
+    // The link is gone.
+    expect(await LinkRepository.getById(env.DB, link.id)).toBeNull();
+
+    // Its click rows are gone too, so no orphaned analytics remain.
+    const clicks = await env.DB.prepare(
+      "SELECT COUNT(*) AS c FROM clicks WHERE slug = ?",
+    )
+      .bind(link.slugs[0].slug)
+      .first<{ c: number }>();
+    expect(clicks?.c).toBe(0);
   });
 });
