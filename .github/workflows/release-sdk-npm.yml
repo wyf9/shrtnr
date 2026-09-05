@@ -52,7 +52,13 @@ jobs:
           MANIFEST_CHANGED="unknown"
           if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
             if git diff --name-only "$BEFORE" "$AFTER" -- sdk/typescript/package.json | grep -Fxq sdk/typescript/package.json; then
-              MANIFEST_CHANGED="true"
+              BEFORE_VER=$(git show "$BEFORE:sdk/typescript/package.json" | jq -r '.version' 2>/dev/null || echo "")
+              AFTER_VER=$(jq -r '.version' sdk/typescript/package.json)
+              if [ "$BEFORE_VER" != "$AFTER_VER" ]; then
+                MANIFEST_CHANGED="true"
+              else
+                MANIFEST_CHANGED="false"
+              fi
             else
               MANIFEST_CHANGED="false"
             fi

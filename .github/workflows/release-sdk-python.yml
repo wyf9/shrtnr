@@ -53,7 +53,13 @@ jobs:
           MANIFEST_CHANGED="unknown"
           if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
             if git diff --name-only "$BEFORE" "$AFTER" -- sdk/python/pyproject.toml | grep -Fxq sdk/python/pyproject.toml; then
-              MANIFEST_CHANGED="true"
+              BEFORE_VER=$(git show "$BEFORE:sdk/python/pyproject.toml" | sed -nE 's/^version *= *"([^"]+)".*/\1/p' | head -n1 || echo "")
+              AFTER_VER=$(bash scripts/read-version.sh sdk/python/pyproject.toml)
+              if [ "$BEFORE_VER" != "$AFTER_VER" ]; then
+                MANIFEST_CHANGED="true"
+              else
+                MANIFEST_CHANGED="false"
+              fi
             else
               MANIFEST_CHANGED="false"
             fi
@@ -91,7 +97,7 @@ jobs:
         if: steps.version.outputs.should_run == 'true'
         working-directory: sdk/python
         run: |
-          uv sync --frozen --extra pytest
+          uv sync --frozen --extra dev
           uv run pytest
           uv build
 

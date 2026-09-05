@@ -69,7 +69,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - name: Install dev dependencies
         working-directory: sdk/python
-        run: uv sync --frozen
+        run: uv sync --frozen --extra dev
       - name: Lint (ruff)
         working-directory: sdk/python
         run: |
