@@ -77,10 +77,10 @@ jobs:
           uv run ruff format --check .
       - name: Typecheck (ty)
         working-directory: sdk/python
-        run: ty src/wshrtnr
+        run: uv run ty src/wshrtnr
       - name: Test (pytest)
         working-directory: sdk/python
-        run: pytest
+        run: uv run pytest
 
   browser-extension:
     name: Browser extension
