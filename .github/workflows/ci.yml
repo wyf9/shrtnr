@@ -73,8 +73,8 @@ jobs:
       - name: Lint (ruff)
         working-directory: sdk/python
         run: |
-          ruff check .
-          ruff format --check .
+          uv run ruff check .
+          uv run ruff format --check .
       - name: Typecheck (ty)
         working-directory: sdk/python
         run: ty src/wshrtnr
@@ -85,12 +85,15 @@ jobs:
   browser-extension:
     name: Browser extension
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+      - name: Install and build TypeScript SDK
+        working-directory: sdk/typescript
+        run: bun install --frozen-lockfile && bun run build
       - name: Install dependencies
         working-directory: browser-extensions
         run: bun install --frozen-lockfile

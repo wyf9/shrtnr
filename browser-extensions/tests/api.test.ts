@@ -13,7 +13,7 @@ let mockedClient: {
   };
 };
 
-vi.mock("@oddbit/shrtnr", async () => {
+vi.mock("@wyf9/shrtnr", async () => {
   class ShrtnrError extends Error {
     constructor(
       public status: number,
@@ -126,7 +126,7 @@ describe("api.shortenUrl", () => {
   it("throws ExtensionError with correct category for each SDK error status", async () => {
     setStorageItem("config", { baseUrl: "https://x.com", apiKey: "sk_abc" });
     const { shortenUrl } = await import("../src/api");
-    const { ShrtnrError } = await import("@oddbit/shrtnr");
+    const { ShrtnrError } = await import("@wyf9/shrtnr");
 
     const cases: Array<[number, string]> = [
       [0, "network"],
@@ -184,7 +184,7 @@ describe("api.testConnection", () => {
 
   it("throws ExtensionError on auth failure", async () => {
     setStorageItem("config", { baseUrl: "https://x.com", apiKey: "sk_abc" });
-    const { ShrtnrError } = await import("@oddbit/shrtnr");
+    const { ShrtnrError } = await import("@wyf9/shrtnr");
     mockedClient.links.list.mockRejectedValueOnce(
       new ShrtnrError(401, "bad key"),
     );

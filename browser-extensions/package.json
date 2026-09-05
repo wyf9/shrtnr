@@ -24,7 +24,7 @@
     "verify-build": "node scripts/verify-build.mjs"
   },
   "dependencies": {
-    "@wyf9/shrtnr": "^2.0.0",
+    "@wyf9/shrtnr": "file:../sdk/typescript",
     "preact": "^10.25.0"
   },
   "devDependencies": {

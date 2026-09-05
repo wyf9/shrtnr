@@ -94,7 +94,7 @@ python_version = "3.10"
 strict = true
 
 [tool.shrtnr]
-spec_hash = "sha256:f325eb0a5769061ee5638a497c164c6c15e66f9cece6dd1dd0e821b13be46c58"
+spec_hash = "sha256:b5f8703db1545f5187fefd3f522d956706ff7e767a3f776c8880e4189487c223"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
