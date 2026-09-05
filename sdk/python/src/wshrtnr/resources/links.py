@@ -62,7 +62,9 @@ class Links:
         url = self._url(f"/_/api/links/{id}", {"range": range})
         return Link.from_dict(self._request("GET", url, headers=self._headers()))
 
-    def list(self, *, owner: str | None = None, range: TimelineRange | None = None) -> builtins.list[Link]:
+    def list(
+        self, *, owner: str | None = None, range: TimelineRange | None = None
+    ) -> builtins.list[Link]:
         """List all links. Filter by owner or click-count range."""
         url = self._url("/_/api/links", {"owner": owner, "range": range})
         data = self._request("GET", url, headers=self._headers())
